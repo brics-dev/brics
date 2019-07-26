@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.example.org/RulesEngineRules" xmlns:tns="http://www.example.org/RulesEngineRules" elementFormDefault="qualified">
+
+    <complexType name="Rule">
+    	<sequence>
+    		<element name="Attribute" type="string"></element>
+    		<element name="Operation" type="string"></element>
+    		<element name="NewElement" type="string"></element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="FieldRule">
+    	<sequence>
+    		<element name="Name" type="string"></element>
+    		<element name="Rules" type="tns:Rule" maxOccurs="unbounded"
+    			minOccurs="0">
+    		</element>
+    		<element name="FieldRules" type="tns:FieldRule"
+    			maxOccurs="unbounded" minOccurs="0">
+    		</element>
+    		<element name="ThresholdProperties" type="tns:ThresholdPropertyRules" maxOccurs="1" minOccurs="0"></element>
+    	</sequence>
+    </complexType>
+
+
+    <complexType name="DictionaryObjectRules">
+    	<sequence>
+    		<element name="FieldRules" type="tns:FieldRule" maxOccurs="unbounded" minOccurs="0"></element>
+    	</sequence>
+    </complexType>
+
+
+
+    <complexType name="RulesEngineRule">
+    	<sequence>
+    		<element name="DataElementRules"
+    			type="tns:DictionaryObjectRules">
+    		</element>
+    		<element name="FormStructureRules" type="tns:DictionaryObjectRules"></element>
+    	</sequence>
+    </complexType>
+
+    <element name="RulesEngineRule" type="tns:RulesEngineRule"></element>
+
+    <complexType name="ThresholdPropertyRules">
+    	<sequence>
+    		<element name="Threshold" type="tns:Threshold"></element>
+    	</sequence>
+    </complexType>
+    
+    <complexType name="Severity">
+    	<sequence>
+    		<element name="Increase" type="string"></element>
+    		<element name="NoChange" type="string"></element>
+    		<element name="Decrease" type="string"></element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="Threshold">
+    	<sequence>
+    		<element name="Name" type="string"></element>
+    		<element name="Change" type="tns:Change" maxOccurs="unbounded" minOccurs="1"></element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="Change">
+    	<sequence>
+    		<element name="Name" type="string"></element>
+    		<element name="Severity" type="tns:Severity"></element>
+    	</sequence>
+    </complexType>
+</schema>

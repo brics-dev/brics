@@ -1,0 +1,1468 @@
+@CHARSET "ISO-8859-1";
+
+/* page main */
+
+body {
+	min-width: 960px;
+}
+
+#queryTool {
+	padding: 0px;
+	border: none;
+}
+
+/**
+ * Used for positioning help.  show if needed for dev
+ */
+#line {
+	position: absolute;
+	height: 500px;
+	width: 1px;
+	background: black;
+	left: 500px;
+	top: 0px;
+	z-index: 9999;
+	display: none;
+}
+
+a {
+	text-decoration: none;
+}
+
+placeholder {
+	display:none
+}
+
+.buttonPrimary {
+	color: white !important;
+	background: red;
+	border: 1px solid red;
+	display: inline-block;
+	height: 30px;
+	line-height: 30px;
+	text-align: center;
+	min-width: 68px;
+	padding: 0 6px 0 6px;
+}
+.buttonSecondary {
+	color: red !important;
+	background: white;
+	border: 1px solid red;
+	display: inline-block;
+	height: 30px;
+	line-height: 30px;
+	text-align: center;
+	min-width: 68px;
+	padding: 0 6px 0 6px;
+}
+.buttonPrimary .glyphicon, .buttonSecondary .glyphicon {
+	padding-right: 5px;
+	font-weight: bold;
+}
+
+.buttonWithIcon {
+	color: #6b7277;
+	background: white;
+	border: 1px solid red;
+	display: inline-block;
+	height: 22px;
+	padding-right: 6px;
+	font-weight: normal;
+	margin-right: 30px;
+	float: right;
+	line-height: 22px;
+	cursor:pointer;
+}
+.buttonWithIcon .icon {
+	background: red;
+	width: 23px;
+	color: white !important;
+	margin-right: 6px;
+	font-size: 18px;
+	line-height: 22px;
+	text-align: center;
+	vertical-align: middle;
+	float: left;
+}
+
+.buttonWithIcon .icon.right {
+	background: red;
+	width: 23px;
+	color: white !important;
+	margin-right: 0px;
+	font-size: 18px;
+	line-height: 22px;
+	text-align: center;
+	vertical-align: middle;
+	float: right;
+}
+
+.buttonWithIcon.secondary {
+	color: #798085;
+	background: white;
+	border: 1px solid #798085;
+	display: inline-block;
+	height: 22px;
+	padding-right: 15px;
+	font-weight: normal;
+	margin-right: 30px;
+	float: right;
+}
+.buttonWithIcon.secondary .icon {
+	background: #dce0e4;
+	width: 23px;
+	color: #798085 !important;
+	margin-right: 15px;
+	font-size: 18px;
+	line-height: 22px;
+	text-align: center;
+	vertical-align: middle;
+	border-right: 1px solid #798085;
+}
+.buttonWithIcon.secondary .icon.right {
+	background: #dce0e4;
+	width: 23px;
+	color: #798085 !important;
+	margin-right: 0px;
+	font-size: 18px;
+	line-height: 22px;
+	text-align: center;
+	vertical-align: middle;
+	border-right: 1px solid #798085;
+}
+
+.disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+.unavailable {
+	cursor: default;
+}
+
+#queryTool .mainTab a {
+	margin-left: 5px;
+}
+
+#mainContent > .ui-tabs-nav [role="tab"] {
+	width: 14%;
+}
+
+/*
+ * this makes the "slant" on the tabs.  It's not perfect for chrome or for the second tab
+ * being the active one but that could be worked on.
+
+.mainTab:before {
+	border: none;
+    height: 2px;
+    width: 16px;
+    display: block;
+    content:" ";
+    background-color: red;
+    position: absolute;
+    right: -16px;
+    top: 27px;
+    z-index: 2;
+}
+.mainTab.ui-state-active:before {
+	border: none;
+    height: 2px;
+    width: 16px;
+    display: block;
+    content:" ";
+    background-color: white;
+    position: absolute;
+    right: -16px;
+    top: 27px;
+    z-index: 2;
+}
+.mainTab:after {
+    display: block;
+    content:" ";
+    width: 16px;
+    height: 28px;
+    top: -1px;
+    background-color: #dce0e4;
+    position: absolute;
+    right: -9px;
+    transform:skewX(30deg);
+    -ms-transform:skewX(30deg);
+    -webkit-transform:skewX(30deg);
+    border: none;
+    border-right: 1px solid #c5c5c5;
+    border-top: 1px solid #c5c5c5;
+    z-index: 2;
+}
+.mainTab.ui-state-active:after {
+    display: block;
+    content:" ";
+    width: 16px;
+    height: 28px;
+    top: -1px;
+    background-color: white;
+    position: absolute;
+    right: -9px;
+    transform:skewX(30deg);
+    -ms-transform:skewX(30deg);
+    -webkit-transform:skewX(30deg);
+    border: none;
+    border-right: 1px solid red;
+    border-top: 1px solid red;
+    z-index: 2;
+}
+*/
+
+.tab-pane {
+	padding-top: 20px;
+}
+
+.filterPaneHandle {
+	display: none;
+	width: 3%;
+	float: left;
+	border: 1px solid #c5c5c5;
+	margin-right: 1%;
+	position: relative;
+	background: #cccccc;
+	padding-top: 30px;
+	font-size: 15px;
+	text-align: center;
+	font-weight: bold;
+}
+
+.filterPaneHandleCart {
+	margin-right: 5px;
+	text-align: right;
+	width: 5%;
+}
+
+.filterPaneHandle .toggleFilterPane {
+	
+}
+
+.filterPaneHandleContents {
+	color: red;
+}
+
+.filterPaneHandleTurn {
+	-webkit-transform: rotate(-90deg);
+	-moz-transform: rotate(-90deg);
+	-ms-transform: rotate(-90deg);
+	-o-transform: rotate(-90deg);
+	transform: rotate(-90deg);
+	transform-origin: 0px 0px;
+	
+	position: absolute;
+	right: -77px; /* this is calculated based off the width property */
+	top: 155px;
+	width: 100px;
+}
+
+.filterPane {
+	float: left;
+	width: 38%;
+	border: none;
+	padding-top: 0;
+	border-top: none;
+	border-left: none;
+	margin-right: 1%;
+	position: relative;
+}
+.resultPane {
+	height: 100%;
+	float: left;
+	width: 60%;
+}
+
+.fullHeight {
+	height: 100%;
+}
+
+.ui-tabs .ui-tabs-panel {
+    padding: 1em 1.4em 1em 0;
+}
+
+.ui-tabs .ui-tabs-nav li {
+	margin-left: -1px;
+	margin-right: -1px;
+}
+
+#mainContent > .ui-tabs-nav {
+	padding-left: 1%;
+}
+
+.formBuilder_dialog_noclose .ui-dialog-titlebar-close {
+  display: none;
+}
+
+#mainContent .filterPane .ui-tabs-nav {
+	
+}
+
+#mainContent .filterPane .ui-tabs-nav [role="tab"] {
+	width: 25%;
+}
+
+
+.ui-tabs .ui-tabs-nav .ui-tabs-anchor {
+	padding: 0.5em 0;
+}
+
+.ui-tabs-anchor {
+	width: 100%;
+	text-align: center;
+}
+
+.ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active {
+	z-index: 99;
+}
+
+.tooltip {
+	display: none;
+	z-index: 999;
+	position: absolute;
+	box-shadow: 0 0 10px #000000;
+	-moz-box-shadow: 0 0 10px #000000;
+	-webkit-box-shadow: 0 0 10px #000000;
+	background: white;
+	padding: 10px;
+}
+
+.adminOnlyLabel {
+	float: right;
+	margin-right: 15px;
+	line-height: 24px;
+	color: red;
+}
+
+.selectDe_searchLocations {
+	float: left;
+	position: relative;
+	height: 18px;
+	line-height: 18px;
+	border: 1px solid red;
+	padding: 6px 12px;
+	color: red;
+	list-style: outside none;
+	width: 176px;
+}
+
+.selectDe_searchLocations .glyphicon {
+	float: right;
+	line-height: 16px;
+}
+
+.selectDe_searchLocations .glyphicon {
+	vertical-align: middle;
+	font-size: 22px;
+}
+
+.selectDe_textSearch {
+	float: left;
+	height: 26px;
+	width: 360px;
+}
+
+.selectDe_searchLocationDropdown {
+	width: 200px;
+	position: absolute;
+	top: 2px;
+	left: -13px;
+	background: #FFFFFF;
+	border: 1px solid red;
+	z-index: 999;
+	border-top: none;
+	
+}
+
+.selectDe_locations_option {
+	width: 100%;
+}
+
+.selectDe_wholeWordSelector {
+	line-height: 32px;
+	float: left;
+}
+
+#selectDe_searchButton {
+	float: left;
+}
+
+.selectDe_facets {
+	float: left;
+	width: 25%;
+	margin-top: 20px;
+}
+
+#selectDe_mainArea {
+	float: left;
+	width: 75%;
+	margin-top: 20px;
+}
+
+#selectDe_tableWrapper {
+	padding-left: 20px;
+}
+
+.selectDe_facetHeader {
+	font-weight: bold;
+}
+
+.facet-form-field {
+	background: #f1f2f3;
+	border: 1px solid #b2b9bf;
+	margin-bottom: 20px;
+	padding: 2px;
+}
+
+.selectDe_facets ul {
+	list-style: none;
+	overflow-y: scroll;
+	max-height: 250px;
+	margin: 0px;
+	padding-left: 5px;
+}
+
+
+/* filter data tab */
+
+	/* selection list tabs */
+	
+	#stepOneTab .ui-tabs-anchor {
+		height: 30px;
+		line-height: 30px;
+		padding: 0;
+	}
+	
+	.selectionSearchText {
+		border: 1px solid #b2b9bf;
+		border-right: none;
+		height: 28px;
+		padding-left: 10px;
+		width: 55%;
+		float: left;
+	}
+	
+	.selectionSearchButton {
+		float: left;
+	}
+	
+	.selectionSearchReset {
+		float: right;
+	}
+	
+	.selectionListItem {
+		margin-bottom: 5px;
+	}
+	
+	.selectionListCheckboxContainer {
+		float: left;
+		width: 5%;
+		padding-left: 1%;
+	}
+	.selectionListCheckboxContainer input {
+		background: white;
+		color: white;
+	}
+	.selectionListCheckboxContainer input:checked {
+		background: red;
+		color: white;
+	}
+	
+	.selectionListTitleContainer {
+		float: left;
+		width: 83%;
+	}
+	
+	.currentlyFiltering {
+		margin-top: 17px;
+		color: red;
+	}
+	
+	.filterTextContainer {
+		margin-top: 17px;
+		color: red;
+	}
+	
+	.selectionList {
+		overflow-y: scroll;
+		border: 1px solid red;
+	}
+	
+	/* I'm being specific here because I have to overwrite jqueryUI's defaults */
+	.selectionListHeader {
+		color: #FFFFFF;
+		line-height: 30px;
+		background-color: red;
+	}
+	
+	#mainContent .tab-pane .selectionListContainer .selectionListHeader a {
+		color: white;
+	}
+ 	
+	.selectionListHeader .expandCollapseButton {
+		text-size: 16px;
+		float: left;
+		padding-left: 2%;
+		padding-right: 2%;
+	}
+	
+	.expandCollapseButton .glyphicon {
+		font-size: 17px;
+		vertical-align: middle;
+	}
+	
+	.filteringType {
+		float: left;
+	}
+	
+	.filteringCount {
+		float: left;
+		margin-left: 10px;
+	}
+	
+	.resetFilter {
+		float: right;
+		padding-right: 2%;
+	}
+	
+	#selectionListEmpty {
+		display: none;
+	}
+	
+	.deSelectionListItem {
+		display: none;
+	}
+	
+	/* result list panel */
+
+	.resultPaneHeader {
+		min-height: 30px;
+		margin-top: 10px;
+		margin-bottom: 10px;
+	}
+	
+	.resultPaneHeader .buttonWithIcon {
+		margin-top: 3px;
+	}
+
+	.resultPaneCount {
+		color: red;
+		line-height: 30px;
+		float: left;
+	}
+	
+	.resultPaneSearchText {
+		border: 1px solid #b2b9bf;
+		border-right: none;
+		height: 28px;
+		padding-left: 10px;
+		width: 70%;
+		float: left;
+	}
+	
+	.resultPaneSearchButton {
+		float: left;
+	}
+	
+	.resultPaneSearchReset {
+		float: right;
+	}
+
+	.resultPaneContent {
+		border: 1px solid red;
+		overflow: auto;
+		position: relative;
+	}
+	
+	.resultPaneSelect {
+		display: none;
+	}
+	
+	.ui-tabs .ui-tabs-panel.selectionListPanel {
+		border: 1px solid red;
+		border-top: none;
+		margin-left: -1px;
+		margin-right: 0px;
+		padding: 15px;
+	}
+	
+	.filterDataTile {
+		margin: 0.5%;
+		float: left;
+		min-height: 50px;
+		width: 48%;
+		border: 1px solid #b2b9bf;
+		background: #f1f2f3;
+	}
+	.filterDataTile.expanded {
+		background: #FFFFFF;
+	}
+	
+	.filterDataTile .expandCollapseButton {
+		color: #6e7579;
+	}
+	
+	.tile_header {
+		position: relative;
+		min-height: 50px;
+		padding-right: 29px;
+	}
+	
+	.tile_content {
+		margin-left: 25px;
+		margin-right: 25px;
+	}
+	
+	.tile_title {
+		word-wrap: break-word;
+	}
+	
+	.tile_expandCollapse {
+		width: 20px;
+		position: absolute;
+		top: 1px;
+		left: 2px;
+	}
+	
+	.filterDataTile .tile_cartIcon {
+		width: 24px;
+		height: 24px;
+		position: absolute;
+		top: -1px;
+		right: -1px;
+		font-size: 16px;
+		color: red;
+		line-height: 24px;
+		background: white;
+		border: 1px solid red;
+		text-align: center;
+	}
+	
+	.filterDataTile .filterDataSubTile a.subTile_cartIcon {
+		width: 24px;
+		height: 24px;
+		font-size: 16px;
+		color: red;
+		line-height: 24px;
+		background: white;
+		border: 1px solid red;
+		text-align: center;
+		float: right;
+		margin-top: -1px;
+		margin-right: -1px;
+	}
+	
+	.filterDataTile .tile_cartIcon.selected {
+		background: red;
+		color: white;
+	}
+	
+	.filterDataTile .filterDataSubTile a.subTile_cartIcon.selected {
+		background: red;
+		color: white;
+	}
+	
+	.filterDataTile .tile_cartIcon.unavailable {
+		color: #798085;
+		background: #dce0e4;
+		border-color: #798085;
+		font-weight: bold;
+	}
+	
+	.filterDataTile .subTile_cartIcon.unavailable {
+		color: #798085;
+		background: #dce0e4;
+		border-color: #798085;
+		font-weight: bold;
+	}
+
+	.tileSubContainer {
+		display: none;
+	}
+	
+	.subTile_cartIcon {
+		float: right;
+		height: 25px;
+		width: 25px;
+	}
+	
+	.filterDataSubTile {
+		background-color: #f1f2f3;
+		border: 1px solid #b2b9bf;
+		width: 47%;
+		margin: 1%;
+		float: left;
+		position: relative;
+		min-height: 40px;
+	}
+	
+	.filterDataSubTileText {
+		word-break: break-all;
+		word-wrap: break-word;
+		/* new property superseding word-wrap
+		@see https://www.w3.org/TR/css-text-3/#overflow-wrap */
+		overflow-wrap: break-word;
+	}
+	
+	.resultPaneListEmpty {
+		display: none;
+	}
+	
+	.currentlyFilteringText {
+		float: left;
+	}
+	
+	.selectionListPill {
+		height: 18px;
+		border-radius: 9px;
+		border: 1px solid #b2b9bf;
+		display: none;
+		color: #798085;
+		float: left;
+		margin-left: 10px;
+		padding-left: 5px;
+	}
+	
+	.selectionListPill .closeButton {
+		float: right;
+		font-size: 16px;
+		line-height: 16px;
+		padding: 1px;
+		margin-left: 5px;
+	}
+	
+	.filterPillText {
+		width: 100%;
+		padding-right: 18px;
+		line-height: 18px;
+		color: #6b7277;
+	}
+	
+	.filterPillClose {
+		float: right;
+	}
+	
+	.selectDeButton {
+		margin-top: 15px;
+	}
+
+/* refine data tab */
+
+	.resultsTabLink {
+		width: 15%;
+		text-align: center;
+	}
+
+	/* left side */
+	.refineDataDataCartHeader {
+		height: 35px;
+		color: red;
+	}
+	
+	.filterDataTabsContainer {
+		width: 100%;
+		padding: 0;
+	}
+	
+	.dataCartForm {
+		width: 90%;
+		position: relative;
+		min-height: 36px;
+		border: 1px solid #b2b9bf;
+		background: #dce0e4;
+		font-weight: bold;
+		margin-bottom: 5px;
+		padding-right: 25px;
+		color: black;
+		line-height: 1.5em;
+	}
+	
+	#stepTwoTab #refineDataCartContainer .dataCartForm .form_cartIcon_remove {
+		background-color: red;
+		color: white;
+		border: 1px solid red;
+		position: absolute;
+		top: -1px;
+		right: -1px;
+		line-height: 24px;
+		height: 24px;
+		font-size: 16px;
+		text-align: center;
+		width: 24px;
+	}
+	
+	.refineData_dataCartLabel {
+		width: 30%;
+		float: left;
+		font-weight: bold;
+		font-size: 15px;
+	}
+	
+	#stepTwoTab .filterPaneHandle .toggleFilterPane {
+		position: absolute;
+		top: -1px;
+		right: -1px;
+		height: 24px;
+		width: 24px;
+		border: 1px solid red;
+		color: red;
+		background: white;
+		font-size: 16px;
+		text-align: center;
+		line-height: 24px;
+	}
+	
+	.moveDataCartToQueue {
+		float: right;
+	}
+	
+	#stepTwoTab .filterPane .toggleFilterPane {
+		position: absolute;
+		top: -1px;
+		right: -1px;
+		height: 24px;
+		width: 24px;
+		border: 1px solid red;
+		color: red;
+		background: white;
+		font-size: 16px;
+		text-align: center;
+		line-height: 24px;
+	}
+	
+	.dataCartActiveFormsHeader {
+		margin-left: 5px;
+		color: #6b7277;
+		border-top: 1px solid #b2b9bf;
+		border-left: 1px solid #b2b9bf;
+		border-right: 1px solid #b2b9bf;
+	}
+	
+	.dataCartActiveFormsHeaderContent {
+		width: 90%;
+		margin: 0 auto 0 auto;
+		padding-top: 5px;
+		padding-bottom: 5px;
+	}
+	
+	.dataCartActiveFormsContainer {
+		margin-left: 5px;
+		height: 100%;
+		border-left: 1px solid #b2b9bf;
+		border-right: 1px solid #b2b9bf;
+	}
+	
+	.dataCartActiveFormsButtonsContainer {
+		margin-left: 5px;
+		border: 1px solid #b2b9bf;
+		padding: 5px;
+	}
+	
+	.formJoinDropArea {
+		min-height: 38px;
+		line-height: 38px;
+		width: 90%;
+		margin: 0 auto 5px auto;
+		border: 1px dashed #b2b9bf;
+		color: #b2b9bf;
+		position: relative;
+	}
+	
+	.icon.joinIcon {
+		/* this should be overwritten by an instance-specific stylesheet */
+		background: url("../instances/pdbp/images/joinIcon.png") no-repeat;
+		height: 22px;
+	}
+	
+	#refineDataCartContainer {
+		padding: 10px;
+	}
+	
+	.refineDataFormContainer {
+		overflow-x: auto;
+	}
+	
+	.refineDataJoinContainer {
+		float: left;
+		width: 50%;
+	}
+	
+	#filterPaneContentContainer {
+		padding: 10px;
+		border-top: 1px solid red;
+	}
+	
+	#stepTwoTab .filterPane {
+		border: 1px solid red;
+	}
+	
+	.filterClose {
+		position: absolute;
+		top: -1px;
+		right: -1px;
+		height: 24px;
+		width: 24px;
+		border: 1px solid #4a545b;
+		color: #4a545b;
+		background: #dce0e4;
+		font-size: 16px;
+		text-align: center;
+		line-height: 24px;
+	}
+	
+	#joinFormsButton {
+		float: left;
+		line-height: 22px;
+		text-align: center;
+		margin-left: 5px;
+		margin-right: 5px;
+		padding-left: 0px;
+		padding-right: 5px;
+	}
+	
+	#resetFormsButton {
+		float: right;
+		line-height: 22px;
+		text-align: center;
+		margin-right: 5px;
+		margin-left: 5px;
+		padding-left: 0px;
+		padding-right: 5px;
+	}
+	
+	.dataCartRemoveHeader {
+		padding: 10px;
+		color: #454545;
+		border: 1px solid #c5c5c5;
+		margin-bottom: 10px;
+		margin-top: 10px;
+		background: #dce0e4;
+	}
+	
+	.dataCartRemoveItem > a {
+		float: right;
+		margin-left: 20px;
+		font-size: 11px;
+	}
+	
+	.dataCartRemoveItem > a > .glyphicon {
+		font-size: 15px;
+	}
+	
+	.dataCartRemoveItem {
+		border: 1px solid red;
+		margin-bottom: 10px;
+		padding: 20px;
+	}
+	
+	.dataCartActive {
+		background: #9eca2d;
+		color: white;
+	}
+	
+	#refineData_dataCartLabel {
+		float: left;
+		color: red;
+		font-size: 15px;
+		font-weight: bold;
+	}
+	
+	#filterPaneHeaderTitle {
+		float: left;
+		color: red;
+		font-size: 15px;
+		font-weight: bold;
+	}
+	
+	.applyFilterButton {
+		margin-right: 0;
+	}
+	
+	.filterBody {
+		border-top: 1px solid #b2b9bf;
+	}
+	
+	.filterBodyContainer.closed {
+		border-top: none;
+		height: 15px;
+		overflow: hidden;
+	}
+	
+	.filterBodyContainer.closed .filterBody {
+		display: none;
+	}
+	
+	.queryFilter {
+		border: 1px solid #b2b9bf;
+		margin-top: 5px;
+		position: relative;
+		background: #f1f2f3;
+	}
+	
+	.filterNumericRangeSlider {
+		width: 80%;
+		margin-left: auto;
+		margin-right: auto;
+		background: #b2b9bf;
+	}
+	
+	#filtersList {
+		overflow: auto;
+	}
+	
+	#filtersList .filterHeader .filterToggle {
+		border: 1px solid #b2b9bf;
+		font-size: 16px;
+		font-weight: bold;
+		height: 24px;
+		width: 24px;
+		line-height: 24px;
+		position: absolute;
+		right: -1px;
+		bottom: -1px;
+		text-align: center;
+		background: #FFFFFF;
+		color: #b2b9bf;
+	}
+	
+	
+	
+	.ui-slider-range {
+		background: red;
+	}
+	
+	.ui-slider-handle {
+		border-radius: 7px;
+	}
+	
+	/* right side */
+	
+	#stepTwoTab .resultPaneContent {
+		border: none;
+		padding: 0px;
+		overflow: visible;
+	}
+	
+	.outputCodeDropdown {
+		margin-right: 10px;
+		float: left;
+	}
+	
+	.nav li.buttonWithIcon {
+		border: 1px solid red;
+		float: right;
+		width: 100%;
+	}
+	
+	.nav ul  {
+		padding: 0;
+	  	margin: 0;
+		list-style: none;
+		position: relative;
+	}
+	
+	.nav ul li {
+		display:inline-block;
+	}
+	
+	.nav ul {
+		display: none;
+	}
+	
+	.nav > li:hover > ul {
+		display:inherit;
+	}
+	
+	.nav.disabled > li:hover > ul {
+		display: none;
+	}
+	
+	.nav > li:hover {
+		border-bottom: 1px solid white;
+	}
+	
+	.nav.disabled > li:hover {
+		border: 1px solid red;
+	}
+	
+	.nav ul li {
+		background: white;
+		float: none;
+		min-height: 22px;
+		line-height: 22px;
+		border-left: 1px solid red;
+		border-right: 1px solid red;
+		width: 100%;
+		display: block;
+		z-index: 99;
+	}
+	
+	.nav ul li:first-child {
+		border-top: none;
+	}
+	
+	.nav ul li:last-child {
+		border-bottom: 1px solid red;
+	}
+	
+	#displayOptions > li {
+		margin-right: 0px;
+	}
+	
+	#displayOptions.nav ul li {
+		padding-right: 14px;
+	}
+	
+	#displayOptions.nav ul {
+		margin-left: -1px;
+		Z-index: 99;
+	}
+	
+	.ui-tabs .ui-tabs-nav .nav li {
+		white-space: normal;
+	}
+	
+	#downloadToQueue.disabled ul {
+		display: none;
+	}
+	
+	#outputCodesDropdown .outputCodeDropdown {
+		padding-left: 10px;
+	}
+	
+	#resultsSelectCriteria {
+		margin-left: -1px;
+		margin-right: -1px;
+		border-left: 1px solid red;
+		border-right: 1px solid red;
+		border-bottom: 1px solid red;
+		padding-right: 0px;
+		overflow: auto;
+	}
+	
+	#resultsDatatable {
+		margin-left: -1px;
+		margin-right: -1px;
+		border-left: 1px solid red;
+		border-right: 1px solid red;
+		border-bottom: 1px solid red;
+	}
+	
+	.selectCriteriaFormName {
+		padding-left: 10px;
+		color: red;
+		font-weight: bold;
+	}
+	
+	.selectCriteriaGroup {
+		border-top: 1px solid #6b7277;
+	}
+	
+	.selectCriteriaGroupHeader {
+		color: #6b7277;
+		height: 28px;
+		line-height: 28px;
+		padding-left: 2%;
+	}
+	
+	.selectCriteriaTableHeader {
+		background: #dce0e4;
+		margin-top: 2px;
+		height: 30px;
+		line-height: 30px;
+	}
+	
+	.selectCriteriaGroupContent {
+		display: none;
+	}
+	
+	.selectCriteriaDeNameContainer {
+		width: 58%;
+		float: left;
+		padding-left: 2%;
+	}
+	
+	.selectCriteriaDeCheckboxContainer {
+		width: 20%;
+		float: left;
+		text-align: center;
+	}
+	
+	.selectCriteriaFilterContainer {
+		width: 20%;
+		float: left;
+	}
+	
+	.selectCriteriaGroupButtons {
+		padding-left: 2%;
+	}
+	
+	.selectCriteriaGroupButtonsText {
+		float: left;
+	}
+	
+	.selectCriteriaGroupExpandCollapse {
+		width: 28px;
+		height: 28px;
+		font-size: 15px;
+		float: left;
+		line-height: 28px;
+		color: #6b7277;
+	}
+	
+	.selectCriteriaDe {
+		padding: 2px;
+	}
+	
+	.selectCriteriaDeContainer .selectCriteriaDe:nth-child(even) {
+		background: #f2f9ff;
+	}
+	
+	.selectCriteriaGroupButtons .buttonWithIcon {
+		float: left;
+	}
+	
+	.selectCriteriaDeFilter.filtering {
+		background: red;
+		color: white;
+	}
+	
+	.selectCriteriaGroupSelectionName {
+		font-weight: bold;
+	}
+	
+	.deInformation {
+		height: 24px;
+		width: 24px;
+		font-size: 15px;
+	}
+	
+	#queryResultsCount {
+		float: right;
+		color: red;
+	}
+	
+		/* Rbox */
+  	
+  	.form-actions {
+  		float:left;
+  	
+  	}
+  
+	#rboxCodeBlock {
+		float:left;
+		width: 100%; 
+		border: 1px solid red;
+		margin-top: 5px;
+		margin-bottom: 5px;
+	}
+	
+	#rboxResults {
+		display: inline-block;
+		border: 1px solid red;
+		display: inline-block;
+		width: 100%;
+		margin-top: 5px;
+		margin-bottom: 5px;
+	}
+	
+	#rboxGraph {
+		float: right;
+		width: 40%;
+	}
+	
+	#rboxConsole {
+		float: left;
+		width: 55%;
+	}
+	
+		/* End Rbox */
+		
+	#displayOptions {
+		float: right;
+		width: 20%;
+	}
+	
+	#outputCodesDropdown {
+		width: 30%;
+		display: inline-block;
+		float: right;
+	}
+	
+	#dataOptions {
+		width: 25%;
+		display: inline-block;
+		float: right;
+	}
+	
+	.savedQueryField input[type="radio"] {
+		float: left;
+	}
+
+/* html forms */
+/* single-column form row */
+.requiredStar {
+  color: #dd3434;
+  font-weight: bold;
+  font-size: 19px;
+}
+  
+.formrow_1 {
+  width: 100%;
+  clear: both;
+  padding-bottom: 10px;
+  min-height: 1.5em;
+}
+
+.formrow_1 label {
+  margin-right: 20px;
+  text-align: right;
+  float: left;
+  font-weight: bold;
+  line-height: 1.5em;
+  width: 185px; }
+
+/* subtract the stars size */
+.formrow_1 label.requiredInput {
+  margin-right: 20px;
+}
+
+.formrow_1 > input[type="text"],
+.formrow_1 > input[type="password"],
+.formrow_1 > input[type="file"],
+.formrow_1 > input[type="date"],
+.formrow_1 > input[type="file"],
+.formrow_1 > input[type="datetime"],
+.formrow_1 > input[type="email"],
+.formrow_1 > input[type="month"],
+.formrow_1 > input[type="number"],
+.formrow_1 > input[type="search"],
+.formrow_1 > input[type="url"],
+.formrow_1 > input[type="time"],
+.formrow_1 > input[type="week"],
+.formrow_1 > input[type="tel"],
+.formrow_1 > textarea,
+.formrow_1 > select,
+.formrow_1 > .formrowinput {
+	width: 437px;
+	text-align: left;
+	float: left;
+}
+
+/* special case for textarea tags inside of a single row form */
+.formrow_1 > textarea {
+	margin-bottom: 10px;
+}
+
+/**** special case of only a button on a row ***/
+.formrow_1 > input[type="button"],
+.formrow_1 > input[type="submit"],
+.formrow_1 > input[type="image"],
+.formrow_1 > input[type="reset"],
+.formrow_1 > button {
+  margin-left: 5px;
+  margin-bottom: 10px;
+  float: left;
+}
+
+/* Gives the same functionality as above for full-screen popups */
+.formbutton > input[type="button"],
+.formbutton > input[type="submit"],
+.formbutton > input[type="image"],
+.formbutton > input[type="reset"],
+.formbutton > button {
+  float: right;
+  margin-left: 3px;
+  margin-right: 3px;
+  margin-top: 10px;
+}
+
+/* two-column form row */
+.formrow_2 {
+  width: 48%;
+  float: left;
+  padding-bottom: 10px;
+  padding-right: 5px;
+  padding-left: 5px;
+  min-height: 25px;
+}
+
+.formrow_2 label {
+  margin-right: 10px;
+  text-align: right;
+  float: left;
+  font-weight: bold;
+  line-height: 1.5em;
+}
+
+.formrow_2 label.requiredInput {
+  margin-right: 3px;
+}
+
+.formrow_2 > input[type="text"],
+.formrow_2 > input[type="password"],
+.formrow_2 > input[type="file"],
+.formrow_2 > input[type="date"],
+.formrow_2 > input[type="file"],
+.formrow_2 > input[type="datetime"],
+.formrow_2 > input[type="email"],
+.formrow_2 > input[type="month"],
+.formrow_2 > input[type="number"],
+.formrow_2 > input[type="search"],
+.formrow_2 > input[type="url"],
+.formrow_2 > input[type="time"],
+.formrow_2 > input[type="week"],
+.formrow_2 > input[type="tel"],
+.formrow_2 > textarea,
+.formrow_2 > button,
+.formrow_2 > select,
+.formrow_2 > .formrowinput {
+  width: 180px;
+  text-align: left;
+  float: left;
+}
+
+.formrow_2 {
+  text-align: left;
+}
+
+/* Standard Table Styling */
+table.std_table {
+	margin: 0 auto;
+	clear: both;
+	width: 100%;
+	border-collapse: collapse;
+	border: 1px solid;
+}
+
+table.std_table thead th {
+	font-weight: bold;
+	text-align: left;
+	border: solid 1px;
+	padding: 3px 0px 3px 10px;
+	background-color: #b9beff;
+}
+
+table.std_table tfoot th {
+	padding: 3px 10px;
+}
+
+table.std_table td {
+	vertical-align: top;
+	padding: 3px 10px;
+}
+
+table.std_table tr:nth-child(odd) { background-color: #E2E4FF; }
+table.std_table tr:nth-child(even) { background-color: white; }
+
+#validateQueryName,#validateDataName{
+	float: left;
+    display: block;
+    width: 250px;
+    color: red;	
+}
+
+/* footer */
+#footer {
+	clear: both;
+}

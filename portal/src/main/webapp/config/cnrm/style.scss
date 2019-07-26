@@ -1,0 +1,111 @@
+/*----------------------------------------------------------
+  CNRM Styles 
+------------------------------------------------------------*/
+ 
+/***
+      
+ * ===>>  CONFIG   <<============================================================================
+  
+ * Color Variables */
+         
+/* Grays */      
+$lightest: #fff; 
+$disabled-gray: #adadad; 
+$lightest-gray: #ececec;  
+$lighter-gray: #d6d6d6;
+$light-gray: #A8A8A8; 
+$medium-gray: #808080;        
+$dark-gray: #362f2d;
+$darkest: #000;
+
+/*  Main Colors (change these first, or add color names with hex values)
+** THESE COLORS (+ the grays) SHOULD DEFINE ALL OTHER COLORS IN THE SITE ** 
+*/  
+$red: #DD3434;
+$link-blue:  #141f64;
+$light-blue: #359AEC;
+$light-yellow: #ffc;  
+$yellow-orange: #CC9900;
+$dark-green:  #004d00; 
+$light-green: #678747;
+$light-turquoise: #6fc1dc; 
+$turquoise: #3b6f85;
+$dark-turquoise: #0a3040;
+$light-pink: #e72a5e; 
+$cnrm-pink: #b00836;
+$dark-pink: #92052c; 
+
+ $banner-color:#FF6600;
+ $banner-color:#FF6600;
+  
+/* Semantic Color Variables (change these next - these should be defined by Main Colors) */
+$body-bg: $turquoise; 
+$header-bg: $lighter-gray;
+$header-text: $darkest;
+$table-header: $body-bg; 
+$heading-primary: $turquoise;
+$heading-secondary:  $dark-gray;  
+$breadcrumb1: $light-blue;
+$breadcrumb2: $red;
+$btn-color: $cnrm-pink;
+$btn-color2: $light-pink;
+$btn-color3: $light-pink;
+$btn-close: $cnrm-pink;
+$btn-checked: $cnrm-pink;
+$btn-remove: $cnrm-pink;
+$footer-bg1: $dark-turquoise;
+$footer-bg2: $body-bg;
+$footer-text: $lightest;
+$footer-headings: $lightest;
+$active-sub1: $cnrm-pink;
+$active-sub2: $dark-pink;
+$active-ter: $light-turquoise;
+$nav-hover2: $footer-bg2;
+$nav-hover1: $footer-bg1;
+ $bannerBg: $banner-color;
+
+/*****
+    Other Color Variables (do NOT change these - these should always be defined by main or semantic variables) */
+    $border-dark: $light-gray;
+    $error: $red;
+    $success: $dark-green;
+    $highlight: $light-yellow;
+    $highlight-border: $dark-gray;
+    $highlight-text: $heading-secondary;
+    $reverse-bg: $heading-secondary;
+    $bannerBg: $banner-color;
+
+/***
+
+ * ===>>  END CONFIG   <<=================================================================
+
+***/
+
+/* Import BRICS Styles */ 
+
+@import "../../styles/common.scss"; 
+@import "../../styles/style.scss"; 
+@import "../../styles/fancybox.scss"; 
+@import "../../styles/icon.scss";
+@import "../../styles/layout.scss";
+
+/***
+
+ * ===>>  Instance-specific Style Overrides   <<=================================================================
+
+***/
+
+#logo {
+    margin: 17px 0 0 1px;
+    background-color: transparent;
+    height: 73px;
+    width: 214px;
+}
+
+#login-button {
+  margin: 37px 20px 0 0;
+}
+
+#header .content {
+  height: 100px;
+}

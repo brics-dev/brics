@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://fitbir.nih.gov/portal/ws/dictionary/DataStructure/"
+	xmlns:tns="http://fitbir.nih.gov/portal/ws/dictionary/DataStructure"
+	elementFormDefault="qualified"
+	xmlns:Q1="http://fitbir.nih.gov/portal/ws/dictionary/CommonTypes"
+	xmlns:Q2="http://fitbir.nih.gov/portal/ws/dictionary/DataStructure/" xmlns:pref="http://fitbir.nih.gov/portal/ws/dictionary/CommonTypes">
+
+
+	<import schemaLocation="CommonTypes.xsd" namespace="http://fitbir.nih.gov/portal/ws/dictionary/CommonTypes"></import>
+	<complexType name="DiseaseStructure">
+		<sequence>
+			<element name="id" type="long"></element>
+			<element name="disease" type="Q1:Disease"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="DataStructure">
+		<sequence>
+			<element name="repeatableGroups" type="Q1:RepeatableGroup"
+				maxOccurs="unbounded">
+			</element>
+			<element name="diseaseList" type="Q2:DiseaseStructure"
+				maxOccurs="unbounded">
+			</element>
+		</sequence>
+	</complexType>
+
+	<element name="DataStructure" type="Q2:DataStructure"></element>
+</schema>

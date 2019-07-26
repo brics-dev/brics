@@ -1,0 +1,740 @@
+/* Styles for page layouts. This includes the site header, navigation, content body and footer. */
+#bread-crumbs {
+	list-style-type: none;
+	overflow: auto;
+	padding: 0;
+	margin: 0 0 1.5em 0 !important;
+	font: 11px/1.3 Arial;
+}
+
+#bread-crumbs li a {
+	padding: 0 12px 0 0;
+	background: transparent url(../images/layout/breadcrumb-arrow.png)
+		no-repeat right center;
+}
+
+#bread-crumbs li {
+	float: left;
+	margin: 0 3px 0 3px !important;
+}
+
+.back-to-top {
+	float: right;
+	font: bold 12px/normal Arial, Verdana, Helvetica, sans-serif;
+	background: url(../images/layout/up-blue-arrow.png) no-repeat 100% 0;
+}
+
+.back-to-top-inner {
+	margin-right: 15px;
+}
+
+#page-container {
+	position: relative;
+	margin: 0 auto;
+	width: 100%;
+}
+
+.lightbox {
+	
+}
+
+.lightbox-normal {
+	width: 960px;
+}
+
+.lightbox-narrow {
+	width: 780px;
+}
+
+.content {
+	width: 960px;
+	margin: 0 auto;
+	position: relative;
+	overflow: visible;
+}
+
+.lightbox-content-wrapper {
+	margin: 0 auto;
+	position: relative;
+	overflow: visible;
+	background-color: #FFF;
+	min-width: 600px;
+}
+
+.text-block {
+	margin: 20px 0px 0px 0px;
+	clear: both;
+}
+
+/* Header styles */
+#header {
+	background-color: #ececec;
+	border-bottom: 1px solid #FFF;
+}
+
+#header .content {
+	background: url(../images/layout/bkg-neuron-header.png) no-repeat 200px
+		0;
+	height: 119px;
+}
+
+#logo {
+	background: url(../images/layout/fitbir.png) no-repeat 0 0;
+	margin: 22px 0 0 1px;
+	height: 90px;
+	width: 266px;
+}
+
+/* login button and form */
+#login-button {
+	margin: 75px 0 0 0;
+}
+
+#login-link {
+	float: left;
+	width: 90px;
+}
+
+#login-link a {
+	background: url(../images/layout/bkg-login-btn.png) no-repeat 0 0;
+	width: 90px;
+	padding: 0 30px 8px 22px;
+	float: left;
+	font: 11px/2.4 Arial, Gadget, sans-serif;
+	color: #FFF;
+	text-decoration: none;
+}
+
+#login-link a.expanded {
+	background: url(../images/layout/bkg-login-btn-expanded.png) no-repeat 0
+		0;
+	color: #141f64;
+}
+
+#login-panel {
+	display: none;
+	position: absolute;
+	top: 103px;
+	right: 0;
+	background: url(../images/layout/bkg-login-panel-bottom.png) no-repeat 0
+		100%;
+	z-index: 3;
+	width: 254px;
+	text-align: right;
+	padding-bottom: 10px
+}
+
+#login-wrapper {
+	background: url(../images/layout/bkg-login-panel-top.png) no-repeat 0 0;
+	padding: 5px 10px;
+}
+/* Content wrapper  styles */
+#content-wrapper {
+	margin-top: 32px;
+}
+
+#content-wrapper .content {
+	overflow: hidden;
+}
+
+.border-wrapper {
+	border: 1px solid #999;
+	float: left;
+	display: inline;
+	margin: 13px; /* rounded corners; works only in ie9 */
+	-webkit-border-radius: 6px;
+	-moz-border-radius: 6px;
+	border-radius: 6px;
+}
+
+/* BRICS Tools Styles */
+.brics-tool {
+	height: 95px;
+	width: 162px;
+}
+
+.brics-tool a {
+	background: url(../images/layout/bkg-tools-btn.png) no-repeat 0 0;
+	height: 95px;
+	width: 162px;
+	font: bold 15px/21px Arial, Verdana, Helvetica, sans-serif;
+	color: #FFF !important;
+	text-decoration: none;
+	text-transform: uppercase;
+	text-align: center;
+	padding-top: 25px;
+	display: block;
+}
+
+.brics-tool a:hover {
+	
+}
+
+/*homepage styles */
+.homepage #content-wrapper {
+	background: #FFF url(../images/layout/bkg-content-wrapper-homepage.gif)
+		repeat-y 50% 0;
+}
+
+#left-column {
+	float: left;
+	display: inline;
+	margin: 15px 0 0 22px;
+	width: 605px;
+}
+
+#left-column p {
+	margin: 0 0 1em 18px;
+}
+
+#spotlight-wrapper {
+	background: url(../images/layout/bkg-spotlight-bottom.png) no-repeat 0
+		100%;
+	padding-bottom: 7px;
+	width: 604px; /*margin-left:18px; width:587px; */
+}
+
+#spotlight-content {
+	background: url(../images/layout/bkg-spotlight-top.png) no-repeat 0 0;
+	padding: 22px 0 0 18px;
+}
+
+#spotlight-wrapper .float-left {
+	margin: 0 25px 20px 0;
+	width: 170px;
+}
+
+#spotlight-wrapper .float-left p {
+	margin: 0 0 1em 0;
+}
+
+#spotlight-wrapper h3 {
+	color: #141f64;
+	line-height: normal;
+	margin: 0 0 8px 0;
+}
+
+#spotlight-wrapper h3 a {
+	text-decoration: none;
+}
+
+#right-column {
+	float: right;
+	display: inline;
+	margin: 15px 20px 0 0;
+	width: 283px;
+}
+
+#right-column h3 {
+	color: #141f64;
+}
+
+#right-column h3 a {
+	text-decoration: none;
+}
+
+#right-column ul.homepage-list {
+	margin: 0 12px 1em 24px;
+}
+
+/*body.primary pages */
+.primary #content-wrapper {
+	background: #FFF url(../images/layout/bkg-content-wrapper-primary.gif)
+		repeat-y 50% 0;
+}
+
+.primary #content-wrapper .content {
+	background: url(../images/layout/bkg-content-primary.gif) no-repeat 0 0;
+}
+
+.primary #content-wrapper .content h1 {
+	margin-left: 13px;
+}
+
+.primary #left-sidebar {
+	float: left;
+	margin: 0;
+	position: relative;
+	width: 170px;
+}
+
+.primary #center-content {
+	float: left;
+	margin-right: 10px;
+	padding: 10px 0;
+	position: relative;
+	width: 577px;
+}
+
+.primary #right-sidebar {
+	float: left;
+	padding: 15px 0;
+	position: relative;
+	width: 162px;
+}
+
+.primary #main-content {
+	float: left;
+	margin: 0 13px;
+	padding: 10px 0;
+	position: relative;
+	width: 736px;
+	min-height: 200px;
+}
+
+.primary .wide #main-content {
+	width: 906px;
+}
+
+/* body.secondary pages */
+.secondary #content-wrapper {
+	background: #FFF url(../images/layout/bkg-content-wrapper-secondary.gif)
+		repeat-y 50% 0;
+}
+
+.secondary #content-wrapper .content {
+	background: url(../images/layout/bkg-content-secondary.gif) no-repeat 0
+		0;
+}
+
+.secondary #content-wrapper .content h1 {
+	margin-left: 250px;
+}
+
+.secondary #left-sidebar {
+	float: left;
+	margin: 8px 0 0 3px;
+	position: relative;
+	width: 250px;
+}
+
+.secondary #center-content {
+	float: left;
+	margin-left: 253px;
+	margin-right: -693px;
+	padding: 10px 0;
+	position: relative;
+	width: 440px;
+}
+
+.secondary  #right-sidebar {
+	float: left;
+	margin-left: 463px;
+	margin-right: -691px;
+	padding: 15px 0;
+	position: relative;
+	width: 228px;
+}
+
+.secondary #main-content {
+	float: left;
+	margin-left: 253px;
+	margin-right: -940px;
+	padding: 10px 0;
+	position: relative;
+	width: 687px;
+}
+
+/* Footer styles */
+.homepage #footer {
+	background: url(../images/layout/bkg-footer-homepage.gif) no-repeat 50%
+		0;
+}
+
+.primary #footer {
+	background: url(../images/layout/bkg-footer-primary.gif) no-repeat 50% 0;
+}
+
+.secondary #footer {
+	background: url(../images/layout/bkg-footer-secondary.gif) no-repeat 50%
+		0;
+}
+
+#footer {
+	padding-top: 45px;
+	overflow: hidden;
+}
+
+#footer .contact {
+	color: #fff;
+	float: left;
+	display: inline;
+	margin: 0 0 0 16px;
+	text-align: left;
+	width: 298px;
+}
+
+#footer .contact h4 {
+	color: #fff;
+	font: bold 14px/normal Arial;
+}
+
+#footer .contact h5 {
+	color: #fff;
+	font: bold 12px/normal Arial;
+}
+
+#footer .contact p {
+	font-size: 11px;
+	line-height: 1.4;
+	margin: 0 0 1em 0;
+}
+
+#footer ul.footer-links {
+	float: right;
+	list-style: none;
+	margin: 0 0 25px 0;
+}
+
+#footer ul.footer-logos {
+	margin: 0 0 15px 0;
+}
+
+#footer ul.footer-links li {
+	display: inline;
+	padding: 0 4px;
+}
+
+#footer a {
+	color: #FFF;
+	text-decoration: underline;
+}
+
+#footer .build-notes p{
+	float: right;
+	margin: 10px 0;
+}
+
+
+/* "help" text link on forms-layout2.htm */
+.help-link {
+	float: right;
+	display: inline;
+	margin: 10px 13px 0 0;
+	font: 16px/28px Arial;
+}
+
+#main-content ol,#main-content ul,#center-content ol,#center-content ul
+	{
+	margin: 0 3em 1em 3em;
+}
+
+#main-content ol li,#main-content ul li,#center-content ol li,#center-content ul li
+	{
+	margin: .25em 0;
+}
+
+#breadcrumb {
+	font: 11px/normal Arial;
+	margin: 0 0 5px 0;
+}
+
+.static-accordion {
+	margin: 0 0 2em 0 !important;
+}
+
+/* Calls to action button */
+.action-button {
+	background: url(../images/layout/bkg-cta-right.png) no-repeat 100% 0;
+	float: left;
+	display: inline-block;
+	padding-right: 6px;
+}
+
+.action-button a {
+	background: url(../images/layout/bkg-cta-left.png) no-repeat 0 0;
+	padding: 0 14px 8px 20px;
+	font: bold 12px/18px Arial, Verdana, Helvetica, sans-serif;
+	color: #FFF !important;
+	text-decoration: none;
+	float: left;
+	display: block;
+	text-transform: uppercase;
+	padding-top: 3px;
+}
+
+.action-button a:hover {
+	
+}
+
+/* Participating organizations logos page */
+#main-content ul.horizontal-links {
+	float: left;
+	width: 100%;
+	margin: 0 0 1em 0;
+}
+
+#main-content ul.horizontal-links li {
+	display: inline;
+	padding: 2px 3px;
+	border-right: 1px solid #666;
+}
+
+ul#org-logo {
+	overflow: hidden;
+	margin: 0 0 1em 0;
+	float: left;
+	display: inline;
+}
+
+ul#org-logo li {
+	float: left;
+	display: inline;
+	border: 1px solid #141f64;
+	height: 240px;
+	width: 172px;
+	margin: 10px;
+	padding: 5px 10px;
+	text-align: center;
+	background-color: #FFF;
+}
+
+ul#org-logo li a {
+	overflow: hidden;
+}
+
+ul#org-logo li a img {
+	display: block;
+	margin: 1em auto;
+}
+
+ul#org-logo li .fundedby {
+	background-color: #FFFFCC;
+	border: 1px solid #CC9900;
+	color: #333;
+	padding: 2px;
+}
+
+/* carousel styling */
+#carousel-wrapper {
+	clear: left;
+	position: relative;
+	margin: 13px 17px 20px 17px;
+	width: 248px;
+}
+
+#carousel-wrapper .carousel-content {
+	border: 1px solid #363636;
+	background-color: #fff;
+}
+
+#carousel-wrapper .carousel {
+	height: 100px;
+	margin: 0;
+	padding: 0;
+}
+
+#carousel-wrapper .carousel li {
+	height: 100px;
+	width: 82px;
+	background: url(../images/layout/bkg-carousel-img.gif) no-repeat 50% 50%;
+	text-align: center;
+}
+
+#carousel-wrapper .carousel li img.thumbnail {
+	margin: 10px 0 5px 0;
+}
+
+#carousel-wrapper .carousel li .panel {
+	padding: 0 5px;
+}
+
+#carousel-wrapper .carousel p {
+	font: 11px/normal Arial;
+	margin: 0 0 .5em;
+}
+/*next button*/
+.carousel .bx-next {
+	position: absolute;
+	top: 40%;
+	right: -12px;
+	z-index: 999;
+	width: 24px;
+	height: 24px;
+	text-indent: -999999px;
+	background: url(../images/layout/btn-next.png) no-repeat 0 0;
+}
+/*previous button*/
+.carousel .bx-prev {
+	position: absolute;
+	top: 40%;
+	left: -12px;
+	z-index: 999;
+	width: 24px;
+	height: 24px;
+	text-indent: -999999px;
+	background: url(../images/layout/btn-prev.png) no-repeat 0 0;
+}
+
+.lightbox-content {
+	display: none;
+}
+
+/* Displaying Data in tables. See example on striped-table-layout.htm */
+table.display-data {
+	border: 1px solid #999;
+	margin: 6px 0 12px 0;
+	position: relative;
+}
+
+table.list {
+	border: 1px solid #999;
+	margin: 6px 0px 12px 145px;
+	position: relative;
+}
+
+table.display-data th,table.display-data td {
+	padding: 6px;
+}
+
+table.display-data th a {
+	color: #FFF;
+	text-decoration: none;
+	font-weight: bold;
+	font-size: 11px;
+}
+
+table.display-data th {
+	background-color: #003663;
+	color: #FFF;
+	font-weight: bold;
+	font-size: 11px;
+	text-transform: uppercase;
+	text-align: center;
+	border: solid 1px #999;
+}
+
+table.display-data td {
+	color: #333;
+	font-size: 12px;
+	vertical-align: top;
+	border: 1px solid #999;
+}
+
+table.display-data tr.stripe td {
+	background-color: #f2f2f2;
+}
+
+.filter {
+	font-size: 11px;
+}
+
+.filter .active-filter {
+	color: #333;
+	font-weight: bold;
+}
+
+.filter-results {
+	font-size: 12px;
+	text-align: right;
+}
+
+span.pagination {
+	margin: 0 12px;
+}
+
+span.pagination-arrows img {
+	vertical-align: text-bottom;
+}
+
+/* Displaying Data in tables. See example on striped-table-layout.htm */
+table.auto-width {
+	margin: 10px auto;
+}
+
+table.full-width {
+	width: 100%;
+	table-layout: fixed;
+	overflow: hidden;
+	word-wrap: break-word;
+}
+
+table.unfixed-full-width {
+	width: 100%;
+	overflow: hidden;
+	word-wrap: break-word;
+}
+
+/* styles for the workflow steps. See progress-tracker.htm */
+#main-content ul.workflow {
+	float: left;
+	width: 100%;
+	margin: 0 0 1em 0;
+	list-style: none;
+}
+
+#main-content ul.workflow li {
+	float: left;
+	display: inline;
+	color: #777;
+	margin: 0;
+	padding-left: 20px;
+	line-height: 28px;
+	background: url(../images/layout/bkg-workflow-li.png) no-repeat left top;
+}
+
+#main-content ul.workflow li.completed-workflow {
+	background-color: #bcc4ca;
+}
+
+#main-content ul.workflow li.active-workflow {
+	background-color: #263b4c;
+}
+
+#main-content ul.workflow li a {
+	display: block;
+	height: 28px;
+	color: #7b7b7b;
+	text-decoration: none;
+	padding-right: 20px;
+	background: url(../images/layout/bkg-workflow-a.png) no-repeat 100% 50%;
+}
+
+#main-content ul.workflow li.completed-workflow a {
+	background: url(../images/layout/bkg-completed-workflow.png) no-repeat
+		100% 50%;
+	color: #003663;
+}
+
+#main-content ul.workflow li.active-workflow a {
+	background: url(../images/layout/bkg-active-workflow.png) no-repeat 100%
+		50%;
+	color: #fff;
+	font-weight: bold;
+}
+
+.column {
+	float: left;
+	margin: 5px;
+	width: 48%;
+}
+
+.column.thin {
+	width: auto;
+}
+
+#details-accordion {
+	margin: 6px 0 12px 0;
+}
+
+#details-accordion .ui-widget-content {
+	border: 0;
+}
+
+#details-accordion .ui-accordion-content {
+	padding: 0;
+	margin-bottom: 0;
+}
+
+#details-accordion table.display-data {
+	margin: 0 0 10px 0;
+}
+
+#column-left {
+	float: left;
+	margin: 0px 40px 0px 40px;
+}
+
+#column-right {
+	float: left;
+}

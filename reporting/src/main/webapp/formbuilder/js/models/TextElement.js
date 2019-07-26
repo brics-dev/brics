@@ -1,0 +1,4 @@
+var TextElement = BaseModel.extend({
+	
+	
+});

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" 
+		targetNamespace="http://tbi.nih.gov/DictionarySchema" 
+		xmlns:tns="http://tbi.nih.gov/DictionarySchema" 
+		elementFormDefault="qualified">
+		
+		
+		<element id="abstractDataElementsExport" name="abstractDataElementsExport">
+			<complexType>
+				<sequence minOccurs="1" maxOccurs="1">
+					<element ref="tns:elementList" />
+				</sequence>
+			</complexType>
+		</element>
+		
+		<element name="elementList">
+			<complexType>
+				<sequence minOccurs="1" maxOccurs="unbounded">
+					<element name="element" type="tns:dataElement" />
+				</sequence>
+			</complexType>
+		</element>
+		
+		<complexType name="dataElement">
+			<sequence>
+				<element name="id" type="long" minOccurs="0" />
+				<element name="name" type="string" />
+				<element name="type" type="string" />
+				<element name="restrictions" type="string" minOccurs="0" />
+				<element name="description" type="string" />
+				<element name="shortDescription" type="string" minOccurs="0" />
+				<element ref="tns:validator" minOccurs="0" />
+				
+				<element name="notes" type="string" minOccurs="0" />
+				<element name="valueRangeList" type="tns:valueRangeList" minOccurs="0" maxOccurs="unbounded" />
+				
+				
+				<element name="guidelines" type="string" minOccurs="0" />
+				<element name="historicalNotes" type="string" minOccurs="0" />
+				<element name="references" type="string" minOccurs="0" />
+				<element name="title" type="string" />
+				
+				<element name="classification" type="tns:isActiveElement" minOccurs="0" />
+				<element name="diseaseList" type="tns:diseaseList" minOccurs="0" />
+				
+				<element name="domain" type="tns:isActiveElement" minOccurs="0" />
+				<element name="subDomain" type="tns:isActiveElement" minOccurs="0" />
+				
+				<element name="measurementType" type="string" minOccurs="0" />
+				<element name="keywordList" type="tns:keywordList" minOccurs="0" maxOccurs="unbounded" />
+				<choice>
+					<element name="documentationUrl" type="string" minOccurs="0" />
+					<element name="documentationFileId" type="string" minOccurs="0" />
+				</choice>
+			</sequence>
+		</complexType>
+		
+		<element name="validator">
+			<complexType>
+				<sequence minOccurs="1" maxOccurs="1">
+					<element name="id" type="long" minOccurs="0" />
+					<element name="name" type="string" minOccurs="1" />
+				</sequence>
+			</complexType>
+		</element>
+		
+		<element name="keyword">
+			<complexType>
+				<sequence minOccurs="1" maxOccurs="1">
+					<element name="id" type="long" minOccurs="0" />
+					<element name="keyword" type="string" minOccurs="1" />
+				</sequence>
+			</complexType>
+		</element>
+		
+		<complexType name="isActiveElement">
+			<sequence minOccurs="1" maxOccurs="1">
+				<element name="id" type="long" minOccurs="0" />
+				<element name="name" type="string" minOccurs="1" />
+				<element name="isActive" type="string" minOccurs="1" />
+			</sequence>
+		</complexType>
+		
+		<complexType name="valueRangeList">
+			<sequence minOccurs="1" maxOccurs="1">
+				<sequence minOccurs="1" maxOccurs="1">
+					<element name="id" type="long" minOccurs="0" />
+					<element name="valueRange" type="string" minOccurs="1" />
+					<element name="description" type="string" minOccurs="1" />
+					<element name="outputCode" type="integer" minOccurs="1" />
+				</sequence>
+			</sequence>
+		</complexType>
+		
+		<complexType name="diseaseList">
+			<sequence minOccurs="1" maxOccurs="1">
+				<element name="id" type="long" minOccurs="0" />
+				<sequence minOccurs="1" maxOccurs="unbounded">
+					<element name="disease" type="tns:isActiveElement" />
+				</sequence>
+			</sequence>
+		</complexType>
+		
+		<complexType name="keywordList">
+			<sequence minOccurs="1" maxOccurs="1">
+				<element name="id" type="long" minOccurs="0" />
+				<sequence minOccurs="1" maxOccurs="unbounded">
+					<element ref="tns:keyword" />
+				</sequence>
+			</sequence>
+		</complexType>
+		
+</schema>

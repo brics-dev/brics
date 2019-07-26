@@ -1,0 +1,340 @@
+h4 {
+    color: inherit;
+}
+
+
+/* External links image */
+
+.ext-link {padding-right: 18px; background: url(../../images/global/new_window_blue.png) no-repeat right;}
+.ext-link.reverse {background: url(../../images/global/new_window_white.png) no-repeat right;}
+
+/* commented backslash hack (feed all browsers but IE5/Mac) \*/
+.alt {
+  position: absolute;
+  left: -9999px; }
+
+.homepage-bulleted {
+  margin: 0 12px 1em 12px; }
+  
+  /* Content wrapper  styles */
+#content-wrapper {
+  margin-top: 32px; }
+  #content-wrapper .content {
+    overflow: hidden;
+    background: #fff;
+    }
+
+
+
+/* Calls to action button */
+.action-button {
+  display: inline-block;
+  float: left; }
+  .action-button a {
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    -o-border-radius: 5px;
+    border-radius: 5px;
+    padding: 3px 10px;
+    font: bold 12px/18px Arial, Verdana, Helvetica, sans-serif;
+    text-decoration: none;
+    display: block;
+    text-transform: uppercase;
+    padding-top: 3px; }
+    
+    
+    
+    .content {
+  width: 960px;
+
+
+  margin: 0 auto;
+  overflow: visible;
+  position: relative;
+  z-index: 2;
+  border-bottom-left-radius: 7px;
+
+  border-bottom-right-radius: 7px;
+  }
+  
+#content-wrapper .content {
+	padding: 0 20px;
+  	border-left: 1px solid #ccc;
+ 	border-right: 1px solid #ccc;
+}  
+
+
+/* CAS CONTENT --------------------------------- */
+
+
+
+#cas form {display:block; padding:0; width:100%; background:#eeeeee;}
+    #cas fieldset {border:0; margin:0; padding:0; float:left; clear:none; width:auto;}
+        #cas fieldset legend {display:none;}
+
+        #cas #login {float:left; margin:0 -296px 30px 0; padding:15px; width:258px; min-height:15em; background:#eee; position:relative; border:0;}
+        #cas #login:before {line-height:0.1; font-size:1px; background:transparent url("../../images/key-point_tr.gif") no-repeat top right; margin:-15px -15px 0 -15px; height:15px; display:block; content:url("../../images/key-point_tl.gif");}
+
+        #cas #login:after {display:block; clear:both; padding-top:15px; line-height:0.1; font-size:1px; content:url("../../images/key-point_bl.gif"); margin:-15px; height:8px; background:transparent url("../../images/key-point_br.gif") scroll no-repeat bottom right;}
+            #cas #login h2 {border-bottom:1px solid #ddd; padding:3px 0; font:normal 400 17px Georgia, "Times New Roman", Times, serif; color:#333;}
+            #cas #login label {font-size:11px; text-align:left;}
+            #cas #login label span.accesskey {text-decoration:underline;}
+            #cas #login input {letter-spacing:1px;}
+            #cas #login .check input {position:relative; left:-4px; height:auto;}
+            #cas #login .check label {float:none; xwidth:auto; line-height:1.8;}
+            #cas #login .btn-row {padding-top:10px; border-top:1px solid #ddd;}
+            * html #cas #login .btn-row {top:5px;} /* IE6 */
+            #cas #login .btn-submit {float:none; clear:none; display:inline; letter-spacing:0;}
+            * html #cas #login .btn-submit {background:#ffd;}
+            #cas #login .btn-reset {float:none; clear:none; margin-left:5px; border:0; border-left:1px solid #ddd; background:transparent; color:#777; text-transform:lowercase; letter-spacing:0;}
+
+    #cas #sidebar {float:left; margin-left:296px; padding:18px 15px;}
+        #cas #sidebar h3 {font:normal 400 14px Georgia, "Times New Roman", Times, serif; color:#555; margin:18px 0 0; padding:6px 0 3px;}
+        #cas #sidebar p {margin:0 0 18px; padding:0; color:#555; font-size:1.1em;}
+
+        #cas #list-languages ul {margin:0; padding:0; line-height:1.5; list-style:none;}
+            #cas #list-languages ul li {display:inline; padding:0 5px; border-right:1px solid #ccc;}
+            #cas #list-languages ul li.first {padding-left:0;}
+            #cas #list-languages ul li.last {padding-right:0; border:0;}
+
+#cas #footer p {margin:0 0 1em 0; padding:0;}
+
+/* RESET --------------------------------- */
+/* reset some properties for elements since defaults are not crossbrowser - http://meyerweb.com/eric/thoughts/2007/05/01/reset-reloaded/ */
+html,body,div,span,h1,h2,h3,p,a,img,ul,li,fieldset,form,label,legend {margin:0; padding:0; border:0; outline:0; font-weight:inherit; font-style:inherit; font-size:100%; font-family:inherit; vertical-align:baseline;}
+:focus {outline:0;}
+ul {list-style:none; font-size:1.1em; padding:0 0 18px 40px;}
+
+/* browser default font-size is 16px which is too big so we make it 16px x 62.5% = 10px */
+    body {font:normal 400 62.5%/1.0 Verdana, sans-serif; min-width:960px;}
+
+/*
+ - used to clear or contain floats within a non-floated container
+ - this ruleset is used by UAs that handle :after - not IE - see ie_cas.css for IE fix
+http://www.positioniseverything.net/easyclearing.html and http://www.ejeliot.com/blog/59 */
+#header:after, #content:after, #footer:after, .clearfix:after {content:"."; clear:both; display:block; height:0; visibility:hidden;}
+
+/* Header styles */
+#header {
+  border-bottom: 1px solid; }
+  #header .content {
+    height: 119px; 
+    width:960px;}
+
+
+
+
+
+
+
+
+
+#logo {
+  margin: 22px 0 0 1px;
+
+  height: 90px;
+  width: 266px; }
+
+/* login button and form */
+#login-button {
+  margin: 75px 0 0 0; }
+
+#login-link {
+  float: left;
+  width: 90px; }
+  #login-link a {
+    width: 90px;
+    padding: 0 30px 8px 22px;
+    float: left;
+    font: 11px/2.4 Arial, Gadget, sans-serif; }
+    
+    
+    /* ----------------
+Generic footer styles
+--------------------- */
+
+/* Footer styles */
+/*#footerDiv {
+
+  position: relative;
+  top: -40px; 
+  padding-top: 0px;
+  
+  }
+
+
+#footer {
+
+
+  padding-top: 45px;
+  margin-top: 20px;
+  overflow: hidden; }
+  
+  .footer-links {
+  float: right;
+  list-style: none;
+
+ clear: none;
+
+  margin: 0 0 15px; 
+  width: 300px;
+  padding: 0;}
+  .footer-links li {
+    display: inline;
+	float: none;
+    padding: 0 4px;
+    margin-bottom: 15px; 
+       
+        }
+
+
+.footer-logos {
+
+  width: 75%; }
+  
+  #footer-logo-box a {float:right; margin-right: 20px;}
+  */
+  
+  /* MESSAGES --------------------------------- */
+.info, .errors, .success {clear:both; margin:18px 0; padding:20px 20px 20px 100px; font-size:10px; line-height:1.5;}
+.info {border:1px dotted 008;    background:#eff url(../../images/info.gif) no-repeat 20px 18px; color:#008; h2 { color:#008; } }
+.errors {border:1px dotted #d21033; background:#fed url(../../images/error.gif) no-repeat 20px 18px; color:#d21033; padding-bottom: 40px;
+ h2 {color: #d21033; } }
+.success {border:1px dotted #390; background:#dfa url(../../images/confirm.gif) no-repeat 20px 18px; color:#390; h2 { color:#390; }}
+    #content .errors h2, #content .success h2 {font-family:Georgia,"Times New Roman",Times,serif; font-size:18px; line-height:48px; font-weight:400; margin:0 18px 0 0; padding:0;}
+    #content .success h2 {color: #008 !important;}
+    #content .errors h2 {color:#b00 !important;}
+    #content .success h2 {color:#060 !important;}
+    
+
+/* static messages */
+#content #msg p {padding:0;}
+
+/* FORMS --------------------------------- */
+    label {cursor:pointer; font-size:1.1em; color:#777;}
+    input {border-width:1px; font-family:Verdana,sans-serif; font-size:1.1em; color:#000; padding:3px; min-height:1.5em;}
+    input.btn-submit {border-width:2px;}
+    
+        .fm-v div.row {margin:0; padding:.5em 0; width:100%;}
+    .fm-v div.row label {float:left; width:100%; line-height:1.5;}
+    .fm-v div.row input.btn-submit {display:block; margin:0;}
+    
+    
+    /* highlight errors */
+    input.error {background:#FFEFEF; color:#b00;}
+
+
+
+
+
+
+
+
+
+
+/* mark as required */
+    .required {background:#ffd;}
+    .error {background:#ffefef;}
+    input.required {border-width:1px;}
+    
+    #content-wrapper {background: white;}
+
+/* Calls to action button */
+.action-button a, .ui-widget-content .action-button a {
+  background: $heading-primary;
+  /* Old browsers */
+  background: -moz-linear-gradient(top, $heading-primary 0%, $btn-color 80%);
+  /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, $heading-primary), color-stop(80%, $btn-color));
+  /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top, $heading-primary 0%, $btn-color 80%);
+  /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top, $heading-primary 0%, $btn-color 80%);
+  /* Opera 11.10+ */
+  background: -ms-linear-gradient(top, $heading-primary 0%, $btn-color 80%);
+  /* IE10+ */
+  background: linear-gradient(to bottom, $heading-primary 0%, $btn-color 80%);
+  /* W3C */
+  border: 2px solid;
+  border-color: gray;
+  color: white; }
+  .action-button a:hover, .action-button a:focus, .ui-widget-content .action-button a:hover, .ui-widget-content .action-button a:focus {
+    background: $btn-color;
+    border-color: $border-dark; }
+.action-button.disabled a, .ui-widget-content .action-button.disabled a {
+  background: $border-dark;
+  color: white;
+  border-color: $border-dark; }
+  .action-button.disabled a:hover, .action-button.disabled a:focus, .ui-widget-content .action-button.disabled a:hover, .ui-widget-content .action-button.disabled a:focus {
+    background: $border-dark;
+    color: white; }
+    
+ /* Header and Footer Styles */
+/* Header styles */
+#header {
+  background-color: white;
+  border-color: white; }
+
+
+  #header .content {}
+
+
+
+
+
+
+
+#logo {
+  background: url(../../images/layout/#{$logo}) no-repeat 0 0; }
+
+
+/* login button and form */
+#loginUrl {
+	margin-top: 75px;
+	button { border:2px solid #776e6b; background-color: #fff; }
+}
+#login-link a {
+  background: url(../../images/layout/bkg-login-btn.png) no-repeat 0 0;
+  color: white;
+  text-decoration: none; }
+  #login-link a.expanded {
+    background: url(../../images/layout/bkg-login-btn-expanded.png) no-repeat 0 0;
+    color: #141f64; }
+
+#login-panel {
+  background: url(../../images/layout/bkg-login-panel-bottom.png) no-repeat 0 100%; }
+
+#login-wrapper {
+  background: url(../../images/layout/bkg-login-panel-top.png) no-repeat 0 0; }
+
+#logout-link a:focus {
+
+
+  background: white;
+  color: $heading-secondary;
+   }
+   
+/* Footer styles */
+#footerDiv {
+  background: $body-bg;
+  /* Old browsers */
+  background: -moz-linear-gradient(top, $heading-secondary 0%, $body-bg 80%);
+  /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, $heading-secondary), color-stop(80%, $body-bg));
+  /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top, $heading-secondary 0%, $body-bg 80%);
+  /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top, $heading-secondary 0%, $body-bg 80%);
+  /* Opera 11.10+ */
+  background: -ms-linear-gradient(top, $heading-secondary 0%, $body-bg 80%);
+  /* IE10+ */
+  background: linear-gradient(to bottom, $heading-secondary 0%, $body-bg 80%);
+  /* W3C */ }
+
+#footer a, #footer p {
+  color: white; }
+
+.contact {
+  color: white; }
+  
+   

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://localhost:8080/portal/ws/account/permissionGroups" xmlns:tns="http://localhost:8080/portal/ws/account/permissionGroups" elementFormDefault="qualified">
+
+    <complexType name="PermissionGroup">
+    	<sequence>
+    		<element name="id" type="long"></element>
+    		<element name="groupName" type="string"></element>
+    		<element name="groupDescription" type="string"></element>
+    		<element name="publicStatus" type="boolean"></element>
+    	</sequence>
+    </complexType>
+
+    <element name="permissionGroup" type="tns:PermissionGroup"></element>
+</schema>

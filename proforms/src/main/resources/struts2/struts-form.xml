@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+        "http://struts.apache.org/dtds/struts-2.5.dtd">
+ 
+<struts>
+
+	<package name="form" namespace="/form" extends="default">
+	
+		<!-- My Forms -->
+		<action name="viewFormDetail" class="gov.nih.nichd.ctdb.form.action.FormAction" method="viewFormDetail">
+			<result name="success">formDetail.jsp</result>
+		</action>
+		<action name="formHome" class="gov.nih.nichd.ctdb.form.action.FormHomeAction">
+			<result name="success">formHome.jsp</result>
+		</action>
+		<action name="formAudit" class="gov.nih.nichd.ctdb.form.action.FormAuditAction">
+			<result name="success">formAudit.jsp</result>
+		</action>
+		<action name="showSaveAsForm" class="gov.nih.nichd.ctdb.form.action.FormAction" method="showSaveAsForm">
+			<result name="success">saveFormAs.jsp</result>
+			<result name="exception" type="redirectAction">formHome</result>
+		</action>
+		<action name="showCopyForm" class="gov.nih.nichd.ctdb.form.action.FormAction" method="showCopyForm">
+			<result name="success">saveFormAs.jsp</result>
+		</action>
+		<action name="deleteForm" class="gov.nih.nichd.ctdb.form.action.FormHomeAction" method="deleteForm">
+			<result name="success" type="redirectAction">formHome</result>
+		</action>
+		<action name="activateForm" class="gov.nih.nichd.ctdb.form.action.FormAction" method="activateForm">
+			<result name="success" type="redirectAction">formHome</result>
+		</action>
+		<action name="exportForm" class="gov.nih.nichd.ctdb.form.action.FormAction" method="exportForm">
+			<result name="exception" type="redirectAction">formHome</result>
+		</action>
+		<action name="formList" class="gov.nih.nichd.ctdb.form.action.FormHomeAction" method="getFormList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">formListJson</param>
+			</result>
+		</action>
+		
+		<!-- Copy Existing Home -->
+		<action name="formCopyHome" class="gov.nih.nichd.ctdb.form.action.FormCopyHomeAction">
+			<result name="success">formCopyHome.jsp</result>
+			<result name="exception">formHome.jsp</result>
+		</action>
+		<action name="showCopyForm" class="gov.nih.nichd.ctdb.form.action.FormAction" method="showCopyForm">
+			<result name="success">saveFormAs.jsp</result>
+			<result name="exception">formHome.jsp</result>
+		</action>
+		
+		<!-- Create Form -->
+		<action name="showAddForm" class="gov.nih.nichd.ctdb.form.action.FormAction" method="showAddForm">
+			<result name="success">createEditForm.jsp</result>
+		</action>
+		<action name="showEditForm" class="gov.nih.nichd.ctdb.form.action.FormAction" method="showEditForm">
+			<result name="success">createEditForm.jsp</result>
+		</action>
+		
+		<action name="showAddForm_newFormBuilder" class="gov.nih.nichd.ctdb.form.action.FormAction" method="showAddForm">
+			<result name="success">../formbuilder/tests/sandbox2.jsp</result>
+		</action>
+		<action name="showEditForm_newFormBuilder" class="gov.nih.nichd.ctdb.form.action.FormAction" method="showEditForm">
+			<result name="success">../formbuilder/tests/sandbox2.jsp</result>
+			<result name="exception" type="redirectAction">formHome</result>
+		</action>
+		
+		<action name="saveNewForm" class="gov.nih.nichd.ctdb.form.action.FormAction" method="saveNewForm">
+			<result name="success" type="redirectAction">formHome</result>
+		</action>
+		<action name="saveEditForm" class="gov.nih.nichd.ctdb.form.action.FormAction" method="saveEditForm">
+			<result name="success" type="redirectAction">formHome</result>
+		</action>
+		<action name="addEditQuestion" class="gov.nih.nichd.ctdb.question.action.AddEditQuestionAction" />
+		<action name="searchQuestions" class="gov.nih.nichd.ctdb.question.action.QuestionHomeAction" />
+		<action name="formBuild" class="gov.nih.nichd.ctdb.form.action.FormBuildAction">
+			<result name="success" type="redirectAction">formHome</result>
+		</action>
+		
+		<!-- Group Forms -->
+		<action name="formGroupHome" class="gov.nih.nichd.ctdb.form.action.FormGroupHomeAction">
+			<result name="success">formGroupHome.jsp</result>
+		</action>
+		<action name="saveFormGroup" class="gov.nih.nichd.ctdb.form.action.FormGroupHomeAction" method="saveFormGroup">
+			<result name="success" type="redirectAction">formGroupHome</result>
+			<result name="exception">formGroupHome.jsp</result>
+		</action>
+		<action name="deleteFormGroup" class="gov.nih.nichd.ctdb.form.action.FormGroupHomeAction" method="deleteFormGroup">
+			<result name="success" type="httpheader">
+				<param name="status">204</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">An error occurred while deleting selected form group(s).</param>
+			</result>
+			<result name="accessdenied" type="httpheader">
+				<param name="error">403</param>
+				<param name="errorMessage">User does not privileges to delete any form groups.</param>
+			</result>
+		</action>
+		
+		<!-- Import Form -->
+		<action name="importXmlForm" class="gov.nih.nichd.ctdb.form.action.ImportXmlFormAction" method="importXmlForm"> 
+ 			<result name="success" type="redirectAction">formHome</result>
+   			<result name="failure">importXmlForm.jsp </result>
+			<result name="exception">importXmlForm.jsp </result>
+        </action>
+		<action name="displayImportForm" class="gov.nih.nichd.ctdb.form.action.ImportXmlFormAction" method="displayImportForm"> 
+            <result name="success">importXmlForm.jsp</result>
+  		</action>
+  		
+  		<!-- added by Ching-Heng -->
+		<action name="viewPromisFormInfo" class="gov.nih.nichd.ctdb.form.action.FormAction" method="viewPromisFormInfo">
+			<result name="success">promisFormInfo.jsp</result>
+			<result name="exception" type="redirectAction">formHome</result>
+		</action>
+	</package>
+	<package name="formJson" namespace="/formjson" extends="json-default" >
+		<action name="getFormStructureTable" class="gov.nih.nichd.ctdb.form.action.FormAction" method="getFormStructureTableAsJSON" >
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonString</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">An error occurred while getting the data for the form structure table.</param>
+			</result>
+			<result name="badGateway" type="httpheader">
+				<param name="error">502</param>
+				<param name="errorMessage">Could not get a connection to the data dictionary web service.</param>
+			</result>
+		</action>
+	</package>
+</struts>

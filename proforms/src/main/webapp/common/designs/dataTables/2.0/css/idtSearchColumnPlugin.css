@@ -1,0 +1,60 @@
+.idt_searchColumnLabel {
+	height: 30px;
+	display: inline-block;
+	line-height: 30px;
+	cursor: pointer;
+}
+
+.idt_searchColumnIcon {
+	font-size: 16px;
+	padding-left: 5px;
+	vertical-align: middle;
+}
+
+.idtTableContainer .idt_searchInput {
+	height: 25px;
+	width: 150px;
+	margin-bottom: .5em;
+}
+
+/* This is to remove the input type text clear (X) in IE. */
+input[type=search]::-ms-clear {
+	display: none;
+}
+
+.idt_searchContainer {
+	float: right;
+	text-align: right;
+}
+.idt_selectColumnIcon {
+	display: inline-block;
+	position: relative;
+}
+.idt_selectColumnDrop {
+	position: absolute;
+	display: none;
+	background: white;
+	border: 1px solid black;
+	z-index: 999;
+	min-width: 150px;
+	padding: 2px 10px 2px;
+}
+.idt_searchContainer:hover > .idt_selectColumnDrop {
+	display: block;
+}
+.idt_selectColumnDrop input[type="checkbox"] {
+	width: auto;
+	vertical-align: middle;
+	margin: 0 !important;
+	float:none !important;
+}
+.idt_selectColumnRow {
+	text-align: left;
+	font-size: 9px;
+	padding-right: 10px;
+    padding-left: 10px;
+    text-indent: -10px;	
+}
+.morecontent span {
+    display: none;
+}

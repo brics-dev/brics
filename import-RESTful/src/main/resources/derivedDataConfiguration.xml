@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<derivedBiosampleConfigurations
+	guidColumnName="Subject Information.GUID" visitTypeColumnName="Subject Information.VisitTypPDBP" sampleTypeColumnName="Sample Information.SampCollTyp">
+	<derivedBiosampleRepositories name="NINDS">
+		<diagnosisConfiguration catalogOther="Other"
+			catalogDe="NeuroDiagnosis" deriveDe="NeuroExamPrimaryDiagnos"
+			noDiagnosis="No neurological diagnosis" caseOrControl="InclusnXclusnCntrlInd" />
+		<dataElementColumnMapping>
+			<mapEntry value="Subject Information.NeuroDiagnosis" key="NeuroExamPrimaryDiagnos" />
+			<mapEntry value="Subject Information.AgeYrs" key="AgeYrs" />
+			<mapEntry value="Subject Information.InclusnXclusnCntrlInd"
+				key="InclusnXclusnCntrlInd" />
+		</dataElementColumnMapping>
+		<formConfiguration>
+			<form name="MDS_UPDRS" version="1.0" />
+			<repeatableGroupDataElement
+				repeatableGroup="Required Fields" dataElement="AgeYrs" />
+			<visitTypeMapping>
+				<mapEntry key="66 months" value="66 months" />
+				<mapEntry key="18 months" value="18 months" />
+				<mapEntry key="Baseline" value="Baseline" />
+				<mapEntry key="48 months" value="48 months" />
+				<mapEntry key="12 months" value="12 months" />
+				<mapEntry key="30 months" value="30 months" />
+				<mapEntry key="6 months" value="6 months" />
+				<mapEntry key="54 months" value="54 months" />
+				<mapEntry key="72 months" value="72 months" />
+				<mapEntry key="42 months" value="42 months" />
+				<mapEntry key="60 months" value="60 months" />
+				<mapEntry key="36 months" value="36 months" />
+				<mapEntry key="24 months" value="24 months" />
+			</visitTypeMapping>
+		</formConfiguration>
+		<formConfiguration>
+			<form name="NeurologicalExam" version="1.0" />
+			<repeatableGroupDataElement
+				repeatableGroup="Neurological Examination" dataElement="NeuroExamPrimaryDiagnos" />
+			<repeatableGroupDataElement
+				repeatableGroup="Neurological Examination" dataElement="InclusnXclusnCntrlInd" />
+			<visitTypeMapping>
+				<mapEntry key="36 months" value="36 months" />
+				<mapEntry key="60 months" value="60 months" />
+				<mapEntry key="66 months" value="60 months" />
+				<mapEntry key="12 months" value="12 months" />
+				<mapEntry key="72 months" value="72 months" />
+				<mapEntry key="54 months" value="48 months" />
+				<mapEntry key="18 months" value="12 months" />
+				<mapEntry key="42 months" value="36 months" />
+				<mapEntry key="6 months" value="Baseline" />
+				<mapEntry key="24 months" value="24 months" />
+				<mapEntry key="48 months" value="48 months" />
+				<mapEntry key="30 months" value="24 months" />
+				<mapEntry key="Baseline" value="Baseline" />
+			</visitTypeMapping>
+		</formConfiguration>
+	</derivedBiosampleRepositories>
+	<derivedBiosampleRepositories name="BIOFIND">
+		<diagnosisConfiguration catalogOther="Other"
+			catalogDe="NeuroDiagnosis" deriveDe="NeuroExamPrimaryDiagnos"
+			noDiagnosis="No neurological diagnosis" caseOrControl="InclusnXclusnCntrlInd" />
+		<dataElementColumnMapping>
+			<mapEntry value="Subject Information.NeuroDiagnosis" key="NeuroExamPrimaryDiagnos" />
+			<mapEntry value="Subject Information.AgeYrs" key="AgeYrs" />
+			<mapEntry value="Subject Information.InclusnXclusnCntrlInd"
+				key="InclusnXclusnCntrlInd" />
+		</dataElementColumnMapping>
+		<formConfiguration>
+			<form name="LD_NeurologicalExam" version="1.0" />
+			<repeatableGroupDataElement
+				repeatableGroup="Required Fields" dataElement="AgeYrs" />
+			<repeatableGroupDataElement
+				repeatableGroup="Neurological Examination" dataElement="NeuroExamPrimaryDiagnos" />
+			<repeatableGroupDataElement
+				repeatableGroup="Neurological Examination" dataElement="InclusnXclusnCntrlInd" />
+		</formConfiguration>
+	</derivedBiosampleRepositories>
+</derivedBiosampleConfigurations>

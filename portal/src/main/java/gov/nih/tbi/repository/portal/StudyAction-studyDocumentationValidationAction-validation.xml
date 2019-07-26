@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC "-//Apache Struts//XWork Validator 1.0.2//EN" "/WEB-INF/xwork-validator-1.0.2.dtd">
+<validators>
+	<field name="uploadFileName">
+		<field-validator type="studydocupload">
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	<field name="url">
+		<field-validator type="studyurlupload">
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 255 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="supportingDocType">
+		<field-validator type="required">
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	<field name="softwareName">
+		<field-validator type="fieldexpression">
+			<param name="expression"><![CDATA[!(supportingDocType.name == "Software" && softwareName.trim().equals(""))]]></param>
+			<param name="trim">true</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	<field name="version">
+		<field-validator type="fieldexpression">
+			<param name="expression"><![CDATA[!(supportingDocType.name == "Software" && version.trim().equals(""))]]></param>
+			<param name="trim">true</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	<field name="urlDocumentationRadio">
+		<field-validator type="required">
+			<message key="errors.docType" />
+		</field-validator>
+	</field>
+	<field name="supportingDocDescription">
+		<field-validator type="requiredstring">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 255 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+</validators>

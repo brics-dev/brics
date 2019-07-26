@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://fitbir.nih.gov/portal/ws/dictionary/DataElement"
+	xmlns:tns="http://fitbir.nih.gov/portal/ws/dictionary/DataElement"
+	elementFormDefault="qualified"
+	xmlns:Q1="http://fitbir.nih.gov/portal/ws/dictionary/CommonTypes">
+
+
+	<import schemaLocation="CommonTypes.xsd" namespace="http://fitbir.nih.gov/portal/ws/dictionary/CommonTypes"></import>
+	<simpleType name="DataType">
+		<restriction base="string">
+			<enumeration value="ALPHANUMERIC"></enumeration>
+			<enumeration value="NUMERIC"></enumeration>
+			<enumeration value="DATE"></enumeration>
+			<enumeration value="GUID"></enumeration>
+			<enumeration value="FILE"></enumeration>
+			<enumeration value="THUMBNAIL"></enumeration>
+		</restriction>
+	</simpleType>
+
+	<complexType name="ValidatorPlugin">
+		<sequence>
+			<element name="id" type="long"></element>
+			<element name="name" type="string"></element>
+		</sequence>
+	</complexType>
+
+	<simpleType name="InputRestrictions">
+		<restriction base="string">
+			<enumeration value="FREE_FORM"></enumeration>
+			<enumeration value="SINGLE"></enumeration>
+			<enumeration value="MULTIPLE"></enumeration>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="DataElementStatus">
+		<restriction base="string">
+			<enumeration value="DRAFT"></enumeration>
+			<enumeration value="AWAITING"></enumeration>
+			<enumeration value="PUBLISHED"></enumeration>
+			<enumeration value="ARCHIVED"></enumeration>
+		</restriction>
+	</simpleType>
+
+
+	<complexType name="ClassificationElement">
+		<sequence>
+			<element name="id" type="long"></element>
+			<element name="classification" type="Q1:Classification"></element>
+			<element name="subgroup" type="Q1:Subgroup"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="ValueRange">
+		<sequence>
+			<element name="id" type="long"></element>
+			<element name="valueRange" type="string"></element>
+			<element name="description" type="string"></element>
+			<element name="elementOid" type="string" minOccurs="0"></element>
+			<element name="itemResponseOid" type="string" minOccurs="0"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="DiseaseElement">
+		<sequence>
+			<element name="id" type="long"></element>
+			<element name="disease" type="Q1:Disease"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="KeywordElement">
+		<sequence>
+			<element name="id" type="long"></element>
+			<element name="keyword" type="tns:Keyword"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="Keyword">
+		<sequence>
+			<element name="id" type="long"></element>
+			<element name="keyword" type="string"></element>
+			<element name="count " type="long"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="Alias">
+		<sequence>
+			<element name="id" type="long"></element>
+			<element name="name" type="string"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="ExternalID">
+		<sequence>
+			<element name="id" type="long"></element>
+			<element name="type" type="tns:ExternalType"></element>
+			<element name="value" type="string"></element>
+		</sequence>
+	</complexType>
+
+	<simpleType name="ExternalType">
+		<restriction base="string">
+			<enumeration value="LONIC"></enumeration>
+			<enumeration value="CADSR"></enumeration>
+			<enumeration value="SNOMED"></enumeration>
+			<enumeration value="CDISC"></enumeration>
+			<enumeration value="NINDS"></enumeration>
+		</restriction>
+	</simpleType>
+
+	<complexType name="MeasuringUnit">
+		<sequence>
+			<element name="id" type="long"></element>
+			<element name="name" type="string"></element>
+			<element name="abreviation" type="string"></element>
+			<element name="factorOfBase" type="string"></element>
+			<element name="measuringType" type="tns:MeasuringType"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="MeasuringType">
+		<sequence>
+			<element name="id" type="long"></element>
+			<element name="name" type="string"></element>
+		</sequence>
+	</complexType>
+
+
+	<element name="DataElement" type="tns:DataElement"></element>
+
+	<complexType name="DataElement">
+		<sequence>
+			<element name="id" type="long"></element>
+			<element name="name" type="string"></element>
+			<element name="size" type="integer"></element>
+			<element name="maximumValue" type="string"></element>
+			<element name="minimumValue" type="string"></element>
+			<element name="type" type="tns:DataType"></element>
+			<element name="restrictions" type="tns:InputRestrictions"></element>
+			<element name="description" type="string"></element>
+			<element name="shortDescription" type="string"></element>
+			<element name="validator" type="tns:ValidatorPlugin"></element>
+			<element name="format" type="string"></element>
+			<element name="notes" type="string"></element>
+			<element name="catOid" type="string" minOccurs="0"></element>
+			<element name="formItemId" type="string" minOccurs="0"></element>			
+			<element name="status" type="tns:DataElementStatus"></element>
+			<element name="valueRangeList" type="tns:ValueRange"
+				maxOccurs="unbounded" minOccurs="0">
+			</element>
+			<element name="guidelines" type="string"></element>
+			<element name="historicalNotes" type="string"></element>
+			<element name="suggestedQuestion" type="string"></element>
+			<element name="references" type="string"></element>
+			<element name="title" type="string"></element>
+			<element name="classificationElementList"
+				type="tns:ClassificationElement" maxOccurs="unbounded"
+				minOccurs="0">
+			</element>
+			<element name="population" type="Q1:Population"></element>
+			<element name="category" type="Q1:Category"></element>
+			<element name="diseaseElement" type="tns:DiseaseElement"
+				maxOccurs="unbounded" minOccurs="0">
+			</element>
+			<element name="domain" type="Q1:Domain"></element>
+			<element name="subDomain" type="Q1:Subdomain"></element>
+			<element name="measuringUnit" type="tns:MeasuringUnit"></element>
+			<element name="keywordList" type="tns:KeywordElement"
+				maxOccurs="unbounded" minOccurs="0">
+			</element>
+			<element name="documentationFileId" type="long"></element>
+			<element name="externalIdSet" type="tns:ExternalID"
+				maxOccurs="unbounded" minOccurs="0">
+			</element>
+			<element name="alias" type="tns:Alias" maxOccurs="unbounded"
+				minOccurs="0">
+			</element>
+		</sequence>
+	</complexType>
+</schema>

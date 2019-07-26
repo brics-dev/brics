@@ -1,0 +1,144 @@
+table.dataTable, table.dataTable th, table.dataTable td {
+	box-sizing: border-box;
+}
+table.dataTable thead .tableRowHeader .sorting, 
+table.dataTable thead .tableRowHeader .sorting_asc, 
+table.dataTable thead .tableRowHeader .sorting_desc {
+	background-image: none;
+}
+.dataTables_paginate .ui-button {
+	margin-right: 0;
+}
+
+.morecontent span {
+  display: none;
+  word-break: break-all;
+  word-wrap: break-word;
+  white-space: normal;
+}
+
+.showMoreContainer {
+	width: 300px;
+}
+
+.showItem {
+	display: inline-block;
+	white-space: pre-wrap; /* css-3 */
+	white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+	white-space: -pre-wrap; /* Opera 4-6 */
+	white-space: -o-pre-wrap; /* Opera 7 */
+	word-wrap: break-word; /* Internet Explorer 5.5+ */
+	width:200px;	
+}
+
+table tr td:first-child span.fa {
+	font-size: 17px;
+}
+
+table tr.selected td:first-child span.fa.fa-square-o:before {
+    content: "\f046";
+}
+
+table tr.selected td:first-child span.fa.fa-circle-o:before {
+    content: "\f192";
+}
+
+.dialog-wrapper .ui-dialog-titlebar {
+    background: #0d4063;
+    color: #FFFFFF;
+    padding: .5em 1em;
+    position: relative;
+}
+
+.dialog-wrapper .ui-dialog-title {
+    text-align: left;
+}
+
+.dialog-wrapper.ui-widget-content {
+	z-index: 3000 !important;
+	border: 1.5px solid #0d4063;
+}
+
+.dialog-wrapper .ui-dialog-titlebar {
+    border: 1px;
+}
+
+.dialog-wrapper .ui-dialog-titlebar-close {
+    min-width: 20px;
+}
+
+.dialog-wrapper .dialog-btn-row,
+.dialog-wrapper .dialog-btn-addRow {
+    background: #fb7923;
+    color: whitesmoke;
+    text-shadow: none;
+    border: 1px solid #0d4063;
+}
+
+.dialog-wrapper .dialog-btn-all,
+.dialog-wrapper .dialog-btn-cancel {
+    text-shadow: none;
+    background: white;
+    color: #0d4063;
+    border: 1px solid #0d4063;
+}
+
+.dialog-wrapper .ui-dialog-buttonpane button {
+    margin: .4em .4em .5em 0;
+}
+
+.dialog-wrapper form input[type=text] {
+    width: 100%;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.dialog-wrapper form label {
+    float: left;
+    font-weight: bold;
+}
+
+.paging_full_numbers {
+	height: auto;
+}
+
+.dataTables_wrapper {
+	overflow: visible;
+	min-height: 166px;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+	margin: 0px;
+	background: none;
+	min-width: 0;
+	padding: 1px 5px;
+}
+
+a.dt-button, a.dt-button:link, a.dt-button:visited {
+	font-weight: bold;
+	color: #000;
+}
+
+/* the selection checkbox or radio button, but disabled */
+tr.idtSelectionDisabled span.fa {
+	cursor: not-allowed;
+	color: #BBB;
+}
+
+select.select_filter {
+    font-size: 12px;
+    margin: 0px .3em;
+  	width: intrinsic;           /* Safari/WebKit uses a non-standard name */
+ 	width: -moz-max-content;    /* Firefox */
+ 	width: -webkit-max-content;
+}
+
+.idtDateFilter {
+	margin: 0 .3em;
+	height: 15px;
+	background: url(../images/calendar_edit.png) no-repeat right center;
+	position: relative;
+}

@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+        "http://struts.apache.org/dtds/struts-2.5.dtd">
+ 
+<struts>
+
+	<package name="patient" namespace="/patient" extends="default">
+	
+		<!-- My Subjects -->
+		<action name="patientHome" class="gov.nih.nichd.ctdb.patient.action.PatientHomeAction">
+			<result name="success">patientHome.jsp</result>
+		</action>
+		<action name="getPatientList" class="gov.nih.nichd.ctdb.patient.action.PatientHomeAction" method="getPatientList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>		
+		<action name="viewPatient" class="gov.nih.nichd.ctdb.patient.action.ViewPatientAction">
+			<result name="success">viewPatient.jsp</result>
+		</action>
+		<action name="patientAudit" class="gov.nih.nichd.ctdb.patient.action.PatientAuditAction">
+			<result name="success">patientAudit.jsp</result>
+		</action>
+		<action name="deletePatient" class="gov.nih.nichd.ctdb.patient.action.PatientHomeAction" method="deletePatient">
+			<result name="success">patientHome.jsp</result>
+		</action>
+		
+		<!-- Add Subject -->
+		<action name="showAddPatient" class="gov.nih.nichd.ctdb.patient.action.PatientAction" method="showPage">
+			<result name="success">patientForm.jsp</result>
+			<result name="error" type="redirectAction">patientHome</result>
+		</action>
+		<action name="getAttachmentsListForDT" class="gov.nih.nichd.ctdb.patient.action.PatientAction" method="getAttachmentsListForDT">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonString</param>
+			</result>
+			<result name="badRequest" type="httpheader">
+				<param name="error">400</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+		</action>
+		<action name="showEditPatient" class="gov.nih.nichd.ctdb.patient.action.PatientAction" method="showPage">
+			<result name="success">patientForm.jsp</result>
+			<result name="error" type="redirectAction">patientHome</result>
+		</action>
+		<action name="addPatient" class="gov.nih.nichd.ctdb.patient.action.PatientAction" method="addPatient">
+			<result name="success" type="redirectAction">patientHome</result>
+            <result name="error">patientForm.jsp</result>
+		</action>
+		<action name="updatePatient" class="gov.nih.nichd.ctdb.patient.action.PatientAction" method="updatePatient">
+			<result name="success" type="redirectAction">patientHome</result>
+            <result name="error">patientForm.jsp</result>
+		</action>
+		<action name="cancelPatient" class="gov.nih.nichd.ctdb.patient.action.PatientAction" method="cancelPatientChanges">
+			<result name="success" type="redirectAction">patientHome</result>
+		</action>
+		<action name="addAttachment" class="gov.nih.nichd.ctdb.patient.action.PatientAction" method="addAttachment">
+			<result name="success">patientForm.jsp</result>
+			<result name="error">patientForm.jsp</result>
+		</action>
+		<action name="editAttachment" class="gov.nih.nichd.ctdb.patient.action.PatientAction" method="updateAttachment">
+			<result name="success">patientForm.jsp</result>
+			<result name="error">patientForm.jsp</result>
+		</action>
+		<action name="deleteAttachment" class="gov.nih.nichd.ctdb.patient.action.PatientAction" method="deleteAttachments">
+			<result name="success">patientForm.jsp</result>
+			<result name="error">patientForm.jsp</result>
+		</action>
+		<action name="validateGuid" class="gov.nih.nichd.ctdb.patient.action.PatientAction" method="validateGuid">
+			<result type="json"></result>
+		</action>
+		<action name="getJwt" class="gov.nih.nichd.ctdb.patient.action.PatientAction" method="getJwt">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonString</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">Couldn't get the JWT from the server.</param>
+			</result>
+		</action>
+		
+		<!-- Schedule Visits -->
+		<action name="patientVisitHome" class="gov.nih.nichd.ctdb.patient.action.PatientVisitHomeAction">
+			<result name="success">patientVisitHome.jsp</result>
+			<result name="exception">patientVisitHome.jsp</result>
+		</action>
+		<action name="getPatientVisitList" class="gov.nih.nichd.ctdb.patient.action.PatientVisitHomeAction" method="getPatientVisitList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>		
+		<action name="getUpdateByPatient" class="gov.nih.nichd.ctdb.patient.action.PatientVisitHomeAction" method="getUpdateByPatient">
+			<result name="success">patientVisitIntervalChart.jsp</result>
+		</action>		
+		<action name="getPatientVisit" class="gov.nih.nichd.ctdb.patient.action.PatientVisitHomeAction" method="getPatientVisit">
+			<result name="success">patientVisitHome.jsp</result>
+			<result name="exception">patientVisitHome.jsp</result>
+		</action>
+		<action name="getPrepopDeArray" class="gov.nih.nichd.ctdb.patient.action.PatientVisitHomeAction" method="getDePrePopJsonArray">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonString</param>
+			</result>
+			<result name="badRequest" type="httpheader">
+				<param name="error">400</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+		</action>
+		<action name="savePatientVisit" class="gov.nih.nichd.ctdb.patient.action.PatientVisitHomeAction" method="savePatienVisit">
+			<result name="success" type="redirectAction">patientVisitHome</result>
+            <result name="exception">patientVisitHome.jsp</result>
+		</action>
+		<action name="deletePatientVisit" class="gov.nih.nichd.ctdb.patient.action.PatientVisitHomeAction" method="deletePatientVisit">
+			<result name="success">patientVisitHome.jsp</result>
+            <result name="exception">patientVisitHome.jsp</result>
+		</action>
+		<action name="patientVisitHomeJsonAction" class="gov.nih.nichd.ctdb.patient.action.PatientVisitHomeAction">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonString</param>
+			</result>
+			<result name="badRequest" type="httpheader">
+				<param name="error">400</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<allowed-methods>getVTClinicalPntList, getCorrespondingVT</allowed-methods>
+		</action>
+		
+		
+		<!-- PatientVisit JSON for workspace -->
+		<action name="patientJson" class="gov.nih.nichd.ctdb.patient.action.PatientVisitsJSONAction" />
+		
+	</package>
+	
+</struts>

@@ -1,0 +1,7 @@
+.action-button a,.ui-widget-content .action-button a {  background-image: url("svg-gradient.svg");}
+
+.subnavigation li.active-sub a,.subnavigation li.active a {  background-image: url("svg-gradient.svg");}
+
+.button input {
+	background: none;
+	background-image: url("svg-gradient.svg");} 

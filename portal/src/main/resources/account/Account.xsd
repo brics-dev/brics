@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://localhost:8080/portal/ws/account" xmlns:tns="http://localhost:8080/portal/ws/account" elementFormDefault="qualified">
+
+    <complexType name="User">
+    	<sequence>
+    		<element name="id" type="long"></element>
+    		<element name="firstName" type="string"></element>
+    		<element name="lastName" type="string"></element>
+    		<element name="email" type="string"></element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="State">
+    	<sequence>
+    		<element name="id" type="long"></element>
+    		<element name="name" type="string"></element>
+    		<element name="code" type="string"></element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="Country">
+    	<sequence>
+    		<element name="id" type="long"></element>
+    		<element name="name" type="string"></element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="AccountRole">
+    	<sequence>
+    		<element name="id" type="long"></element>
+    		<element name="roleType" type="tns:RoleType"></element>
+    		<element name="roleStatus" type="tns:RoleStatus"></element>
+    		<element name="expirationDate" type="date"></element>
+    	</sequence>
+    </complexType>
+
+
+    <simpleType name="RoleType">
+    	<restriction base="string">
+    		<enumeration value="ROLE_USER"></enumeration>
+    		<enumeration value="ROLE_ADMIN"></enumeration>
+    		<enumeration value="ROLE_DICTIONARY"></enumeration>
+    		<enumeration value="ROLE_DICTIONARY_ADMIN"></enumeration>
+    		<enumeration value="ROLE_GUID"></enumeration>
+    		<enumeration value="ROLE_GUID_ADMIN"></enumeration>
+    		<enumeration value="ROLE_STUDY"></enumeration>
+    		<enumeration value="ROLE_STUDY_ADMIN)"></enumeration>
+    		<enumeration value="ROLE_QUERY"></enumeration>
+    		<enumeration value="ROLE_QUERY_ADMIN"></enumeration>
+    		<enumeration value="ROLE_PROFORMS"></enumeration>
+    		<enumeration value="ROLE_PROFORMS_ADMIN"></enumeration>
+    	</restriction>
+    </simpleType>
+
+    <simpleType name="RoleStatus">
+    	<restriction base="string">
+    		<enumeration value="ACTIVE"></enumeration>
+    		<enumeration value="REQUESTED"></enumeration>
+    		<enumeration value="INACTIVE"></enumeration>
+    	</restriction>
+    </simpleType>
+
+
+
+
+    <simpleType name="AccountStatus">
+    	<restriction base="string">
+    		<enumeration value="ACTIVE"></enumeration>
+    		<enumeration value="INACTIVE"></enumeration>
+    		<enumeration value="DENIED"></enumeration>
+    		<enumeration value="REQUESTED"></enumeration>
+    		<enumeration value="PENDING"></enumeration>
+    	</restriction>
+    </simpleType>
+
+    <element name="account" type="tns:Account"></element>
+    
+    <complexType name="Account">
+    	<sequence>
+    		<element name="id" type="long"></element>
+    		<element name="username" type="string"></element>
+    		<element name="password" type="string"></element>
+    		<element name="user" type="tns:User"></element>
+    		<element name="affiliatedInstitution" type="string"></element>
+    		<element name="eraId" type="string"></element>
+    		<element name="address1" type="string"></element>
+    		<element name="address2" type="string"></element>
+    		<element name="city" type="string"></element>
+    		<element name="state" type="tns:State"></element>
+    		<element name="postalCode" type="string"></element>
+    		<element name="country" type="tns:Country"></element>
+    		<element name="phone" type="string"></element>
+    		<element name="interestInTbi" type="string"></element>
+    		<element name="recoveryDate" type="date"></element>
+    		<element name="isActive" type="boolean"></element>
+    		<element name="accountRoleList" type="tns:AccountRole"
+    			maxOccurs="unbounded" minOccurs="0">
+    		</element>
+    		<element name="accountStatus" type="string"></element>
+    		<element name="adminNote" type="string"></element>
+    		<element name="applicationDate" type="date"></element>
+    		<element name="lastSuccessfulLogin" type="date"></element>
+    		<element name="unlockDate" type="date"></element>
+    		<element name="passwordExpirationDate" type="date"></element>
+    	</sequence>
+    </complexType>
+
+</schema>

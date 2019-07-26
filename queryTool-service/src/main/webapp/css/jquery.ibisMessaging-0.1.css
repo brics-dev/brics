@@ -1,0 +1,74 @@
+@CHARSET "ISO-8859-1";
+
+.ibisMessaging-message {
+	word-wrap: break-word;
+}
+
+.ibisMessaging-primary {
+	margin-top: 3px;
+	margin-bottom: 10px;
+	padding: 5px;
+}
+
+.ibisMessaging-error {
+	background: #FFDDDD;
+	border: 1px solid #DD3434;
+	color: #FF0000;
+	font-weight: bold;
+	padding: 5px;
+}
+
+.ibisMessaging-warning {
+	background: #FBDB96;
+	border: 1px solid #000000;
+	color: #000000;
+	font-weight: bold;
+	padding: 5px;
+}
+
+.ibisMessaging-success {
+	background: #EEF9E0;
+	border: 1px solid #000000;
+	color: #567830;
+	font-weight: bold;
+	padding: 5px;
+}
+
+.ibisMessaging-info {
+	background: #DDDDDD;
+	border: 1px solid #000000;
+	color: #000000;
+	font-weight: bold;
+	padding: 5px;
+}
+
+.ibisMessaging-flash {
+	width: 200px;
+	top: 0px;
+	right: 10px;
+	position: fixed;
+	display: none;
+	padding: 10px;
+	font-weight: bold;
+	border: 1px solid #000000;
+	z-index: 9999;
+}
+
+
+
+
+/*
+
+
+
+
+#autoSaveNotice.success {
+	background: #EEF9E0 url(../../../images/checkMark_small.png) no-repeat left center;
+	color: #567830;
+}
+
+#autoSaveNotice.error {
+	background: #FFDDDD url(../../../images/existWarning_small.png) no-repeat left center;
+	color: #FF0000;
+}
+*/

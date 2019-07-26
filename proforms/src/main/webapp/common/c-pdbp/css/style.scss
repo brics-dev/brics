@@ -1,0 +1,156 @@
+/*----------------------------------------------------------
+  PDBP Styles 
+------------------------------------------------------------*/
+ 
+/***
+ * ===>>  CONFIG   <<=======================================================================
+
+ * Color Variables */  
+
+/* Grays */
+$lightest: #fff;
+$lightest-gray: #ececec;
+$lighter-gray: #d6d6d6;
+$light-gray: #A8A8A8;  
+$medium-gray: #808080;
+$dark-gray: #362f2d;
+$darkest: #000;
+
+/*  Main Colors (change these first, or add color names with hex values)
+** THESE COLORS (+ the grays) SHOULD DEFINE ALL OTHER COLORS IN THE SITE ** 
+*/ 
+$red: #DD3434;
+$pink: #FFDDDD;
+$link-blue:  #141f64;  
+$light-blue: #359AEC;
+$light-yellow: #ffc;
+$cool-gray: #4a545b;
+$yellow-orange: #ffea8a;
+$orange: #F94936;
+$dark-orange: #DA1C02;
+$darker-orange: #8f4101;
+$dark-green:  #004d00;
+$green: #567830;
+$light-green: #678747;
+$lighter-green: #ced9c0; 
+$light-tan: #cc9; 
+$lightest-green: #eef9e0;
+  
+/* Semantic Color Variables (change these next - these should be defined by Main Colors) */
+$body-bg: $cool-gray;
+$header-bg: $lightest;  
+$table-header: $body-bg;
+$heading-primary: $dark-orange;
+$heading-secondary:  $dark-gray;
+$breadcrumb1: $light-blue; 
+$breadcrumb2: $red;
+$btn-color: $darker-orange;
+$btn-color2: $dark-orange; 
+$btn-color3: $orange;
+$footer-bg1: $dark-gray;
+$footer-bg2: $body-bg;
+$active-sub1: $orange;
+$active-sub2: $dark-orange;
+$active-ter: $yellow-orange; 
+$tooltip-border: $light-tan;
+$nav-hvr: $lighter-gray;
+
+/*****
+    Other Color Variables (do NOT change these - these should always be defined by main or semantic variables) */
+
+    $border-dark: $light-gray;
+    $error: $red; 
+    $error-bg: $pink;    
+    $highlight: $light-yellow;
+    $highlight-border: $dark-gray; 
+    $highlight-text: $heading-secondary;
+    $reverse-bg: $heading-secondary;
+
+
+/***
+
+ * ===>>  END CONFIG   <<=================================================================
+
+***/
+
+ 
+/* Import Stylesheets */ 
+
+@import "../../css/formalize.css";
+@import "../../css/fancybox/jquery.fancybox-1.3.4.css";
+@import "../../css/demo_table_jui.css";
+@import "../../css/jquery.dataTables.css";
+@import "../../css/ibisCommon.scss";
+
+/* It's not only colors that change */
+#header .content {
+	background: #FFFFFF;
+}
+#footer .content {
+	/*background: url(../images/footer-tab.png) no-repeat center top;*/
+	background: #FFFFFF;
+	height: 0;
+	max-width: 1400px;
+	min-width: 960px;
+	width: auto;
+}
+.footernav {
+	padding-top: 30px;
+}
+.footernav li {
+	float: left;
+	list-style: none outside none;
+}
+.footernav li a {
+	display: block;
+	margin: 0 10px 0 0;
+	font-size: 0.9em;
+}
+#footerContentContainer {
+	margin-left: auto;
+	margin-right: auto;
+	width: 880px;
+}
+#footer p {
+	clear: left;
+	display: block;
+	float: left;
+	font-size: 0.9em;
+	font-style: italic;
+	margin-top: 10px;
+}
+#footer .branding {
+	float: right;
+	height: 82px;
+	overflow: hidden;
+	width: 273px;
+	text-indent: -999px;
+}
+#footer .branding div {
+	float: left;
+	height: 100%;
+}
+#footer .hhs {
+	background: url("../images/logo-hhs.png") no-repeat;
+	width: 64px;
+}
+#footer .nih {
+	background: url("../images/logo-nih.png") no-repeat;
+	width: 88px;
+}
+#footer .usa {
+	background: url("../images/logo-usa.png") no-repeat;
+	width: 120px;
+}
+
+#header .content {
+	background: url("../images/bkg-header.png") no-repeat right top;
+} 
+
+#primary-nav li .missingPermission {
+	background: $dark-gray;
+	color: $lightest-gray;
+	display: block;
+	font-weight: bold;
+	padding: 8px 15px;
+} 

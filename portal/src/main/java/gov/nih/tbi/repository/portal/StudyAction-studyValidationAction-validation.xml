@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC "-//Apache Struts//XWork Validator 1.0.2//EN" "http://struts.apache.org/dtds/xwork-validator-1.0.2.dtd">
+<validators>
+	<field name="studyDetailsForm.title">
+		<field-validator type="requiredstring">
+			<param name="trim"> true
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 255
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+		<field-validator type="studyunique">
+			<message key="errors.unique" />
+		</field-validator>
+		<field-validator type="xml">
+			<param name="trim"> true
+			</param>
+			<message key="errors.xmlchar" />
+		</field-validator>
+	</field>
+	<field name="studyDetailsForm.abstractText">
+		<field-validator type="requiredstring">
+			<param name="trim"> true
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 4000
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+		<field-validator type="xml">
+			<param name="trim"> true
+			</param>
+			<message key="errors.xmlchar" />
+		</field-validator>
+	</field>
+	<field name="studyDetailsForm.goals">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 4000
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+		<field-validator type="xml">
+			<param name="trim"> true
+			</param>
+			<message key="errors.xmlchar" />
+		</field-validator>
+	</field>
+	<field name="studyDetailsForm.studyType"> 
+		<field-validator type="required"> 
+			<message key="errors.required" /> 
+		</field-validator> 
+	</field>
+	<field name="sessionStudy.study.primaryPI"> 
+		<field-validator type="required"> 
+			<message>Please Select a Primary Principal Investigator to create a study by clicking on "ADD TO TABLE".</message>
+		</field-validator> 
+	</field>
+	<field name="sessionStudy.study.primarySite"> 
+		<field-validator type="required"> 
+			<message>You must add a Primary Site to create a study.</message> 
+		</field-validator> 
+	</field>
+	<field name="studyDetailsForm.studyStartDate">
+		<field-validator type="requiredstring">
+			<param name="trim"> true
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="isodatevalidator">
+			<message key="errors.isoDateFormat" />
+		</field-validator>
+	</field>
+	<field name="studyDetailsForm.studyEndDate">
+		<field-validator type="requiredstring">
+			<param name="trim"> true
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="isodatevalidator">
+			<message key="errors.isoDateFormat" />
+		</field-validator>
+		<field-validator type="studystartenddatevalidator">
+			<message key="errors.startDate"/>
+		</field-validator>
+	</field>
+	<field name="studyDetailsForm.numberOfSubjects">
+		<field-validator type="int">
+			<param name="min">0</param>
+			<message key="invalid.fieldvalue.numberOfSubjects" />
+		</field-validator>
+	</field>
+	<field name="studyDetailsForm.fundingSource"> 
+		<field-validator type="required"> 
+			<param name="trim">true</param> 
+			<message key="errors.required" /> 
+		</field-validator> 
+	</field>
+	<field name="uploadFileName"> 
+		<field-validator type="studyuploadfilename">
+			<message key="errors.submissionDocument" />
+		</field-validator>
+	</field>
+</validators>

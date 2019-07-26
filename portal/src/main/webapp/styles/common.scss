@@ -1,0 +1,2456 @@
+/* ----- General, common, reusable styles ------------------------------------------------- */
+
+* {
+  margin: 0;
+  padding: 0;
+  font-size: 100.01%;
+}
+
+body {
+  font: 62.5% Arial, Verdana, Helvetica, sans-serif;
+}
+
+a {
+  outline: none;
+  img {
+    border: 0;
+  }
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    }
+
+hr {
+  display: none; 
+}
+
+address {
+  font-style: normal;
+}
+
+table {
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+
+.img-center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.center {
+  text-align: center;
+}
+
+.left {
+  text-align: left;
+}
+
+.right {
+  text-align: right;
+}
+
+.float-left {
+  float: left!important;
+  display: inline;
+}
+
+.float-right {
+  float: right!important;
+  display: inline;
+}
+
+.no-float {
+  float: none !important;
+}
+
+.clear-left {
+  clear: left;
+}
+
+.clear-right {
+  clear: right;
+}
+
+.clear-both {
+  clear: both;
+}
+
+.clear-float {
+  display: inline-block;
+  overflow: hidden;
+  display: block;
+}
+
+.clearfix {
+    zoom:1;
+    &:before, &:after {
+        content: "\0020";
+        display: block;
+        height: 0;
+        overflow: hidden;
+    }
+    &:after {
+        clear: both;
+    }
+}
+.auto-width {
+  width: auto !important;
+}
+
+.margin-left {
+  margin-left: 10px;
+  &.wide-margin {margin-left: 20px;}
+  &.wider-margin {margin-left: 30px;}
+  &.widest-margin {margin-left: 40px;}
+
+}
+
+.margin-right {
+  margin-right: 10px;
+  &.wide-margin {margin-right: 20px;}
+  &.wider-margin {margin-right: 30px;}
+  &.widest-margin {margin-right: 40px;}
+
+}
+
+.no-margin {
+  margin: 0px !important;
+}
+
+.no-padding {
+  padding: 0px;
+}
+
+.no-border {
+  border: 0 !important;
+}
+
+.no-padding {
+  padding: 1px 0;
+}
+
+.no-wrap {
+  white-space: nowrap;
+}
+
+.hidden {
+  display: none;
+}
+
+.visuallyhidden { border: 0; clip: rect(0 0 0 0); height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; width: 1px; }
+.visuallyhidden.focusable:active, .visuallyhidden.focusable:focus { clip: auto; height: auto; margin: 0; overflow: visible; position: static; width: auto; }
+
+/* commented backslash hack (feed all browsers but IE5/Mac) \*/
+
+.alt {
+  position: absolute;
+  left: -9999px;
+}
+
+.homepage-bulleted {
+  margin: 0 12px 1em 12px;
+}
+
+.section {margin-bottom: 20px;}
+
+/* end hack */
+
+/* Typography - declare commonality such as color, font-family, font-size, and line height here. Override common styles in layout.css  */
+
+h1 {
+  font: 22px Arial Bold, Arial, sans-serif;
+  letter-spacing: 1px;
+  margin: 12px 0 0 0;
+}
+
+h2 {
+  font: 18px / 2.2 Arial Bold, Arial, sans-serif;
+  
+  letter-spacing: 1px;
+}
+
+h3 {
+  font: 16px / 1.2 Arial Bold, Arial, sans-serif;
+  margin: 4px 0;
+}
+
+h4 {
+  font: 14px / normal Arial, Verdana, Helvetica, sans-serif;
+  margin: 0 0 6px 0;
+}
+
+h5 {
+  font: bold 12px / normal Arial, Verdana, Helvetica, sans-serif;
+}
+
+p {
+  font: 12px / 1.3 Arial;
+  margin: 0 0 1em 0;
+}
+
+ul, ol {
+  font: 12px / 1.2 Arial;
+  margin: 0 0 1em 0;
+}
+
+a {
+  color: #141f64;
+  &:hover! {}
+}
+
+.green-text {
+  font-size: 13px;
+}
+
+.tip {
+  display: none;
+  /*--Hides by default--*/
+  padding: 10px;
+  position: absolute;
+  z-index: 1000;
+  -ms-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  -o-border-radius: 3px;
+  border-radius: 3px;
+}
+
+.list-grid {
+    @extend .clearfix;
+    &.halves > .list-grid-module, &.halves > li{width: 48.5%;}
+    &.thirds > .list-grid-module, &.thirds > li {width: 24%}
+    &.quarters > .list-grid-module, &.quarters > li {width: 23.5%;}
+    > .list-grid-module, > li {
+        float: left;
+        margin: .5%;
+        list-style: none;
+    }
+}
+
+  /* USE CSS PIE to get opacity working in < IE9 */
+.lt-ie9 .tip {
+  behavior: url("/styles/PIE.htc");
+}
+
+.tooltip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  display: none;
+}
+
+/* Styles for page layouts. This includes the site header, navigation, content body and footer. */
+.back-to-top {
+  float: right;
+  font: bold 12px / normal Arial, Verdana, Helvetica, sans-serif;
+}
+
+.back-to-top-inner {
+  margin-right: 15px;
+}
+
+#page-container {
+  position: relative;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.lightbox-normal {
+  width: 960px;
+}
+
+.lightbox-narrow {
+  width: 780px;
+}
+
+.content {
+  width: auto;
+  max-width: 1400px;
+  min-width: 960px;
+  margin: 0 auto;
+  overflow: visible;
+  position:relative;
+  /*z-index: 2;*/
+  border-bottom-left-radius: 7px;
+  border-bottom-right-radius: 7px;
+}
+
+.lightbox-content-wrapper {
+  margin: 0 auto;
+  position: relative;
+  overflow: visible;
+  min-width: 600px;
+  padding-left: 15px;
+}
+
+.lightbox-content-wrapper h3{
+	border-bottom:1px solid #000;
+}
+
+.text-block {
+  margin: 20px 0px 0px 0px;
+  clear: both;
+}
+
+/* Header styles */
+
+#header {
+  border-bottom: 1px solid;
+  .content {
+    height: 50px;
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+    -o-border-radius: 0;
+    border-radius: 0;
+  }
+}
+
+#instanceHeaderTwo {
+    float: left;
+    font-size: 16px;
+}
+
+#logo {
+  margin: 0px 20px 0 1px;
+  height: 50px;
+  width: 307px;
+}
+
+/* login button and form */
+
+#login-button {
+  margin: 15px 20px 0 0;
+}
+
+#login-link {
+  float: left;
+  width: 90px;
+  a {
+    width: 90px;
+    padding: 0 30px 8px 22px;
+    float: left;
+    font: 11px / 2.4 Arial, Gadget, sans-serif;
+  }
+}
+
+#login-panel {
+  display: none;
+  position: absolute;
+  top: 103px;
+  right: 0;
+  z-index: 3;
+  width: 254px;
+  text-align: right;
+  padding-bottom: 10px;
+}
+
+#login-wrapper {
+  padding: 5px 10px;
+}
+
+/* Content wrapper  styles */
+
+#content-wrapper {
+  margin-top: 32px;
+  .content {
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+  }
+}
+
+.border-wrapper {
+  float: left;
+  margin: 15px;
+  -webkit-border-radius: 6px;
+  -moz-border-radius: 6px;
+  border-radius: 6px;
+  width: 99%;
+  /*! min-width: 1024px;*/
+  overflow: auto;
+}
+
+/* Skip-Link Styles */
+
+#skiplinkholder {
+  width: 150px;
+  position: absolute; 
+  a {
+    display: inline;
+    text-indent: -99999px;
+    &:focus {height: 60px; text-align: center; position: relative; z-index: 5; text-indent: 0; background: #fff; border: 1px solid #000; z-index: 5; line-height: 60px; display: block;}
+  }
+}
+
+  /* USE CSS PIE to get border-radius working in < IE9 */
+.lt-ie9 .border-wrapper {
+  behavior: url("/styles/PIE.htc");
+}
+
+/* BRICS Tools Styles */
+
+.brics-tool {
+  height: 150px;
+  width: 162px;
+  margin-bottom: 37px;
+  text-align: center;
+  font-size: 22px;
+  a {
+    text-indent: -9999px;
+    display: block;
+    height: 100%;
+  }
+}
+
+/*homepage styles */
+
+#left-column {
+  float: left;
+  display: inline;
+  margin: 15px 0 0 22px;
+  width: 605px;
+  p {
+    margin: 0 0 1em 18px;
+  }
+}
+
+#spotlight-wrapper {
+  padding-bottom: 7px;
+  width: 604px;
+  /*margin-left:18px; width:587px; */
+}
+
+#spotlight-content {
+  padding: 22px 0 0 18px;
+}
+
+#spotlight-wrapper {
+  .float-left {
+    margin: 0 25px 20px 0;
+    width: 170px;
+    p {
+      margin: 0 0 1em 0;
+    }
+  }
+  h3 {
+    line-height: normal;
+    margin: 0 0 8px 0;
+  }
+}
+
+#right-column {
+  float: right;
+  display: inline;
+  margin: 0;
+  padding-top: 15px; 
+  width: 313px;
+  border-bottom-right-radius: 7px;
+    > div {margin:0 20px;}
+  .homepage-list {
+    margin: 0 12px 1em 24px;
+  }
+}
+
+/*body.primary pages */
+
+.primary {
+  #content-wrapper .content .clear-float h1 {
+    margin-left: 15px;
+    padding-left: 15px;
+  }
+  #content-wrapper .content .border-wrapper wide h1 {
+    margin-left: 15px;
+  }
+  #content-wrapper .content .border-wrapper h1 {
+    margin-left: 15px;
+  }
+  #left-sidebar {
+    float: left;
+    margin: 0;
+    width: 170px;
+    padding: 15px 0 15px 15px;
+  }
+  #center-content {
+    float: left;
+    margin-right: 10px;
+    padding: 10px 0;
+    width: 577px;
+  }
+  #right-sidebar {
+    float: left;
+    padding: 15px 0;
+    width: 162px;
+  }
+  #left-sidebar + #main-content, div:nth-last-of-type(2)#main-content {
+    float: left;
+    margin-left: 5px;
+    padding: 0 15px;
+    padding-top: 13px;
+    width: 80%;
+    max-width: 1162px;
+    min-width: 462px;
+    min-height: 200px;
+    &.brics-modules {
+      ul {
+        margin-left: 1.5em;
+        width: 140px;
+        li {margin-bottom: .5em;}
+      }
+    }  
+    h2 {
+	  margin:0px;
+	  padding:0px;
+	  font:18px Arial Bold, Arial, sans-serif;
+	}
+  }
+  #main-content {
+    width: 98%;
+    max-width: 1346px;
+    min-width: 900px;
+    float: left;
+    margin-left: 15px;
+    padding: 0 0px;
+    padding-top: 13px;
+    min-height: 295px;
+    &.brics-modules {
+      ul {
+        margin-left: 1.5em;
+        width: 140px;
+        li {margin-bottom: .5em;}
+      }
+    }   
+    h2 {
+	  margin:0px;
+	  padding:0px;
+	  font:18px Arial Bold, Arial, sans-serif;
+	}
+  }
+  .wide #main-content {
+    padding: 15px 15px 0px 15px;
+    width: 96%;
+    max-width: 1310px;
+    min-width: 906px;
+  }
+}
+
+/* body.secondary pages */
+
+.secondary {
+  #content-wrapper .content h1 {
+    margin-left: 250px;
+  }
+  #left-sidebar {
+    float: left;
+    margin: 8px 0 0 3px;
+    width: 250px;
+  }
+  #center-content {
+    float: left;
+    margin-left: 253px;
+    position: relative;
+    margin-right: -693px;
+    padding: 10px 0;
+    width: 440px;
+  }
+  #right-sidebar {
+    float: left;
+    margin-left: 463px;
+    margin-right: -691px;
+    padding: 15px 0;
+    width: 228px;
+  }
+  #main-content {
+    float: left;
+    margin-left: 253px;
+    margin-right: -940px;
+    padding: 10px 0;
+    width: 687px;
+  }
+}
+
+/* Footer styles */
+
+#footerDiv {padding-top: 60px; position: relative; top: -10px; z-index: 0;}
+
+#footer {
+  margin: 0 auto;
+  width: 960px;
+}
+
+#footer a {
+  text-transform: underline;
+}
+
+.contact {
+  float: left;
+  display: inline;
+  margin: 0 0 0 16px;
+  float: left;
+  text-align: left;
+  width: 298px;
+  h4 {
+    font: bold 14px / normal Arial;
+  }
+  h5 {
+    font: bold 12px / normal Arial;
+  }
+  p {
+    font-size: 11px;
+    line-height: 1.4;
+    margin: 0 0 1em 0;
+  }
+}
+
+.footer-links {
+  float: none;
+  list-style: none;
+  margin: 0 0 15px;
+  clear:left;
+  width:300px;
+  li {
+    display: block;
+    float: left;
+    padding: 0 4px;
+    margin-bottom: 15px;
+  }
+}
+
+.footer-logos {
+}
+
+/* Adding exception for IE 8 issues with images not displaying due to image pixel specification */
+
+.lt-ie9 .footer-logos li {min-width: 100px;}
+
+.footer-logos.last {
+  width: 35%;
+}
+
+.footer-logos .last-item {
+  display: block;
+  margin-top: 4px;
+}
+
+
+/* "help" text link on forms-layout2.htm */
+
+.help-link {
+  float: right;
+  display: inline;
+  margin: 10px 13px 0 0;
+  font: 16px / 28px Arial;
+}
+
+#main-content {
+  ol, ul {
+    margin: 0 3em 1em 3em;
+  }
+}
+
+#center-content {
+  ol, ul {
+    margin: 0 3em 1em 3em;
+  }
+}
+
+#main-content {
+  ol li, ul li {
+    margin: .25em 0;
+  }
+}
+
+#center-content {
+  ol li, ul li {
+    margin: .25em 0;
+  }
+}
+
+#breadcrumb {
+  font: 11px / normal Arial;
+  margin: 0 0 5px 0;
+}
+
+.static-accordion {
+  margin: 0 0 2em 0 !important;
+}
+
+/* Calls to action button */
+
+.action-button {
+  display: block;
+  float: left;
+  margin-bottom: 10px;
+  a {
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    -o-border-radius: 5px;
+    border-radius: 5px; 
+    padding: 3px 10px;
+    font: bold 12px / 18px Arial, Verdana, Helvetica, sans-serif;
+    text-decoration: none;
+    display: block;
+    text-transform: uppercase;
+    padding-top: 3px;
+  }
+}
+
+/* Participating organizations logos page */
+
+#main-content .horizontal-links {
+  float: left;
+  width: 100%;
+  margin: 0 0 1em 0;
+  li {
+    display: inline;
+    padding: 2px 3px;
+    border-right: 1px solid;
+  }
+}
+
+#org-logo {
+  overflow: hidden;
+  margin: 0!important;
+  float: left;
+  li {
+    float: left;
+    display: inline;
+    height: 240px;
+    width: 172px;
+    padding: 10px;
+    text-align: center;
+    margin: 10px!important;
+    border: 4px solid;
+    a {
+      overflow: hidden;
+      display:block;
+      img {
+        display: block;
+        margin: 1em auto;
+      }
+    }
+    .fundedby {
+      padding: 2px;
+    }
+  }
+}
+
+/* carousel styling */
+
+#carousel-wrapper {
+  clear: left;
+  position: relative;
+  margin: 13px 17px 20px 17px;
+  width: 248px;
+}
+
+.carousel-content {
+  border: 1px solid;
+}
+
+.carousel {
+  height: 100px;
+  margin: 0;
+  padding: 0;
+  li {
+    height: 100px;
+    width: 82px;
+    .thumbnail {
+      margin: 10px 0 5px 0;
+    }
+    .panel {
+      padding: 0 5px;
+    }
+  }
+  p {
+    font: 11px / normal Arial;
+    margin: 0 0 .5em;
+  }
+  .bx-next {
+    position: absolute;
+    top: 40%;
+    right: -12px;
+    z-index: 999;
+    width: 24px;
+    height: 24px;
+    text-indent: -999999px;
+  }
+  .bx-prev {
+    position: absolute;
+    top: 40%;
+    left: -12px;
+    z-index: 999;
+    width: 24px;
+    height: 24px;
+    text-indent: -999999px;
+  }
+}
+
+/*next button*/
+
+/*previous button*/
+
+.lightbox-content {
+  display: none;
+}
+
+
+
+/* Displaying Data in tables. See example on striped-table-layout.htm */
+#dataElementResultsId {
+margin-top: 9px;
+}
+#dataStructureResultsId
+{
+margin-top: 9px;
+}
+
+.display-data { border: 1px solid; margin-bottom: 10px;}
+
+.list {
+  border: 1px solid;
+  margin: 6px 0px 12px 145px;
+  position: relative;
+}
+
+.display-data {
+  th, td {
+    padding: 6px;
+  }
+  th {
+    a {
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 11px;
+    }
+    font-weight: bold;
+    font-size: 11px;
+    text-transform: uppercase;
+    text-align: left;
+    border: solid 1px;
+  }
+  td {
+    font-size: 12px;
+    vertical-align: top;
+  }
+}
+
+.filter {
+  font-size: 11px;
+  background-color: rgb(236, 236, 236);
+border: 1px solid #d6d6d6;
+padding: 2px;
+ input[type='checkbox'] {
+	margin:2px 5px 2px 5px;
+}
+ input[type='radio'] {
+margin:2px 5px 2px 5px;
+}
+  .active-filter { font-weight: bold; }
+}
+
+.filter-results {
+  font-size: 12px;
+  > .form-field {
+    float:right;
+  }
+}
+
+span {
+  &.pagination {
+    margin: 0 12px;
+  }
+  &.pagination-arrows img {
+    vertical-align: text-bottom;
+  }
+}
+
+/* Displaying Data in tables. See example on striped-table-layout.htm */
+.basic-table-format {
+	
+}
+/*
+.basic-table-format td,.basic-table-format th{
+	vertical-align: top;
+	text-align:left;
+	padding:5px;
+}*/
+
+.auto-width {
+  margin: 10px auto;
+}
+
+.full-width {
+  width: 100%;
+  word-wrap: break-word;
+  table-layout: fixed;
+} 
+
+.unfixed-full-width {
+  width: 100%;
+  overflow: hidden;
+  word-wrap: break-word;
+}
+
+/* styles for the workflow steps. See progress-tracker.htm */
+
+#main-content .workflow {
+  float: left;
+  width: 100%;
+  margin: 0 0 1em 0;
+  list-style: none;
+  li {
+    float: left;
+    display: inline;
+    margin: 0;
+    line-height: 28px;
+    a {
+      display: block;
+      height: 28px;
+      text-decoration: none;
+      padding-right: 5px;
+    }
+    &.active-workflow a { font-weight: bold;
+    }
+  }
+}
+
+.column {
+  float: left;
+  margin: 5px;
+  width: 48%;
+  &.thin {
+    width: auto;
+  }
+}
+
+#details-accordion {
+  margin: 6px 0 12px 0;
+}
+
+.ui-widget-content {
+  border: 0;
+}
+
+.ui-accordion-content {
+  padding: 0;
+  margin-bottom: 0;
+}
+
+#details-accordion table.display-data {
+  margin: 0 0 10px 0;
+}
+
+#column-left {
+  float: left;
+  margin: 0px 40px 0px 40px;
+}
+
+#column-right {
+  float: left;
+}
+/* ----------------
+ Styles for primary navigation; secondary navigation (FITBIR Summary Data and About FITBIR links),
+ dropdown menu for About FITBIR, and left column subnavigation links. 
+--------------------- */
+
+/* Navigation > see mark up on /includes/navigation.htm current state is added by javascript */
+
+#navigation {
+  position: relative;
+  z-index: 2;
+  margin: 0 auto;
+  max-width: 1400px;
+  min-width: 960px;
+  width: auto;
+}
+
+.lt-ie9 #navigation {
+    z-index: 101;
+}
+
+.nav-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+#primary-nav {
+  list-style: none;
+  line-height: normal;
+  margin: 0;
+  li {
+    float: left;
+    padding-right: 3px;
+    height: 42px;
+    a, div {
+      font-weight: bold;
+      display: block;
+      padding: 8px 15px;
+      text-decoration: none;
+      &:hover, &:focus {
+        text-decoration: underline;
+      }
+    }
+    .missingPermission {
+      font-weight: bold;
+      display: block;
+      padding: 8px 15px;
+    }
+  }
+}
+
+#home-link a {
+  span, &:hover span, &:focus span {
+    padding-left: 18px;
+  }
+}
+
+/* styles for secondary navigation: "FITBIR Summary Data" and "About FITBIR" links */
+
+#secondary-nav {
+  list-style: none;
+  line-height: normal;
+  margin: 2px 0 0 0;
+  li {
+    float: right;
+    margin-left: 5px;
+    font: 13px / 28px Arial;
+    a {
+      display: block;
+      padding: 0 20px;
+      text-decoration: none;
+    }
+  }
+}
+
+#about-link {
+  width: 138px;
+  ul {
+    margin-top: -2px;
+    padding-right: 2px;
+    position: absolute;
+    z-index: 99;
+  }
+  a {
+    height: 28px;
+    &.current {
+      height: 38px;
+    }
+  }
+}
+
+#data-link {
+  width: 174px;
+  a {
+    height: 28px;
+    &.current {
+      height: 38px;
+    }
+    &:hover, &:focus {
+      height: 28px;
+    }
+  }
+  &:hover a, &:focus a {
+    height: 28px;
+  }
+}
+
+/* styles for "About FITBIR" dropdown menu */
+
+#secondary-nav {
+  ul {
+    margin-left: 10px;
+    list-style: none;
+    text-align: left;
+    position: absolute;
+    width: 214px;
+    left: -9999em;
+    top: 26px;
+    right: 0;
+    text-align: left;
+    li {
+      float: none;
+      margin: 4px 0;
+      padding: 0;
+      font: bold 13px / normal Arial;
+    }
+    .tertiary-links {
+      margin: 2px 0;
+      font: normal 11px / normal Arial;
+    }
+    li a {
+      background-image: none !important;
+      padding: 1px 8px!important;
+      height: auto !important;
+    }
+  }
+  li:hover ul {
+    left: auto;
+  }
+  ul li a:hover {
+    text-decoration: underline;
+  }
+}
+
+.borderradius.boxshadow #dropdown-wrapper {
+  padding: 8px 13px 6px 6px;
+  margin-top: 1px;
+}
+
+.no-borderradius #secondary-nav ul,
+.no-boxshadow #secondary-nav ul {
+    padding: 10px 0 0;
+}
+
+/* left side subnavigation on secondary pages */
+
+.subnavigation {
+  float: left;
+  list-style-type: none;
+  font-size: 13px;
+  margin: 0;
+  li {
+    /*margin: 2px;*/
+    text-align: left;
+    line-height: 2;
+    font-weight: bold;
+    width: 230px;
+    .missingPermission {
+      display: block;
+      height: 45px;
+      padding-right: 16px;
+      padding-left: 10px;
+      text-decoration: none;
+    }
+    a {
+      display: block;
+      height: 37px;
+      padding-right: 0;
+      padding-left: 10px;
+      text-decoration: none;
+      -webkit-border-radius: 3px;
+      -moz-border-radius: 3px;
+      -o-border-radius: 3px;
+      border-radius: 3px;
+      &:focus {text-decoration: underline;}
+    }
+  }
+}
+
+/* arrow points to the right */
+/* arrow points down */
+
+/* styling the tertiary links that appear on the left side subnavigation */
+
+.display-ter-nav {
+  a {
+    height: 37px;
+  }
+}
+
+/* tertiary-links ul */
+
+.tertiary-links {
+  z-index: 1;
+  margin: 0;
+  padding: 0 0 2px 0;
+  list-style: none;
+  li {
+    margin: 4px 0;
+    font-size: 11px;
+    background: none;
+    line-height: 22px;
+    a {
+      height: 22px;
+      background: none;
+      &:focus {text-decoration: underline;}
+    }
+  }
+}
+        
+/*Dictionary menu change*/
+.tertiary-links-inner {
+  z-index: 1;
+  margin: -5px 0 -5px 0;
+  padding: 0;
+  list-style: none; }
+.tertiary-links-inner li {
+  margin: 4px 0;
+  font-size: 11px;
+  background: none;
+  line-height: 18px; }
+.tertiary-links-inner li a {
+  height: 18px;
+  background: none; }
+.tertiary-links-inner li a:focus {
+  text-decoration: underline; }
+
+/* has the bordered bottom and side lines for the tertiary nav */
+
+/* left side navigation for primary pages. This navigation is narrow in width and taller in height */
+
+.primary {
+  .subnavigation {
+    li {
+    /*  margin: 2px; */
+      text-align: left;
+      line-height: 3;
+      width: auto;
+      
+    }
+   .long-text {
+      line-height: normal;
+      height: auto!important;
+      a {
+        padding: 7px 5px 5px 10px;
+        height: auto!important;
+        min-height: 45px;
+      }
+      li a {
+        min-height: 0;
+        padding: 0 0 0 10px;
+      }
+    }
+    li a {
+      height: 45px;
+    }
+    .active-sub a {
+
+    }
+  }
+  .display-ter-nav {
+    a {
+      height: 45px;
+    }
+  }
+  .tertiary-links {
+    margin: 0;
+    padding: 0 0 2px 0;
+    li {
+      margin: 5px;
+      font-size: 11px;
+      background: none;
+      line-height: 22px;
+      width: 145px;
+      a {
+        height: 22px;
+        background: none;
+      }
+      &.active-ter {width: 148px;}  
+      &.long-text {
+        height: auto;
+        a {
+          padding: 0 0 0 10px;
+          height: auto!important;
+          min-height: 14px;
+          line-height: 22px;
+        }
+      }
+    }   
+  }
+  .tertiary-links-inner {
+    li {
+      margin: 2px -15px 2px 20px;
+      font-size: 11px;
+      background: none;
+      line-height: 18px;
+      width: auto;
+      a {
+        height: 18px;
+        background: none;
+      }
+      &.active-ter {width: auto;}  
+      &.long-text {
+        height: auto;
+        a {
+          padding: 0 0 0 10px;
+          height: auto!important;
+          min-height: 14px;
+          line-height: 18px;
+        }
+      }
+    }   
+  }
+}
+
+/* arrow points down */
+/* has the bordered top and side lines for the tertiary nav */
+/* has the bordered bottom and side lines for the tertiary nav */
+
+/* --------------------
+---------- FORMS ------
+----------------------- */
+
+form { margin:0 8px; padding:8px 0; position: relative; }
+.form-field, .form-output, .upload-field, .sub-field { padding:5px 0; overflow:hidden; font:12px/normal Arial, Verdana, Helvetica, sans-serif;  }
+form .ui-datepicker-trigger { margin-left: 5px; vertical-align: top; float: left;}
+
+.form-field-vert label {
+  	text-align: right;
+  	/*width:100%;*/
+    margin: 0px 5px 0px 0px;
+    float: left;
+   }
+.form-field-vert {
+  	/*overflow:visible;*/
+  	}
+
+.form-field-vert  .special-instruction {
+clear: left;
+padding: 5px 5px 5px 5px;
+/*margin-left:0px;*/
+font-style: italic;
+}
+
+form .short-select { width: 50px !important; }
+
+/*form p.required { float:right; }*/
+
+label, .form-output .label { margin:0 5px 0 0; float: left; display: inline; width: 171px; text-align: right; font:12px/bold Arial, Verdana, Helvetica, sans-serif;  font-weight: bold; }
+label.required { font-weight:bold; }
+label.small, .label-small { font:11px/normal Arial, Verdana, Helvetica, sans-serif !important; }
+
+form .no-label { padding-left:140px; }
+
+form .textarea label { vertical-align: top; }
+.textfield { padding: 2px 3px 2px 5px; width: 426px;  float: left;  }
+form select { padding: 2px 3px 2px 5px; width: 439px;  float: left;  }
+/* form .textfield { width: 300px; } */
+
+input.tiny { width:20px; }
+input.small { width:75px; }
+input.medium { width:100px; }
+input.large { width:175px; }
+
+select.tiny { width:20px; }
+select.small { width:75px; }
+select.medium { width:130px; }
+select.large { width:230px; }
+
+.upload-field .file-upload { float: left; display: inline; margin: 3px 0px 0px 10px; }
+.upload-field select { float: left; width: 200px; }
+
+.readonly-text { overflow:hidden; word-wrap: break-word;}
+form select option { padding: 0 5px 0 10px; }
+
+form .documentation-options { margin-left: 20px; }
+form .documentation-options label { margin:0 5px 0 0; float: left; display: inline; width: 140px; text-align: right; font:12px/normal Arial, Verdana, Helvetica, sans-serif; }
+form .documentation-options .form-field { margin-left: 35px; }
+form .documentation-options .sub-field { clear:both; }
+
+form .hidden { text-align: left; text-indent: -9999px; display: none; }
+form .checkboxgroup { margin: 0 0 0 5px !important; list-style: none !important; float: left; display: inline-block; }
+
+form .checkboxgroup li { overflow: hidden; margin-bottom: 4px; }
+form .checkboxgroup li label { margin-left:10px; position: relative; float: none; width: auto; } 
+form .checkboxgroup li .textfield-other label { float:left; width:140px;}
+
+.expirationDate { margin: 5px 0px 0px 17px; }
+.expirationDate::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+form .checkboxgroup-horizontal { margin: 0px 0px 0px 0px !important; }
+form .checkboxgroup-horizontal li { float: left; list-style: none; }
+form .checkboxgroup-horizontal li label { display: inline; margin: 0px 20px 0px 3px; float: none; }
+
+form .checkboxgroup-vertical li { padding: 5px 3px 5px 0; overflow: hidden; margin-bottom: 4px;}
+form .checkboxgroup-vertical li label { position: relative; float: none; width: auto; margin-left: 5px;}
+/* overriding padding */
+form .checkboxgroup-vertical .special-instruction { padding: 0px 0px 10px 15px;}
+form .checkboxgroup-vertical li.site {padding: 0px 0px 10px 70px;}
+/*overriding the padding*/
+form .checkboxgroup-vertical li.site .special-instruction {padding: 0px 0px 0px 15px;}
+/* form ul.checkboxgroup-vertical li .textfield-other label { float:left; width:190px;} */
+
+.textfield-other {  }
+.button {
+  display: inline-block;
+  float: left;
+  cursor: pointer;
+  input, a{
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    -o-border-radius: 5px;
+    border-radius: 5px; 
+    padding: 3px 10px;
+    font: bold 12px / 18px Arial, Verdana, Helvetica, sans-serif;
+    text-decoration: none;
+    display: block;
+    text-transform: uppercase;
+    padding-top: 3px;
+    cursor: pointer;
+  }
+  button {
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    -o-border-radius: 5px;
+    border-radius: 5px; 
+    padding: 3px 10px;
+    font: bold 12px / 18px Arial, Verdana, Helvetica, sans-serif;
+    text-decoration: none;
+    display: inline-block;
+    text-transform: uppercase;
+    padding-top: 3px;
+    cursor: pointer;
+  }
+}
+
+.button-right {
+  display: inline-block;
+  float: right;
+  cursor: pointer;
+  input, a{
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    -o-border-radius: 5px;
+    border-radius: 5px; 
+    padding: 3px 10px;
+    font: bold 12px / 18px Arial, Verdana, Helvetica, sans-serif;
+    text-decoration: none;
+    display: block;
+    text-transform: uppercase;
+    padding-top: 3px;
+    cursor: pointer;
+  }
+  button {
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    -o-border-radius: 5px;
+    border-radius: 5px; 
+    padding: 3px 10px;
+    font: bold 12px / 18px Arial, Verdana, Helvetica, sans-serif;
+    text-decoration: none;
+    display: inline-block;
+    text-transform: uppercase;
+    padding-top: 3px;
+    cursor: pointer;
+  }
+}
+
+.right-button {
+  display: inline-block;
+  float: left;
+  a, input {
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    -o-border-radius: 5px;
+    border-radius: 5px; 
+    padding: 3px 10px;
+    font: bold 12px / 18px Arial, Verdana, Helvetica, sans-serif;
+    text-decoration: none;
+    display: block;
+    text-transform: uppercase;
+    padding-top: 3px;
+  }
+}
+
+.form-link { float:left; margin:6px 0 0 8px; }
+.error-message { color:#ff0000; vertical-align:top; float:left; width: 350px; }
+.icon-warning { vertical-align:top; margin-right:5px; margin-left:3px;  float:left;}
+.error-text { float:left; width: 300px;}
+
+.default-error { margin-left: 74px; padding:2px 0px 5px 33px; vertical-align:top; width: 300px; }
+.fieldspan { padding-left: 15px; }
+
+.special-instruction { clear:left; padding: 5px 5px 5px 145px; font-style:italic;}
+
+
+.special-instruction {
+ color:#000;
+ background-color:#E0ECF8;
+  max-width:400px;
+  display:none;
+   padding: 5px 0px 5px 0px;
+  position: relative;
+  left: 163px;
+  top: 0px;
+}
+
+.inline-special-instruction { padding: 0px 0px 0px 5px; font-style:italic;}
+/* special rules for the login form goes here */
+#login-panel form { margin:0; padding:4px 0; }
+#login-panel form label { width:55px; font-size:11px;}
+#login-panel .textfield { width:150px;}
+#login-panel .button { float:none; }
+#login-panel .button input { float:right;}
+
+/* special rules for forms using two column layout */
+form .column label { width: 95px; }
+input.float-left, textarea.float-left { margin-right:5px;}
+
+/* styles server side error message */
+.form-error, .success-message {padding:15px 5px 5px 5px; }
+
+/* styles for horizontal checkboxes */
+.checkbox-horizontal {
+  white-space: nowrap;
+}
+
+.checkbox-horizontal input {
+  vertical-align: middle;
+}
+
+.checkbox-horizontal label {
+  display: block;
+    text-align: left;
+    margin-right: 10px;
+    float: none;
+    display: inline;
+}
+
+.collapsable {
+  margin-bottom: 10px;
+}
+
+.collapsable h3 {
+  margin: 0;
+}
+
+.collapsable a {
+  text-decoration: none;
+  cursor: pointer;
+  display:block;
+  padding: 8px;
+}
+
+.login-buttons { margin: 5px 0px 15px 145px; }
+
+/* unused at the moment */
+.upload {
+  position:relative;
+  width:90px;
+  margin: 5px 0px 0px 10px;
+}
+.realupload {
+  position:absolute;
+  top:1px;
+  right:9px;
+  cursor:pointer;
+  z-index:2; /* bring the real upload interactivity up front */
+  width:74px;
+}
+
+.center-panel {
+  margin: 5px auto 10px 10%;
+}
+
+.realupload-label { width: 78px !important; cursor: pointer !important; }
+
+form .fakeupload input {
+  width:200px;
+}
+/* end unused */
+
+/* ----------------------------
+------ Statistics ------------- 
+------------------------------- 
+
+#breadcrumbContainer {
+  float: left;
+}
+
+
+.breadcrumbDropdownContainer {
+  width: 290px;
+  padding-left: 10px;
+  z-index: 900;
+  position: absolute;
+  left: 0px;
+  top: 0px;
+}
+
+.breadcrumbDropdownContainer a {
+  width: 215px;
+  display: block;
+  height: 2em;
+  line-height: 2em;
+  float: left;
+  overflow: hidden;
+}
+
+.breadcrumbDropdownContainer a.addToCompareLink {
+  width: 70px;
+  text-align: right;
+  font-size: 8pt;
+  padding-right: 5px;
+}
+
+.breadCrumbHeader {
+  padding-right: 10px;
+  margin-left: 10px;
+  display: inline-block;
+  height: 25px;
+  line-height: 25px;
+  z-index: 901;
+}
+
+/* root element for tabs  
+.tabs { 
+  list-style:none; 
+  margin:0 !important; 
+  padding:0;  
+  height:30px;
+}
+
+/* single tab *//*
+.tabs li { 
+  float:left;  
+  text-indent:0;
+  padding:0;
+  margin:0 !important;
+  list-style-image:none !important; 
+}
+
+/* link inside the tab. uses a background image 
+.tabs a { 
+  font-size:11px;
+  display:block;
+  height: 30px;  
+  line-height:30px;
+  width: 134px;
+  text-align:center;  
+  text-decoration:none;
+  padding:0px;
+  margin:0px; 
+  position:relative;
+  top:1px;
+}
+
+.tabs a:active {
+  outline:none;   
+}
+
+/* Different widths for tabs: use a class name: w1, w2, w3 or w2 
+
+.panes div {
+  height: 400px;
+  width: 720px;
+  padding: 1px;
+}
+/*
+.panes div {
+  
+}
+*//*
+.panes #tab3 {
+  text-align: center;
+  overflow: auto;
+}
+
+#statisticsGuidList {
+  margin-left: auto;
+  margin-right: auto;
+  width: 400px;
+  text-align: left;
+  margin-top: 20px;
+}
+
+/* initially all panes are hidden 
+.panes .pane {
+  /* uses the "offset left" hide method so that the charts can get height/width values *//*
+  position: absolute;
+    left: -10000px; 
+}
+
+/* use a semi-transparent image for the overlay
+#overlay {
+  /*height:450px;*//*
+  display: none;
+  width: 640px;
+  padding: 35px;
+}
+
+/* container for external content. uses vertical scrollbar, if needed 
+.contentWrap {
+  height:475px;
+  overflow-y:auto;
+  padding: 10px;
+}
+
+.scrollDiv {
+  height: 400px;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.overlay .close {
+  position:absolute; right:5px; top:5px;
+  cursor:pointer;
+  height:35px;
+  width:35px;
+}
+
+.statisticsGuidContentContainer {
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto; 
+}
+
+.statisticsGuidContentContainer table {
+  text-align: left;
+}
+
+#comparisonContainer {
+  float: right;
+}
+
+#comparisonEditor {
+  /*height:450px;*//*
+  display: none;
+  width: 500px;
+  padding: 35px;
+  z-index: 999;
+}
+
+#comparisonChart {
+  height:400px;
+  display: none;
+  width: 958px;
+  padding: 35px;
+  z-index: 999;
+}
+
+h2.comparisonSectionHeader {
+  padding: 5px 0px 5px 0px;
+  text-align: center;
+  text-decoration: underline;
+}
+
+a.showComparison {
+  text-align: center;
+  display: block;
+  padding-top: 5px;
+}
+
+#comparisonEditor .contentWrap {
+  height: auto;
+}
+
+.comparisonListingName {
+  display: inline-block;
+  font-size: 1.2em;
+  font-weight: bold;
+  width: 225px;
+}
+
+.comparisonListing {
+  width: 300px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 3px;
+}
+
+.comparisonListing a {
+  display: inline-block;
+  text-align: right;
+  width: 75px; 
+}
+
+#breadCrumbHeaderHome {
+  vertical-align: top;
+}
+
+.breadcrumbHeaderContainer {
+  display: inline-block;
+}
+
+#breadcrumbContainerLabel {
+  display: inline-block;
+}
+
+*/
+
+#breadcrumb {
+  /*position: relative;*/
+  padding-bottom: 10px;
+  display: inline-block;
+}
+
+
+/*********GRIDS CSS************/
+.line,.lastUnit{overflow:hidden; *overflow:visible;*zoom:1;}
+.unit{float:left;}
+.unitRight{float:right;}
+.size1of1{float:none;}
+.size1of2{width:50%;}
+.size1of3{width:33.33333%;}
+.size2of3{width:66.66666%;}
+.size1of4{width:25%;}
+.size3of4{width:75%;}
+.size1of5{width:20%;}
+.size2of5{width:40%;}
+.size3of5{width:60%;}
+.size4of5{width:80%;}
+.lastUnit{float:none;width:auto;_position:relative;_left:-3px;_margin-right:-3px;}
+.mod {margin: 10px;}
+
+
+/*********** facet side search styles **********/
+
+.facet-form-field {
+	
+	
+	margin:5px 0px 15px 0px;
+	
+}
+.facet-form-field label {
+	float:left;
+	text-align:left;
+
+ display:block;
+ padding: 3px 0px 0px 0px;
+  margin-left:25px;
+  font-weight:normal;
+
+    
+}
+
+.facet-form-field input[type=checkbox], .facet-form-field input[type=radio]  {
+	float:left;
+}
+
+.facet-form-field ul {
+  margin: 0px 0px 0px 0px !important; 
+  max-height: 200px;
+  }
+  .facet-form-field .diseaseSelections ul {
+  max-height: none;
+  }
+  .facet-form-field ul.tree {
+  margin: 0px 0px 0px 0px !important; 
+  max-height: 600px;
+	/*overflow-y:hidden;*/
+	overflow-y: scroll;
+  
+  }
+
+.facet-form-field  li {
+ padding: 0px 0px 0px 0px;
+  overflow: hidden;
+  margin:0px !important;
+  margin-bottom: 2px !important;
+  list-style: none; 
+  }
+  
+ /*#diseaseSelections.overflow {
+ overflow-y:scroll;
+ }*/
+ 
+ .facet-form-field  .diseaseSelections > li {
+ padding: 5px 0px 5px 0px;
+  
+ }
+
+.facet-form-field  li label {
+
+
+  float: none; 
+  position: relative;
+  float: none;
+  width: auto;
+	margin-left:25px;
+ 
+ }
+ 
+ .facet-form-field  b {
+ font:12px Arial, Verdana, Helvetica, sans-serif;
+ font-weight:bold;
+ }
+ 
+
+ 
+ /******* facet tree search styles ********************/
+ 
+ #searchTerm, #searchKey {
+ font-size:18px;
+ }
+ 
+#createTreeFilterContainer {
+  border: 1px none #000;
+  background: #fff;
+  min-height: 500px;
+  display: block;
+  padding: 10px; 
+ }
+
+#treeFilterContainer {
+  border: 1px solid #000;
+  background: #fff;
+  min-width: 800px;
+  min-height: 600px;
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  z-index: 10000000;
+  display: none;
+  padding:10px; }
+ 
+/* .treeFilterContainerPublic {
+	min-width: 300px !important;
+	left: 10px !important;
+	width: 95%;
+	
+}*/
+
+.treeColumn {
+  border-right: 1px solid #dcdcdc;
+  float: left;
+  margin:0px 10px 0px 10px;
+  width:30%;
+  min-height:500px; 
+  }
+  
+ /* .treeColumnPublic {
+  margin: 0px 10px 0px 5px  !important;
+ }*/
+ 
+  
+.treeColumn li.chvrn {
+font-size: 0;
+height: 0;
+line-height: 0;
+border-style: solid;
+border-color: transparent;
+border-left-color: #999;
+border-width: 15px 0 15px 15px;
+position: absolute;
+top: 0;
+right: -15px;
+}
+
+
+#columnOne li.selected {
+  background: #f3f3f3; }
+  
+#columnOne li {
+cursor: pointer; 
+}
+
+#columnTwo {
+}
+
+#columnThree {
+
+}
+
+#overlay{
+  opacity:    0.5; 
+  background: #000; 
+  width:      100%;
+  height:     100%; 
+  z-index:    10000000;
+  top:        0; 
+  left:       0; 
+  position:   fixed; 
+  display:none;
+}
+
+ 
+#header .content {
+  background-position: top right; 
+  width: auto;
+  max-width: 1400px;
+  margin: 0 auto;
+ }
+  
+  
+.contentBox {
+	padding:8px;
+	margin-bottom:8px;
+	background:#F5F5F5;
+
+}
+
+.contentTitleBox {
+	border-bottom:1px solid #000;
+	
+}
+
+.pageHeader {
+	border-bottom: 1px solid #d9d9d9;
+	margin-bottom: 5px;
+	/*word-wrap: break-word;*/
+}
+
+#actionsBar ul {
+	 list-style-type: none;
+}
+
+#actionsBar ul li {
+	font-size:80%;
+	border-bottom:1px solid #d8d8d8;
+	padding-bottom:5px;
+	margin-bottom:5px;
+	
+}
+
+.currentView {
+  background: #cecccc !important; }
+  
+.leaf {
+	overflow:auto;
+	max-height:100% !important;
+}
+
+.leaf  li{
+	margin-left:10px !important;
+}
+.closeLeaf {
+	display:none;
+}
+
+.openLeaf {
+	display:block;
+}
+
+.classificationsLeaf {
+	padding-left:10px !important;
+	/*overflow:auto;
+  	min-height: 75px;
+  max-height:150px;*/
+	
+}
+
+
+.accordion {
+  margin-bottom: 10px; }
+
+.accordion h3 {
+  margin: 0; }
+
+.accordion a {
+  text-decoration: none;
+  cursor: pointer;
+ 
+  padding: 8px 0px; }
+  
+.accordion {
+  border: 1px solid #d6d6d6;
+  padding: 8px 8px;
+  background: #ececec; }
+.accordion a {
+    color: #da1c02; }
+    
+.underline {
+	border:none;
+    display:block;
+    height:1px;
+    background:#dfdddd;
+    margin:17px 0px;
+ }
+ 
+ 
+ /***** versioning style **********/
+ 
+ #versioningMessageBox {
+	min-height:15px;
+	border:1px solid #7AD2EE;
+	padding:5px;
+}
+
+
+#actionsBar {
+float:left; 
+width:140px; 
+padding:10px; 
+border:none; 
+background:#f1f1f1; 
+margin-top:30px;
+}
+
+
+/********** metastudy **************/
+
+#metaStudyOps {
+	float: right;
+	width: 150px;
+	background: #ececec;
+    border: 1px solid #d6d6d6;
+}
+#viewMetaStudyForm {
+	float: left;
+	width: 590px;
+}
+
+.metaStudyHeader {
+	float: left;
+	font-weight: bold;
+	color: #000;
+	margin-top: 15px;
+	word-break: break-all;
+}
+
+#metaStudyOps ul {
+	list-style: none;
+	margin: 1em;
+}
+#metaStudyOps li {
+	padding-top: 5px;
+}
+#metaStudyOps h3 {
+	color: #000;
+	border-bottom: 1px dotted #aaa;
+	padding-left: 1em;
+}
+
+.actionBarHeaderStatus {
+	border-bottom: 1px solid #d9d9d9;
+	margin-bottom: 5px;
+}
+
+
+/**** datatables helper *****/
+nav ul ul {
+  display: none; }
+
+nav ul li:hover > ul {
+  display: block; }
+
+nav ul li a:focus + ul, nav ul a.active + ul {
+  display: block; }
+
+nav ul {
+  list-style: none;
+  position: relative;
+  display: inline-table; }
+
+nav ul:after {
+  content: "";
+  clear: both;
+  display: block; }
+  
+.breakword {
+	word-wrap: break-word;
+	word-break: break-all;
+}
+
+.descAll {
+	display: none;
+}
+
+.dataTableContainer ul li select {
+	width: auto;
+	margin-right: 2px;
+}
+
+.dataTableContainer .fg-toolbar {
+	border-right: none;
+}
+  
+  /******** metastudy view query ********/
+  .viewQuery_studyList {
+  	float: left;
+  	width: 25%;
+  	margin-left: 2%;
+  	margin-right: 1%;
+  	background: $lighter-gray;
+  	border: 1px solid $lighter-gray;
+  	padding-bottom: 20px;
+  	border-radius: 5px 5px 0 0;
+  }
+  
+  .viewQuery_header {
+  	background-color: $heading-primary;
+  	color: $lightest;
+  	padding-left: 3%;
+  	margin-bottom: 20px;
+  	border-radius: 3px;
+  	clear: both;
+  	padding-top: 10px;
+  	padding-bottom: 10px;
+  }
+  
+  .viewQuery_rightSide {
+  	float: left;
+  	margin-left: 1%;
+  	width: 65%;
+  	margin-right: 2%;
+  	background-color: $lightest-gray;
+  	border: 1px solid $lighter-gray;
+  	border-radius: 3px;
+  	padding: 1%;
+  }
+  
+  .viewQuery_details {
+  	margin-left: 1%;
+  	margin-right: 1%;
+  	margin-bottom: 10px;
+  	clear: both;
+  }
+  
+  .viewQuery_label {
+  	float: left;
+  	width: 25%;
+  	font-weight: bold;
+  	text-align: right;
+  	margin-bottom: 5px;
+  }
+  
+  .viewQuery_value {
+  	float: left;
+  	width: 70%;
+  	margin-left: 5%;
+  	font-weight: normal;
+  	margin-bottom: 5px;
+  }
+  
+  viewQuery_formHeader {
+  	height: 20px;
+  	margin-bottom: 20px;
+  	line-height: 20px;
+  	color: $heading-primary;
+  	background-color: $lightest;
+  	border-color: $lighter-gray;
+  }
+  
+  .viewQuery_formData {
+  	margin-left: 5%;
+  	display: none;
+  }
+  
+  .viewQuery_rgName {
+  	font-weight: bold;
+  	margin-bottom: 5px;
+  }
+  
+  .viewQuery_deItem {
+  	clear: both;
+  	margin-bottom: 5px;
+  }
+  
+  .viewQuery_filterIcon {
+  	float: left;
+  	width: 4%;
+  	display: block;
+  	height: 15px;
+  }
+  .viewQuery_filterIcon.viewQuery_filtered {
+  	background: url(/portal/images/icons/filter.png) no-repeat;
+  }
+  .viewQuery_filterIcon.viewQuery_nonFiltered {
+  	background: none;
+  }
+  
+  .viewQuery_filterValue {
+  	color: $link-blue;
+  	font-weight: normal;
+  	padding-left: 10px;
+  	text-indent: 10px;
+  }
+  
+  .viewQueryContainer {
+  	font-size: 12px;
+  	padding-top: 10px;
+  	font-weight: bold;
+  }
+  
+  .viewQuery_deTitle {
+  	float: left;
+  }
+  
+  .viewQuery_studyItemLink {
+  	display: block;
+  	width: 90%;
+  	min-height: 22px;
+  	border-radius: 3px;
+  	padding-left: 10px;
+  	text-decoration: none;
+  	margin-left: auto;
+  	margin-right: auto;
+  	padding-top: 5px;
+  	padding-bottom: 5px;
+  }
+  .viewQuery_studyItemLink:hover {
+  	background: $lightest-gray;
+  }
+  .viewQuery_studyItemLink.viewQuery_active {
+  	background: $active-ter;
+  	border: 1px solid $active-sub2;
+  	color: #000;
+  }
+  .viewQuery_studyItemLink.viewQuery_active:hover {
+  	background: $lightest-gray;
+  }
+  
+  .viewQuery_headerText {
+  }
+  
+  .viewQuery_queryDetails {
+  	margin-bottom: 10px;
+  }
+  
+  .viewQuery_detailsPlusMinus {
+  	font-size: 16px;
+  	font-weight: normal;
+  }
+  
+  .viewQuery_formHeader {
+  	height: 20px;
+  	line-height: 20px;
+  	color: $heading-primary;
+  	background: $lightest;
+  	border: 1px solid $lighter-gray;
+  	padding-left: 1%;
+  	margin-bottom: 10px;
+  	padding-top: 3px;
+  }
+  
+  .viewQuery_rgContainer {
+  	/* hide/show in js */
+  }
+  
+  .viewQuery_formFiltered {
+  	width: 20px;
+  	display: inline-block;
+  	height: 15px;
+  }
+  .viewQuery_formFiltered.viewQuery_filtered {
+  	background: url(/portal/images/icons/filter.png) no-repeat;
+  }
+  .viewQuery_formFiltered.viewQuery_nonFiltered {
+  	background: none;
+  }
+  
+  .viewQuery_studyFiltered {
+  	width: 20px;
+  	display: inline-block;
+  	height: 15px;
+  }
+  .viewQuery_studyFiltered.viewQuery_filtered {
+  	background: url(/portal/images/icons/filter.png) no-repeat;
+  }
+  .viewQuery_studyFiltered.viewQuery_nonFiltered {
+  	background: none;
+  }
+  
+  .viewQuery_deListContainer {
+  	padding-left: 10px;
+  	font-weight: normal;
+  }
+  
+  .viewQuery_filterText {
+  	float: left;
+  	width: 95%;
+  }
+  
+  .iframeDialog {
+  	display: none;
+  }
+  .iframeDialog iframe {
+  	width: 100%;
+  	height: 100%;
+  	border: none;
+  }
+  
+  .loadingSpinner {
+  	position: absolute;
+  	top: 50%;
+  	left: 50%;
+  }
+  
+  #changeHistory {
+       border:1px solid #d6d6d6;
+       margin:5px 0px; 
+       padding:5px;
+  }
+  
+  .filterOptions {
+	width: 183px;
+	} 
+
+	#quantity {
+	    height: 21px;
+	}
+	#updateQuantity {
+	    position: relative;
+	    float: left;
+	    width: 300px;
+		right: -48%;
+	}
+	#quantityLabel {
+	    font-size: 12.001px;
+	    line-height: 25px;
+	    vertical-align: middle;
+	}
+	#advancedFilter {
+	    display: block;
+	    font-size: 12px;
+	}
+	#emailSetting {
+		font-size: 12px;
+		font-weight: bold;
+	}	
+	#dataElementResultsTable_wrapper .dt-button {
+	    background: linear-gradient(to bottom, $btn-color 0%, $btn-color2 80%);
+	    border: 2px solid;
+	    border-color: #808080;
+	    color: #fff;
+	    border-radius: 5px;
+	    padding: 3px 10px;
+	    font: bold 12px / 18px Arial, Verdana, Helvetica, sans-serif;
+	    text-decoration: none;
+	    display: block;
+	    text-transform: uppercase;
+	    padding-top: 3px;	
+	}
+
+	.accountEmailMsg {
+		vertical-align: top;
+	}
+
+	#accountRenewalButtons{
+		float: right;
+	}
+	
+	.margin {
+		&-bottom {
+			&-sm {
+				margin-bottom: 5px;
+			}
+		
+			&-med {
+				margin-bottom: 10px;
+			}
+		
+			&-lg {
+				margin-bottom: 20px;	
+			}
+		}
+	
+		&-top {
+			&-sm {
+				margin-top: 5px;
+			}
+		
+			&-med {
+				margin-top: 10px;
+			}
+			
+			&-lg {
+				margin-top: 20px;	
+			}
+		}	
+	}
+	
+.accountTemporaryRejectionCheckBox {
+	height: 1.4em;
+}
+
+.paragraphStyle {
+	white-space:pre;
+}
+
+/*** media-Query specific for Ipad ***/
+@media  screen and (min-width : 768px) and (max-width : 1124px) {
+	.primary #left-sidebar + #main-content, .primary div:nth-last-of-type(2)#main-content  {
+		    width: 72%;
+	}	
+}

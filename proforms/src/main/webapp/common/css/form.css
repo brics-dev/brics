@@ -1,0 +1,11 @@
+ /*This is where we define the Textbox default height in proforms used to be textboxsize in XSL now HTML5 size is not used*/
+ .questionTR input[type="text"]{
+ width:300px;
+ /* border:2px solid blue; */
+ }
+ /**This is where we set the textbox width used to be XSL file where it was defined*/
+ .questionTR textarea{ 
+ width:300px; 
+ height:100px;
+/*   border:2px solid blue;  */
+ }

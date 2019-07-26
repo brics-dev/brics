@@ -1,0 +1,2409 @@
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html>
+
+
+
+
+<head>
+<title>ProFoRMS : PDBP DMR : Parkinson's Disease Biomarkers Project Data Management Resource</title>
+<!-- 
+<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+ -->
+<meta charset="utf-8" /> 
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta http-equiv="pragma" content="no-cache"/>
+<meta http-equiv="expires" content="Mon, 06 Jan 1990 00:00:01 GMT" />
+<meta http-equiv="cache-control" content="no-cache" />
+<base href="http://pdbp-portal-local.cit.nih.gov:8080/ibis/home.jsp">
+<script src="http://pdbp-portal-local.cit.nih.gov:8080/ibis/common/js/jquery-1.7.2.js" type="text/javascript"></script>
+<script type="text/javascript">
+var language = "en_US";
+</script>
+<link rel="stylesheet" type="text/css" href="http://pdbp-portal-local.cit.nih.gov:8080/ibis/common/jquery.selectbox.css" />
+<link rel="stylesheet" type="text/css" href="http://pdbp-portal-local.cit.nih.gov:8080/ibis/common/c-pdbp/css/style.css" />
+
+
+<link rel="shortcut icon" type="image/x-icon" href="http://pdbp-portal-local.cit.nih.gov:8080/ibis/common/c-pdbp/images/favicon.ico" />
+<script src="http://pdbp-portal-local.cit.nih.gov:8080/ibis/common/js/jquery-ui-1.10.3.custom.js" type="text/javascript"></script>
+<script src="http://pdbp-portal-local.cit.nih.gov:8080/ibis/common/js/jquery.ui.touch-punch.min.js" type="text/javascript"></script>
+
+<script src="http://pdbp-portal-local.cit.nih.gov:8080/ibis/common/js/jquery.selectbox-0.2.min.js" type="text/javascript"></script>
+<script src="http://pdbp-portal-local.cit.nih.gov:8080/ibis/common/js/jquery.scrollTo.min.js" type="text/javascript"></script>
+<script src="http://pdbp-portal-local.cit.nih.gov:8080/ibis/common/js/HashTable.js" type="text/javascript"></script>
+
+<script src="http://pdbp-portal-local.cit.nih.gov:8080/ibis/common/js/jquery.formalize.js" type="text/javascript"></script>
+<script src="http://pdbp-portal-local.cit.nih.gov:8080/ibis/common/js/jquery.fancybox-1.3.4.pack.js" type="text/javascript"></script>
+<script src="http://pdbp-portal-local.cit.nih.gov:8080/ibis/common/common.js" type="text/javascript"></script>
+<script src="http://pdbp-portal-local.cit.nih.gov:8080/ibis/common/js/jquery.ui.accordion.activationExtension.js" type="text/javascript"></script>
+<script src="http://pdbp-portal-local.cit.nih.gov:8080/ibis/common/js/jquery.dataTables.js" type="text/javascript"></script>
+<script src="http://pdbp-portal-local.cit.nih.gov:8080/ibis/common/js/jquery.cookie.js" type="text/javascript"></script>
+<script src="http://pdbp-portal-local.cit.nih.gov:8080/ibis/common/js/underscore-min.js" type="text/javascript"></script>
+<!--  <script src="https://pdbp-stage.cit.nih.gov/proforms/common/js/jquery.dataTables.ibisExtension.js" type="text/javascript"></script> -->
+<script src="http://pdbp-portal-local.cit.nih.gov:8080/ibis/common/js/jquery-ui-timepicker-addon.js" type="text/javascript"></script>
+
+<script src="http://pdbp-portal-local.cit.nih.gov:8080/ibis/common/js/jquery.ibisMessaging-0.1.full.js" type="text/javascript"></script>
+<script src="http://pdbp-portal-local.cit.nih.gov:8080/ibis/common/js/ibisCommon.js" type="text/javascript"></script>
+
+<script src="http://pdbp-portal-local.cit.nih.gov:8080/ibis/common/js/ibisMessageResource.js" type="text/javascript"></script>
+<script src="http://pdbp-portal-local.cit.nih.gov:8080/ibis/common/js/templateInteraction.js" type="text/javascript"></script>
+
+
+<link rel="stylesheet" type="text/css" href="http://pdbp-portal-local.cit.nih.gov:8080/ibis/common/designs/style_guide/jquery.expandSections.css" />
+
+
+
+<style type="text/css">
+	body .dataTables_info {
+		width: auto;
+	}
+	.rowCountContainer {
+		padding-left: 3px;
+		padding-top: 3px;
+		float: left;
+	}
+
+</style>
+
+
+
+
+<script src="http://pdbp-portal-local.cit.nih.gov:8080/ibis/common/designs/style_guide/jquery.expandSections.full.js" type="text/javascript"></script>
+        <script type="text/javascript">
+<!--
+var __autosave = false;
+var logoutTimeout = null;
+    
+    $(document).ready(function(){
+     	$("div#topNavContainer ul li a").click(function(){
+        	if(true) { 
+      			var link = $(this).attr("href").toLowerCase();
+        		if(link.indexOf("patienthome") >=0 ){
+        			$.ibisMessaging("dialog", "info", "Please select a study to manage subjects.");
+        			return false;
+        		}
+        		else if (link.indexOf("datacollecting") >=0 ){
+        			$.ibisMessaging("dialog", "info", "Please select a study to collect data.");
+        	  		return false;
+        		}    	    	
+        		else if (link.indexOf("formhome") >=0 ){
+        			$.ibisMessaging("dialog", "info", "Please select a study to manage forms.");
+        	  		return false;
+        		}
+        	}
+    	});
+    });
+// -->
+</script>
+<script type="text/javascript">
+
+var input = [
+         	["<input type=\"checkbox\" value=\"11,1\"/>",11,"AREA_OF_INJURY (A)","Area of Injury","Checkbox"],
+        	["<input type=\"checkbox\" value=\"10,1\"/>",10,"DANGER_LEVEL (A)","Danger Level","Visual Scale"],
+        	["<input type=\"checkbox\" value=\"5,1\"/>",5,"FILE (A)","file","File"],
+        	["<input type=\"checkbox\" value=\"2,1\"/>",2,"FIRSTNAME (A)","First Name","Textbox"],
+        	["<input type=\"checkbox\" value=\"4,1\"/>",4,"IMAGE (A)","image","Image Map"],
+        	["<input type=\"checkbox\" value=\"13,1\"/>",13,"INCIDENT_DESCRIPTION (A)","Incident Description","Textarea"],
+        	["<input type=\"checkbox\" value=\"3,1\"/>",3,"LASTNAME (A)","Last Name","Textbox"],
+        	["<input type=\"checkbox\" value=\"9,1\"/>",9,"MUILTSELECT (A)","muiltselect","Multi-Select"],
+        	["<input type=\"checkbox\" value=\"8,1\"/>",8,"SITE_NAME (A)","Site Name","Textbox"],
+        	["<input type=\"checkbox\" value=\"1,1\"/>",1,"SPECIES (A)","What is the species of the animal?","Textbox"],
+        	["<input type=\"checkbox\" value=\"12,1\"/>",12,"VICTIM_SUE (A)","Will the victim sue?","Radio"],
+        	["<input type=\"checkbox\" value=\"14,1\"/>",14,"WHERE_HURT (A)","Where does it hurt?","Image Map"]
+        ];
+
+var cols = [
+  {"sTitle":""},
+  {"sTitle":"number"},
+  {"sTitle":"Variable"},
+  {"sTitle":"name"},
+  {"sTitle":"type"}
+];
+
+var newTable = {
+	"aaData" : input,
+	"aoColumns" : cols
+};
+
+
+$(document).ready(function() {
+	//IDT.buildSingleData(newTable, $("#testTable2"));
+});
+
+
+/**
+ * IbisDataTables class to allow IBIS related features within the IBIS website.
+ * 
+ * Allows for modifying existing page tables to match the look and operation
+ * of the DataTables plugin and the IBIS/ProFoRMS website.
+ * 
+ * This class allows for full datatables operation but also includes the
+ * following abilities:
+ * 	* 	Maintains the list of checked checkboxes locally to ensure that the
+ * 		correct checkboxes are selected across page changes.
+ * 	*	Encapsulates all datatable operations into one class for easier debug
+ * 	*	Allows the programmer to retrieve data about the structure of the 
+ * 		IbisDataTable itself.
+ * 	*	Enables translating standard struts tables into full IBIS Data Tables
+ * 	*	Automates deciding whether the first column of a table is sortable or
+ * 		not.
+ * 
+ * @author jpark1
+ */
+var IbisDataTables = {
+	settingsTag : "ibisDataTable",
+	dataTables : {},
+	tableReferences : [],
+	
+	/**
+	 * The default settings for all data tables.  Will be stored using
+	 * $.data()
+	 */
+	Defaults : function() {
+		this.selectedOptions = new Array();
+		this.emptyTable = false;
+		this.optionInputs = $();
+		this.expandedDataRows = new HashTable();
+	},
+	
+	buildSingleData : function(config, $table) {
+		var tableRef = (typeof $table === "undefined" || $table == null) ? $(".dataTableContainer.dataTableJSON > table") : $table;
+		
+		IDT.initSettings($table);
+		IDT.setEmpty(tableRef);
+		this.setupInputs(tableRef);
+		this.setupSelectAll(tableRef);
+		this.initExpandedData(tableRef);
+		this.initCellSearch(tableRef, config);
+		
+		this.init(tableRef.parents(".dataTableContainer.dataTableJSON"), config);
+		
+		this.initClickableRows(tableRef);
+		this.fixEmptyTableRow(tableRef);
+		
+		this.setStyles(tableRef);
+		
+		if (typeof dataTableBuildCallback == "function") {
+			dataTableBuildCallback(tableRef);
+		}
+	},
+	
+	/**
+	 * Performs a full build of $table table OR, if $table is 
+	 * undefined or null, all tables on the page.
+	 * 
+	 * @param $table a jquery datatable to build
+	 */
+	fullBuild : function($table) {
+		var tableRef = (typeof $table == "undefined" || $table == null) ? $(".dataTableContainer:not(.dataTableJSON) > table") : $table;
+		this.translateStrutsTable(tableRef);
+		this.removeEmptyTableRow(tableRef);
+		this.setupInputs(tableRef);
+		this.setupSelectAll(tableRef);
+		this.initExpandedData(tableRef);
+		this.initCellSearch(tableRef);
+		
+		this.init(tableRef.parents(".dataTableContainer"));
+		
+		this.initClickableRows(tableRef);
+		this.fixEmptyTableRow(tableRef);
+		
+		
+		if (typeof dataTableBuildCallback == "function") {
+			dataTableBuildCallback(tableRef);
+		}
+	},
+	
+	/**
+	 * Performs the actual datatable initialization call on $container
+	 * or, if $container is null, all datatable containers on the page
+	 * 
+	 * @param $container (optional) a container to initialize as an ibisDataTable
+	 */
+	init : function($container, config) {
+		try {
+			var tableList = new Array();
+			if (typeof $container == "undefined" || $container == null) {
+				tableList = $(".dataTableContainer:not(.dataTableJSON) > table");
+			}
+			else {
+				tableList = $container.children("table");
+			}
+			
+			tableList.each(function() {
+				var configExtend = (typeof config === "undefined") ? {}  : config;
+				var finalConfig = $.extend({},{
+					"bJQueryUI": true,
+					"bLengthChange": false,
+					"iDisplayLength": 15,
+					//"bDeferRender" : true,
+					"bProcessing": true,
+					"bAutoWidth": false,
+					"sPaginationType" : "full_numbers",
+					// disables initial sorting
+					"aaSorting" : [],
+					// defines the language
+					"oLanguage" : IbisDataTables.determineLanguage(),
+					// outlines whether to sort on the first column or not
+					"aoColumnDefs": [
+			             { "bSortable": false, 
+			            	 "aTargets": IbisDataTables.tableNoSort($(this)), 
+			            	 "bSearchable": false
+			             },
+			             {"sDefaultContent": "none", "aTargets": ["_all"]}
+					],
+					"aoColumns": IbisDataTables.columnVis($(this)),
+					"fnInitComplete" : function(oSettings, json) {
+						// moves the process buttons to the top of the data table
+						OpButtonController.initTable($(this));
+						// if this table has an export row, move it back into place and style it
+						IbisDataTables.InfoRowManager.init($(this));
+						
+						// propagate this method to any further callback
+						if (typeof fnInitComplete == "function") {
+							fnInitComplete(oSettings, json);
+						}
+					},
+					"fnRowCallback" : function(nRow, aData, iDisplayIndex, iDispalyIndexFull) {
+						var $row = $(nRow);
+						var $input = $row.find('input[type="checkbox"], input[type="radio"]').eq(0);
+						if ($input.length > 0) {
+							IDT.setRowDeselected($row);
+							if ($input.is(":visible") && IDT.isSelectedOption($input)) {
+								IDT.setRowSelected($row);
+							}
+						}
+						
+						// pass any other call on through
+						if (typeof fnRowCallback == "function") {
+							fnRowCallback(nRow, aData, iDisplayIndex, iDisplayIndexFull);
+						}
+					},
+					"fnPreDrawCallback" : function(settings) {
+						var tableRef = $(this).parents(".dataTableContainer");
+						$table = tableRef.find("table").eq(0);
+						$table.find("input").unbind("click");
+						$table.find("tbody tr").unbind("click");
+					},
+					"fnDrawCallback" : function(settings) {
+						var tableRef = $(this).parents(".dataTableContainer");
+
+						$table = tableRef.find("table").eq(0);
+						if ($table.is(":visible")) {
+							IbisDataTables.recalculateHeaderFooterWidths($table);
+							IbisDataTables.TableLayoutListener.exclude($table);
+						}
+						else {
+							// add the table to the table layout listener with the recalculate callback
+							IbisDataTables.TableLayoutListener.addTable($table, {
+								callback: function($table) {
+									IDT.recalculateHeaderFooterWidths($table);
+								}
+							});
+						}
+						
+						IbisDataTables.drawRedrawInitCheckboxes(tableRef);
+						IbisDataTables.initClickableRows($(this));
+						IbisDataTables.setupExpandedData($(this), settings.oInstance);
+						
+						// propagate this method to any further callback
+						if (typeof fnDrawCallback == "function") {
+							fnDrawCallback(tableRef);
+						}
+					},
+					fnCreatedRow : function(nRow, aData, iDataIndex) {
+						// propagate this method to any further callback
+						if (typeof fnCreatedRow == "function") {
+							fnCreatedRow(nRow, aData, iDataIndex);
+						}
+					}
+				}, configExtend);
+				var tempTable = $(this).dataTable(finalConfig);
+				
+				// if the container div has an ID, create a mapping between the datatable and the container ID so we can retrieve it later
+				// $(this) is potentially a table, not a container
+				var saveId = IbisDataTables.getId($(this));
+				IbisDataTables.dataTables[saveId] = tempTable;
+				IbisDataTables.tableReferences.push(saveId);
+				
+				$(this).trigger("tableInit");
+			});
+		}
+		catch (e) {
+			alert("One of your data tables could not be initialized correctly");
+		}
+	},
+	
+	initCellSearch : function($table, config) {
+		$table.each(function() {
+			var $tableEach = $(this);
+			var cellSearch = {
+					tableHeaders : [],
+					rowMap : []
+				};
+				if (typeof config !== "undefined") {
+					// the data comes from a config object, not HTML
+					for (var i = 0; i < config.aoColumns.length; i++) {
+						cellSearch.tableHeaders.push(config.aoColumns[i].sTitle);
+					}
+					for (var i = 0; i < config.aaData.length; i++) {
+						var inputElement = config.aaData[i][0];
+						var saveVal = IDT.getSaveValue($(inputElement));
+						cellSearch.rowMap[i] = saveVal;
+					}
+				}
+				else {
+					// data comes from HTML
+					cellSearch.tableHeaders = IDT.getTableHeaders($tableEach);
+					$tableEach.find(".selectionInput").each(function(index) {
+						var saveVal = IDT.getSaveValue($(this));
+						cellSearch.rowMap[index] = String(saveVal);
+					});
+				}
+				IDT.setSettingsOption($tableEach, "cellSearch", cellSearch);
+		});
+	},
+	
+	/**
+	 * Translates a struts table into a properly-formatted pre-datatable table.
+	 * Adds thead and tbody.
+	 * 
+	 * If the optional parameter is not set or is set to null, all tables on the page
+	 * will be converted.
+	 * 
+	 * Translate a struts table into a sane, structured HTML table
+	 * by cutting the <tr><th>...</th></tr> from <tbody> and inserting it into
+	 * a <thead>.
+	 * 
+	 * @param $table (optional) the table to convert
+	 */
+	translateStrutsTable : function($table) {
+		var tableRef = (typeof $table == "undefined" || $table == null) ? $("table") : $table;
+		
+		tableRef.each(function(index, value) {
+			// if this table has an export row, cut it out and put it right before the table
+			IbisDataTables.InfoRowManager.removeExportRow($(this));
+			
+			// remove "valign" from the tds
+			$(this).find('[valign]').removeAttr("valign");
+			
+			// make sure the table doesn't already have a thead
+			if ($(this).children("thead").length < 1) {
+				// check that the first child of the $(table tbody) contains th elements
+				var thref = $(this).find("th");
+				// check to make sure the immediate parent table of the th is THIS table.  It could be nested
+				if (thref.length > 0) {
+					var parentsRef = $(thref[0]).parents("table");
+					if (parentsRef.length > 0 && $(parentsRef[0]).is($(this))) {
+						var rowRef = $(thref[0]).parent();// this gets the row itself
+						if (rowRef.length > 0) {
+							$(this).prepend("<thead></thead>");
+							$(this).children("thead").append(rowRef);
+						}
+					}
+				}
+			}
+		});
+	},
+	
+	/**
+	 * Initialize the dataTable's IBIS settings
+	 * 
+	 * @param $table the table to initialize
+	 */
+	initSettings : function($table) {
+		if (!this.isInit($table)) {
+			this.setSettings($table, new IbisDataTables.Defaults);
+		}
+	},
+	
+	/**
+	 * Checks if the table is already initialized
+	 * 
+	 * @param $table the table to check
+	 * @returns {Boolean} true if already initialized; otherwise false
+	 */
+	isInit : function($table) {
+		return (typeof this.getSettings($table) != "undefined");
+	},
+	
+	/**
+	 * Gets the ID of a table.  Optionally sets a unique ID if one is not
+	 * already set.
+	 * 
+	 * @param $table the table of which to get the ID
+	 * @returns string ID of the table;
+	 */
+	getId : function($table) {
+		if ($table.attr("id") != null) {
+			return $table.attr("id");
+		}
+		
+		var newId = $table.parents(".dataTableContainer").eq(0).id;
+		if (newId != null) {
+			newId += "_table";
+		}
+		else {
+			// the local page name (ie /form/createForm) with a unique integer index of the given table in the list of all tables
+			newId = window.location.pathname + "_" + $(".dataTableContainer > table").index($table);
+		}
+		$table.attr("id", newId);
+		return newId;
+	},
+	
+	setStyles : function($table) {
+		var $th = $table.find("th");
+		$th.attr("role", "columnheader");
+		$th.parents("tr").eq(0).addClass("tableRowHeader");
+	},
+	
+	/**
+	 * Makes a copy of all of the current inputs before the table is paginated.
+	 * This ensures that we get a copy of EVERY input.
+	 * 
+	 * @param $table a jquery table or tables to process
+	 */
+	setupInputs : function($table) {
+		var tableRef = (typeof $table == "undefined" || $table == null) ? $(".dataTableContainer > table") : $table;
+		
+		tableRef.each(function(index,value) {
+			// change this to ensure that we don't grab inputs other than the selection one
+			//var $inputs = $(this).find('input[type="checkbox"], input[type="radio"]');
+			var $rows = $table.find("tbody tr td:first-child");
+			var $inputs = $();
+			$rows.each(function() {
+				$inputs = $inputs.add($(this).find('input[type="checkbox"], input[type="radio"]').eq(0));
+			});
+			IbisDataTables.setSettingsOption($(this), "optionInputs", $inputs);
+			$inputs.each(function() {
+				$(this).parent("td").css("white-space", "nowrap");
+				$(this).addClass("selectionInput");
+			});
+		});
+	},
+	
+	setupSelectAll : function($table) {
+		var $tableRef = (typeof $table == "undefined" || $table == null) ? $(".dataTableContainer > table") : $table;
+		$tableRef.each(function(index, value) {
+			$checkboxes = $(this).find('input[type="checkbox"]');
+			if ($checkboxes.length > 0) {
+				// draws the "select all" checkbox
+				$(this).find('th').eq(0).html('<input type="checkbox" class="dataTableSelectAll" />');
+				$(this).find(".dataTableSelectAll").change(function() {
+					var $workingTable = $(this).parents("table").eq(0);
+					var $allInputs = IbisDataTables.getAllInputs($workingTable);
+					if ($(this).is(":checked")) {
+						$allInputs.each(function() {
+							IbisDataTables.addSelectedOptionValue($workingTable, IDT.getSaveValue($(this)));
+						});
+					}
+					else {
+						$allInputs.each(function() {
+							IbisDataTables.removeSelectedOptionValue($workingTable, IDT.getSaveValue($(this)));
+						});
+					}
+					IbisDataTables.dataTables[$workingTable.attr("id")].fnDraw();
+				});
+			}
+		});
+	},
+	
+	/**
+	 * Gets all currently-visible inputs for the given table.  This will ONLY
+	 * return the list of first-column inputs.
+	 * 
+	 * @param $table jquery reference to the table
+	 */
+	getVisTableRowInputs : function($table) {
+		var $rows = $table.find("tbody tr");
+		var $inputs = $();
+		$rows.each(function() {
+			$inputs = $inputs.add($(this).find('input[type="checkbox"], input[type="radio"]').eq(0));
+		});
+		return $inputs;
+	},
+	
+	/**
+	 * Gets the jquery input list for a given $table
+	 * NOTE: this gets ALL inputs for this table
+	 * 
+	 * @param $table the table to get the inputs for
+	 */
+	getAllInputs : function($table) {
+		return this.getSettingsOption($table, "optionInputs");
+	},
+	
+	/**
+	 * Determines if the given checkbox is in the selected options list
+	 * 
+	 * @param $checkbox a jquery checkbox in a datatable whose id to add
+	 * @param saveValue (optional) the save value of the element
+	 * @param $table (optional) the table the value lives in
+	 */
+	isSelectedOption : function($checkbox, saveValue, $table) {
+		if (typeof $table === "undefined") {
+			$table = this.getTable($checkbox);
+		}
+		if (typeof saveValue === "undefined") {
+			saveValue = this.getSaveValue($checkbox);
+		}
+		var selectedOptions = this.getSelectedOptions($table);
+		if (selectedOptions.indexOf(saveValue) < 0) {
+			return false;
+		}
+		else {
+			return true;
+		}
+	},
+	
+	/**
+	 * Add an ID to the list of selected options for use later
+	 * 
+	 * @param $checkbox a jquery checkbox in a datatable whose id to add
+	 * @param saveValue (optional) the save value of the element
+	 * @param $table (optional) the table the value lives in
+	 */
+	addSelectedOption : function($checkbox, saveValue, $table) {
+		if (typeof $table === "undefined") {
+			$table = this.getTable($checkbox);
+		}
+		
+		// what value will we enter?  That depends on the input we see
+		if (typeof saveValue === "undefined") {
+			saveValue = this.getSaveValue($checkbox);
+		}
+		
+		this.addSelectedOptionValue($table, saveValue);
+	},
+	
+	/**
+	 * Adds the specified value to the list of selected options.  This ONLY
+	 * takes a string value, NOT a jquery element.  This allows for loading
+	 * currently-invisible values to the selected options array.
+	 * 
+	 * Priority:
+	 * 	1. input ID
+	 * 	2. input value
+	 * 	3. (not preferred) the text of the entire row (reasonably unique)
+	 * 
+	 * @param $table the table to add the value to
+	 * @param value the value to store.  No checking is done on this!
+	 */
+	addSelectedOptionValue : function($table, value) {
+		if (value.indexOf(".") > -1 && value.indexOf("\\.") < 0) {
+			value = value.replace(".", "\\.");
+		}
+		if (value.indexOf(" ") > -1 && value.indexOf("\\ ") < 0) {
+			value = value.replace(" ", "\\ ");
+		}
+		var selectedOptions = this.getSelectedOptions($table);
+		// checks that the value doesn't already exist
+		if (selectedOptions.indexOf(value) < 0) {
+			selectedOptions.push(value);
+			this.setSettingsOption($table, "selectedOptions", selectedOptions);
+		}
+		
+		IbisDataTables.InfoRowManager.updateSelectedItemCount($table, IDT.countSelectedOptions($table));
+	},
+	
+	/**
+	 * Removes an ID from the list of selected options
+	 * 
+	 * @param $checkbox a jquery checkbox in a datatable whose id to remove
+	 * @param saveValue (optional) the save value of the element
+	 * @param $table (optional) the element's table
+	 */
+	removeSelectedOption : function($checkbox, saveValue, $table) {
+		if (typeof $table === "undefined") {
+			$table = this.getTable($checkbox);
+		}
+		if (typeof saveValue === "undefined") {
+			saveValue = this.getSaveValue($checkbox);
+		}
+		var selectedOptions = this.getSelectedOptions($table);
+		
+		selectedOptions.splice(selectedOptions.indexOf(saveValue), 1);
+		this.setSelectedOptions($table, selectedOptions);
+		
+		IbisDataTables.InfoRowManager.updateSelectedItemCount($table, IDT.countSelectedOptions($table));
+	},
+	
+	/**
+	 * Removes the specified value to the list of selected options.  This ONLY
+	 * takes a string value, NOT a jquery element.  This allows for removing
+	 * currently-invisible values from the selected options array.
+	 * 
+	 * Priority:
+	 * 	1. input ID
+	 * 	2. input value
+	 * 	3. (not preferred) the text of the entire row (reasonably unique)
+	 * 
+	 * @param $table the table to remove the value from
+	 * @param value the value to remove.  No checking is done on this!
+	 */
+	removeSelectedOptionValue : function($table, value) {
+		var selectedOptions = this.getSelectedOptions($table);
+		selectedOptions.splice(selectedOptions.indexOf(value), 1);
+		this.setSelectedOptions($table, selectedOptions);
+	},
+	
+	/**
+	 * Clears all selected options from the table
+	 * 
+	 * @param $table the table to act upon
+	 */
+	clearSelected : function($table) {
+		this.setSelectedOptions($table, new Array());
+		this.getVisTableRowInputs($table).prop('checked', false);
+	},
+	
+	clearOtherSelected : function($input) {
+		this.setSelectedOptions(IbisDataTables.getTable($input), new Array());
+		this.getVisTableRowInputs($table).not($input).prop('checked', false);
+	},
+	
+	/**
+	 * Obtain the table element that contains the given element
+	 * 
+	 * @param $element the element whose datatable parent to obtain
+	 * @returns the (.dataTableContainer > table) element parent of the given element
+	 */
+	getTable : function($element) {
+		var $parent = $element;
+		if (!$element.hasClass("dataTableContainer")) {
+			$parent = $element.parents(".dataTableContainer").eq(0);
+		}
+		var element = $parent.find("table").eq(0);
+		return (typeof element == "undefined") ? null : $(element);
+	},
+	
+	/**
+	 * Obtain the .dataTableContainer element that contains the given element
+	 * 
+	 * @param $element the element whose datatable parent to obtain
+	 * @returns the .dataTableContainer element parent of the given element
+	 */
+	getTableContainer : function($element) {
+		var $parent = $element.parents(".dataTableContainer").eq(0);
+		return (typeof $parent == "undefined") ? null : $parent;
+	},
+	
+	/**
+	 * Gets the selectedOptions array from the given table
+	 * 
+	 * @param $table the table whose selectedOptions we need to grab
+	 * @returns the selectedOptions array
+	 */
+	getSelectedOptions : function($table) {
+		return this.getSettings($table).selectedOptions;
+	},
+	
+	/**
+	 * Gets the selected checkboxes as a jquery object (array)
+	 * NOTE: this will only give VISIBLE elements
+	 * 
+	 * @param $table the table whose selectedOptions we need to grab
+	 */
+	getSelectedOptionsJq : function($table) {
+		var selectedOptions = this.getSelectedOptions($table);
+		var $output = $(); // empty jquery object
+		
+		// if there are no selected options, don't bother
+		if (selectedOptions.length > 0) {
+			// NOTE: this checkbox could list is ALL inputs in the table, not just the first column
+			var $checkboxes = IDT.getVisTableRowInputs($table);
+			
+			// loop over checkboxes (inputs) possible in the table (unlikely to be over 15)
+			// by looping over inputs, we are more likely to have a smaller loop size
+			for (var i = 0; i < $checkboxes.length; i++) {
+				var $checkbox = $checkboxes.eq(i);
+				var saveVal = IDT.getSaveValue($checkbox);
+				if (selectedOptions.indexOf(saveVal) !== -1) {
+					$output = $output.add($checkbox);
+				}
+			}
+		}
+		
+		return $output;
+	},
+	
+	/**
+	 * Encapsulates the comparison method between a "selected value" stored
+	 * value and a potential matching input.
+	 * 
+	 * @param $input jQuery reference to the element to check
+	 * @param checkValue the string id, value, or row text to check
+	 */
+	checkSaveValue : function($input, checkValue) {
+		return this.getSaveValue($input) == checkValue;
+	},
+	
+	/**
+	 * Encapsulates the calculation of a "selected value" for a given input
+	 * 
+	 * @param $input jQuery reference to the element to calculate the save value
+	 * @returns {String} the save value
+	 */
+	getSaveValue : function($input) {
+		var inputId = $input.attr("id");
+		var inputValue = $input.attr("value");
+		var saveValue = "";
+		if (inputId != null) {
+			saveValue = inputId.replace(".", "\\.").replace(" ", "\\ ");
+		}
+		else if (inputValue != null) {
+			saveValue = inputValue.replace(".", "\\.").replace(" ", "\\ ");
+		}
+		else {
+			// as a last resort, get the text of the entire row
+			saveValue = $input.parents("tr").eq(0).text();
+		}
+		return saveValue;
+	},
+	
+	/**
+	 * Gets a jQuery input element based on its save value.  This ONLY gets
+	 * elements currently on the page.
+	 * 
+	 * @param $table the table parent of the inputs
+	 * @param saveValue string save value
+	 */
+	getJqBySaveValue : function($table, saveValue) {
+		// check ID first
+		var $check = $table.find("#" + saveValue);
+		if ($check.length > 0) return $check;
+		
+		// then value
+		$check = $table.find('input[value="'+saveValue+'"]');
+		if ($check.length > 0) return $check;
+		
+		// then row text(s)
+		$table.find("tr").each(function() {
+			$check = $(this);
+			if ($check.text() == saveValue) return;
+		});
+		
+		return $check;
+	},
+	
+	/**
+	 * Convenience method to set the selectedOptions array for a given table
+	 * 
+	 * @param $table the table whose selectedOptions we neet to set
+	 * @param selectedOptions the selectedOptions options to set
+	 */
+	setSelectedOptions : function($table, selectedOptions) {
+		this.setSettingsOption($table, "selectedOptions", selectedOptions);
+	},
+	
+	/**
+	 * Returns the number of selected checkboxes throughout the table
+	 * 
+	 * @param $table the table to check
+	 * @returns integer number of selected options
+	 */
+	countSelectedOptions : function($table) {
+		return this.getSelectedOptions($table).length;
+	},
+	
+	/**
+	 * Get the settings object from this element's data().  if the settings
+	 * are not defined, this method sets them to the defaults then returns those.
+	 * 
+	 * @param $table the object to obtain settings from
+	 * @returns the settings object
+	 */
+	getSettings : function($table) {
+		return settings = $table.data(IbisDataTables.settingsTag);
+	},
+	
+	/**
+	 * Sets a new settings object to the ibisDataTable element of the 
+	 * element's data() object.  This allows for generic saving of new
+	 * settings elements.
+	 * 
+	 * @param $table the element to save the settings to
+	 * @param newSettings the new settings to store
+	 */
+	setSettings : function($table, newSettings) {
+		$table.data(IbisDataTables.settingsTag, newSettings);
+	},
+	
+	/**
+	 * Convenience method for the equivalent of 
+	 * this.setSettingsOption($table, "emptyTable", true);
+	 * 
+	 * Allows the programmer to easily set the identified table's 
+	 * "empty table" flag.
+	 * 
+	 * This means that the table has no data rows.
+	 * 
+	 * @param $table the table which needs to be set to empty
+	 */
+	setEmpty : function($table) {
+		this.setSettingsOption($table, "emptyTable", true);
+	},
+	
+	/**
+	 * Convenience method for the equivalent of 
+	 * this.getSettingsOption($table, "emptyTable")
+	 * 
+	 * This obtains the flag marking this table as empty or not.
+	 * The table being empty means that there is no data in the table.
+	 * 
+	 * @param $table the table to check
+	 * @returns boolean true if empty, otherwise false
+	 */
+	isEmpty : function($table) {
+		return this.getSettingsOption($table, "emptyTable");
+	},
+	
+	/**
+	 * Sets a particular settings option to the given value
+	 * 
+	 * @param $table the table to set the settings value to
+	 * @param settingsKey the settings key to set
+	 * @param settingsValue the value to set to the settings key
+	 */
+	setSettingsOption : function($table, settingsKey, settingsValue) {
+		var settings = this.getSettings($table);
+		settings[settingsKey] = settingsValue;
+		this.setSettings($table, settings);
+	},
+	
+	/**
+	 * Gets a particular settings option for the specified element
+	 * 
+	 * @param $table the table to get the settings option for
+	 * @param settingsKey the settings key to get
+	 * @returns
+	 */
+	getSettingsOption : function($table, settingsKey) {
+		var settings = this.getSettings($table);
+		return settings[settingsKey];
+	},
+	
+	/**
+	 * Determines if the table needs to allow sorting on column 1 (index 0) or not
+	 * 
+	 * @param $table the table to check
+	 * @returns {Array} either an empty array if sorting is allowed or an array with [0]=0 for sorting not allowed
+	 */
+	tableNoSort : function($table) {
+		var tableEmpty = IbisDataTables.isEmpty($table);
+		if (tableEmpty || $table.find('input[type="checkbox"], input[type="radio"]').length > 0) {
+			var ret = new Array();
+			ret[0] = 0;
+			return ret;
+		}
+		return new Array();
+	},
+	
+	/**
+	 * Disables the entire ability to select ANY row in the table.
+	 * 
+	 * @param $table the table to apply the changes to
+	 */
+	disableSelection : function($table) {
+		var $tableContainer = $table.parents(".dataTableContainer");
+		IDT.disableSelectAll($table);
+		IDT.setSettingsOption($table, "disableSelection", true);
+		// redraw
+		IDT.dataTables[$table.attr("id")].fnDraw();
+	},
+	
+	/**
+	 * Enables the entire ability to select ANY row in the table.
+	 * 
+	 * @param $table the table to apply the changes to
+	 */
+	enableSelection : function($table) {
+		var $tableContainer = $table.parents(".dataTableContainer");
+		IDT.enableSelectAll($table);
+		IDT.setSettingsOption($table, "disableSelection", false);
+		// redraw
+		IDT.dataTables[$table.attr("id")].fnDraw();
+	},
+	
+	/**
+	 * Disables the select all checkbox
+	 * @param $table the table to apply the changes to
+	 */
+	disableSelectAll : function($table) {
+		$table.find(".dataTableSelectAll").prop("disabled", true);
+	},
+	
+	/**
+	 * Enables the select all checkbox
+	 * @param $table the table to apply the changes to
+	 */
+	enableSelectAll : function($table) {
+		$table.find(".dataTableSelectAll").prop("disabled", false);
+	},
+	
+	/**
+	 * Determines if the table needs to hide any of the columns.  This builds the
+	 * object to insert into the aoColumns array in the datatables init method.
+	 * 
+	 * Specifically checks to see if the table contains a td with the class ibisDatatable_expandedData
+	 * 
+	 * @param $table the table to check
+	 */
+	columnVis : function($table) {
+		var columnCount = $table.find("tbody tr").eq(0).children("td").length;
+		var output = [];
+		for (var i = 0; i < columnCount; i++) {
+			output[i] = null;
+		}
+		
+		// if the table HAS extra data, set that extra data column to hidden
+		var columnIndex = $table.find("tbody tr").eq(0).children("td").index($(".ibisDatatable_expandedData"));
+		if (columnIndex > -1) {
+			output[columnIndex] = {"bVisible": false};
+		}
+		
+		if (output.length == 0) {
+			return null;
+		}
+		return output;
+	},
+	
+	/**
+	 * If the table is empty (marked with an empty table message), this method removes the 
+	 * empty table message to be replaced with a nicer dataTable one
+	 *  
+	 * @param $tableListRef a jquery object with an array of datatables to check
+	 */
+	removeEmptyTableRow : function($table) {
+		var tableRef = (typeof $table == "undefined" || $table == null) ? $(".dataTableContainer > table") : $table;
+	
+		tableRef.each(function(index, value) {
+			IbisDataTables.initSettings($(this));
+			
+			var thCount = $(this).find("th").length;
+			// correct for non-datatable tables (bad!!!)
+			if (thCount > 0) {
+				var thCountInc = thCount+1;
+				// matches any td in the table that has a colspan = all columns
+				var matchingTdRef = $(this).find('td[colspan="'+thCount+'"], td[colspan="'+thCountInc+'"]');
+				if (matchingTdRef.length > 0) {
+					// get the parent row and remove it
+					matchingTdRef.parent().remove();
+					IbisDataTables.setEmpty($(this));
+				}
+			}
+		});
+	},
+	
+	/**
+	 * Fixes the messed up empty table row.  Not sure what caused it but this
+	 * fixes it.
+	 * 
+	 * Details: the empty table row drawn by datatable is getting a colspan of 1
+	 * 
+	 * @param $table jquery reference to the table to change
+	 */
+	fixEmptyTableRow : function($table) {
+		$table.each(function() {
+			if (IbisDataTables.isEmpty($(this))) {
+				var thCount = $(this).find("th").length;
+				var emptyCell = $(this).find(".dataTables_empty");
+				if (thCount > 0 && emptyCell.length > 0) {
+					emptyCell.attr("colspan", thCount);
+				}
+			}
+		});
+	},
+	
+	/**
+	 * Sets the expanded data for a single row.  Adds the row data to the
+	 * table's settings.
+	 * @param $row jquery reference to the row to add the data to
+	 * @param data String data to add
+	 */
+	setExpandedData : function($row, data) {
+		var $table = this.getTable($row);
+		var expandedDataRows = this.getSettingsOption($table, "expandedDataRows");
+		expandedDataRows.setItem(this.getRowId($row), data);
+		this.setSettingsOption($table, "expandedDataRows", expandedDataRows);
+	},
+	
+	/**
+	 * Gets the exanded data for the table
+	 */
+	getExpandedData : function($table) {
+		return IbisDataTables.getSettingsOption($table, "expandedDataRows");
+	},
+	
+	/**
+	 * Tries to get a reasonably unique identifier for the given row.  If the row
+	 * has an input (checkbox, radio button) in the first column and that input
+	 * has an ID, the ID will be returned.  If it does not have an ID, the value
+	 * will be returned.  If there is no input in the first column, the text of
+	 * the first column will be returned.
+	 * 
+	 * NOTE: this is NOT the same as getSaveValue
+	 * 
+	 * @param $row jquery reference to the row
+	 * @returns string identifier for the row
+	 */
+	getRowId : function($row) {
+		var $input = $row.find("td").eq(0).find("input");
+		if ($input.length > 0) {
+			if ($input.attr("id") != null) {
+				return $input.attr("id");
+			}
+			else {
+				return $input.attr("value");
+			}
+		}
+		else {
+			return $row.find("td").eq(0).text();
+		}
+	},
+	
+	/**
+	 * Initialize the source data for the "expanded data" dropdown.
+	 * @param $table jquery reference to the table or tables to initialze
+	 */
+	initExpandedData : function($table) {
+		$table.each(function() {			
+			// look for expandeddata within this table
+			var columnIndex = $(this).find("tbody tr").eq(0).children("td").index($(".ibisDatatable_expandedData"));
+			if (columnIndex > -1) {
+				// found expanded data
+				$(this).find("tbody tr").each(function() {
+					var rowData = $(this).find("td").eq(columnIndex).html();
+					IbisDataTables.setExpandedData($(this), rowData);
+				});
+			}
+		});
+	},
+	
+	/**
+	 * Initializes the "expanded data" dropdown.  Removes that column from 
+	 * the table and uses each row's expanded data cell as the content for
+	 * the expanded data dropdown.
+	 * 
+	 * @param $table the table to act upon (can be multiple)
+	 */
+	setupExpandedData : function($table, instance) {
+		$table.each(function() {
+			// if extra data exists for this table, set up the clicks
+			var expandedData = IbisDataTables.getExpandedData($(this));
+			if (!expandedData.isEmpty()) {
+				$(this).find("tbody tr").unbind("select").on("select", function() {
+					if (instance.fnIsOpen(this)) {
+						instance.fnClose(this);
+					}
+					else {
+						var rowData = expandedData.getItem(IbisDataTables.getRowId($(this)));
+						instance.fnOpen(this, rowData, "ibisDatatable_expandedData");
+					}
+				});
+			}
+		});
+	},
+	
+	/**
+	 * Saves the search and pagination details to a cookie for propagation
+	 * across page refresh.
+	 * 
+	 * @param oSettings settings data from datatables
+	 * @param oData table state data from datatables
+	 */
+	saveTableState : function(oSettings, oData) {
+		var state = {
+			"iEnd" : oData.iEnd,
+			"abVisCols" : oData.abVisCols,
+			"iStart" : oData.iStart,
+			"oSearch" : {
+				"sSearch" : oData.oSearch.sSearch
+			}
+		};
+		$.cookie(oSettings.sCookiePrefix+oSettings.sInstance, JSON.stringify(state));
+	},
+	
+	/**
+	 * Loads the search and pagination details from a cookie for propagaition
+	 * across page refresh.
+	 * 
+	 * @param oSettings settings data from datatables
+	 * @returns the complete state data to be loaded into the table
+	 */
+	loadTableState : function(oSettings) {
+		// the default state
+		var stateDef = {
+			aaSorting : [],
+			iLength : 15,
+			oSearch : {
+				bCaseInsensitive : true,
+				bRegex : false,
+				bSmart : true
+			}
+		};
+		var sData = $.cookie(oSettings.sCookiePrefix+oSettings.sInstance);
+		if (sData == null) return null;
+		try {
+			oData = (typeof $.parseJSON === 'function') ? 
+				$.parseJSON(sData) : eval( '('+sData+')' );
+		} catch (e) {
+			oData = null;
+		}
+		
+		$.extend(true, stateDef, oData);
+		return stateDef;
+	},
+	
+	/**
+	 * Handles redrawing checkbox states after a table has changed ("redraw")
+	 * 
+	 * @param $tableContainer the table container to start processing on
+	 */
+	drawRedrawInitCheckboxes : function($tableContainer) {
+		var checkboxColIndex = $tableContainer.find('td input[type="checkbox"], td input[type="radio"]').index();
+		var $table = $tableContainer.find("table");
+		if (checkboxColIndex != -1) {
+			$tableContainer.find('th').eq(checkboxColIndex).width("35").css("padding", "3px 10px");
+			
+			var isDisabled = IDT.getSettingsOption($table, "disableSelection");
+			var checkboxList = IbisDataTables.getVisTableRowInputs($table);
+			checkboxList.each(function() {
+				var row = $(this).parents("tr").eq(0);
+				var $checkbox = $(this);
+				var saveValue = IDT.getSaveValue($checkbox);
+				
+				// check to see if all inputs are disabled by other code
+				// note, this !isDisabled covers both undefined and defined false
+				if (!isDisabled) {
+					$checkbox.prop("disabled", false);
+				}
+				else {
+					$checkbox.prop("disabled", true);
+				}
+				
+				if (IDT.isSelectedOption($checkbox, saveValue, $table)) {
+					$checkbox.prop("checked", true);
+					IDT.setRowSelected(row);
+				}
+				else {
+					$checkbox.prop("checked", false);
+					IDT.setRowDeselected(row);
+				}
+			});
+			
+			// set all buttons to their default state wrt the number of buttons selected
+			if (checkboxList.length > 0) {
+				OpButtonController.selectedChange(checkboxList.eq(0));
+			}
+			
+			// re-build the event binding for checkboxes
+			checkboxList.unbind("click").click(function(event) {
+				IbisDataTables.changeCheckboxSelection($(this), true, event);
+			});
+		}
+	},
+	
+	/**
+	 * Handles changing a checkbox selection after a click.  Also allows for
+	 * programmatic selection change.
+	 * 
+	 * @param $checkbox the checkbox to change
+	 * @param event (optional) the click or other event
+	 * @param debounce (optional) whether to disable the checkbox for a short time
+	 */
+	changeCheckboxSelection : function($checkbox, debounce, event) {
+		if (typeof debounce === "undefined") {
+			debounce = true;
+		}
+		
+		// stop the click from going up to the row
+		if (typeof event !== "undefined") {
+			event.stopPropagation();
+		}
+		// there is not a good way to capture clicks within a very short amount of time
+		// some browsers capture a single click then doubleclick, some do two clicks then doubleclick
+		// so, disable the clicked checkbox for 1/4 second to disable double clicks
+		
+		// if the input is a radio, we have to clear all other radios
+		if ($checkbox.attr("type") == "radio") {
+			IbisDataTables.clearOtherRadios($checkbox);
+		}
+		
+		$checkbox.attr("disabled", true);
+		setTimeout(function() {$checkbox.prop('disabled', false);}, 250);
+		IbisDataTables.validateCheckboxSelect($checkbox);
+		$checkbox.trigger("select");
+	},
+	
+	/**
+	 * Handles the click operation on a checkbox in the table.  This method decides
+	 * whether the checkbox that was clicked is checked or not and calls the
+	 * appropriate method.
+	 * 
+	 * Also sets the class for the row
+	 * 
+	 * @param $checkbox
+	 */
+	validateCheckboxSelect : function($checkbox) {
+		var saveValue = IDT.getSaveValue($checkbox);
+		var $table = IDT.getTable($checkbox);
+		
+		if (IDT.isSelectedOption($checkbox, saveValue, $table)) {
+			$checkbox.prop("checked", false);
+			IDT.setRowDeselected($checkbox.parents("tr").eq(0));
+			IDT.removeSelectedOption($checkbox, saveValue, $table);
+		}
+		else {
+			$checkbox.prop("checked", true);
+			IDT.setRowSelected($checkbox.parents("tr").eq(0));
+			IDT.addSelectedOptionValue($table, saveValue);
+		}
+		
+		// send this change to the op button selection change processor
+		OpButtonController.selectedChange($checkbox);
+	},
+	
+	/**
+	 * Makes the visible rows in a datatable clickable such that the user clicking on the row
+	 * will act as if the user had clicked on the input checkbox or radio button.
+	 * 
+	 * @param $table the table to apply the changes to
+	 */
+	initClickableRows : function($table) {
+		$table.find("tbody tr").unbind("click").click(function(e) {
+			e.stopPropagation();
+			if (!$(e.target).is("a, input, select, label")) {
+				var $input = $(this).find("input").first();
+				if (!$input.is(":disabled")) {
+					if ($input.is(":checked")) {
+						$input.prop("checked", false);
+					}
+					else {
+						$input.prop("checked", true);
+					}
+		
+					// calls the click handler.  NOTE: this doesn't ACTUALLY click it
+					// otherwise the above wouldn't be needed
+					$input.trigger("click");
+				}
+			}
+		});
+	},
+	
+	/**
+	 * Clicks the input.  That does the needed STUFF
+	 * 
+	 * @param $input the input to click
+	 */
+	click : function($input) {
+		if (!$input.is(":disabled")) {
+			if ($input.is(":checked")) {
+				$input.prop("checked", false);
+			}
+			else {
+				$input.prop("checked", true);
+			}
+			
+			if ($input.prop("tagName").toLowerCase() == "radio") {
+				IDT.clearOtherRadios($input);
+			}
+			$input.trigger("click");
+		}
+	},
+	
+	/**
+	 * Prepares the table to receive a new selected RADIO BUTTON.
+	 * 
+	 * Clears the "selected row" property of any radio button row other than
+	 * the given input.  Also gets rid of ALL selected inputs in the selected
+	 * array.
+	 * 
+	 * @param $input the newly-selected input
+	 */
+	clearOtherRadios : function($input) {
+		if ($input.attr("type") == "radio") {
+			var $table = IbisDataTables.getTable($input);
+			IbisDataTables.setRowDeselected($table.find(".row_selected"));
+			IbisDataTables.clearOtherSelected($input);
+		}
+	},
+	
+	setRowSelected : function($row) {
+		if (!$row.hasClass("row_selected")) {
+			$row.addClass("row_selected");
+		}
+	},
+	
+	setRowDeselected : function($row) {
+		$row.removeClass("row_selected");
+	},
+	
+	/**
+	 * Used by the page to recalculate the width of columns after the table
+	 * is displayed (normally used when it is initially hidden).  This is to
+	 * handle the problem as shown in 
+	 * http://www.datatables.net/examples/api/tabs_and_scrolling.html
+	 * 
+	 * @param tableId (optional) the ID of the table to grab.  This ID MUST be in tableReferences
+	 */
+	recalculateWidths : function(tableId) {
+		var tables = IbisDataTables.dataTables[tableId];
+		if (typeof tableId == "undefined") {
+			var keys = IbisDataTables.tableReferences;
+			tables = new Array();
+			for (var i = 0; i < keys.length; i++) {
+				tables.push(IbisDataTables.dataTables[keys[i]]);
+			}
+		}
+		
+		for (var i = 0; i < tables.length; i++) {
+			tables[i].fnAdjustColumnSizing();
+		}
+	},
+	
+	/**
+	 * Responds to the table becoming visible.  This resizes the table's
+	 * header and footer to be the same width as the table itself.
+	 * 
+	 * @param $tableRef jquery reference to the <table> element
+	 */
+	recalculateHeaderFooterWidths : function($tableRef) {
+		$tableRef.each(function() {
+			var $tableContainer = $(this).parents(".dataTableContainer");
+			var paddingCorrection = 10;
+			if ((BrowserDetect.browser == "Explorer")) {
+				paddingCorrection += 2;
+			}
+			
+			$tableContainer.find(".fg-toolbar").width($(this).width() - paddingCorrection);
+		});
+
+	},
+	
+	/**
+	 * Gets the list of table headers within the specified table
+	 * 
+	 * @param $table a jquery reference to the <table> to search
+	 * @returns {Array} string array containing the current table headers or empty array if not found
+	 */
+	getTableHeaders : function($table) {
+		var tableHeaders = new Array();
+		$table.find("th").each(function() {
+			var header = $(this).text();
+			tableHeaders.push(header);
+		});
+		return tableHeaders;
+	},
+	
+	/**
+	 * Gets the specified column's content in the table for the selected
+	 * (checked) row(s).
+	 * 
+	 * @param $table jquery reference to the table (@see getTable())
+	 * @param headerText the exact th header title from the table
+	 * @return an array of column content (string[]).
+	 */
+	getCellContent : function($table, headerText) {
+		var output = [];
+		var tableRef = IDT.dataTables[IDT.getId($table)];
+		var cellSearch = IDT.getSettingsOption($table, "cellSearch");
+		var selectedChecks = IDT.getSelectedOptions($table);
+		var colIndex = _.indexOf(cellSearch.tableHeaders, headerText);
+		if (colIndex != -1) {
+			for (var i = 0; i < selectedChecks.length; i++) {
+				var rowIndex = _.indexOf(cellSearch.rowMap, selectedChecks[i]);
+				var cellData = tableRef.fnGetData(rowIndex)[colIndex];
+				if (String(cellData).match(/<[a-z][\s\S]*>/i)) {
+					// for any HTML element, we have to filter out the tags
+					output.push($(cellData).text());
+				}
+				else {
+					output.push(cellData);
+				}
+			}
+		}
+		
+		return output;
+	},
+	
+	/**
+	 * Determines what language to display the datatable in.  Uses the
+	 * browser's language setting.
+	 * 
+	 * @returns Object defining language text
+	 */
+	determineLanguage : function() {
+		if (typeof language == "undefined" || language == "") {
+			return oLanguage_en_US;
+		}
+		
+		if (language.indexOf("zh") > -1) {
+			return oLanguage_zh_TW;
+		}
+		else if (language.indexOf("es") > -1) {
+			return oLanguage_es;
+		}
+		else {
+			return oLanguage_en_US;
+		}
+	},
+	
+	TableLayoutListener : {
+		timeout : 500, // milliseconds
+		masterTimer : null,
+		invisibleTables : $(), // an empty jquery set
+		excludeTables : $(),
+		callback : function() {},
+		
+		init : function(config) {
+			if (typeof config != "object") {
+				throw "configuration is not an object";
+			}
+			
+			for (var k in config) {
+				this[k] = config[k];
+			}
+		},
+		
+		/**
+		 * Adds the given jquery <table> reference to the list of tables
+		 * to exclude from processing as invisible.
+		 * 
+		 * @param $table a jquery reference to a <table> to exclude
+		 */
+		exclude : function($table) {
+			this.excludeTables = this.excludeTables.add($table);
+		},
+		
+		/**
+		 * Adds a <table> jquery reference to the list of invisible
+		 * tables.  Checks the exclude list to ensure that the table is
+		 * not a part of that list before adding.  If this is the first
+		 * table in the list, starts the master timer.
+		 * 
+		 * @param $table jquery reference to a <table> to add
+		 * @param config (optional) a configuration object to override the local config if needed
+		 */
+		addTable : function($table, config) {
+			if (this.countTables() == 0 && typeof config != "undefined" && config != null) {
+				try {
+					this.init(config);
+				}
+				catch(exception) {
+					// fall back to default configs
+				}
+			}
+			
+			// we don't want to add the table if it's in the exclude list
+			if (!this.excludeTables.is($table)) {
+				var tablesPreviousLength = this.countTables();
+				this.invisibleTables = this.invisibleTables.add($table);
+				if (tablesPreviousLength == 0) {
+					this.startTimer();
+				}
+			}
+		},
+		
+		/**
+		 * Removes a table from the invisibleTables list.  If there
+		 * are no more tables in the invisible list, calls stopTimer.
+		 * 
+		 * @param $table the table to remove
+		 */
+		removeTable : function($table) {
+			this.invisibleTables = this.invisibleTables.not($table);
+			if (this.invisibleTables.length == 0) {
+				this.stopTimer();
+			}
+		},
+		
+		/**
+		 * Starts the master timer.  Calls mainLoop() in intervals
+		 * of timeout milliseconds.
+		 */
+		startTimer : function() {
+			this.masterTimer = setInterval(
+					function() {IbisDataTables.TableLayoutListener.mainLoop();}, 
+					IbisDataTables.TableLayoutListener.timeout);
+		},
+		
+		/**
+		 * Stops the master timer
+		 */
+		stopTimer : function() {
+			clearInterval(this.masterTimer);
+		},
+		
+		/**
+		 * Counts the number of tables in invisibleTables.
+		 * Allows for shorter counts of this variable
+		 * 
+		 * @returns integer count of the elements in invisibleTables
+		 */
+		countTables : function() {
+			return this.invisibleTables.length;
+		},
+		
+		/**
+		 * Handles the table becoming visible for the first time.
+		 * Removes the table from the invisible list, adds it to
+		 * the exclude list, and calls the callback function on it.
+		 * 
+		 * @param $table the table to operate on
+		 */
+		onVisible : function($table) {
+			this.removeTable($table);
+			this.exclude($table);
+			this.callback($table);
+		},
+		
+		/**
+		 * Called on each hit of the master timer.  This checks each
+		 * table in invisibleTables to see if any are visible and,
+		 * if so, runs onVisible for it/them.
+		 */
+		mainLoop : function() {
+			IbisDataTables.TableLayoutListener.invisibleTables.each(function() {
+				if ($(this).is(":visible")) {
+					IbisDataTables.TableLayoutListener.onVisible($(this));
+				}
+			});
+		}
+		
+	}
+};
+
+
+var oLanguage_en_US = {
+	"oAria": {
+		"sSortAscending": ": activate to sort column ascending",
+		"sSortDescending": ": activate to sort column descending"
+	},
+	"oPaginate": {
+		"sFirst": "First",
+		"sLast": "Last",
+		"sNext": "Next",
+		"sPrevious": "Previous"
+	},
+	"sEmptyTable": "No data available in table",
+	"sInfo": "Showing _START_ to _END_ of _TOTAL_ entries",
+	"sInfoEmpty": "Showing 0 to 0 of 0 entries",
+	"sInfoFiltered": "(filtered from _MAX_ total entries)",
+	"sInfoPostFix": "",
+	"sInfoThousands": ",",
+	"sLengthMenu": "Show _MENU_ entries",
+	"sLoadingRecords": "Loading...",
+	"sProcessing": "Processing...",
+	"sSearch": "Search:",
+	"sUrl": "",
+	"sZeroRecords": "No matching records found"
+};
+
+var oLanguage_zh_TW = {
+    "sProcessing":   "處理中...",
+    "sLengthMenu":   "顯示 _MENU_ 項結果",
+    "sZeroRecords":  "沒有匹配結果",
+    "sInfo":         "顯示第 _START_ 至 _END_ 項結果，共 _TOTAL_ 項",
+    "sInfoEmpty":    "顯示第 0 至 0 項結果，共 0 項",
+    "sInfoFiltered": "(從 _MAX_ 項結果過濾)",
+    "sInfoPostFix":  "",
+    "sSearch":       "搜索:",
+    "sUrl":          "",
+    "oPaginate": {
+        "sFirst":    "首頁",
+        "sPrevious": "上頁",
+        "sNext":     "下頁",
+        "sLast":     "尾頁"
+    }
+};
+
+var oLanguage_sp = {
+    "sProcessing":     "Procesando...",
+    "sLengthMenu":     "Mostrar _MENU_ registros",
+    "sZeroRecords":    "No se encontraron resultados",
+    "sEmptyTable":     "Ningún dato disponible en esta tabla",
+    "sInfo":           "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+    "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
+    "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
+    "sInfoPostFix":    "",
+    "sSearch":         "Buscar:",
+    "sUrl":            "",
+    "sInfoThousands":  ",",
+    "sLoadingRecords": "Cargando...",
+    "oPaginate": {
+        "sFirst":    "Primero",
+        "sLast":     "Último",
+        "sNext":     "Siguiente",
+        "sPrevious": "Anterior"
+    },
+    "fnInfoCallback": null,
+    "oAria": {
+        "sSortAscending":  ": Activar para ordernar la columna de manera ascendente",
+        "sSortDescending": ": Activar para ordernar la columna de manera descendente"
+    }
+};
+
+IbisDataTables.InfoRowManager = {
+	init : function($table) {
+		this.placeExportRow($table);
+		this.createSelectedItemsLabel($table);
+	},
+
+	getInfoRow : function($table) {
+		return $table.parents(".dataTableContainer").find(".dataTables_info");
+	},
+	
+	getSelectedItemsContainer : function($table) {
+		return $table.parents(".dataTableContainer").find(".rowCount");
+	},
+	
+	getRowWordContainer : function($table) {
+		return $table.parents(".dataTableContainer").find(".rowWord");
+	},
+	
+	/**
+	 * Removes the export row (if it exists) from the table and stores in the table's data
+	 * 
+	 * @param $table the table to act upon
+	 */
+	removeExportRow : function($table) {
+		IDT.initSettings($table);
+		if ($table.find("tr.tableRowAction").length > 0) {
+			var exportRow = $table.find("td.tableCellAction").html();
+			IbisDataTables.setSettingsOption($table, "exportRow", exportRow);
+			// find the actual row and remove it
+			$table.find("td.tableCellAction").parents("tr").last().remove();
+		}
+	},
+	
+	/**
+	 * if this table has an export row, move it into place
+	 * 
+	 * @param $table the table to act upon
+	 */
+	placeExportRow : function($table) {
+		var exportRow = IDT.getSettingsOption($table, "exportRow");
+		if (exportRow != null) {
+			var $exportDiv = $("<div></div>");
+			$exportDiv.css("float", "left").addClass("tableExportAction").html(exportRow);
+			var $infoRow = this.getInfoRow($table);
+			if ($infoRow.length > 0) {
+				$infoRow.after($exportDiv);
+			}
+		}
+	},
+	
+	createSelectedItemsLabel : function($table) {
+		if (this.getSelectedItemsContainer($table).length < 1) {
+			var $infoRow = this.getInfoRow($table);
+			var $defaultDiv = $('<div class="rowCountContainer">(<span class="rowCount">0</span> <span class="rowWord">Rows</span> Selected)</div>');
+			$infoRow.after($defaultDiv);
+		}
+	},
+	
+	/**
+	 * Updates the selected item count in the table's info row
+	 * @param $table the table
+	 * @count the new count to place in the info row
+	 */
+	updateSelectedItemCount : function($table, count) {
+		var $countContainer = this.getSelectedItemsContainer($table);
+		$countContainer.text(count);
+		this.updateRowWord($table, count);
+	},
+	
+	getCountSelectedItems : function($table) {
+		var $countContainer = this.getSelectedItemsContainer($table).text();
+	},
+	
+	updateRowWord : function($table, count) {
+		var word = "Rows";
+		if (count == 1) {
+			word = "Row";
+		}
+		
+		this.getRowWordContainer($table).text(word);
+	}
+};
+
+
+/**
+ * Fix for <= IE8.  Their array object doesn't have indexOf
+ */
+if (!Array.prototype.indexOf) {
+	Array.prototype.indexOf = function(needle) {
+        for(var i = 0; i < this.length; i++) {
+            if(this[i] === needle) {
+                return i;
+            }
+        }
+        return -1;
+    };
+}
+
+/* Nickname for ibisdatatables to shorten calls */
+window.IDT = IbisDataTables;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+</head>
+<body>
+	<div id="wrap">
+		<div id="header">
+				<div class="content">
+					<a id="logo" class="float-left" href='http://pdbp-stage.cit.nih.gov/portal/baseAction!landing.action'><em class="alt">Parkinson's Disease Biomarkers Program (PDBP)</em></a>
+					<a href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do" id="logoAlt" class="">
+						<em class="alt">Parkinson's Disease Biomarkers Program (PDBP)</em> 
+					</a>
+					<div id="login-button" class="float-right">
+						<div id="logout-link">
+							<p>
+									Welcome Test | 		
+							 		<a href="https://pdbp-stage.cit.nih.gov/proforms/logoff.do">Log Out </a>
+							</p>
+						</div>
+					</div>	
+				</div>
+			</div>
+			<div id="navigation">
+				<div class="nav-wrapper">
+					<ul id="primary-nav">
+						<li id="homeModuleLink"><a href="http://pdbp-stage.cit.nih.gov/"><span id="homeModuleLinkContainer">Home</span></a>
+						<li id="workspaceModuleLink"><a href="http://pdbp-stage.cit.nih.gov/portal/baseAction!landing.action">Workspace</a></li>
+						<li id="proformsModuleLink"><a href="https://pdbp-stage.cit.nih.gov/proforms" class="current">ProFoRMS</a></li>
+							<li id="guidModuleLink"><a href="http://pdbp-stage.cit.nih.gov/portal/guid/guidAction!landing.action">GUID</a></li>
+						<li id="dataDictionaryModuleLink"><a href="http://pdbp-dd-stage.cit.nih.gov/portal/dictionary/listDataStructureAction!list.action">Data Dictionary</a></li>
+						<li id="dataRepositoryModuleLink"><a href="http://pdbp-stage.cit.nih.gov/portal/study/studyAction!list.action">Data Repository</a></li>
+							<li id="queryModuleLink"><a href="http://pdbp-stage.cit.nih.gov/query">Query</a></li>
+						<li id="userManagementModuleLink"><a href="http://pdbp-stage.cit.nih.gov/portal/accounts/viewProfile!view.action">Account Management</a></li>
+					</ul>
+				</div>
+			</div>	  
+		<div id="main" class="container960">
+			<div id="mainHeaderArea" class="container960">
+				<h1>
+ProFoRMS</h1>
+				<div id="perspectiveCutout">
+					<img src="https://pdbp-stage.cit.nih.gov/proforms/images/perspectiveCutout.png" id="perspectiveCutoutLeft" alt="" />
+					<a href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?study=all" id="dashboardLink">Dashboard</a>
+<script type="text/javascript">
+$(document).ready(function() {
+	$nextFocusElement = $();
+	
+	$('#perspectiveSelect a').each(function(index) {
+	    $(this).attr('tabindex', index);
+	});
+	
+	$("#perspectiveSelectContainer").keydown(function(event) {
+		if (event.which == 9) {
+			if (event.shiftKey) {
+				$(this).removeClass("active");
+			}
+			else {
+				// tab to the first link in the set
+				var $this = $(this);
+				$this.addClass("active");
+				$nextFocusElement = $(document.activeElement);
+				var $linkList = $this.next("ul").find("a");
+				var $first = $linkList.eq(0);
+				event.preventDefault();
+				$first.focus();
+				$linkList.last().keydown(function(event) {
+					if (event.which == 9 && !event.shiftKey) {
+						$("#perspectiveSelectContainer").removeClass("active");
+						$nextFocusElement.focus();
+					}
+				});
+				$linkList.first().keydown(function(event) {
+					if (event.which == 9 && event.shiftKey) {
+						event.preventDefault();
+						$("#perspectiveSelectContainer").removeClass("active");
+						$("#perspectiveSelectContainer").focus();
+					}
+				});
+			}
+		}
+	}).mouseleave(function() {
+		$(this).removeClass("active");
+	});
+});
+
+
+function openModal() {
+	$("#modal").dialog({
+		buttons : [{
+			text: "OK",
+			click : function() {
+				alert("you clicked okay");
+			}
+		},
+		{
+			text: "close",
+			click : function() {
+				$(this).dialog("close");
+			}
+		}]
+	});
+}
+
+
+
+
+
+
+
+
+
+</script>
+<nav id="perspectiveSelect">
+	<ul>
+		<li>
+			<a id="perspectiveSelectContainer" tabindex="0" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=0 ">
+				No Study Selected  (All Studies)
+			</a>
+			<ul id="perspectiveDropdown">
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=93">00_STUDY NUMBER</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=47">01 - 2014</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=23">01 - NATO STUDY</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=31">01 - PDBP - IPAD/TABLET TESTING</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=42">02-MASTER STUDY#</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=17">1111 - JUNE RELEASE</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=21">1144</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=35">1-AUGUSTO</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=14">2013 - MAY</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=34">99909</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=3">APRILSTUDY#2</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=12">ASDFASDFASDF</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=7">ASDFASFD</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=16">DEMO STUDY</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=22">DROP_1</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=1">DRYOGISTUDY_007</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=28">EEE111</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=33">EERTERT</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=46">JAN1</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=5">JEFF_TEST</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=41">LABTESTTRACKING</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=45">MANANGESITE</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=94">MARCHTESTING</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=95">MARCH TESTING 2014</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=4">MARYLAND #</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=11">NEW YORK NY #</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=8">PARKINSON_BASIC</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=13">PDBP GENERIC STAGE STUDY</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=43">PERFORMANCE#</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=6">RC1</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=18">RC_13</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=19">RC_18</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=20">RC_19</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=29">ROOHUL'S PROFORM STUDY</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=9">ROOHUL_STUDY5</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=10">ROOHUL_STUDY6</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=24">RS1</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=30">R_S_B1</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=27">SADFASDF</a></li>		
+				<li><a tabindex="2" href="https://pdbp-stage.cit.nih.gov/proforms/dashboard.do?id=2">VIRGINIA #</a></li>		
+			</ul>
+		</li>
+	</ul>
+</nav>
+				</div>
+			</div>
+			<div id="contentContainer" class="container960">
+			<div id="rightColumn">
+					<div id="mainContent">
+					
+					
+					
+					
+					
+					
+					
+					
+<div class="dataTableContainer" id="patientFormsContent" style="display: block">
+
+	<ul>
+		<li>
+			
+				<button id="btnEditP" onclick="performEditForm()" title="Click to make changes">
+					Edit
+				</button>
+			
+		</li>
+		<li>
+			
+				<button id="btnViewP" onclick="performViewForm()" title="Click to view the form">
+					View
+				</button>
+			
+		</li>
+		<li>
+			
+				<button id="btnSaveAsP" onclick="performSaveAs()" title="Click to save as a new form">
+					Save As A New Form
+				</button>
+			
+		</li>
+		<li>
+			
+				<button id="btnViewAuditP" onclick="launchViewAudit()" title="Click to view changes made to form">
+					View Audit
+				</button>
+			
+		</li>
+		<li>
+			
+				<button id="btnDeleteActivate" onclick="activate()" title="Click to activate">
+					Activate
+				</button>
+			
+		</li>
+		<li>
+			
+				<input type="button" id="exportFormButton1" class="exportFormButton" value="Export" />
+			
+		</li>
+		<li>
+			
+				<button id="btnDeleteP" class="enabledOnMany" onclick="performDelete()" title="Click to delete">
+					Delete
+				</button>
+			
+		</li>
+	</ul>
+
+	<table id="protocolforms" class="table" width="100%" border="0" cellspacing="0" cellpadding="2">
+	<tr class="tableRowHeader"><th class="tableCellHeader"></th>
+	<th class="tableCellHeader">Form Name</th>
+	<th class="tableCellHeader">Number of Questions</th>
+	<th class="tableCellHeader">Form Group</th>
+	<th class="tableCellHeader">Status</th>
+	<th class="tableCellHeader">Administered</th>
+	<th class="tableCellHeader">Form Last Updated</th>
+	</tr>
+	<tr class="tableRowOdd">
+	<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="2716"  />
+	<input name="numQuestions_2716" type="hidden" value="8"  />
+	<input name="statsQuestions_2716" type="hidden" value="3"  />
+	</td>
+	<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('https://pdbp-stage.cit.nih.gov/proforms/form/viewFormDetail.action?source=popup&id=2716 ');">copied122123213</a></td>
+	<td  class="tableCell" align="left" valign="top">8</td>
+	<td  class="tableCell" align="left" valign="top"></td>
+	<td  class="tableCell" align="left" valign="top">Active</td>
+	<td  class="tableCell" align="left" valign="top">Yes</td>
+	<td  class="tableCell" align="left" valign="top">2014-03-07 14:30</td>
+	</tr>
+	<tr class="tableRowEven">
+	<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="2853"  />
+	<input name="numQuestions_2853" type="hidden" value="0"  />
+	<input name="statsQuestions_2853" type="hidden" value="1"  />
+	</td>
+	<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('https://pdbp-stage.cit.nih.gov/proforms/form/viewFormDetail.action?source=popup&id=2853 ');">789789</a></td>
+	<td  class="tableCell" align="left" valign="top">0</td>
+	<td  class="tableCell" align="left" valign="top"></td>
+	<td  class="tableCell" align="left" valign="top">Inactive</td>
+	<td  class="tableCell" align="left" valign="top">No</td>
+	<td  class="tableCell" align="left" valign="top">2014-03-07 14:26</td>
+	</tr>
+	<tr class="tableRowOdd">
+	<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="2850"  />
+	<input name="numQuestions_2850" type="hidden" value="1"  />
+	<input name="statsQuestions_2850" type="hidden" value="1"  />
+	</td>
+	<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('https://pdbp-stage.cit.nih.gov/proforms/form/viewFormDetail.action?source=popup&id=2850 ');">IBIS status form</a></td>
+	<td  class="tableCell" align="left" valign="top">1</td>
+	<td  class="tableCell" align="left" valign="top"></td>
+	<td  class="tableCell" align="left" valign="top">Inactive</td>
+	<td  class="tableCell" align="left" valign="top">No</td>
+	<td  class="tableCell" align="left" valign="top">2014-03-06 14:43</td>
+	</tr>
+	<tr class="tableRowEven">
+	<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="2697"  />
+	<input name="numQuestions_2697" type="hidden" value="8"  />
+	<input name="statsQuestions_2697" type="hidden" value="4"  />
+	</td>
+	<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('https://pdbp-stage.cit.nih.gov/proforms/form/viewFormDetail.action?source=popup&id=2697 ');">1713 - normal formwsss</a></td>
+	<td  class="tableCell" align="left" valign="top">8</td>
+	<td  class="tableCell" align="left" valign="top"></td>
+	<td  class="tableCell" align="left" valign="top">In Progress</td>
+	<td  class="tableCell" align="left" valign="top">Yes</td>
+	<td  class="tableCell" align="left" valign="top">2014-03-05 14:32</td>
+	</tr>
+	<tr class="tableRowOdd">
+	<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="2849"  />
+	<input name="numQuestions_2849" type="hidden" value="1"  />
+	<input name="statsQuestions_2849" type="hidden" value="1"  />
+	</td>
+	<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('https://pdbp-stage.cit.nih.gov/proforms/form/viewFormDetail.action?source=popup&id=2849 ');">hgfd</a></td>
+	<td  class="tableCell" align="left" valign="top">1</td>
+	<td  class="tableCell" align="left" valign="top"></td>
+	<td  class="tableCell" align="left" valign="top">Inactive</td>
+	<td  class="tableCell" align="left" valign="top">No</td>
+	<td  class="tableCell" align="left" valign="top">2014-03-05 14:30</td>
+	</tr>
+	<tr class="tableRowEven">
+	<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="2848"  />
+	<input name="numQuestions_2848" type="hidden" value="0"  />
+	<input name="statsQuestions_2848" type="hidden" value="1"  />
+	</td>
+	<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('https://pdbp-stage.cit.nih.gov/proforms/form/viewFormDetail.action?source=popup&id=2848 ');">BuildForm</a></td>
+	<td  class="tableCell" align="left" valign="top">0</td>
+	<td  class="tableCell" align="left" valign="top"></td>
+	<td  class="tableCell" align="left" valign="top">Inactive</td>
+	<td  class="tableCell" align="left" valign="top">No</td>
+	<td  class="tableCell" align="left" valign="top">2014-03-05 14:15</td>
+	</tr>
+	<tr class="tableRowOdd">
+	<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="2831"  />
+	<input name="numQuestions_2831" type="hidden" value="1"  />
+	<input name="statsQuestions_2831" type="hidden" value="4"  />
+	</td>
+	<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('https://pdbp-stage.cit.nih.gov/proforms/form/viewFormDetail.action?source=popup&id=2831 ');">Test Image Map</a></td>
+	<td  class="tableCell" align="left" valign="top">1</td>
+	<td  class="tableCell" align="left" valign="top"></td>
+	<td  class="tableCell" align="left" valign="top">In Progress</td>
+	<td  class="tableCell" align="left" valign="top">Yes</td>
+	<td  class="tableCell" align="left" valign="top">2014-02-28 15:53</td>
+	</tr>
+	<tr class="tableRowEven">
+	<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="2829"  />
+	<input name="numQuestions_2829" type="hidden" value="1"  />
+	<input name="statsQuestions_2829" type="hidden" value="4"  />
+	</td>
+	<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('https://pdbp-stage.cit.nih.gov/proforms/form/viewFormDetail.action?source=popup&id=2829 ');">Test File</a></td>
+	<td  class="tableCell" align="left" valign="top">1</td>
+	<td  class="tableCell" align="left" valign="top"></td>
+	<td  class="tableCell" align="left" valign="top">In Progress</td>
+	<td  class="tableCell" align="left" valign="top">Yes</td>
+	<td  class="tableCell" align="left" valign="top">2014-02-27 15:29</td>
+	</tr>
+	<tr class="tableRowOdd">
+	<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="2807"  />
+	<input name="numQuestions_2807" type="hidden" value="0"  />
+	<input name="statsQuestions_2807" type="hidden" value="1"  />
+	</td>
+	<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('https://pdbp-stage.cit.nih.gov/proforms/form/viewFormDetail.action?source=popup&id=2807 ');">josh_test_1</a></td>
+	<td  class="tableCell" align="left" valign="top">0</td>
+	<td  class="tableCell" align="left" valign="top"></td>
+	<td  class="tableCell" align="left" valign="top">Inactive</td>
+	<td  class="tableCell" align="left" valign="top">No</td>
+	<td  class="tableCell" align="left" valign="top">2014-02-27 12:51</td>
+	</tr>
+	<tr class="tableRowEven">
+	<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="2821"  />
+	<input name="numQuestions_2821" type="hidden" value="1"  />
+	<input name="statsQuestions_2821" type="hidden" value="4"  />
+	</td>
+	<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('https://pdbp-stage.cit.nih.gov/proforms/form/viewFormDetail.action?source=popup&id=2821 ');">TestDE</a></td>
+	<td  class="tableCell" align="left" valign="top">1</td>
+	<td  class="tableCell" align="left" valign="top"></td>
+	<td  class="tableCell" align="left" valign="top">In Progress</td>
+	<td  class="tableCell" align="left" valign="top">Yes</td>
+	<td  class="tableCell" align="left" valign="top">2014-02-25 17:32</td>
+	</tr>
+	<tr class="tableRowOdd">
+	<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="2790"  />
+	<input name="numQuestions_2790" type="hidden" value="0"  />
+	<input name="statsQuestions_2790" type="hidden" value="1"  />
+	</td>
+	<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('https://pdbp-stage.cit.nih.gov/proforms/form/viewFormDetail.action?source=popup&id=2790 ');">ghij</a></td>
+	<td  class="tableCell" align="left" valign="top">0</td>
+	<td  class="tableCell" align="left" valign="top"></td>
+	<td  class="tableCell" align="left" valign="top">Inactive</td>
+	<td  class="tableCell" align="left" valign="top">No</td>
+	<td  class="tableCell" align="left" valign="top">2014-02-20 15:50</td>
+	</tr>
+	<tr class="tableRowEven">
+	<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="2726"  />
+	<input name="numQuestions_2726" type="hidden" value="4"  />
+	<input name="statsQuestions_2726" type="hidden" value="3"  />
+	</td>
+	<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('https://pdbp-stage.cit.nih.gov/proforms/form/viewFormDetail.action?source=popup&id=2726 ');">SelectObject</a></td>
+	<td  class="tableCell" align="left" valign="top">4</td>
+	<td  class="tableCell" align="left" valign="top"></td>
+	<td  class="tableCell" align="left" valign="top">Active</td>
+	<td  class="tableCell" align="left" valign="top">No</td>
+	<td  class="tableCell" align="left" valign="top">2014-01-27 15:29</td>
+	</tr>
+	<tr class="tableRowOdd">
+	<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="2725"  />
+	<input name="numQuestions_2725" type="hidden" value="22"  />
+	<input name="statsQuestions_2725" type="hidden" value="3"  />
+	</td>
+	<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('https://pdbp-stage.cit.nih.gov/proforms/form/viewFormDetail.action?source=popup&id=2725 ');">moca 2</a></td>
+	<td  class="tableCell" align="left" valign="top">22</td>
+	<td  class="tableCell" align="left" valign="top"></td>
+	<td  class="tableCell" align="left" valign="top">Active</td>
+	<td  class="tableCell" align="left" valign="top">Yes</td>
+	<td  class="tableCell" align="left" valign="top">2014-01-27 15:27</td>
+	</tr>
+	<tr class="tableRowEven">
+	<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="2727"  />
+	<input name="numQuestions_2727" type="hidden" value="22"  />
+	<input name="statsQuestions_2727" type="hidden" value="4"  />
+	</td>
+	<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('https://pdbp-stage.cit.nih.gov/proforms/form/viewFormDetail.action?source=popup&id=2727 ');">moca 3</a></td>
+	<td  class="tableCell" align="left" valign="top">22</td>
+	<td  class="tableCell" align="left" valign="top"></td>
+	<td  class="tableCell" align="left" valign="top">In Progress</td>
+	<td  class="tableCell" align="left" valign="top">Yes</td>
+	<td  class="tableCell" align="left" valign="top">2014-01-27 15:27</td>
+	</tr>
+	<tr class="tableRowOdd">
+	<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="2724"  />
+	<input name="numQuestions_2724" type="hidden" value="22"  />
+	<input name="statsQuestions_2724" type="hidden" value="3"  />
+	</td>
+	<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('https://pdbp-stage.cit.nih.gov/proforms/form/viewFormDetail.action?source=popup&id=2724 ');">Montreal Cognitive Assessment (MoCA)</a></td>
+	<td  class="tableCell" align="left" valign="top">22</td>
+	<td  class="tableCell" align="left" valign="top"></td>
+	<td  class="tableCell" align="left" valign="top">Active</td>
+	<td  class="tableCell" align="left" valign="top">Yes</td>
+	<td  class="tableCell" align="left" valign="top">2014-01-27 15:26</td>
+	</tr>
+	<tr class="tableRowEven">
+	<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="2722"  />
+	<input name="numQuestions_2722" type="hidden" value="0"  />
+	<input name="statsQuestions_2722" type="hidden" value="1"  />
+	</td>
+	<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('https://pdbp-stage.cit.nih.gov/proforms/form/viewFormDetail.action?source=popup&id=2722 ');">sadfsdaf</a></td>
+	<td  class="tableCell" align="left" valign="top">0</td>
+	<td  class="tableCell" align="left" valign="top"></td>
+	<td  class="tableCell" align="left" valign="top">Inactive</td>
+	<td  class="tableCell" align="left" valign="top">No</td>
+	<td  class="tableCell" align="left" valign="top">2014-01-27 15:20</td>
+	</tr>
+	<tr class="tableRowOdd">
+	<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="2720"  />
+	<input name="numQuestions_2720" type="hidden" value="0"  />
+	<input name="statsQuestions_2720" type="hidden" value="1"  />
+	</td>
+	<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('https://pdbp-stage.cit.nih.gov/proforms/form/viewFormDetail.action?source=popup&id=2720 ');">Filetype</a></td>
+	<td  class="tableCell" align="left" valign="top">0</td>
+	<td  class="tableCell" align="left" valign="top"></td>
+	<td  class="tableCell" align="left" valign="top">Inactive</td>
+	<td  class="tableCell" align="left" valign="top">No</td>
+	<td  class="tableCell" align="left" valign="top">2014-01-27 15:00</td>
+	</tr>
+	<tr class="tableRowEven">
+	<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="2710"  />
+	<input name="numQuestions_2710" type="hidden" value="12"  />
+	<input name="statsQuestions_2710" type="hidden" value="4"  />
+	</td>
+	<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('https://pdbp-stage.cit.nih.gov/proforms/form/viewFormDetail.action?source=popup&id=2710 ');">PREPOPULATED & required</a></td>
+	<td  class="tableCell" align="left" valign="top">12</td>
+	<td  class="tableCell" align="left" valign="top"></td>
+	<td  class="tableCell" align="left" valign="top">In Progress</td>
+	<td  class="tableCell" align="left" valign="top">Yes</td>
+	<td  class="tableCell" align="left" valign="top">2014-01-24 15:59</td>
+	</tr>
+	<tr class="tableRowOdd">
+	<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="2699"  />
+	<input name="numQuestions_2699" type="hidden" value="8"  />
+	<input name="statsQuestions_2699" type="hidden" value="3"  />
+	</td>
+	<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('https://pdbp-stage.cit.nih.gov/proforms/form/viewFormDetail.action?source=popup&id=2699 ');">copied122</a></td>
+	<td  class="tableCell" align="left" valign="top">8</td>
+	<td  class="tableCell" align="left" valign="top"></td>
+	<td  class="tableCell" align="left" valign="top">Active</td>
+	<td  class="tableCell" align="left" valign="top">Yes</td>
+	<td  class="tableCell" align="left" valign="top">2014-01-24 15:37</td>
+	</tr>
+	<tr class="tableRowEven">
+	<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="2714"  />
+	<input name="numQuestions_2714" type="hidden" value="10"  />
+	<input name="statsQuestions_2714" type="hidden" value="3"  />
+	</td>
+	<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('https://pdbp-stage.cit.nih.gov/proforms/form/viewFormDetail.action?source=popup&id=2714 ');">date test from proforms</a></td>
+	<td  class="tableCell" align="left" valign="top">10</td>
+	<td  class="tableCell" align="left" valign="top"></td>
+	<td  class="tableCell" align="left" valign="top">Active</td>
+	<td  class="tableCell" align="left" valign="top">No</td>
+	<td  class="tableCell" align="left" valign="top">2014-01-24 15:33</td>
+	</tr>
+	<tr class="tableRowOdd">
+	<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="2711"  />
+	<input name="numQuestions_2711" type="hidden" value="8"  />
+	<input name="statsQuestions_2711" type="hidden" value="3"  />
+	</td>
+	<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('https://pdbp-stage.cit.nih.gov/proforms/form/viewFormDetail.action?source=popup&id=2711 ');">mavericks_proforms</a></td>
+	<td  class="tableCell" align="left" valign="top">8</td>
+	<td  class="tableCell" align="left" valign="top"></td>
+	<td  class="tableCell" align="left" valign="top">Active</td>
+	<td  class="tableCell" align="left" valign="top">No</td>
+	<td  class="tableCell" align="left" valign="top">2014-01-24 14:38</td>
+	</tr>
+	</table>
+
+
+</div>	
+						
+						
+				
+
+
+<!-- 
+<div class="dataTableContainer dataTableJSON" id="testTable2Container" style="display: block">
+	<ul>
+		<li>
+				<button id="btnEditP" onclick="performEditForm()" title="Click to make changes">
+					Edit
+				</button>
+		</li>
+		<li>
+				<button id="btnViewP" onclick="performViewForm()" title="Click to view the form">
+					View
+				</button>
+		</li>
+		<li>
+				<button id="btnSaveAsP" onclick="performSaveAs()" title="Click to save as a new form">
+					Save As A New Form
+				</button>
+		</li>
+		<li>
+				<button id="btnViewAuditP" onclick="launchViewAudit()" title="Click to view changes made to form">
+					View Audit
+				</button>
+		</li>
+		<li>
+				<button id="btnDeleteActivate" onclick="activate()" title="Click to activate">
+					Activate
+				</button>
+		</li>
+		<li>
+				<input type="button" id="exportFormButton1" class="exportFormButton" value="Export" />
+		</li>
+		<li>
+				<button id="btnDeleteP" class="enabledOnMany" onclick="performDelete()" title="Click to delete">
+					Delete
+				</button>
+		</li>
+	</ul>
+
+	<table id="testTable2" class="table" width="100%" border="0" cellspacing="0" cellpadding="2">
+	</table>
+
+
+</div>	
+ -->
+				
+						
+						
+					</div>
+				</div>
+				<div id="leftColumn">
+<div id="leftNav">
+<ul class="subnavigation">
+		<li class="active-sub">
+			<a href="https://pdbp-stage.cit.nih.gov/proforms/home.do" class="leftNavHeader">ProFoRMS Home</a>
+				<ul class="tertiary-links">
+					<li class="">
+					<a href="https://pdbp-stage.cit.nih.gov/proforms/pickstudy.do?id=0" class="">Select A Protocol</a>
+					</li>
+				</ul>
+		</li>
+		<li class="disabledLeftNav">
+			<a href="javascript:;" class="leftNavHeader">Manage Subjects</a>
+		</li>
+		<li class="disabledLeftNav">
+			<a href="javascript:;" class="leftNavHeader">Collect Data</a>
+		</li>
+		<li class="disabledLeftNav">
+			<a href="javascript:;" class="leftNavHeader">Manage Forms</a>
+		</li>
+		<li class="disabledLeftNav">
+			<a href="javascript:;" class="leftNavHeader">Manage Protocol</a>
+		</li>
+		<li class="">
+			<a href="https://pdbp-stage.cit.nih.gov/proforms/response/studyReport.action" class="leftNavHeader">Reports</a>
+		</li>
+		<li class="">
+			<a href="https://pdbp-stage.cit.nih.gov/proforms/admin/userHome.action" class="leftNavHeader">Site Administration</a>
+		</li>
+</ul>
+</div>
+<div id="leftNavHandle" class="hide">
+&nbsp;
+</div>
+				</div>
+				<br class="clearfix" />
+			</div>
+		</div>
+	</div>
+	<div id="footerDiv">
+				<!-- FOOTER -->
+				<div id="footer">
+					<div class="content">
+						<div id="footerContentContainer">
+						    <div class="footernav clearboth">
+						        <ul class="clearboth">
+						            <li><a href="http://pdbp-public-stage.cit.nih.gov/pd-public/pd-public/jsp/site-map.jsp">Site Map</a></li>
+						            <li><a href="http://pdbp-public-stage.cit.nih.gov/pd-public/pd-public/jsp/contact-us.jsp">Contact Us</a></li>
+						            <li><a href="http://pdbp-public-stage.cit.nih.gov/pd-public/pd-public/jsp/privacy.jsp">Privacy Statement</a></li>
+						            <li><a class="ext-link" target="_blank" href="http://www.nih.gov/about/access.htm">Accessibility Policy</a></li>
+						            <li><a class="ext-link" target="_blank" href="http://www.nih.gov/icd/od/foia/index.htm">FOIA</a></li>
+						        </ul>
+						    </div>
+						    <p>NIH ... Turning Discovery Into Health</p>
+						    <div class="branding">
+						       <div class="hhs"><a href="http://www.hhs.gov">The United States Department of Health and Human Services</a></div>
+						       <div class="nih"><a href="http://www.nih.gov">The National Institutes of Health</a></div>
+						       <div class="usa"><a href="http://www.usa.gov">USA.gov : Government Made Easy</a></div>
+						    </div>
+						</div>
+					</div>
+				</div>
+			</div>
+</body>
+</html>

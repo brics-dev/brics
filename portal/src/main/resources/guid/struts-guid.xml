@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+        "http://struts.apache.org/dtds/struts-2.5.dtd">
+<struts>
+	<package name="guid" extends="default" namespace="/guid">
+		<global-allowed-methods>execute,input,back,cancel,browse,edit,create,view,search,list</global-allowed-methods>
+
+		<action name="guidAction" class="gov.nih.tbi.guid.portal.GuidAction">
+			<result name="landing"> /jsp/guid/landing.jsp
+			</result>
+			<result name="create"> /jsp/guid/createGuid.jsp
+			</result>
+			<result name="list"> /jsp/guid/guids.jsp
+			</result>
+			<result name="view"> /jsp/guid/viewGuid.jsp
+			</result>
+			<result name="viewPseudoGuid"> /jsp/guid/viewPseudoGuid.jsp
+			</result>
+			<result name="launch"> /jnlps-guid/guidTool.jsp
+			</result>
+			<result name="button"> /jsp/contribute/guidButton.jsp
+			</result>
+			<allowed-methods>viewPseudoGuid,landing,download,launch,getJwt</allowed-methods>
+		</action>
+		<action name="viewGuidAction" class="gov.nih.tbi.guid.portal.ViewGuidAction">
+			<result name="view">/jsp/guid/viewGuid.jsp
+			</result>
+			<allowed-methods>datasetDatatable</allowed-methods>
+		</action>
+		<action name="searchGuidAction" class="gov.nih.tbi.guid.portal.SearchGuidAction">
+			<result name="search"> /jsp/guid/guidTable.jsp
+			</result>
+			<result name="list"> /jsp/guid/guidTable.jsp
+			</result>
+			<result name="pdf" type="stream">
+		        <param name="inputName">inputStream</param>
+		        <param name="contentType">application/pdf</param>
+		        <param name="contentDisposition">attachment;filename="guid_list.pdf"</param>
+		        <param name="bufferSize">1024</param>
+		    </result>
+			<allowed-methods>combinedSearch,getChunckedData,downloadGuidResults,combinedSearchIdt,downloadPdf</allowed-methods>
+		</action>
+	</package>
+	
+	<package name="guidAdmin" extends="guid" namespace="/guidAdmin">
+		<global-allowed-methods>execute,input,back,cancel,browse,edit,create,view,search,list</global-allowed-methods>
+		
+		<action name="guidAdminAction" class="gov.nih.tbi.guid.portal.GuidAction">
+			<result name="list"> /jsp/guid/listGuids.jsp
+			</result>
+			<result name="search"> /jsp/guid/guidTable.jsp
+			</result>
+		</action>
+		<action name="searchGuidAction" class="gov.nih.tbi.guid.portal.SearchGuidAction">
+			<result name="search"> /jsp/guid/guidTable.jsp
+			</result>
+			<result name="list"> /jsp/guid/guidTable.jsp
+			</result>
+			<result name="pdf" type="stream">
+		        <param name="inputName">inputStream</param>
+		        <param name="contentType">application/pdf</param>
+		        <param name="contentDisposition">attachment;filename="guid_list.pdf"</param>
+		        <param name="bufferSize">1024</param>
+		    </result>
+			<allowed-methods>getChunckedData,downloadGuidResults,combinedSearchIdt,downloadPdf</allowed-methods>
+		</action>
+	</package>
+</struts>

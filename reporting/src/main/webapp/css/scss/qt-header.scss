@@ -1,0 +1,75 @@
+@CHARSET "ISO-8859-1";
+
+
+#header {
+	height: 50px;
+	line-height: 47px;
+	background-color: $header-bg;
+	color: $header-text;
+}
+
+nav#navigation {
+	height: 33px;
+  	background-color: $cool-gray;
+  	margin-bottom:20px;
+}
+    
+#instanceHeaderOne {
+	float: left;
+    min-width: 307px;
+    height: 50px;
+    background-color: $instanceHeaderOneBg;
+    margin-right: 20px;
+}
+#instanceHeaderOne img {
+	margin-top: 5px;
+	margin-left: 5px;
+}
+#instanceHeaderTwo {
+	float: left;
+	font-size: 16px;
+}
+#userMenu {
+	float: right;
+	margin-right: 30px;
+}
+
+#userMenu .logout {
+	color: $header-text;
+}
+
+#navigation .navLink {
+	color: #ffffff;
+	margin-left:20px;
+	margin-right:20px;
+	font-weight: bold;
+	float: left;
+	padding-top: 8px;
+}
+
+.missingPermission {
+	background-color: #362f2d;
+	color: #ececec;
+	font-weight: bold;
+	padding: 8px 15px;
+}
+
+.mainNavLink {
+	float: left;
+}
+
+
+#navigation .navQuery {
+	background: rgba(0, 0, 0, 0) url("../../images/bkg-current-nav.gif") no-repeat scroll 50% 1px;
+	color: #000000;
+	height: 26px;
+	padding: 8px 15px;
+	
+}
+
+.navQuerySpan {
+	padding-top: 0px;
+}
+
+
+

@@ -1,0 +1,28 @@
+{
+	"title" : "The NINDS Parkinson's Disease Biomarkers Program",
+	"creators" : "Scherzer, Clemens; Timothee, Patricia",
+	"publisher" : "Center for Information Technology (CIT), National Institutes of Health (NIH)",
+	"publication_date" : "01/07/2013",
+	"site_url" : "https://pdbp.ninds.nih.gov/Data",
+	"product_type" : "Dataset",
+	"product_type_specific" : "Data Studies",
+	"contact_name" : "Matthew McAuliffe, PhD",
+	"contact_org" : "BRICS",
+	"contact_email" : "Matthew.McAuliffe@nih.gov",
+	"contact_phone" : "301-594-2432",
+	"product_nos" : "PDBP-META-STUDY0000210",
+	"description" : "Neuroprotection for Parkinsons disease (PD) remains elusive. Biomarkers hold the promise of removing roadblocks to therapy development. The National Institute of Neurological Disorders and Stroke has therefore established the Parkinsons Disease Biomarkers Program to promote discovery of PD biomarkers for use in phase II and III clinical trials.",
+	"contract_nos" : "1 U01 NS082157-01",
+	"relatedidentifiersblock" : [
+		{
+			"related_identifier" : "10.5439/1035367",
+			"related_identifier_type" : "DOI",
+			"relation_type" : "IsPartOf"
+		},
+		{
+			"related_identifier" : "10.5439/1035368",
+			"related_identifier_type" : "DOI",
+			"relation_type" : "IsPreviousVersionOf"
+		}
+	]
+}

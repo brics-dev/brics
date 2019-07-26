@@ -1,0 +1,259 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>applications</artifactId>
+	<name>applications-dependency</name>
+	<parent>
+		<groupId>brics</groupId>
+		<artifactId>brics</artifactId>
+		<version>4.0.0</version>
+	</parent>
+
+	<dependencies>
+		<dependency>
+			<groupId>brics</groupId>
+			<artifactId>web-service</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>brics</groupId>
+			<artifactId>service</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>brics</groupId>
+					<artifactId>core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.security</groupId>
+					<artifactId>spring-security-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.security</groupId>
+					<artifactId>spring-security-config</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.security</groupId>
+					<artifactId>spring-security-taglibs</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.security</groupId>
+					<artifactId>spring-security-acl</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.security</groupId>
+					<artifactId>spring-security-cas</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.persistence</groupId>
+			<artifactId>javax.persistence</artifactId>
+			<version>2.0.0</version>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>org.swinglabs</groupId>
+			<artifactId>swingx</artifactId>
+			<version>1.6.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.6</version>
+		</dependency>
+		
+		<!-- These are for Download Manager -->
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>1.4</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<finalName>webstarts</finalName>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+
+			<!-- Maven Jar Plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.3.1</version>
+				<configuration>
+					<outputDirectory>target</outputDirectory>
+					<archive>
+						<addMavenDescriptor>false</addMavenDescriptor>
+						<manifestEntries>
+							<groupId>${project.groupId}</groupId>
+							<artifactId>${project.artifactId}</artifactId>
+							<Implementation-Build>${project.version}</Implementation-Build>
+							<Trusted-Library>true</Trusted-Library>
+							<Permissions>all-permissions</Permissions>
+							<Codebase>*</Codebase>
+							<Application-Library-Allowable-Codebase>*</Application-Library-Allowable-Codebase>
+							<Caller-Allowable-Codebase>*</Caller-Allowable-Codebase>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.2.1</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<!-- <phase>install</phase> -->
+						<!-- <phase>prepare-package</phase> -->
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<finalName>webstarts-fat</finalName>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*</exclude>
+										<exclude>LICENSE.txt</exclude>
+										<exclude>NOTICE.txt</exclude>
+										<exclude>CHANGES</exclude>
+										<exclude>README</exclude>
+										<exclude>builddef.lst</exclude>
+										<!--  clutter not needed in jar  -->
+										<exclude>resources/grib1/nasa/README*.pdf</exclude>
+										<exclude>resources/grib1/**/readme*.txt</exclude>
+										<exclude>resources/grib2/**/readme*.txt</exclude>
+										<!--
+										 TIKA-763: Workaround to avoid including LGPL classes
+										-->
+										<exclude>ucar/nc2/iosp/fysat/Fysat*.class</exclude>
+										<exclude>ucar/nc2/dataset/transform/VOceanSG1*class</exclude>
+										<exclude>ucar/unidata/geoloc/vertical/OceanSG*.class</exclude>
+									</excludes>
+								</filter>
+							</filters>
+							<transformers>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"/>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+									<resource>META-INF/LICENSE</resource>
+									<file>target/classes/META-INF/LICENSE</file>
+								</transformer>
+						 
+								<transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+									<resource>META-INF/NOTICE</resource>
+									<file>target/classes/META-INF/NOTICE</file>
+								</transformer>
+						 
+								<transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+									<resource>META-INF/DEPENDENCIES</resource>
+									<file>target/classes/META-INF/DEPENDENCIES</file>
+								</transformer>
+						 
+								<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+									<resource>META-INF/cxf/bus-extensions.txt</resource>
+								</transformer>
+							</transformers>
+					 		<shadedArtifactAttached>true</shadedArtifactAttached>
+					 		<shadedClassifierName>fatjar</shadedClassifierName>
+						</configuration>
+					</execution>
+				</executions>
+
+				<dependencies>
+	                <dependency>
+	                    <groupId>org.apache.cxf</groupId>
+	                    <artifactId>cxf-buildtools</artifactId>
+	                    <version>2.2.12</version>
+	                    <type>jar</type>
+	                    <scope>compile</scope>
+	                </dependency>
+	            </dependencies>
+				 
+			</plugin>
+			<plugin>
+			    <groupId>org.apache.maven.plugins</groupId>
+			    <artifactId>maven-dependency-plugin</artifactId>
+			    <executions>
+			        <execution>
+			            <id>copy-unsigned</id>
+			            <phase>package</phase>
+			            <goals>
+			                <goal>copy</goal>
+			            </goals>
+			            <configuration>
+			                <artifactItems>
+			                    <artifactItem>
+			                        <groupId>brics</groupId>
+									<artifactId>applications</artifactId>
+			                        <version>${project.version}</version>
+			                        <outputDirectory>${project.basedir}/target</outputDirectory>
+			                        <destFileName>webstarts-unsigned.jar</destFileName>
+			                    </artifactItem>
+			                </artifactItems>
+			            </configuration>
+			        </execution>
+			    </executions>
+			</plugin>
+			<plugin>
+			    <groupId>org.apache.maven.plugins</groupId>
+			    <artifactId>maven-install-plugin</artifactId>
+			    <version>2.5.2</version>
+			    <executions>
+			        <execution>
+			            <id>install-unsigned</id>
+			            <phase>package</phase>
+			            <goals>
+			                <goal>install-file</goal>
+			            </goals>
+			            <configuration>
+			        		<file>${project.basedir}/target/webstarts-unsigned.jar</file>
+			        		<groupId>brics</groupId>
+							<artifactId>applications</artifactId>
+			                <version>${project.version}</version>
+			                <packaging>jar</packaging>
+			                <classifier>unsigned</classifier>
+			        	</configuration>
+			        </execution>
+			    </executions>
+			 </plugin>
+		      <plugin>
+		        <groupId>org.apache.maven.plugins</groupId>
+		        <artifactId>maven-jarsigner-plugin</artifactId>
+		        <version>1.4</version>
+		        <executions>
+		          <execution>
+		          	<phase>verify</phase>
+		            <id>sign</id>
+		            <goals>
+		              <goal>sign</goal>
+		            </goals>
+		          </execution>
+		        </executions>
+		        <configuration>
+		          <keystore>key/FITBIR.jks</keystore>
+		          <alias>tbi</alias>
+		          <storepass>${jks.storepass}</storepass>
+		        </configuration>
+		    </plugin>
+
+		</plugins>
+	</build>
+
+</project>

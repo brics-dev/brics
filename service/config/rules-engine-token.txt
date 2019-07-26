@@ -1,0 +1,1 @@
+<value>file:///c:/brics/ = <value>file:///opt/apache-tomcat/brics/

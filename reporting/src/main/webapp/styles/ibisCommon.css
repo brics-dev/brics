@@ -1,0 +1,111 @@
+.formrow_1 {
+  width: 100%;
+  clear: both;
+  padding-bottom: 10px;
+  min-height: 1.5em; }
+
+.formrow_1 label {
+  /*width: 300px;*/
+  margin-right: 20px;
+  text-align: right;
+  float: left;
+  /*display: inline-block;*/
+  font-weight: bold;
+  line-height: 1.5em; }
+
+/* subtract the stars size */
+.formrow_1 label.requiredInput {
+  margin-right: 13px;
+  /*width: 307px;*/ }
+
+.formrow_1 > input[type="text"],
+.formrow_1 > input[type="password"],
+.formrow_1 > input[type="file"],
+.formrow_1 > input[type="date"],
+.formrow_1 > input[type="file"],
+.formrow_1 > input[type="datetime"],
+.formrow_1 > input[type="email"],
+.formrow_1 > input[type="month"],
+.formrow_1 > input[type="number"],
+.formrow_1 > input[type="search"],
+.formrow_1 > input[type="url"],
+.formrow_1 > input[type="time"],
+.formrow_1 > input[type="week"],
+.formrow_1 > input[type="tel"],
+.formrow_1 > textarea,
+.formrow_1 > select,
+.formrow_1 > .formrowinput {
+  width: 437px;
+  text-align: left;
+  float: left;
+  /*display:inline-block;*/ }
+
+/**** special case of only a button on a row ***/
+.formrow_1 > input[type="button"],
+.formrow_1 > input[type="submit"],
+.formrow_1 > input[type="image"],
+.formrow_1 > input[type="reset"],
+.formrow_1 > button {
+  float: right;
+  margin-top: 20px;
+  margin-left: 5px;
+  margin-bottom: 20px; }
+
+/* Gives the same functionality as above for full-screen popups */
+.formbutton > input[type="button"],
+.formbutton > input[type="submit"],
+.formbutton > input[type="image"],
+.formbutton > input[type="reset"],
+.formbutton > button {
+  float: right;
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-top: 10px; }
+
+.formrow_2 {
+  width: 48%;
+  float: left;
+  padding-bottom: 10px;
+  padding-right: 5px;
+  padding-left: 5px;
+  min-height: 25px; }
+
+.formrow_2 label {
+  /*width: 170px;*/
+  /*max-width: 170px;*/
+  margin-right: 10px;
+  text-align: right;
+  float: left;
+  /*display: inline-block;*/
+  font-weight: bold;
+  line-height: 1.5em; }
+
+.formrow_2 label.requiredInput {
+  margin-right: 3px;
+  /*width: 177px;*/ }
+
+.formrow_2 > input[type="text"],
+.formrow_2 > input[type="password"],
+.formrow_2 > input[type="file"],
+.formrow_2 > input[type="date"],
+.formrow_2 > input[type="file"],
+.formrow_2 > input[type="datetime"],
+.formrow_2 > input[type="email"],
+.formrow_2 > input[type="month"],
+.formrow_2 > input[type="number"],
+.formrow_2 > input[type="search"],
+.formrow_2 > input[type="url"],
+.formrow_2 > input[type="time"],
+.formrow_2 > input[type="week"],
+.formrow_2 > input[type="tel"],
+.formrow_2 > textarea,
+.formrow_2 > button,
+.formrow_2 > select,
+.formrow_2 > .formrowinput {
+  width: 180px;
+  text-align: left;
+  float: left;
+  /*display: inline-block;*/ }
+
+.formrow_2 {
+  text-align: left; }

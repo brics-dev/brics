@@ -1,0 +1,852 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+        "http://struts.apache.org/dtds/struts-2.5.dtd">
+<struts>
+	
+	<!-- Package for any account related actions that do not require a user to be authenticated -->
+	<package name="publicAccounts" extends="default" namespace="/publicAccounts">
+		<global-results>
+			<result name="landing" type="redirect">baseAction!landing.action</result>
+		</global-results>
+		
+		<global-allowed-methods>execute,input,back,cancel,browse,edit,create,view,search,list,submit</global-allowed-methods>
+		
+		<!-- Action to load up the first page of the account request -->
+		<action name="createAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/accountRequest.jsp</result> 		
+		</action>
+		<!-- PD workflow -->
+		<action name="ducAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/accountRequest.jsp</result> 
+			<result name="success"> /jsp/account/requestSuccess.jsp</result>		
+			<allowed-methods>duc</allowed-methods>
+		</action>
+		
+		<!-- Action to load up the first page of the account request -->
+		<action name="accountInfoAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/accountRequestInfo.jsp</result> 		
+			<allowed-methods>createDetails</allowed-methods>
+		</action>
+	
+		<!-- Validation for the first page of the Account Request section. On Success will forward to the --> 
+		<!-- Request Privileges/Upload Documentation page -->
+		<action name="accountValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/accountRequestInfo.jsp</result>
+			<result name="success"> /jsp/account/accountRequestPrivileges.jsp</result>
+			<allowed-methods>accountRequestPrivileges,adminSubmit</allowed-methods>
+		</action>
+	
+		<!-- Validation for when a user selects the upload button for the upload files function on the -->
+		<!-- second page of the request -->
+		<action name="accountDetailsUploadValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/accountRequest.jsp	</result>
+			<result name="success"> /jsp/account/accountRequest.jsp</result>
+			<allowed-methods>upload</allowed-methods>
+		</action>
+		
+		<!-- Validation for when a user wishes to delete a file that has been uploaded -->
+		<!-- second page of the request -->
+		<action name="accountDetailsRemoveValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/includes/uploadAdminFileInterface.jsp	</result>
+			<result name="success"> /jsp/account/includes/uploadAdminFileInterface.jsp </result>
+			<allowed-methods>removeFile</allowed-methods>
+		</action>
+	
+		<!--  ????? Odd there is no validation action for the Account Request Privileges page ????? -->
+	
+		<!-- The only time we really should be in here is what we "Submit" to the database -->
+		<!-- for the account request -->
+		<action name="accountAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="success"> /jsp/account/requestSuccess.jsp</result>
+			<!-- not sure if this redirect is ever called -->
+			<result name="redirect" type="redirect"> accountInfoAction!create.action</result>
+			<allowed-methods>checkUserName,generateRandomPassword,deactivate,withdraw,reactivate,reactivationLightbox,reinstateRequest</allowed-methods>
+		</action>
+		
+		<!-- Show action for recovering the username -->
+		<action name="userNameRecoveryAction" class="gov.nih.tbi.account.portal.UserNameRecoveryAction">
+			<result name="input"> /jsp/account/recoverUsername.jsp </result>
+			<result name="success"> /jsp/account/userNameRecoveryConfirmation.jsp </result>
+		</action> 
+		
+		<!-- Validation action for recoverying the username of a user account -->
+		<action name="userNameRecoveryValidationAction" class="gov.nih.tbi.account.portal.UserNameRecoveryAction">
+			<result name="input"> /jsp/account/recoverUsername.jsp </result>
+			<result name="success"> /jsp/account/userNameRecoveryConfirmation.jsp </result>
+		</action>
+		
+		<!-- Show action for recovering the password before logging in -->
+		<action name="passwordRecoveryAction" class="gov.nih.tbi.account.portal.PasswordRecoveryAction">
+			<result name="input"> /jsp/account/recoverPassword.jsp </result>
+			<result name="success"> /jsp/account/recoverPasswordConfirmation.jsp</result>
+		</action>
+		<!-- Validation for password recovery prior to login -->
+		<action name="promptpasswordRecoveryValidationAction" class="gov.nih.tbi.account.portal.PasswordRecoveryAction">
+			<result name="input"> /jsp/account/recoverPassword.jsp </result>
+			<result name="success"> /jsp/account/recoverPasswordConfirmation.jsp</result>
+		</action>
+		
+		<!-- Show action for the change password screen when a user selects the link in the email -->
+		<action name="changePasswordAction" class="gov.nih.tbi.account.portal.PasswordRecoveryAction">
+			<result name="input"> /jsp/account/changePassword.jsp </result>
+			<allowed-methods>recover</allowed-methods>
+		</action>
+		<!--  -->
+		<action name="submitpasswordRecoveryValidationAction" class="gov.nih.tbi.account.portal.PasswordRecoveryAction">
+			<result name="input"> /jsp/account/changePassword.jsp </result>
+			<result name="success"> /jsp/account/changePasswordConfirmation.jsp </result>
+			<allowed-methods>update</allowed-methods>
+		</action>
+		
+		<action name="accountSignatureValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/accountRequestPrivileges.jsp </result>
+			<result name="success"> /jsp/account/requestSuccess.jsp</result>
+		</action>
+	</package>
+	
+	
+	<package name="sso" extends="default" namespace="/sso">
+		<action name="ssoAction" class="gov.nih.tbi.account.portal.SSOAction">
+			<result name="input"> /jsp/account/accountRequest.jsp</result>
+			
+			<result name="view"> /jsp/sso/accessRequest.jsp
+			</result>
+			<result name="error"> /jsp/login.jsp
+			</result>
+			<result name="redirect" type="redirect"> ${redirectURL}
+			</result>
+			<allowed-methods>register,ssoLogin</allowed-methods>
+		</action>
+	</package>
+	
+	
+	<package name="accounts" extends="default" namespace="/accounts">
+		<global-results>
+			<result name="landing" type="redirect">baseAction!landing.action</result>
+		</global-results>
+		
+		<global-allowed-methods>execute,input,back,cancel,browse,edit,create,view,search,list,submit</global-allowed-methods>
+		
+		<!-- My Profile related action mappings -->
+		<action name="viewProfile" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="view"> /jsp/account/viewMyProfile.jsp</result>
+			<result name="lightbox"> /jsp/common/accountLightbox.jsp</result>
+			<allowed-methods>accountLightbox,getAccountRoleLists,getPermissionGroupMembers,getExistingFiles,getAccountHistory,getExistingAccountRoleLists,getAccountAdministrativeNotes</allowed-methods>
+		</action>
+		<action name="editProfile" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="view"> /jsp/account/editMyProfile.jsp</result>
+		</action>
+		<action name="editaccountValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/editMyProfile.jsp </result>
+			<result name="success" type="redirectAction"> 
+				<param name="actionName">viewProfile</param>
+				<param name="method">view</param>
+			</result>
+			<allowed-methods>moveToRequest,adminSubmit</allowed-methods>
+		</action>
+		
+		<action name="cancelRequestAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<allowed-methods>cancelPrivilegeRequest</allowed-methods>
+		</action>
+		
+		<action name="requestPrivAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<allowed-methods>requestPriv</allowed-methods>
+		</action>
+		
+		<!-- Upload documentation from the user action mappings -->
+		<action name="documentationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="addFileLightbox"> /jsp/account/includes/uploadUserFileLightbox.jsp</result>
+			<result name="view"> /jsp/account/viewMyProfile.jsp</result>
+			<allowed-methods>addFileLightbox,uploadFile,view</allowed-methods>
+		</action>
+		
+		
+		<action name="permissionAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="addPermissionLightbox"> /jsp/account/includes/addPermissionLightbox.jsp</result>
+			<allowed-methods>addPermissionLightbox</allowed-methods>
+		</action>
+		
+		<action name="editPermissionAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonResponse</param>
+			</result>		
+			<allowed-methods>adminSubmit,submitPrivilegeRequest</allowed-methods>
+		</action>
+		
+		<action name="accountDocumentationValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/includes/uploadUserFileLightbox.jsp</result>
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonResponse</param>
+			</result>		
+			<allowed-methods>uploadFile</allowed-methods>
+		</action>
+		
+		<action name="accountDetailsUploadValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/viewMyDocumentation.jsp</result>
+			<result name="success" type="redirectAction"> 
+				<param name="actionName">documentationAction</param>
+				<param name="method">view</param>
+			</result>
+			<allowed-methods>upload</allowed-methods>
+		</action>
+		
+		<!-- Change password from User Action Mappings -->
+		<action name="changePassword" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="view"> /jsp/account/editPassword.jsp</result>
+		</action>
+		<action name="passwordAccountValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/editPassword.jsp </result>
+			<result name="success" type="redirectAction"> 
+				<param name="actionName">viewProfile</param>
+				<param name="method">view</param>
+			</result>
+			<allowed-methods>changePassword</allowed-methods>
+		</action>
+		
+		<!-- Request additional privilegs from User action mappings -->		
+		<action name="privilegesAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="view"> /jsp/account/viewMyPrivileges.jsp</result>
+		</action>
+		<action name="accountPrivilegesUploadValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input">  /jsp/account/viewMyPrivileges.jsp </result>
+			<result name="success"> /jsp/account/privilegeRequestConfirm.jsp </result>
+			<allowed-methods>submitPrivilegeRequest</allowed-methods>
+		</action>
+		<action name="withdrawRequestAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="withdrawRequestLightbox"> /jsp/account/withdrawUserRequestReasonLightbox.jsp</result>		
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonResponse</param>
+			</result>		
+			<allowed-methods>withdrawAccountRequestLightbox,withdrawAccountRequest</allowed-methods>
+		</action>	
+		<action name="cancelRequestedGroupAction" class="gov.nih.tbi.account.portal.AccountAction">
+		    <result name="success" type="redirectAction"> 
+				<param name="actionName">viewProfile</param>
+				<param name="method">view</param>
+			</result>
+			<allowed-methods>cancelRequestedGroup</allowed-methods>
+		</action>
+		
+		
+		
+		<action name="changeFileTypeAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="changeFileTypeLightbox"> /jsp/account/changeFileTypeLightbox.jsp</result>		
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonResponse</param>
+			</result>		
+			<allowed-methods>changeFileTypeLightbox,changeFileType,existingFileTypesAjax</allowed-methods>
+		</action>
+		
+		<action name="changeFileTypeValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="changeFileTypeLightbox"> /jsp/account/changeFileTypeLightbox.jsp</result>	
+			<result name="input"> /jsp/account/changeFileTypeLightbox.jsp</result>		
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonResponse</param>
+			</result>		
+			<allowed-methods>changeFileTypeLightbox,changeFileType</allowed-methods>
+		</action>
+		
+		<action name="changeFileNameAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="changeFileNameLightbox"> /jsp/account/changeFileNameLightbox.jsp</result>		
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonResponse</param>
+			</result>		
+			<allowed-methods>changeFileNameLightbox,changeFileName</allowed-methods>
+		</action>
+		
+		<action name="accountAdministrativeNotesValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/includes/addAdministrativeNoteInterface.jsp</result>
+			<result name="success"> /jsp/account/includes/addAdministrativeNoteInterface.jsp </result>
+			<allowed-methods>addAccountAdmininistrativeNote</allowed-methods>
+		</action>
+
+	</package>
+	
+	
+	<package name="accountAdmin" extends="default" namespace="/accountAdmin">
+		<global-results>
+			<result name="landing" type="redirect">baseAction!landing.action</result>
+		</global-results>
+	
+		<global-allowed-methods>execute,input,back,cancel,browse,edit,create,view,search,list,submit</global-allowed-methods>	
+		
+		<action name="editRequestValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="success" type="redirectAction"> 
+				<param name="actionName">viewAccountRequest</param>
+				<param name="method">viewAccountRequest</param>
+				<param name="accountId">${currentAccount.id}</param>
+			</result>
+			<result name="input"> /jsp/account/reviewerEditProfile.jsp</result> 		
+			<allowed-methods>adminSubmit</allowed-methods>
+		</action>
+		
+		<action name="viewAccountRequest" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="viewAccount"> /jsp/account/viewAccountRequest.jsp</result> 		
+			<result name="edit"> /jsp/account/reviewerEditProfile.jsp</result> 
+			<allowed-methods>viewAccountRequest,getOrderedAccountRoles,edit</allowed-methods>
+		</action>
+		
+		<!-- My Profile related action mappings -->
+		<action name="viewProfile" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="view"> /jsp/account/viewMyProfile.jsp</result>
+			<result name="lightbox"> /jsp/common/accountLightbox.jsp</result>
+			<allowed-methods>accountLightbox,getAccountRoleLists,getPermissionGroupMembers,getExistingFiles,getAccountHistory,getExistingAccountRoleLists,getAccountAdministrativeNotes</allowed-methods>
+		</action>
+		
+		<action name="documentationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="addFileLightbox"> /jsp/account/includes/uploadUserFileLightbox.jsp</result>
+			<allowed-methods>addFileLightbox,uploadFile</allowed-methods>
+		</action>
+		<action name="permissionAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="addPermissionLightbox"> /jsp/account/includes/addPermissionLightbox.jsp</result>
+			<allowed-methods>addPermissionLightbox</allowed-methods>
+		</action>
+		<action name="accountDocumentationValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/includes/uploadUserFileLightbox.jsp</result>
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonResponse</param>
+			</result>		
+			<allowed-methods>uploadFile</allowed-methods>
+		</action>
+		
+		<action name="temporaryRejectionAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="temporaryRejectionLightbox"> /jsp/account/temporaryRejectionLightbox.jsp</result>			
+			<allowed-methods>temporaryRejectionLightbox,temporaryRejection</allowed-methods>
+		</action>
+		
+		<action name="permissionGroupAction" class="gov.nih.tbi.account.portal.PermissionGroupAction">
+			<result name="input"> /jsp/account/editPermissionGroup.jsp </result>
+			<result name="list"> /jsp/account/listPermissionGroup.jsp	</result>
+			<result name="expirationDate"> /jsp/account/expirationInterface.jsp	</result>
+			<result name="current" type="json">
+				<param name="root"> currentUsers</param>
+			</result>
+			<result name="search" type="json">
+				<param name="root"> availableUsers</param>
+			</result>
+		</action>
+		<action name="permissionGroupValidationAction" class="gov.nih.tbi.account.portal.PermissionGroupAction">
+			<result name="input"> /jsp/account/editPermissionGroup.jsp	</result>
+			<result name="list"> /jsp/account/listPermissionGroup.jsp	</result>
+			<result name="current" type="json">
+				<param name="root"> currentUsers </param>
+			</result>
+			<result name="search" type="json">
+				<param name="root"> availableUsers</param>
+			</result>
+		</action>
+		<action name="passwordRecoveryAction" class="gov.nih.tbi.account.portal.PasswordRecoveryAction">
+			<result name="success" type="redirect"> accountAction!list.action</result>
+		</action>
+		
+		<action name="viewUserAccount" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="viewAccount"> /jsp/account/editAccountDetails.jsp</result> 
+			<result name="success"> /jsp/account/editAccountDetails.jsp</result>		
+			<allowed-methods>viewUserAccount</allowed-methods>
+		</action>
+		<!-- 		Edit Account with Validation Action Mapping -->
+		<action name="editaccountValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="redirect" type="redirectAction">
+				<param name="actionName">viewAccountRequest</param>
+				<param name="method">viewAccountRequest</param>
+				<param name="accountId">${currentAccount.id}</param>
+			</result>
+			<result name="success" type="redirectAction"> 
+				<param name="actionName">accountAction</param>
+				<param name="method">list</param>
+			</result>
+			<result name="input"> /jsp/account/editAccountDetails.jsp</result> 		
+			<allowed-methods>moveToRequest,adminSubmit</allowed-methods>
+		</action>
+		
+		<action name="createAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/editAccountDetails.jsp</result> 		
+		</action>
+		
+		<!-- Create User validation -->
+		<action name="accountValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/editAccountDetails.jsp</result>
+			<result name="success" type="redirectAction"> 
+				<param name="actionName">accountAction</param>
+				<param name="method">list</param>
+			</result>
+			<allowed-methods>adminSubmit</allowed-methods>
+		</action>
+		
+		<!-- Upload tool validation for the Create User page -->
+		<action name="accountDetailsUploadValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/editAccountDetails.jsp </result>
+			<result name="success"> /jsp/account/editAccountDetails.jsp </result>
+			<allowed-methods>upload</allowed-methods>
+		</action>
+		
+		<!-- Removes files from list -->
+		<action name="accountDetailsRemoveValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/includes/uploadAdminFileInterface.jsp</result>
+			<result name="success"> /jsp/account/includes/uploadAdminFileInterface.jsp</result>
+			<allowed-methods>removeFile</allowed-methods>
+		</action>
+		
+		<action name="accountAdministrativeNotesValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/includes/addAdministrativeNoteInterface.jsp</result>
+			<result name="success"> /jsp/account/includes/addAdministrativeNoteInterface.jsp </result>
+			<allowed-methods>addAccountAdmininistrativeNote</allowed-methods>
+		</action>
+		
+		<!-- Validation for Account Request Page - NEW ACCOUNT APPROVE/NEW ACCOUNT REJECT/PENDING REQUESTS-->
+		<action name="accountReasonValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/viewAccountRequest.jsp </result>
+			<result name="success" type="redirectAction">
+				<param name="actionName">viewUserAccount</param>
+				<param name="method">viewUserAccount</param>
+				<param name="accountId">${currentAccount.id}</param>
+			</result>
+			<allowed-methods>approve,reject,approvePrivileges</allowed-methods>
+		</action>		
+		
+		<action name="accountAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="view"> /jsp/account/viewAccountRequest.jsp </result>
+			<result name="edit"> /jsp/account/editAccountDetails.jsp</result>
+			<result name="success" type="redirectAction"> 
+				<param name="actionName">accountAction</param>
+				<param name="method">list</param>
+			</result>
+			<result name="viewAccount" type="redirectAction">
+				<param name="actionName">viewUserAccount</param>
+				<param name="method">viewUserAccount</param>
+				<param name="accountId">${currentAccount.id}</param>
+			</result>
+			<result name="list"> /jsp/account/listAccounts.jsp</result>
+			<result name="search"> /jsp/account/accountSearchResults.jsp</result>
+			<result name="reactivateLightbox"> /jsp/account/reactivationLightbox.jsp</result>
+			
+			<result name="createPrivileges"> /jsp/account/editAccountPrivileges.jsp
+			</result>
+			
+			<result name="withdrawRequestLightbox"> /jsp/account/withdrawUserRequestReasonLightbox.jsp
+			</result>
+			
+			<allowed-methods>deactivate,reactivate,withdraw,reactivationLightbox,reinstateRequest,getAccountLists,getActiveUsers,withdrawAccountRequestLightbox</allowed-methods>
+		</action>
+		
+		<action name="sessionLogAction" class="gov.nih.tbi.account.portal.SessionLogAction">
+			<result name="view"> /jsp/account/userLog.jsp</result>
+			<allowed-methods>view,combinedSearchIdt</allowed-methods>
+		</action>
+		
+		<action name="accountReactivationValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/reactivationLightbox.jsp</result>
+			<allowed-methods>reactivate,reinstateRequest</allowed-methods>
+		</action>
+		
+		<action name="partialApprovalAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="partialApprovalLightbox"> /jsp/account/partialApprovalLightbox.jsp</result>			
+			<result name="success"> /jsp/account/viewAccountRequest.jsp</result>
+			<allowed-methods>partialApprovalLightbox,partialApproval</allowed-methods>
+		</action>
+		
+		<action name="rejectionAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="rejectionLightbox"> /jsp/account/rejectionLightbox.jsp</result>
+			<result name="success" type="redirectAction">
+				<param name="actionName">viewUserAccount</param>
+				<param name="method">viewUserAccount</param>
+				<param name="accountId">${currentAccount.id}</param>
+			</result>			
+			<allowed-methods>rejectionLightbox,reject</allowed-methods>
+		</action>
+		
+		<action name="cancelRequestAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<allowed-methods>cancelPrivilegeRequest</allowed-methods>
+		</action>
+		
+		<action name="requestPrivAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<allowed-methods>requestPriv</allowed-methods>
+		</action>
+
+		<action name="accountGuidanceEmailsAction" class="gov.nih.tbi.account.portal.AccountGuidanceEmailsAction">
+			<result name="success"> /jsp/account/createAccountGuidanceEmails.jsp </result>
+			<result name="edit"> /jsp/account/editAccountGuidanceEmails.jsp </result>
+			<allowed-methods>view,edit,getTemporaryRejectionList,getAccountRenewalList</allowed-methods>
+		</action>
+		
+		<action name="cancelRequestedGroupAction" class="gov.nih.tbi.account.portal.AccountAction">
+		    <result name="success" type="redirectAction"> 			
+				<param name="actionName">viewAccountRequest</param>
+				<param name="method">viewAccountRequest</param>
+				<param name="accountId">${currentAccount.id}</param>
+			</result>
+			<allowed-methods>cancelRequestedGroup</allowed-methods>
+		</action>	
+		
+		<action name="saveAccountGuidanceEmailTemplateAction" class="gov.nih.tbi.account.portal.AccountGuidanceEmailsAction">
+			<allowed-methods>saveAccountGuidanceEmailTemplate</allowed-methods>
+		</action>
+		
+		
+		<action name="deleteAccountGuidanceEmailTemplateAction" class="gov.nih.tbi.account.portal.AccountGuidanceEmailsAction">
+			<allowed-methods>deleteAccountMessageTemplate</allowed-methods>
+		</action>
+		
+		<action name="changeFileTypeAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="changeFileTypeLightbox"> /jsp/account/changeFileTypeLightbox.jsp</result>		
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonResponse</param>
+			</result>		
+			<allowed-methods>changeFileTypeLightbox,changeFileType,existingFileTypesAjax</allowed-methods>
+		</action>
+		
+		<action name="changeFileTypeValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="changeFileTypeLightbox"> /jsp/account/changeFileTypeLightbox.jsp</result>	
+			<result name="input"> /jsp/account/changeFileTypeLightbox.jsp</result>		
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonResponse</param>
+			</result>		
+			<allowed-methods>changeFileTypeLightbox,changeFileType</allowed-methods>
+		</action>
+		
+		<action name="changeFileNameAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="changeFileNameLightbox"> /jsp/account/changeFileNameLightbox.jsp</result>		
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonResponse</param>
+			</result>		
+			<allowed-methods>changeFileNameLightbox,changeFileName</allowed-methods>
+		</action>
+		
+		
+		<action name="finalApprovalAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="finalApprovalLightbox"> /jsp/account/finalApprovalLightbox.jsp</result>	
+			<result name="success" type="redirectAction">
+				<param name="actionName">viewAccountRequest</param>
+				<param name="method">viewAccountRequest</param>
+				<param name="accountId">${currentAccount.id}</param>
+			</result>	
+			<allowed-methods>finalApprovalLightbox,finalApproval</allowed-methods>
+		</action>
+		
+		<action name="withdrawRequestAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="withdrawRequestLightbox"> /jsp/account/withdrawUserRequestReasonLightbox.jsp</result>		
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonResponse</param>
+			</result>		
+			<allowed-methods>withdrawAccountRequestLightbox,withdrawAccountRequest</allowed-methods>
+		</action>	
+		
+	</package>
+	
+	<package name="accountReviewer" extends="default" namespace="/accountReviewer">
+		<global-results>
+			<result name="landing" type="redirect">baseAction!landing.action</result>
+		</global-results>
+		
+		<global-allowed-methods>execute,input,back,cancel,browse,edit,create,view,search,list,submit</global-allowed-methods>	
+		
+		<action name="cancelRequestedGroupAction" class="gov.nih.tbi.account.portal.AccountAction">
+		    <result name="success" type="redirectAction"> 			
+				<param name="actionName">viewAccountRequest</param>
+				<param name="method">viewAccountRequest</param>
+				<param name="accountId">${currentAccount.id}</param>
+			</result>
+			<allowed-methods>cancelRequestedGroup</allowed-methods>
+		</action>	
+		
+		<action name="withdrawRequestAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="withdrawRequestLightbox"> /jsp/account/withdrawUserRequestReasonLightbox.jsp</result>		
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonResponse</param>
+			</result>		
+			<allowed-methods>withdrawAccountRequestLightbox,withdrawAccountRequest</allowed-methods>
+		</action>	
+		
+		<action name="documentationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="addFileLightbox"> /jsp/account/includes/uploadUserFileLightbox.jsp</result>
+			<allowed-methods>addFileLightbox,uploadFile</allowed-methods>
+		</action>
+		
+		<action name="permissionAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="addPermissionLightbox"> /jsp/account/includes/addPermissionLightbox.jsp</result>
+			<allowed-methods>addPermissionLightbox</allowed-methods>
+		</action>
+		
+		<action name="editPermissionAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonResponse</param>
+			</result>		
+			<allowed-methods>adminSubmit,submitPrivilegeRequest</allowed-methods>
+		</action>
+		
+		<action name="accountDocumentationValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/includes/uploadUserFileLightbox.jsp</result>
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonResponse</param>
+			</result>		
+			<allowed-methods>uploadFile</allowed-methods>
+		</action>
+		
+		<action name="permissionGroupAction" class="gov.nih.tbi.account.portal.PermissionGroupAction">
+			<result name="input"> /jsp/account/editPermissionGroup.jsp </result>
+			<result name="list"> /jsp/account/listPermissionGroup.jsp	</result>
+			<result name="expirationDate"> /jsp/account/expirationInterface.jsp	</result>
+			<result name="current" type="json">
+				<param name="root"> currentUsers</param>
+			</result>
+			<result name="search" type="json">
+				<param name="root"> availableUsers</param>
+			</result>
+		</action>
+		<action name="permissionGroupValidationAction" class="gov.nih.tbi.account.portal.PermissionGroupAction">
+			<result name="input"> /jsp/account/editPermissionGroup.jsp	</result>
+			<result name="list"> /jsp/account/listPermissionGroup.jsp	</result>
+			<result name="current" type="json">
+				<param name="root"> currentUsers </param>
+			</result>
+			<result name="search" type="json">
+				<param name="root"> availableUsers</param>
+			</result>
+		</action>
+		<action name="passwordRecoveryAction" class="gov.nih.tbi.account.portal.PasswordRecoveryAction">
+			<result name="success" type="redirect"> accountAction!list.action</result>
+		</action>
+		
+		<action name="viewUserAccount" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="viewAccount"> /jsp/account/editAccountDetails.jsp</result> 
+			<result name="success"> /jsp/account/editAccountDetails.jsp</result>		
+			<allowed-methods>viewUserAccount</allowed-methods>
+		</action>
+
+		<action name="editRenewalValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="success" type="redirectAction"> 
+				<param name="actionName">viewAccountRenewal</param>
+				<param name="method">viewAccountRenewal</param>
+				<param name="accountId">${currentAccount.id}</param>
+			</result>
+			<result name="input"> /jsp/account/reviewerEditProfile.jsp</result> 		
+			<allowed-methods>adminSubmit</allowed-methods>
+		</action>
+		
+		<action name="editRequestValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="success" type="redirectAction"> 
+				<param name="actionName">viewAccountRequest</param>
+				<param name="method">viewAccountRequest</param>
+				<param name="accountId">${currentAccount.id}</param>
+			</result>
+			<result name="input"> /jsp/account/reviewerEditProfile.jsp</result> 		
+			<allowed-methods>adminSubmit</allowed-methods>
+		</action>
+		
+		<action name="viewAccountRequest" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="viewAccount"> /jsp/account/viewAccountRequest.jsp</result> 		
+			<result name="edit"> /jsp/account/reviewerEditProfile.jsp</result> 
+			<allowed-methods>viewAccountRequest,getOrderedAccountRoles,edit</allowed-methods>
+		</action>
+		
+		<action name="viewAccountRenewal" class="gov.nih.tbi.account.portal.AccountReportsAction">
+			<result name="viewAccount"> /jsp/account/viewAccountRenewal.jsp</result>
+			<result name="edit"> /jsp/account/reviewerEditProfile.jsp</result> 
+			<allowed-methods>viewAccountRenewal,edit</allowed-methods>
+		</action>
+		
+		<action name="createAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/editAccountDetails.jsp</result> 		
+		</action>
+		
+		<!-- Create User validation -->
+		<action name="accountValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/editAccountDetails.jsp</result>
+			<result name="success" type="redirectAction"> 
+				<param name="actionName">accountAction</param>
+				<param name="method">list</param>
+			</result>
+			<allowed-methods>adminSubmit</allowed-methods>
+		</action>
+		
+		<!-- Upload tool validation for the Create User page -->
+		<action name="accountDetailsUploadValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/editAccountDetails.jsp </result>
+			<result name="success"> /jsp/account/editAccountDetails.jsp </result>
+			<allowed-methods>upload</allowed-methods>
+		</action>
+		
+		<!-- Removes files from list -->
+		<action name="accountDetailsRemoveValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/includes/uploadAdminFileInterface.jsp</result>
+			<result name="success"> /jsp/account/includes/uploadAdminFileInterface.jsp</result>
+			<allowed-methods>removeFile</allowed-methods>
+		</action>
+		
+		<!-- Validation for Account Request Page - NEW ACCOUNT APPROVE/NEW ACCOUNT REJECT/PENDING REQUESTS-->
+		<action name="accountReasonValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/viewAccountRequest.jsp </result>
+			<result name="success" type="redirectAction">
+				<param name="actionName">viewUserAccount</param>
+				<param name="method">viewUserAccount</param>
+				<param name="accountId">${currentAccount.id}</param>
+			</result>
+			<allowed-methods>approve,reject,approvePrivileges</allowed-methods>
+		</action>		
+		
+		<action name="accountAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="view"> /jsp/account/viewAccountRequest.jsp </result>
+			<result name="edit"> /jsp/account/editAccountDetails.jsp</result>
+			<result name="success" type="redirectAction"> 
+				<param name="actionName">accountAction</param>
+				<param name="method">list</param>
+			</result>
+			<result name="viewAccount" type="redirectAction">
+				<param name="actionName">viewUserAccount</param>
+				<param name="method">viewUserAccount</param>
+				<param name="accountId">${currentAccount.id}</param>
+			</result>
+			<result name="list"> /jsp/account/listAccounts.jsp</result>
+			<result name="search"> /jsp/account/accountSearchResults.jsp</result>
+			<result name="reactivateLightbox"> /jsp/account/reactivationLightbox.jsp</result>
+			<result name="createPrivileges"> /jsp/account/editAccountPrivileges.jsp
+			</result>
+			
+			<result name="withdrawRequestLightbox"> /jsp/account/withdrawUserRequestReasonLightbox.jsp</result>
+			
+			<allowed-methods>deactivate,reactivate,withdraw,reactivationLightbox,reinstateRequest,getAccountLists,getActiveUsers,withdrawAccountRequestLightbox</allowed-methods>
+		</action>
+		
+		<action name="accountReactivationValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/reactivationLightbox.jsp</result>
+			<allowed-methods>reactivate,reinstateRequest</allowed-methods>
+		</action>
+		
+		<action name="partialApprovalAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="partialApprovalLightbox"> /jsp/account/partialApprovalLightbox.jsp</result>			
+			<allowed-methods>partialApprovalLightbox,partialApproval</allowed-methods>
+		</action>
+		
+		<action name="temporaryRejectionAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="temporaryRejectionLightbox"> /jsp/account/temporaryRejectionLightbox.jsp</result>			
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonResponse</param>
+			</result>		
+			<allowed-methods>temporaryRejectionLightbox,temporaryRejection</allowed-methods>
+		</action>
+		
+		<action name="rejectionAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="rejectionLightbox"> /jsp/account/rejectionLightbox.jsp</result>	
+			<result name="success" type="redirectAction">
+				<param name="actionName">viewUserAccount</param>
+				<param name="method">viewUserAccount</param>
+				<param name="accountId">${currentAccount.id}</param>
+			</result>		
+			<allowed-methods>rejectionLightbox,reject</allowed-methods>
+		</action>
+		
+		<action name="accountReportsAction" class="gov.nih.tbi.account.portal.AccountReportsAction">
+			<result name="accountRenewalList"> /jsp/account/accountRenewal.jsp</result>
+			<result name="accountRequestList"> /jsp/account/accountRequestDashboard.jsp</result>
+			<result name="accountReportingList"> /jsp/account/accountReportingDashboard.jsp</result>
+			<result name="automatedRenewalReportLightbox"> /jsp/account/renewalAutomatedReportLightbox.jsp</result>
+			<result name="automatedRequestReportLightbox"> /jsp/account/requestAutomatedReportLightbox.jsp</result>
+			<result name="contactUserDialogue"> /jsp/account/contactUserDialogue.jsp</result>
+			<result name="renewPrivilegesDialogue"> /jsp/account/renewPrivilegesDialogue.jsp</result>
+			<result name="download" type="stream">
+				<param name="contentType"> ${contentType}
+				</param>
+				<param name="inputName"> inputStream
+				</param>
+				<param name="contentDisposition"> attachment;filename="${fileName}"
+				</param>
+				<param name="bufferSize"> 1024
+				</param>
+			</result>
+			<allowed-methods>renewalList,requestList,reportingList,getAccountsForRenewal,getAutomatedRenewalReportLightbox,saveEmailReportSetting,getAccountRequests,getAutomatedRequestReportLightbox,getContactUserDashBoard,contactUser,getRenewPrivilegesDialogue,renewPrivileges,getAccountReportingLogs,downloadReport</allowed-methods>
+		</action>
+		
+		<action name="viewProfile" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="view"> /jsp/account/viewMyProfile.jsp</result>
+			<result name="lightbox"> /jsp/common/accountLightbox.jsp</result>
+			<allowed-methods>accountLightbox,getAccountRoleLists,getPermissionGroupMembers,getExistingFiles,getAccountHistory,getAccountAdministrativeNotes</allowed-methods>
+		</action>
+		
+		<action name="changeFileTypeAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="changeFileTypeLightbox"> /jsp/account/changeFileTypeLightbox.jsp</result>		
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonResponse</param>
+			</result>		
+			<allowed-methods>changeFileTypeLightbox,changeFileType,existingFileTypesAjax</allowed-methods>
+		</action>
+		
+		<action name="changeFileTypeValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="changeFileTypeLightbox"> /jsp/account/changeFileTypeLightbox.jsp</result>	
+			<result name="input"> /jsp/account/changeFileTypeLightbox.jsp</result>		
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonResponse</param>
+			</result>		
+			<allowed-methods>changeFileTypeLightbox,changeFileType</allowed-methods>
+		</action>
+		
+		<action name="changeFileNameAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="changeFileNameLightbox"> /jsp/account/changeFileNameLightbox.jsp</result>		
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonResponse</param>
+			</result>		
+			<allowed-methods>changeFileNameLightbox,changeFileName</allowed-methods>
+		</action>
+		
+		
+		<action name="finalApprovalAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="finalApprovalLightbox"> /jsp/account/finalApprovalLightbox.jsp</result>	
+			<result name="success" type="redirectAction">
+				<param name="actionName">viewAccountRequest</param>
+				<param name="method">viewAccountRequest</param>
+				<param name="accountId">${currentAccount.id}</param>
+			</result>	
+			<allowed-methods>finalApprovalLightbox,finalApproval</allowed-methods>
+		</action>
+		
+		<action name="cancelRequestAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<allowed-methods>cancelPrivilegeRequest</allowed-methods>
+		</action>
+		
+		<action name="requestPrivAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<allowed-methods>requestPriv</allowed-methods>
+		</action>
+		
+		<action name="accountAdministrativeNotesValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
+			<result name="input"> /jsp/account/includes/addAdministrativeNoteInterface.jsp</result>
+			<result name="success"> /jsp/account/includes/addAdministrativeNoteInterface.jsp </result>
+			<allowed-methods>addAccountAdmininistrativeNote</allowed-methods>
+		</action>
+	</package>
+</struts>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC "-//Apache Struts//XWork Validator 1.0.2//EN" "/WEB-INF/xwork-validator-1.0.2.dtd">
+<validators>
+	<field name="keywordNew">
+		<field-validator short-circuit="true" type="requiredstring">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator short-circuit="true" type="stringlength">
+			<param name="maxLength"> 55 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+		<field-validator short-circuit="true" type="regex">
+			<param name="trim">false</param>
+			<param name="regex"> [A-Za-z][A-Za-z0-9_]* 
+			</param>
+			<message key="errors.specialchar" />
+		</field-validator>
+		<field-validator short-circuit="true" type="keywordname">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.unique" />
+		</field-validator>
+	</field>
+</validators>

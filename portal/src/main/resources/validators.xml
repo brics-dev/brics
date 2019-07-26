@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC
+        "-//Apache Struts//XWork Validator Definition 1.0//EN"
+        "http://struts.apache.org/dtds/xwork-validator-definition-1.0.dtd">
+		
+<validators>
+	<validator name="required" class="com.opensymphony.xwork2.validator.validators.RequiredFieldValidator" />
+	<validator name="requiredstring" class="com.opensymphony.xwork2.validator.validators.RequiredStringValidator" />
+	<validator name="int" class="com.opensymphony.xwork2.validator.validators.IntRangeFieldValidator" />
+	<validator name="long" class="com.opensymphony.xwork2.validator.validators.LongRangeFieldValidator" />
+	<validator name="short" class="com.opensymphony.xwork2.validator.validators.ShortRangeFieldValidator" />
+	<validator name="double" class="com.opensymphony.xwork2.validator.validators.DoubleRangeFieldValidator" />
+	<validator name="date" class="com.opensymphony.xwork2.validator.validators.DateRangeFieldValidator" />
+	<validator name="expression" class="com.opensymphony.xwork2.validator.validators.ExpressionValidator" />
+	<validator name="fieldexpression" class="com.opensymphony.xwork2.validator.validators.FieldExpressionValidator" />
+	<validator name="email" class="com.opensymphony.xwork2.validator.validators.EmailValidator" />
+	<validator name="url" class="com.opensymphony.xwork2.validator.validators.URLValidator" />
+	<validator name="visitor" class="com.opensymphony.xwork2.validator.validators.VisitorFieldValidator" />
+	<validator name="conversion" class="com.opensymphony.xwork2.validator.validators.ConversionErrorFieldValidator" />
+	<validator name="stringlength" class="com.opensymphony.xwork2.validator.validators.StringLengthFieldValidator" />
+	<validator name="regex" class="com.opensymphony.xwork2.validator.validators.RegexFieldValidator" />
+	<validator name="conditionalvisitor" class="com.opensymphony.xwork2.validator.validators.ConditionalVisitorFieldValidator" />
+	<validator name="datastructurename" class="gov.nih.tbi.dictionary.validators.ShortNameValidator" />
+	<validator name="dataelementname" class="gov.nih.tbi.dictionary.validators.ElementNameValidator" />
+	<validator name="dataelementsize" class="gov.nih.tbi.dictionary.validators.ElementSizeValidator" />
+	<validator name="dataelementclassification" class="gov.nih.tbi.dictionary.validators.ElementClassificationValidator" />
+	<validator name="dataelementdisease" class="gov.nih.tbi.dictionary.validators.ElementDiseaseListValidator" />
+	<validator name="dataelementminsize" class="gov.nih.tbi.dictionary.validators.ElementMinSizeValidator" />
+	<validator name="minpermissiblevalues" class="gov.nih.tbi.dictionary.validators.MinPermissibleValuesValidator" />
+	<validator name="mapelementname" class="gov.nih.tbi.dictionary.validators.MapElementNameValidator" />
+	<validator name="repeatablegroupname" class="gov.nih.tbi.dictionary.validators.RepeatableGroupNameValidator" />
+	<validator name="editrepeatablegroupname" class="gov.nih.tbi.dictionary.validators.EditRepeatableGroupNameValidator" />
+	<validator name="aliasname" class="gov.nih.tbi.dictionary.validators.AliasValidator" />
+	<validator name="permissiblevaluename" class="gov.nih.tbi.dictionary.validators.PermissibleValueValidator" />
+	<validator name="permissiblevalueformat" class="gov.nih.tbi.dictionary.validators.PermissibleValueFormatValidator" />
+	<validator name="permissibleValueNumeric" class="gov.nih.tbi.dictionary.validators.PermissibleValueNumericValidator" />
+	<validator name="pvOutputCodeUnique" class="gov.nih.tbi.dictionary.validators.PvOutputCodeUniqueValidator" />
+	<validator name="minmax" class="gov.nih.tbi.dictionary.validators.MinMaxValidator" />
+	<validator name="keywordname" class="gov.nih.tbi.dictionary.validators.KeywordNameValidator" />
+	<validator name="labelname" class="gov.nih.tbi.dictionary.validators.LabelNameValidator" />
+	<validator name="isfuturedatevalidator" class="gov.nih.tbi.dictionary.validators.FutureDateValidator" />
+	<validator name="emailmatch" class="gov.nih.tbi.account.validators.EmailMatchValidator" />
+	<validator name="requiredpassword" class="gov.nih.tbi.account.validators.RequiredPasswordValidator" />
+	<validator name="userName" class="gov.nih.tbi.account.validators.UserNameValidator" />
+	<validator name="eraId" class="gov.nih.tbi.account.validators.EraIdValidator" />
+	<validator name="confirmpassword" class="gov.nih.tbi.account.validators.PasswordConfirmValidator" />
+	<validator name="passwordrecovery" class="gov.nih.tbi.account.validators.PasswordRecoveryValidator" />
+	<validator name="passwordreuse" class="gov.nih.tbi.account.validators.PasswordReuseValidator" />
+	<validator name="accountuseroremailfound" class="gov.nih.tbi.account.validators.AccountUserOrEmailFoundValidator" />
+	<validator name="correctpassword" class="gov.nih.tbi.account.validators.CorrectPasswordValidator" />
+	<validator name="emailunique" class="gov.nih.tbi.account.validators.EmailValidator" />
+	<validator name="passwordformat" class="gov.nih.tbi.account.validators.PasswordFormatValidator" />
+	<validator name="state" class="gov.nih.tbi.account.validators.StateValidator" />
+	<validator name="adminnote" class="gov.nih.tbi.account.validators.AdminNoteValidator" />
+	<validator name="requestReason" class="gov.nih.tbi.account.validators.RequestPrivilegesReasonValidation" />
+	<validator name="phonenumber" class="gov.nih.tbi.account.validators.PhoneNumberValidator" />
+	<validator name="confirmpassword" class="gov.nih.tbi.account.validators.PasswordConfirmValidator" />
+	<validator name="firstnamematch" class="gov.nih.tbi.account.validators.FirstNameMatchValidator" />
+	<validator name="middlenamematch" class="gov.nih.tbi.account.validators.MiddleNameMatchValidator" />
+	<validator name="lastnamematch" class="gov.nih.tbi.account.validators.LastNameMatchValidator" />
+	<validator name="passwordmatch" class="gov.nih.tbi.account.validators.PasswordMatchValidator" />
+	
+	<validator name="clinicaltrialunique" class="gov.nih.tbi.repository.validators.ClinicalTrialUniqueValidator" />
+	<validator name="clinicaltrial" class="gov.nih.tbi.repository.validators.ClinicalTrialValidator" />
+	<validator name="grantvalid" class="gov.nih.tbi.repository.validators.GrantValidator" />
+	<validator name="grantunique" class="gov.nih.tbi.repository.validators.GrantUniqueValidator" />
+	<validator name="studyuploadfilename" class="gov.nih.tbi.repository.validators.StudyUploadFileName" />
+	<validator name="studydocupload" class="gov.nih.tbi.repository.validators.StudyDocumentationUploadValidator" />
+	<validator name="studyurlupload" class="gov.nih.tbi.repository.validators.StudyUrlValidator" />
+	<validator name="studykeywordname" class="gov.nih.tbi.repository.validators.StudyKeywordNameValidator" />
+	<validator name="studyunique" class="gov.nih.tbi.repository.validators.StudyUniqueValidator" />
+	<validator name="studystartenddatevalidator" class="gov.nih.tbi.repository.validators.StudyStartEndDateValidator" />
+	<validator name="accessrecordstartenddatevalidator" class="gov.nih.tbi.repository.validators.AccessRecordStartEndDateValidator" />
+	<validator name="isodatevalidator" class="gov.nih.tbi.commons.validators.IsoDateValidator" />
+	<validator name="permissionGroupUnique" class="gov.nih.tbi.account.validators.PermissionGroupNameValidator" />
+	<validator name="xml" class="gov.nih.tbi.common.validators.XmlFieldValidator" />
+	<validator name="ordmgrrepositoryfile" class="gov.nih.tbi.ordermanager.validators.OdrMgrRepositoryFileValidator"></validator>
+	<validator name="biospecimenorderstartenddatevalidator" class="gov.nih.tbi.ordermanager.validators.BiospecimenOrderStartEndDateValidator" />
+	<validator name="ordertitleunique" class="gov.nih.tbi.ordermanager.validators.OrderTitleUniqueValidator"></validator>
+	<validator name="metastudyunique" class="gov.nih.tbi.metastudy.validators.MetaStudyUniqueValidator" />
+	<validator name="documenturl" class="gov.nih.tbi.commons.validators.DocumentationUploadUrlValidator" />
+	<validator name="documentfile" class="gov.nih.tbi.commons.validators.DocumentationUploadFileValidator" />
+	<validator name="eventLogDocumentfile" class="gov.nih.tbi.commons.validators.EventLogDocumentationUploadFileValidator" />
+	<validator name="metastudydatafile" class="gov.nih.tbi.metastudy.validators.MetaStudyDataFileValidator" />
+	<validator name="metastudysavedquery" class="gov.nih.tbi.metastudy.validators.MetaStudySavedQueryUniqueValidator" />
+	<validator name="metastudykeywordname" class="gov.nih.tbi.metastudy.validators.MetaStudyKeywordNameValidator" />
+	<validator name="metastudylabelname" class="gov.nih.tbi.metastudy.validators.MetaStudyLabelNameValidator" />
+	<validator name="dictionaryEventLogDocumentFile" class="gov.nih.tbi.dictionary.validators.DictionaryEventLogDocUploadFileValidator" />
+	<validator name="activeaccount" class="gov.nih.tbi.account.validators.ActiveAccountValidator" />
+	<validator name="uniqueaccountupload" class="gov.nih.tbi.account.validators.UniqueUploadValidator" />
+	<validator name="sessionuniqueaccountupload" class="gov.nih.tbi.account.validators.SessionUniqueUploadValidator" />
+	<validator name="accountfileextension" class="gov.nih.tbi.account.validators.AccountFileExtensionValidator" />
+	<validator name="uniqueaccountfiletype" class="gov.nih.tbi.account.validators.AccountFileTypeValidator" />
+</validators>

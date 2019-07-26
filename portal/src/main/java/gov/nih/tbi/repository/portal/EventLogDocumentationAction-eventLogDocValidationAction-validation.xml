@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC "-//Apache Struts//XWork Validator 1.0.2//EN" "http://struts.apache.org/dtds/xwork-validator-1.0.2.dtd">
+<validators>
+	<field name="uploadFileName">
+		<field-validator type="eventLogDocumentfile">
+			<message>${errorMessage}</message>
+		</field-validator>
+	</field> 
+	<field name="supportingDocDescription">
+		<field-validator type="requiredstring">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+</validators>

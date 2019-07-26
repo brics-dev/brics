@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:context="http://www.springframework.org/schema/context" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p" xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop" xmlns:task="http://www.springframework.org/schema/task" xmlns="http://www.springframework.org/schema/beans" xsi:schemaLocation="
+       http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context 
+       http://www.springframework.org/schema/context/spring-context-2.5.xsd
+       http://www.springframework.org/schema/aop
+       http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+	   http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
+       http://www.springframework.org/schema/task 
+       http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+
+	<!-- For mail settings and future properties files -->
+	<!-- Location of files are modified by maven replacer plugin at build time -->
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:mail.properties</value>
+				<value>file:#{systemProperties['conf.dir']}/datasource.properties</value>
+			</list>
+		</property>
+		
+		<property name="ignoreResourceNotFound" value="true" />
+	</bean>
+
+	<bean id="applicationProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+		<property name="locations">
+			<list>
+				<value>file:#{systemProperties['conf.dir']}/modules.properties</value>
+			</list>
+		</property>
+		<property name="ignoreResourceNotFound" value="true" />
+	</bean>
+
+	<bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+		<property name="basenames">
+			<list>
+				<value>application</value>
+				<value>mail</value>
+			</list>
+		</property>
+	</bean>
+
+	<context:annotation-config />
+	<context:component-scan base-package="gov.nih.tbi" />
+
+	<!-- IMPORT SERVICE DEFINITIONS -->
+	<import resource="context-services.xml" />
+	<!-- IMPORT WEB SERVICE DEFINITIONS -->
+	<import resource="context-webservice.xml" />
+
+	<!-- DATABASE CONNECTIONS -->
+	<import resource="database/database.xml" />
+
+
+	<!-- Annotation based task scheduler -->
+	<!-- <task:annotation-driven scheduler="bricsScheduler" />
+		<task:scheduler id="bricsScheduler" pool-size="1" /> -->
+
+	<!-- THESE ARE VARIABLE CONFIGURATIONS [RESTART REQUIRED TO TAKE EFFECT] -->
+	<!-- DEFINITIONS OF BEANS -->
+
+	<!-- SINGLETONS -->
+	<bean id="modulesConstants" class="gov.nih.tbi.ModulesConstants" scope="singleton">
+		<property name="wsSet" value="true" />
+		<property name="defaultStylingKey" value="true" />
+	</bean>
+	<bean id="rdfGenConstants" class="gov.nih.tbi.RdfGenConstants" scope="singleton" />
+	<!-- <bean id="staticManager" class="gov.nih.tbi.commons.service.hibernate.StaticReferenceManagerImpl" scope="singleton" />
+		<bean id="dictionaryToolManager" class="gov.nih.tbi.dictionary.service.hibernate.DictionaryToolManagerImpl" scope="singleton" />
+		<bean id="accountManager" class="gov.nih.tbi.account.service.complex.AccountManagerImpl" scope="singleton" />
+		<bean id="repositoryManager" class="gov.nih.tbi.repository.service.hibernate.RepositoryManagerImpl" scope="singleton" />
+		<bean id="dataLoader" class="gov.nih.tbi.repository.service.hibernate.DataLoaderImpl" scope="singleton" /> -->
+
+	<!-- SESSION SCOPED -->
+	<!-- <bean id="webServiceManager" class="gov.nih.tbi.commons.service.WebServiceManagerImpl" scope="session" /> -->
+
+	<bean id="sessionAccount" class="gov.nih.tbi.account.model.SessionAccount" scope="session">
+		<aop:scoped-proxy />
+	</bean> 
+	<bean id="sessionCondition" class="gov.nih.tbi.dictionary.model.SessionCondition" scope="session" />
+	<bean id="sessionDataStructure" class="gov.nih.tbi.dictionary.model.SessionDataStructure" scope="session" />
+	<bean id="sessionDataElement" class="gov.nih.tbi.dictionary.model.SessionDataElement" scope="session" />
+	<bean id="sessionDataElementList" class="gov.nih.tbi.dictionary.model.SessionDataElementList" scope="session" />
+	<bean id="sessionDataElementFilterValues" class="gov.nih.tbi.dictionary.model.SessionDataElementFilterValues" scope="session" />
+	<bean id="sessionAccountEdit" class="gov.nih.tbi.account.model.SessionAccountEdit" scope="session" />
+	<bean id="sessionStudy" class="gov.nih.tbi.repository.model.SessionStudy" scope="session" />
+	<bean id="sessionDataset" class="gov.nih.tbi.repository.model.SessionDataset" scope="session" />
+	<bean id="sessionDataElementSearchCriteria" class="gov.nih.tbi.dictionary.model.SessionDataElementSearchCriteria" scope="session" />
+<!-- 	<bean id="itemQueueDao" class="gov.nih.tbi.orderManager.dao.impl.ItemQueueDaoImpl" /> -->
+	<bean id="itemQueueService" class="gov.nih.tbi.ordermanager.service.impl.ItemQueueServiceImpl" scope="singleton" />
+	<bean id="orderService" class="gov.nih.tbi.ordermanager.service.impl.OrderServiceImpl" scope="singleton"	 />
+	<bean id="sessionOrder" class="gov.nih.tbi.ordermanager.model.SessionOrder" scope="session" />
+	<bean id="orderManager" class="gov.nih.tbi.ordermanagement.OrderManagerImpl" scope="singleton" />
+	<bean id="sessionMetaStudy" class="gov.nih.tbi.metastudy.model.SessionMetaStudy" scope="session" />
+	<bean id="sessionDatasetList" class="gov.nih.tbi.repository.model.SessionDatasetList" scope="session" />
+	<bean id="sessionSupportDocList" class="gov.nih.tbi.repository.model.SessionSupportDocList" scope="session" />
+	<bean id="sessionDictionaryStatusChange" class="gov.nih.tbi.dictionary.model.SessionDictionaryStatusChange" scope="session" />
+	<bean id="publicAccountsFilter" class="gov.nih.tbi.portal.filters.PublicAccountsFilter" scope="singleton" />
+	<bean id="sessionAccountMessageTemplates" class="gov.nih.tbi.account.model.SessionAccountMessageTemplates" scope="session" />
+	<bean id="sessionUploadFile" class="gov.nih.tbi.repository.model.SessionUploadFile" scope="session" />
+	<bean id="sessionLog" class="gov.nih.tbi.account.model.hibernate.SessionLog" scope="request" />
+
+	<task:executor id="threadPoolExecutor" pool-size="5"/>
+	<task:annotation-driven executor="threadPoolExecutor"/>
+
+</beans>

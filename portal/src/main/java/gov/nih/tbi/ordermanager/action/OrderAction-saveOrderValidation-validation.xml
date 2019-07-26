@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC "-//Apache Struts//XWork Validator 1.0.2//EN" "/WEB-INF/xwork-validator-1.0.2.dtd">
+<validators>
+	<field name="orderTitle">
+		<field-validator type="requiredstring">
+			<param name="trim"> true
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 100
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+		<field-validator short-circuit="true" type="ordertitleunique">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.unique" />
+		</field-validator>
+	</field>
+<!-- 	<field name="orderBean.abstractText"> -->
+<!-- 		<field-validator type="requiredstring"> -->
+<!-- 			<param name="trim"> true -->
+<!-- 			</param> -->
+<!-- 			<message key="errors.required" /> -->
+<!-- 		</field-validator> -->
+<!-- 		<field-validator type="stringlength"> -->
+<!-- 			<param name="maxLength"> 4000 -->
+<!-- 			</param> -->
+<!-- 			<param name="trim"> true -->
+<!-- 			</param> -->
+<!-- 			<message key="errors.length" /> -->
+<!-- 		</field-validator> -->
+<!-- 	</field> -->
+<!-- 	<field name="orderBean.experimentalDesignPowerAnalysis"> -->
+<!-- 		<field-validator type="requiredstring"> -->
+<!-- 			<param name="trim"> true -->
+<!-- 			</param> -->
+<!-- 			<message key="errors.required" /> -->
+<!-- 		</field-validator> -->
+<!-- 		<field-validator type="stringlength"> -->
+<!-- 			<param name="maxLength"> 4000 -->
+<!-- 			</param> -->
+<!-- 			<param name="trim"> true -->
+<!-- 			</param> -->
+<!-- 			<message key="errors.length" /> -->
+<!-- 		</field-validator> -->
+<!-- 	</field> -->
+	<field name="uploadedFilesMap">
+		<field-validator type="ordmgrrepositoryfile">
+			<param name="trim"> true
+			</param>
+			<message key="errors.missingFileType" />
+		</field-validator>
+	</field>
+	<field name="orderComment">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 4000
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="orderBean.shipToName">
+		<field-validator type="requiredstring">
+			<param name="trim"> true
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 80
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="orderBean.shipToInstitution">
+		<field-validator type="requiredstring">
+			<param name="trim"> true
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 100
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="orderBean.phone">
+		<field-validator type="requiredstring">
+			<param name="trim"> true
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="phonenumber">
+			<message key="errors.phoneNumber" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 12
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="orderBean.affiliation">
+		<field-validator type="requiredstring">
+			<param name="trim"> true
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 100
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="orderBean.affiliationPhone">
+		<field-validator type="requiredstring">
+			<param name="trim"> true
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="phonenumber">
+			<message key="errors.phoneNumber" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 55
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="orderBean.affiliationEmail">
+		<field-validator type="requiredstring">
+			<param name="trim"> true
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="email">
+			<param name="trim">true</param>
+			<message key="errors.emailformat" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 100
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="orderBean.affiliationSpecialInstructions">
+		<field-validator type="requiredstring">
+			<param name="trim"> true
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 4000
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="addressBean.address1">
+		<field-validator type="requiredstring">
+			<param name="trim"> true
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 50
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="addressBean.address2">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 50
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+
+	<field name="addressBean.city">
+		<field-validator type="requiredstring">
+			<param name="trim"> true
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 30
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="addressBean.oldState">
+		<field-validator type="requiredstring">
+			<param name="trim"> true
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 20
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="addressBean.zipCode">
+		<field-validator type="requiredstring">
+			<param name="trim"> true
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="regex">
+			<param name="trim">false</param>
+			<param name="regex"> [A-Za-z\s0-9\-]*
+			</param>
+			<message key="errors.postalCode" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 10
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	
+
+</validators>

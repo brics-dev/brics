@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://localhost:8080/portal/ws/account/entityMap"
+	xmlns:tns="http://localhost:8080/portal/ws/account/entityMap"
+	elementFormDefault="qualified"
+	xmlns:pref="http://localhost:8080/portal/ws/account"
+	xmlns:pref1="http://localhost:8080/portal/ws/account/permissionGroups">
+
+
+	<import schemaLocation="PermissionGroup.xsd"
+		namespace="http://localhost:8080/portal/ws/account/permissionGroups">
+	</import>
+	<import schemaLocation="Account.xsd" namespace="http://localhost:8080/portal/ws/account"></import>
+	<simpleType name="EntityType">
+		<restriction base="string">
+			<enumeration value="DATA_STRUCTURE"></enumeration>
+			<enumeration value="DATA_ELEMENT"></enumeration>
+			<enumeration value="STUDY"></enumeration>
+			<enumeration value="DATASET"></enumeration>
+		</restriction>
+	</simpleType>
+
+	<complexType name="EntityMap">
+		<sequence>
+			<element name="id" type="long"></element>
+			<element name="type" type="tns:EntityType"></element>
+			<element name="entityId" type="long"></element>
+			<element name="account" type="pref:Account"></element>
+			<element name="permissionGroup"
+				type="pref1:PermissionGroup">
+			</element>
+		</sequence>
+	</complexType>
+
+	<element name="entityMap" type="tns:EntityMap"></element>
+</schema>

@@ -1,0 +1,39 @@
+   .example {
+                clear: both;
+            }
+        
+            .container {
+                width: 300px;
+                float: left;
+            }
+            
+            .controls {
+                padding: 20px;
+            }
+
+            input.title {
+                width: 150px;
+            }
+            
+            input {
+                width: 50px;
+                padding: 6px;
+            }
+            
+            span {
+                display: inline-block;
+                width: 30px;
+            }
+            
+            .ae {
+            	float:left;
+  				background-color:   #3A6E85;
+  				color: #fff;
+  				margin-top: 40px;
+  				margin-right: 10px;
+  				width: 300px;
+  				height: 30px;
+			}
+            
+            
+           

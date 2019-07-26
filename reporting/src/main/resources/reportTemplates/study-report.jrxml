@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.5.1.final using JasperReports Library version 6.5.1  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Study Metadata Report" pageWidth="2600" pageHeight="1200" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="2560" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="6dc85b31-4ff7-4918-9608-4cf3c1ccb1d8">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.wrap.text" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.collapse.row.span" value="true"/>
+	<queryString>
+		<![CDATA[]]>
+	</queryString>
+	<field name="title" class="java.lang.String"/>
+	<field name="prefixedId" class="java.lang.String"/>
+	<field name="doi" class="java.lang.String"/>
+	<field name="studyType" class="gov.nih.tbi.repository.model.hibernate.StudyType"/>
+	<field name="studyUrl" class="java.lang.String"/>
+	<field name="fundingSource" class="gov.nih.tbi.repository.model.hibernate.FundingSource"/>
+	<field name="studyStartDate" class="java.util.Date"/>
+	<field name="studyEndDate" class="java.util.Date"/>
+	<field name="study" class="gov.nih.tbi.repository.model.hibernate.Study">
+		<fieldDescription><![CDATA[_THIS]]></fieldDescription>
+	</field>
+	<field name="studyStatus" class="gov.nih.tbi.commons.model.StudyStatus"/>
+	<field name="principalInvestigator" class="java.lang.String"/>
+	<field name="recruitmentStatus" class="gov.nih.tbi.commons.model.RecruitmentStatus"/>
+	<field name="numberOfSubjects" class="java.lang.Integer"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="60" splitType="Stretch">
+			<staticText>
+				<reportElement x="1050" y="0" width="450" height="30" uuid="71658e89-e6bd-4efc-b4c3-840027018864"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="20" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Study Metadata Report]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="30" width="600" height="30" uuid="1d93f53f-c871-40d5-ad4c-9f10c8470430"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<text><![CDATA[This report shows all studies in the system and select associated study metadata.]]></text>
+			</staticText>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="30" splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="30" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="150" height="30" uuid="5ed9d2ce-b8cd-484d-9db6-aa88c1ef499e"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Study Title]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="150" y="0" width="150" height="30" uuid="29542e3e-68e7-4d8b-a39f-2e425ae355f3"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Study Prefix ID]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="300" y="0" width="150" height="30" uuid="a3b59e07-222b-422b-ab28-d0acc3f590e3"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Study DOI]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="450" y="0" width="150" height="30" uuid="1f324650-8d3d-415b-8344-e97b66ac963e"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Study Type]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="600" y="0" width="150" height="30" uuid="d766e2b2-1499-4e9a-9502-4e24692069bb"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Study URL]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="750" y="0" width="150" height="30" uuid="571e9c8f-fd2a-4e1e-88d8-b984878f8dc3"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Funding Source]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="900" y="0" width="150" height="30" uuid="bf11a73d-4c91-4dfa-83a9-f39a3fa5a105"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Study Started]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1050" y="0" width="150" height="30" uuid="ad562d4d-15e6-41c1-98c6-2e38faa86fac"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Study Ended]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1200" y="0" width="150" height="30" uuid="2fb348c5-ac95-4388-97bb-c68f017547db"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Study Duration]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1350" y="0" width="150" height="30" uuid="005c1d3c-9325-45ba-945e-26d6ed649e01"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Study Status]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1500" y="0" width="150" height="30" uuid="ad77fc71-b239-4e5e-a9ba-12d583c7582a"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Primary Site Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1650" y="0" width="160" height="30" uuid="0c7ecce2-4434-498f-8e30-f7bfc1ac6167"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Principal Investigator]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1810" y="0" width="150" height="30" uuid="5108079c-9aac-4727-bdb5-ceaa5c503558"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Recruitment Status]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1960" y="0" width="150" height="30" uuid="c70f841c-beb7-48a8-b0e8-e86a7c174393"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Number of Subjects]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="2110" y="0" width="450" height="30" uuid="4ba3e03f-1745-42a0-b1e5-fab94ae2abae"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Study Keywords]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="60" splitType="Stretch">
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.FreeLayout"/>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerHeight" x="0" y="0" width="150" height="60" uuid="ec5cd5ab-5e56-44be-a58e-f2aa59dd8714">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<textElement>
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{title}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerHeight" x="150" y="0" width="150" height="60" uuid="44f13574-921d-4e89-b226-cab0a4e49a2c">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<textElement>
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{prefixedId}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerHeight" x="300" y="0" width="150" height="60" uuid="028bcc72-cb0d-4fda-ae8b-0023ae035911">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<textElement>
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{doi}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerHeight" x="450" y="0" width="150" height="60" uuid="11e586cc-b1a6-48a7-a329-9f48661af216">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<textElement>
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{studyType}.getName()]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerHeight" x="600" y="0" width="150" height="60" uuid="e61a57a3-574c-419c-a15c-216861bc68ad">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<textElement>
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{studyUrl}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerHeight" x="750" y="0" width="150" height="60" uuid="052b9669-6dfb-4a66-9077-079a914c08bb">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<textElement>
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fundingSource}.getName()]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="MM/dd/yyyy" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerHeight" x="900" y="0" width="150" height="60" uuid="6759d53e-3578-40a2-8b61-b688efc52193">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.pattern" value="mm/dd/yyyy"/>
+				</reportElement>
+				<textElement>
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{studyStartDate}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="MM/dd/yyyy" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerHeight" x="1050" y="0" width="150" height="60" uuid="55751942-f10d-4185-ad64-facc404fe942">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.pattern" value="mm/dd/yyyy"/>
+				</reportElement>
+				<textElement>
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{studyEndDate}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerHeight" x="1200" y="0" width="150" height="60" uuid="dd754bd3-47c5-47b5-ba1e-860629afba33">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<textElement>
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{study}.getStudyDuration()]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerHeight" x="1350" y="0" width="150" height="60" uuid="edd7b0ed-e540-4ad3-a078-ea56d2795ab8">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<textElement>
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{studyStatus}.getName()]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerHeight" x="1500" y="0" width="150" height="60" uuid="75064ea9-acc1-45b7-9fcb-a476f876b764">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<textElement>
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{study}.getPrimarySite().getSiteName()]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerHeight" x="1650" y="0" width="160" height="60" uuid="d7300136-2b3f-4445-b40f-f789d46e2bf8">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<textElement>
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{principalInvestigator}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerHeight" x="1810" y="0" width="150" height="60" uuid="1214898b-4d35-4156-b60d-9714c146141c">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<textElement>
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{recruitmentStatus}.getName()]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerHeight" x="1960" y="0" width="150" height="60" uuid="009c97f5-d97a-40d6-9d41-484512657677">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<textElement>
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{numberOfSubjects}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerHeight" x="2110" y="0" width="450" height="60" uuid="83f4055f-1d6a-48ea-9f0a-0d6313943251">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<textElement>
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{study}.getDisplayKeywordSet()]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="10" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="10" splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="15" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="300" height="15" uuid="4d32cf55-fd1c-48a7-9d8b-66481208a396">
+					<printWhenExpression><![CDATA[$V{REPORT_COUNT} == 0]]></printWhenExpression>
+				</reportElement>
+				<text><![CDATA[There are no results to display]]></text>
+			</staticText>
+		</band>
+	</summary>
+</jasperReport>

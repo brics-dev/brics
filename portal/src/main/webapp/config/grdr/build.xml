@@ -1,0 +1,8 @@
+<project>
+       <target name="sass.compile">
+        <exec executable="bash">
+            <arg value="-c"/>
+           <arg value="sass style.scss:style.css --style compressed"/>
+         </exec> 
+    </target>
+</project>

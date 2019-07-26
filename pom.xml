@@ -1,0 +1,315 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>brics</groupId>
+	<artifactId>brics</artifactId>
+	<version>4.0.0</version>
+	<packaging>pom</packaging>
+	<name>brics-parent</name>
+
+  	<modules>
+		<module>model</module>
+		<module>core</module>
+		<module>service</module>
+		<module>web-service</module>
+		<module>applications</module>
+		<module>portal</module>
+		<module>queryTool-service</module>
+		<module>reporting</module>
+		<module>import-RESTful</module>
+		<module>brics-scheduler</module>
+		<module>cas</module>
+		<module>centralized-guid</module>
+		<module>proforms</module>
+	</modules>
+
+	<properties>
+		<spring.version>5.1.5.RELEASE</spring.version>
+		<spring.security.version>5.1.4.RELEASE</spring.security.version>
+		<struts2-version>2.5.17</struts2-version>
+		<cxf.version>3.2.7</cxf.version>
+		<hibernate.version>5.2.11.Final</hibernate.version>
+		<postgresql.version>42.2.5</postgresql.version>
+		<hikaricp.version>3.3.1</hikaricp.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.tomcat.maven</groupId>
+				<artifactId>tomcat7-maven-plugin</artifactId>
+				<version>2.2</version>
+			</plugin>
+		</plugins>
+	</build>
+  
+    <dependencyManagement>
+
+  		<dependencies>
+
+			<dependency>
+				<groupId>brics</groupId>
+				<artifactId>model</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+	
+			<dependency>
+				<groupId>brics</groupId>
+				<artifactId>core</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>brics</groupId>
+				<artifactId>dataimport</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>brics</groupId>
+				<artifactId>brics-scheduler</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>brics</groupId>
+				<artifactId>service</artifactId>
+				<version>${project.version}</version>
+				<scope>compile</scope>
+			</dependency>
+		
+			<dependency>
+				<groupId>brics</groupId>
+				<artifactId>import-RESTful</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			
+			<!-- SPRING FRAMEWORK -->
+	  		<dependency>
+	  			<groupId>org.springframework</groupId>
+	  			<artifactId>spring-aop</artifactId>
+	  			<version>${spring.version}</version>
+	  		</dependency>
+	  		<dependency>
+	  			<groupId>org.springframework</groupId>
+	  			<artifactId>spring-web</artifactId>
+	  			<version>${spring.version}</version>
+	  		</dependency>
+	  		<dependency>
+	  			<groupId>org.springframework</groupId>
+	  			<artifactId>spring-context-support</artifactId>
+	  			<version>${spring.version}</version>
+	  		</dependency>
+	  		<dependency>
+	  			<groupId>org.springframework</groupId>
+	  			<artifactId>spring-beans</artifactId>
+	  			<version>${spring.version}</version>
+	  		</dependency>
+	  		<dependency>
+	  			<groupId>org.springframework</groupId>
+	  			<artifactId>spring-context</artifactId>
+	  			<version>${spring.version}</version>
+	  		</dependency>
+	  		<dependency>
+	  			<groupId>org.springframework</groupId>
+	  			<artifactId>spring-core</artifactId>
+	  			<version>${spring.version}</version>
+	  		</dependency>
+	  		<dependency>
+	  			<groupId>org.springframework</groupId>
+	  			<artifactId>spring-orm</artifactId>
+	  			<version>${spring.version}</version>
+	  		</dependency>
+			<dependency>
+	  			<groupId>org.springframework</groupId>
+	  			<artifactId>spring-aspects</artifactId>
+	  			<version>${spring.version}</version>
+	  		</dependency>
+	  		
+	  		<!-- HIBERNATE -->
+	  		<dependency>
+	  			<groupId>org.hibernate</groupId>
+	  			<artifactId>hibernate-core</artifactId>
+	  			<version>${hibernate.version}</version>
+	  		</dependency>
+			
+			<dependency>
+				<groupId>org.hibernate</groupId>
+				<artifactId>hibernate-ehcache</artifactId>
+				<version>${hibernate.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>org.ehcache</groupId>
+				<artifactId>ehcache</artifactId>
+				<version>3.5.0</version>
+			</dependency>
+					
+			<!-- JAVAX SERVLET -->
+			<dependency>
+				<groupId>javax.servlet</groupId>
+				<artifactId>javax.servlet-api</artifactId>
+				<version>3.0.1</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>javax.servlet.jsp</groupId>
+				<artifactId>javax.servlet.jsp-api</artifactId>
+				<version>2.2.1</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>javax.servlet.jsp.jstl</groupId>
+				<artifactId>jstl-api</artifactId>
+				<version>1.2</version>
+			</dependency>
+			<dependency>
+				<groupId>javax.servlet.jsp.jstl</groupId>
+				<artifactId>jstl</artifactId>
+				<version>1.2</version>
+			</dependency>
+	  		
+			<!-- Jakarta Commons -->
+			<dependency>
+				<groupId>commons-fileupload</groupId>
+				<artifactId>commons-fileupload</artifactId>
+				<version>1.3.3</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>org.postgresql</groupId>
+				<artifactId>postgresql</artifactId>
+				<version>${postgresql.version}</version>
+				<type>jar</type>
+				<scope>compile</scope>
+			</dependency>
+			
+			<!-- LOG4J -->
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-log4j12</artifactId>
+				<version>1.6.1</version>
+				<type>jar</type>
+		  		<scope>compile</scope>
+			</dependency>
+			
+			<dependency>
+			    <groupId>org.slf4j</groupId>
+			    <artifactId>slf4j-api</artifactId>
+			    <version>1.6.1</version>
+				<type>jar</type>
+		  		<scope>compile</scope>
+			</dependency>
+			
+			<!-- TEST NG -->
+			<dependency>
+				<groupId>org.testng</groupId>
+				<artifactId>testng</artifactId>
+				<version>6.9.10</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.dbunit</groupId>
+				<artifactId>dbunit</artifactId>
+				<version>2.4.8</version>
+				<scope>test</scope>
+			</dependency>
+			
+			<!-- Virtuoso -->
+			<dependency>
+				<groupId>com.openlink.virtuoso</groupId>
+				<artifactId>virtuoso-jdbc-4</artifactId>
+				<version>1.0.2</version>
+			</dependency>
+			<dependency>
+				<groupId>com.openlink.virtuoso</groupId>
+				<artifactId>virtuoso-jena</artifactId>
+				<version>2.5.0</version>
+			</dependency>
+			
+			<!-- Jena -->
+			<dependency>
+				<groupId>org.apache.jena</groupId>
+				<artifactId>jena-arq</artifactId>
+				<version>2.13.0</version>
+				<exclusions>
+					<exclusion>
+						<artifactId>slf4j-api</artifactId>
+						<groupId>org.slf4j</groupId>
+					</exclusion>
+					<exclusion>
+						<artifactId>slf4j-log4j12</artifactId>
+						<groupId>org.slf4j</groupId>
+					</exclusion>
+					<exclusion>
+						<groupId>com.fasterxml.jackson.core</groupId>
+						<artifactId>jackson-core</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.jena</groupId>
+				<artifactId>jena-core</artifactId>
+				<version>2.13.0</version>
+				<exclusions>
+					<exclusion>
+						<artifactId>slf4j-api</artifactId>
+						<groupId>org.slf4j</groupId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-core</artifactId>
+				<version>2.25.1</version>
+				<scope>test</scope>
+			</dependency>
+  		</dependencies>
+  		
+  	</dependencyManagement>
+
+	<repositories>
+		<repository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>tbi_artifactory_central</id>
+			<name>TBI libs-release</name>
+			<url>artifactory_url</url>
+		</repository>
+		<repository>
+			<snapshots>
+				<updatePolicy>always</updatePolicy>
+			</snapshots>
+			<id>tbi_artifactory_snapshots</id>
+			<name>TBI libs-snapshot</name>
+			<url>artifactory_url</url>
+		</repository>
+		<repository>
+			<id>Central-Repository</id>
+			<name>Central Repository</name>
+			<url>http://repo1.maven.org/maven2</url>
+		</repository>				
+	</repositories>
+
+	<scm>
+		<developerConnection>
+			scm:svn:file:///apps/tbi_repo/svn/tbi_dev/source/tags/brics-3.2.0.SNAPSHOT
+		</developerConnection>
+	</scm>
+	
+	<distributionManagement>
+		<repository>
+			<id>tbi_artifactory_server</id>
+			<name>libs-release</name>
+			<url>artifactory_url</url>
+		</repository>
+		<snapshotRepository>
+			<id>tbi_artifactory_server</id>
+			<name>libs-snapshot</name>
+			<url>artifactory_url</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+</project>

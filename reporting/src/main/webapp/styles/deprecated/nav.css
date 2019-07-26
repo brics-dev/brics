@@ -1,0 +1,367 @@
+/* Styles for primary navigation; secondary navigation (FITBIR Summary Data and About FITBIR links), dropdown menu for About FITBIR, and left column subnavigation links. */
+
+/* Navigation > see mark up on /includes/navigation.htm current state is added by javascript */
+#navigation {
+	position: relative;
+	width: 960px;
+	margin: 0 auto;
+}
+
+#navigation .nav-wrapper {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 960px;
+	z-index: 1;
+}
+
+#primary-nav {
+	list-style: none;
+	line-height: normal;
+	margin: 0;
+}
+
+#primary-nav li {
+	float: left;
+	background: url(../images/layout/bkg-primary-nav.gif) no-repeat 100% 0;
+	padding-right: 3px;
+	height: 42px;
+}
+
+#primary-nav li a {
+	color: #fff;
+	font-weight: bold;
+	display: block;
+	padding: 8px 15px;
+	text-decoration: none;
+	height: 26px;
+}
+
+#primary-nav li a.current {
+	background: url(../images/layout/bkg-current-nav.gif) no-repeat 50% 1px;
+	color: #362f2d;
+}
+
+#primary-nav li a:hover {
+	text-decoration: underline;
+}
+
+#primary-nav li#home-link a span,#primary-nav li#home-link a:hover span
+	{
+	background: url(../images/layout/icn_hm_white.png) no-repeat 0 0;
+	padding-left: 18px;
+}
+
+#primary-nav li a.current  span {
+	background: url(../images/layout/icn_hm_gray.png) no-repeat 0 0
+		!important;
+}
+
+/* styles for secondary navigation: "FITBIR Summary Data" and "About FITBIR" links */
+#secondary-nav {
+	list-style: none;
+	line-height: normal;
+	margin: 2px 0 0 0;
+}
+
+#secondary-nav li {
+	float: right;
+	margin-left: 5px;
+	font: 13px/28px Arial;
+}
+
+#secondary-nav li a {
+	display: block;
+	color: #141f64;
+	padding: 0 20px;
+	text-decoration: none;
+}
+
+#secondary-nav li a.current {
+	color: #666;
+}
+
+#secondary-nav li#about-link {
+	width: 138px;
+}
+
+#secondary-nav li#about-link a {
+	background-image: url(../images/layout/bkg-about.png);
+	background-repeat: no-repeat;
+	background-position: 0 0;
+	height: 28px;
+}
+
+#secondary-nav li#about-link a.current {
+	background-position: 0 -56px;
+	height: 38px;
+}
+
+#secondary-nav li#about-link a:hover,#secondary-nav li#about-link:hover a
+	{
+	background-position: 0 -28px;
+	color: #141f64;
+}
+
+#secondary-nav li#data-link {
+	width: 174px;
+}
+
+#secondary-nav li#data-link a {
+	background-image: url(../images/layout/bkg-data.png);
+	background-repeat: no-repeat;
+	background-position: 0 0;
+	height: 28px;
+}
+
+#secondary-nav li#data-link a.current {
+	background-position: 0 -56px;
+	height: 38px;
+}
+
+#secondary-nav li#data-link a:hover,#secondary-nav li#data-link:hover a
+	{
+	background-position: 0 -28px;
+	height: 28px;
+	color: #141f64;
+}
+
+/* styles for "About FITBIR" dropdown menu */
+#secondary-nav ul #dropdown-wrapper {
+	background: url(../images/layout/bkg-dropdown-ul-bottom.png) no-repeat 0
+		100%;
+	padding: 0 0 10px 0
+}
+
+#secondary-nav ul {
+	margin: 0 0 10px 0;
+	padding: 10px 0 0 0;
+	list-style: none;
+	text-align: left;
+	background: url(../images/layout/bkg-dropdown-ul-top.png) no-repeat 0 0;
+	position: absolute;
+	width: 214px;
+	left: -9999em;
+	top: 26px;
+	right: 0;
+	text-align: left;
+}
+
+#secondary-nav ul li {
+	float: none;
+	margin: 4px 0;
+	padding: 0;
+	font: bold 13px/normal Arial;
+}
+
+#secondary-nav ul li.tertiary-links {
+	margin: 2px 0;
+	font: normal 11px/normal Arial;
+}
+
+#secondary-nav ul li a {
+	background-image: none !important;
+	padding: 1px 8px !important;
+	height: auto !important;
+}
+
+#secondary-nav li:hover ul {
+	left: auto;
+	z-index: 100;
+}
+
+#secondary-nav ul li a:hover {
+	text-decoration: underline;
+}
+
+/* left side subnavigation on secondary pages */
+ul.subnavigation {
+	float: left;
+	width: 240px;
+	list-style-type: none;
+	font-size: 13px;
+	margin: 0;
+}
+
+ul.subnavigation li {
+	margin: 4px 0;
+	text-align: left;
+	line-height: 2;
+	font-weight: bold;
+}
+
+ul.subnavigation li div.missingPermission {
+	display: block;
+	height: 45px;
+	padding-right: 16px;
+	padding-left: 10px;
+	text-decoration: none;
+	color: #777;
+}
+
+ul.subnavigation li div.missingPermission:hover {
+	background: url(../images/layout/bkg-subnavigation-primary.png)
+		no-repeat 0 0;
+}
+
+ul.subnavigation li a {
+	display: block;
+	height: 37px;
+	padding-right: 16px;
+	padding-left: 10px;
+	text-decoration: none;
+}
+
+ul.subnavigation li.active a {
+	background: url(../images/layout/bkg-subnavigation.png) no-repeat 0
+		-37px;
+	color: #fff;
+} /* arrow points to the right */
+ul.subnavigation li.active-sub a {
+	background: url(../images/layout/bkg-subnavigation.png) no-repeat 0
+		-74px;
+	color: #fff;
+} /* arrow points down */
+ul.subnavigation li.active a:hover {
+	background: url(../images/layout/bkg-subnavigation.png) no-repeat 0
+		-37px;
+}
+
+ul.subnavigation li.active-sub a:hover {
+	background: url(../images/layout/bkg-subnavigation.png) no-repeat 0
+		-74px;
+}
+
+ul.subnavigation li a:hover {
+	background: url(../images/layout/bkg-subnavigation.png) no-repeat 0 0;
+}
+
+/* styling the tertiary links that appear on the left side subnavigation */
+ul.subnavigation li.display-ter-nav {
+	background: url(../images/layout/bkg-active-sub.png) no-repeat 0 0;
+} /* has the bordered top and side lines for the tertiary nav */
+ul.subnavigation li.display-ter-nav a {
+	height: 37px;
+}
+
+ul.subnavigation ul.tertiary-links {
+	margin: 0;
+	padding: 0 0 2px 0;
+	list-style: none;
+	background: url(../images/layout/bkg-active-sub.png) no-repeat 0 100%;
+} /* has the bordered bottom and side lines for the tertiary nav */
+ul.subnavigation ul.tertiary-links li {
+	margin: 4px 0;
+	font-size: 11px;
+	background: none;
+	line-height: 22px;
+}
+
+ul.subnavigation ul.tertiary-links li a {
+	height: 22px;
+	background: none;
+	color: #141f64;
+}
+
+ul.subnavigation ul.tertiary-links li.active-ter a {
+	background: url(../images/layout/bkg-tertiary-link.png) no-repeat 100%
+		-22px;
+}
+
+ul.subnavigation ul.tertiary-links li a:hover {
+	background: url(../images/layout/bkg-tertiary-link.png) no-repeat 100% 0;
+	color: #141f64;
+}
+
+ul.subnavigation ul.tertiary-links li.active-ter a:hover {
+	background: url(../images/layout/bkg-tertiary-link.png) no-repeat 100%
+		-22px;
+}
+
+/* left side navigation for primary pages. This navigation is narrow in width and taller in height */
+.primary ul.subnavigation {
+	width: 163px;
+}
+
+.primary ul.subnavigation li {
+	margin: 0 0 2px 0;
+	text-align: left;
+	line-height: 3;
+}
+
+.primary ul.subnavigation li.long-text {
+	line-height: normal;
+	padding-top: 4px;
+}
+
+.primary ul.subnavigation li a {
+	height: 45px;
+}
+
+.primary ul.subnavigation li.long-text a {
+	height: 45px;
+}
+
+.primary ul.subnavigation li.active a {
+	background: url(../images/layout/bkg-subnavigation-primary.png)
+		no-repeat 0 -45px;
+}
+
+.primary ul.subnavigation li.active-sub a {
+	background: url(../images/layout/bkg-subnavigation-primary.png)
+		no-repeat 0 -90px;
+} /* arrow points down */
+.primary ul.subnavigation li.active a:hover {
+	background: url(../images/layout/bkg-subnavigation-primary.png)
+		no-repeat 0 -45px;
+}
+
+.primary ul.subnavigation li.active-sub a:hover {
+	background: url(../images/layout/bkg-subnavigation-primary.png)
+		no-repeat 0 -90px;
+}
+
+.primary ul.subnavigation li a:hover {
+	background: url(../images/layout/bkg-subnavigation-primary.png)
+		no-repeat 0 0;
+}
+
+.primary ul.subnavigation li.display-ter-nav {
+	background: url(../images/layout/bkg-active-sub-2.png) no-repeat 0 0;
+} /* has the bordered top and side lines for the tertiary nav */
+.primary ul.subnavigation li.display-ter-nav a {
+	height: 45px;
+}
+
+.primary ul.subnavigation ul.tertiary-links {
+	margin: 0;
+	padding: 0 0 2px 0;
+	background: url(../images/layout/bkg-active-sub-2.png) no-repeat 0 100%;
+} /* has the bordered bottom and side lines for the tertiary nav */
+.primary ul.subnavigation ul.tertiary-links li {
+	margin: 4px 0;
+	font-size: 11px;
+	background: none;
+	line-height: 22px;
+}
+
+.primary ul.subnavigation ul.tertiary-links li a {
+	height: 22px;
+	background: none;
+	color: #141f64;
+}
+
+.primary ul.subnavigation ul.tertiary-links li.active-ter a {
+	background: url(../images/layout/bkg-tertiary-link-2.png) no-repeat 0
+		-22px;
+}
+
+.primary ul.subnavigation ul.tertiary-links li a:hover {
+	background: url(../images/layout/bkg-tertiary-link-2.png) no-repeat 0 0;
+	color: #141f64;
+}
+
+.primary ul.subnavigation ul.tertiary-links li.active-ter a:hover {
+	background: url(../images/layout/bkg-tertiary-link-2.png) no-repeat 0
+		-22px;
+}

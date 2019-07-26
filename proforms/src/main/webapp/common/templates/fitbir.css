@@ -1,0 +1,85 @@
+/* body and content wrapper styles */      
+
+body {
+  background-color: #141f64;
+  color: #362f2d; }
+
+#content-wrapper {background: white;}
+
+/* Calls to action button */
+.action-button a {
+  background: #004d00;
+  border: 2px solid;
+  border-color: gray;
+  color: white; }
+  .action-button a:hover, .action-button a:focus {
+    background: #678747;
+    border-color: #a8a8a8; }
+.action-button.disabled a {
+  background: #a8a8a8;
+  color: white;
+  border-color: #a8a8a8; }
+  .action-button.disabled a:hover, .action-button.disabled a:focus {
+    background: #a8a8a8;
+    color: white; }
+
+/* Header and Footer Styles */
+/* Header styles */
+#header {
+  background-color: #ececec;
+  border-color: white; }
+  #header .content {
+    background: url(images/layout/bkg-header.png) no-repeat 200px 0; }
+
+#logo {
+  background: url(images/layout/logo.png) no-repeat 0 0; }
+
+/* login button and form */
+#login-link a {
+  background: url(images/layout/bkg-login-btn.png) no-repeat 0 0;
+  color: white;
+  text-decoration: none; }
+  #login-link a.expanded {
+    background: url(images/layout/bkg-login-btn-expanded.png) no-repeat 0 0;
+    color: #141f64; }
+
+#login-panel {
+  background: url(images/layout/bkg-login-panel-bottom.png) no-repeat 0 100%; }
+
+#login-wrapper {
+  background: url(images/layout/bkg-login-panel-top.png) no-repeat 0 0; }
+
+/* Styles for primary navigation; secondary navigation (FITBIR Summary Data and About FITBIR links), dropdown menu for About FITBIR, and left column subnavigation links. */
+/* Navigation > see mark up on /includes/navigation.htm current state is added by javascript */
+  #primary-nav li a {
+    color: white; }
+    #primary-nav li a.current {
+      background: url(images/layout/bkg-current-nav.gif) no-repeat 50% 1px;
+      color: #000;
+      height: 26px; }
+
+
+/* Footer styles */
+#footerDiv {
+  background: #141f64;
+  /* Old browsers */
+  background: -moz-linear-gradient(top, #362f2d 0%, #141f64 80%);
+  /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #362f2d), color-stop(80%, #141f64));
+  /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top, #362f2d 0%, #141f64 80%);
+  /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top, #362f2d 0%, #141f64 80%);
+  /* Opera 11.10+ */
+  background: -ms-linear-gradient(top, #362f2d 0%, #141f64 80%);
+  /* IE10+ */
+  background: linear-gradient(to bottom, #362f2d 0%, #141f64 80%);
+  /* W3C */ }
+
+#footer a {
+  color: white; }
+
+.contact {
+  color: white; }
+  .contact h4, .contact h5 {
+    color: white; }

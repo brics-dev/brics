@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<queries>
+	<query>
+		<!-- **** modified query to include creator_sub_user_id -->
+		<name> create 
+		</name>
+		<sql> INSERT INTO subject_request (subject_id, requestor_id, notification_status, creator_user_id, date_requested) VALUES (?,?,?,?,NOW()) 
+		</sql>
+	</query>
+	<query>
+		<name> findBySubjectId 
+		</name>
+		<sql> SELECT * FROM subject_request WHERE subject_id=? 
+		</sql>
+	</query>
+	<!-- Commented out query because it's not being used anywhere in the system. <query> <name>update</name> <sql>UPDATE subject_request SET subject_id=?, notification_status=?, updater_id=?, date_updated=NOW() WHERE subject_request_id=?</sql> </query> -->
+</queries>

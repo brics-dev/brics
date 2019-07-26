@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC "-//Apache Struts//XWork Validator 1.0.2//EN" "/WEB-INF/xwork-validator-1.0.2.dtd">
+<validators>
+	<field name="submitDateFrom">
+		<field-validator type="requiredstring">
+			<param name="trim"> true
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="isodatevalidator">
+			<message key="errors.isoDateFormat" />
+		</field-validator>
+	</field>
+	<field name="submitDateTo">
+		<field-validator type="requiredstring">
+			<param name="trim"> true
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="isodatevalidator">
+			<message key="errors.isoDateFormat" />
+		</field-validator>
+		<field-validator type="biospecimenorderstartenddatevalidator">
+			<message key="errors.ToFromDate"/>
+		</field-validator>
+	</field>
+</validators>

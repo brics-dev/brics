@@ -1,0 +1,96 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dataset>
+  <disease id="1" disease_name="General (For all diseases)" is_active="true"/>
+  <disease id="2" disease_name="Congenital Muscular Dystrophy" is_active="true"/>
+  <disease id="3" disease_name="Epilepsy" is_active="false"/>
+  <classification id="1" classification_name="Exploratory" is_active="true"/>
+  <classification id="2" classification_name="Core" is_active="true"/>
+  <classification id="3" classification_name="Supplemental" is_active="false"/>
+  <domain_de id="1" domain_name="Participant/Subject Characteristics" is_active="true" />
+  <domain_de id="2" domain_name="Assessments and Examinations" is_active="true" />
+  <domain_de id="3" domain_name="Protocol Experience" is_active="false" />
+  <sub_domain id="1" sub_domain_name="Vital Signs and Other Body Measures" is_active="true" />
+  <sub_domain id="2" sub_domain_name="Demographics" is_active="true" />
+  <sub_domain id="3" sub_domain_name="Physical/Neurological Examination" is_active="false" />
+  <crf_module id="1" crf_module_name="Family History" is_active="true" />
+  <crf_module id="2" crf_module_name="Behavioral History" is_active="true" />
+  <crf_module id="3" crf_module_name="Physical Exam" is_active="false" />
+ 
+  <data_structure short_name="new_ds" version="1" title="new data structure v1" status_id="3" id="1" validatable="false" organization="Salvation Army" description="We pickup donations and stuff"/>
+  <data_structure short_name="new_ds" version="2"
+  	title="new data structure v2" status_id="2" validatable="true" id="2"
+  	description="This is a description" organization="CIT">
+  </data_structure>
+  <data_structure short_name="new_ds" version="3"
+  	title="new data structure v3" status_id="0" validatable="true" id="3"
+  	description="National Database for Autism Research" organization="NDAR" />
+  <data_structure short_name="basic" version="1" title="basic data structure" status_id="1" validatable="true" id="4"></data_structure>
+  <data_structure short_name="test" version="1" title="test my data structure v1" status_id="2" validatable="true" id="5"/>
+  <data_structure short_name="test" version="2" title="test my data structure v2" status_id="0" id="6"/>
+  <data_element element_name="subjectkey"
+  	description="the subject identifier" format="ndar*" element_type_id="0"
+  	short_description="guid" element_size="20" id="1" title="This is a CDE name" reference="These are the references" classification="1" domain_id="1" SUB_DOMAIN="2" guidelines="These are some guidelines and instructions"
+  	common_data_element_flag="true" historicalNotes="This is for legacy information about this data element"/>
+  <data_element element_name="interview_date" 
+  	element_type_id="2" description="date of the interview"
+  	format="mm/dd/yyyy" short_description="date" id="2" title="Coolest title evar"
+  	common_data_element_flag="true" />
+  <data_element element_name="interview_age" title="interview_age"  element_type_id="1" description="age at which the interview was conducted" short_description="age" domain_id="1" id="3"
+  	common_data_element_flag="true"/>
+  <data_element element_name="comments" title="comments"  element_type_id="0" description="any notes that pertain to the interview" short_description="notes" element_size="4000" id="4"
+  	common_data_element_flag="false"/>
+  <data_element element_name="unattached" title="unattached"  element_type_id="2" description="any notes that pertain to the interview" short_description="notes" element_size="4000" id="5"
+  	common_data_element_flag="false"/>
+  <data_element element_name="unattached 2" title="unattached 2"  element_type_id="1" description="any notes that pertain to the interview" short_description="notes" element_size="4000" id="6"
+  	common_data_element_flag="false"/>
+  <data_element element_name="gender" title="gender"  element_type_id="0" description="gender of subject" short_description="date" id="7"
+  	common_data_element_flag="false"/>
+  <alias id="1" name="Alias1" data_element_id="1" />
+  <alias id="2" name="Alias2" data_element_id="4" />
+  <alias id="3" name="Blood Type" data_element_id="1" />
+  <value_range id="1" data_element_id="1" value_range="1 to 5" description="one to five" />
+  <value_range id="2" data_element_id="3" value_range="0 to 1200" description="one to Twelve Thousand" />
+  <value_range id="3" data_element_id="7" value_range="M" description="male values" />
+  <value_range id="4" data_element_id="7" value_range="F" description="female values" />
+  <repeatable_group id="1" threshold="1" data_structure_id="1" name="ForDS1" type_id="0" />
+  <repeatable_group id="2" threshold="2" data_structure_id="2" name="ForDS2" type_id="1" />
+  <repeatable_group id="3" threshold="3" data_structure_id="3" name="ForDS3" type_id="2" />
+  <repeatable_group id="4" threshold="4" data_structure_id="4" name="ForDS4" type_id="1" />
+  <repeatable_group id="5" threshold="5" data_structure_id="5" name="ForDS5" type_id="2" />
+  <repeatable_group id="6" threshold="6" data_structure_id="6" name="ForDS6" type_id="0" />
+  <map_element repeatable_group_id="1" position="1" data_element_id="1" required_type_id="1" id="1"/>
+  <map_element repeatable_group_id="1" position="2" data_element_id="2" required_type_id="2" id="2"/>
+  <map_element repeatable_group_id="1" position="3" data_element_id="3" required_type_id="3" id="3"/>
+  <map_element repeatable_group_id="2" position="2" data_element_id="2" required_type_id="0" id="4"/>
+  <map_element repeatable_group_id="2" position="1" data_element_id="3" required_type_id="1" id="5"/>
+  <map_element repeatable_group_id="3" position="2" data_element_id="1" required_type_id="2" id="6"/>
+  <map_element repeatable_group_id="3" position="1" data_element_id="2" required_type_id="3" id="7"/>
+  <map_element repeatable_group_id="3" position="4" data_element_id="3" required_type_id="2" id="8"/>
+  <map_element repeatable_group_id="3" position="3" data_element_id="4" required_type_id="2" id="9"/>
+  <map_element repeatable_group_id="4" position="1" data_element_id="1" required_type_id="0" id="10"/>
+  <map_element repeatable_group_id="5" position="1" data_element_id="1" required_type_id="0" id="11"/>
+  <map_element repeatable_group_id="5" position="2" data_element_id="2" required_type_id="1" id="12"/>
+  <map_element repeatable_group_id="6" position="1" data_element_id="1" required_type_id="1" id="13"/>
+  <keyword keyword_name="car" id="1" count="0"/>
+  <keyword keyword_name="boat" id="2" count="0"/>
+  <keyword keyword_name="train" id="3" count="0"/>
+  <keyword keyword_name="airplane" id="4" count="0"/>
+  <keyword keyword_name="motorcycle" id="5" count="0"/>
+  <keyword_element data_element_id="1" keyword_id="1" id="1"/>
+  <keyword_element data_element_id="1" keyword_id="2" id="2"/>
+  <keyword_element data_element_id="1" keyword_id="3" id="3"/>
+  <keyword_element data_element_id="2" keyword_id="4" id="4"/>
+  <keyword_element data_element_id="2" keyword_id="5" id="5"/>
+  <keyword_element data_element_id="2" keyword_id="1" id="6"/>
+  <keyword_element data_element_id="2" keyword_id="2" id="7"/>
+  <keyword_element data_element_id="3" keyword_id="5" id="8"/>
+  <keyword_element data_element_id="4" keyword_id="4" id="9"/> 
+  <disease_element id="1" />
+  <crf_module_element id="1" />
+  <trail id="1" />
+  <data_element_external_id id="1" />
+  
+  <!-- TABLES TO DELETE TO PREVENT FOREIGN KEY ERRORS -->
+  <datastore_info/>
+  <disease_structure/>
+</dataset>

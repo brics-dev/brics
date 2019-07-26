@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+        "http://struts.apache.org/dtds/struts-2.5.dtd">
+ 
+<struts>
+
+	<package name="protocol" namespace="/protocol" extends="default">
+		<global-allowed-methods>execute,input,back,cancel,browse,edit,create,view,search,list,submit</global-allowed-methods>
+		<!-- Study Details -->
+        <action name="showStudy" class="gov.nih.nichd.ctdb.protocol.action.StudyAction" method="showStudy">
+            <result name="success">studyForm.jsp</result>
+        </action>
+        <action name="protocolBlankSubjectIds" class="gov.nih.nichd.ctdb.protocol.action.StudyAction" method="areAnyPatientsWithBlankSubjectId">
+        </action>
+		<action name="getBricsStudy" class="gov.nih.nichd.ctdb.protocol.action.StudyAction" method="getBricsStudy">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>        
+        <action name="saveStudy" class="gov.nih.nichd.ctdb.protocol.action.StudyAction" method="saveStudy">
+            <result name="success">studyForm.jsp</result>
+            <result name="exception">studyForm.jsp</result>
+        </action>
+        <action name="processSite" class="gov.nih.nichd.ctdb.protocol.action.StudyAction" method="processSite">
+            <result name="success">studyForm.jsp</result>
+            <result name="exception">studyForm.jsp</result>
+        </action>
+        <action name="processDrugDevice" class="gov.nih.nichd.ctdb.protocol.action.StudyAction" method="processDrugDevice">
+            <result name="success">studyForm.jsp</result>
+            <result name="exception">studyForm.jsp</result>
+        </action>
+        <action name="createStudyFromDashboard" class="gov.nih.nichd.ctdb.protocol.action.StudyAction" method="createStudyFromDashboard">
+            <result name="success" type="redirectAction">showStudy</result>
+            <result name="exception">../home.jsp</result>
+        </action>
+        
+        <action name="createProtocol" class="gov.nih.nichd.ctdb.protocol.action.StudyAction" method="createProtocol">
+            <result name="success">studyForm.jsp</result>
+        </action>
+
+		<action name="createBricsStudy" class="gov.nih.nichd.ctdb.protocol.action.StudyAction" method="createBricsStudy">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action> 
+		        
+        <action name="saveProtocol" class="gov.nih.nichd.ctdb.protocol.action.StudyAction" method="saveProtocol">
+            <result name="success">studyForm.jsp</result>
+            <result name="exception">studyForm.jsp</result>
+        </action>
+        
+        <action name="protocolClinicalLocationAction" class="gov.nih.nichd.ctdb.protocol.action.StudyAction">
+            <result name="success">addProtocolClinicalLocations.jsp</result>
+        	<result name="exception">studyForm.jsp</result>
+            <allowed-methods>getProtoClinicalLocationDTList,addProtoClinicalLocation,editProtoClinicalLocation,deleteProtoClinicalLocation</allowed-methods>
+        </action>
+        
+        <action name="protocolProcedureAction" class="gov.nih.nichd.ctdb.protocol.action.StudyAction">
+            <result name="success">addProtocolProcedures.jsp</result>
+        	<result name="exception">studyForm.jsp</result>
+            <allowed-methods>getProtoProcedureDTList,addProtoProcedure,deleteProtoProcedure</allowed-methods>
+        </action>
+        
+        <action name="protocolPointOfContactAction" class="gov.nih.nichd.ctdb.protocol.action.StudyAction">
+            <result name="success">addProtocolPointOfContacts.jsp</result>
+        	<result name="exception">studyForm.jsp</result>
+            <allowed-methods>getProtoPointOfContactDTList,addProtoPointOfContact,editProtoPOintOfContact,deleteProtoPointOfContact</allowed-methods>
+        </action>
+        
+        <action name="protocolMilesStoneAction" class="gov.nih.nichd.ctdb.protocol.action.StudyAction">
+            <result name="success">addProtocolMilesStones.jsp</result>
+        	<result name="exception">studyForm.jsp</result>
+            <allowed-methods>getProtoMilesStoneDTList,addProtoMilesStone,editProtoMilesStone,deleteProtoMilesStone</allowed-methods>
+        </action>
+        
+		<!-- Assign Roles -->
+        <action name="protocolUser" class="gov.nih.nichd.ctdb.protocol.action.ProtocolUsersAction">
+            <result name="success">protocolUsersForm.jsp</result>
+        </action>
+		<action name="getProtocolRoleUser" class="gov.nih.nichd.ctdb.protocol.action.ProtocolUsersAction" method="getProtocolRoleUser">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>         
+        <action name="saveAssignment" class="gov.nih.nichd.ctdb.protocol.action.ProtocolUsersAction" method="saveAssignment">
+			<result name="success" type="redirectAction">protocolUser</result>
+            <result name="exception">protocolUsersForm.jsp</result>
+        </action>
+        
+		<!-- Visit Types -->
+        <action name="editVisitType" class="gov.nih.nichd.ctdb.protocol.action.IntervalAction">
+            <result name="success">intervalForm.jsp</result>
+            <result name="exception" type="redirectAction">visitTypeHome</result>
+        </action>
+        <action name="saveVisitType" class="gov.nih.nichd.ctdb.protocol.action.IntervalAction" method="saveVisitType">
+            <result name="success" type="redirectAction">visitTypeHome</result>
+            <result name="exception">intervalForm.jsp</result>
+        </action>
+        <action name="visitTypeHome" class="gov.nih.nichd.ctdb.protocol.action.IntervalHomeAction">
+            <result name="success">intervalHome.jsp</result>
+        </action>
+        <action name="orderVisitType" class="gov.nih.nichd.ctdb.protocol.action.IntervalHomeAction" method="orderVisitType">
+            <result name="success">intervalOrder.jsp</result>
+            <result name="exception">intervalOrder.jsp</result>
+        </action>
+        <action name="saveVisitTypeOrder" class="gov.nih.nichd.ctdb.protocol.action.IntervalHomeAction" method="saveVisitTypeOrder">
+        	<result name="success" type="redirectAction">orderVisitType</result>
+            <result name="exception">intervalOrder.jsp</result>
+        </action>
+        <action name="getVisitTypeList" class="gov.nih.nichd.ctdb.protocol.action.IntervalHomeAction" method="getVisitTypeList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonString</param>
+			</result>
+			<result name="badRequest" type="httpheader">
+				<param name="error">400</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+		</action>
+		<action name="configurePSReFormsHome" class="gov.nih.nichd.ctdb.protocol.action.ConfigureEformsHomeAction">
+            <result name="success">configureEformsHome.jsp</result>
+        </action>
+		<action name="getEformConfigureList" class="gov.nih.nichd.ctdb.protocol.action.ConfigureEformsHomeAction" method="getEformConfigureList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonString</param>
+			</result>
+			<result name="badRequest" type="httpheader">
+				<param name="error">400</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+		</action>
+		<action name="configureEform" class="gov.nih.nichd.ctdb.protocol.action.ConfigureEformsAction">
+            <result name="success">configureEform.jsp</result>
+        </action>
+		<action name="configureEformAjax" class="gov.nih.nichd.ctdb.protocol.action.ConfigureEformsAction">
+            <result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonString</param>
+			</result>
+        </action>
+        <action name="configureEformAudit" class="gov.nih.nichd.ctdb.protocol.action.ConfigureEformsAuditAction">
+            <result name="success">configureEformAudit.jsp</result>
+        </action>
+        
+        <action name="getConfigureEformAuditList" class="gov.nih.nichd.ctdb.protocol.action.ConfigureEformsAuditAction" method="getConfigureEformAuditList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>
+        
+        
+        
+        <action name="deleteVisitType" class="gov.nih.nichd.ctdb.protocol.action.IntervalHomeAction" method="deleteVisitType">
+            <result name="success">intervalHome.jsp</result>
+            <result name="exception">intervalHome.jsp</result>
+        </action>
+        <action name="intervalAudit" class="gov.nih.nichd.ctdb.protocol.action.IntervalAuditAction">
+            <result name="success">intervalAudit.jsp</result>
+        </action>
+        <action name="getPrePopDeArrayByEformNameArray" class="gov.nih.nichd.ctdb.protocol.action.IntervalAction" method="queryPrePopDeJsArrayByEformNameArray" >
+        	<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonString</param>
+			</result>
+			<result name="badRequest" type="httpheader">
+				<param name="error">400</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+        </action>
+        <action name="getPrePopDeArrayByEformName" class="gov.nih.nichd.ctdb.protocol.action.IntervalAction" method="queryPrePopDeJsArrayByEformName">
+        	<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonString</param>
+			</result>
+			<result name="badRequest" type="httpheader">
+				<param name="error">400</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+        </action>
+        <action name="intervalClinicalPointAction" class="gov.nih.nichd.ctdb.protocol.action.IntervalAction">
+			<allowed-methods>getIntervalClinicalPointDTList,addIntervalClinicalPoint,editIntervalClinicalPoint,deleteIntervalClinicalPoint</allowed-methods>
+		</action>
+
+        
+		<!-- Documents -->
+        <action name="studyDocument" class="gov.nih.nichd.ctdb.protocol.action.StudyDocumentAction">
+            <result name="success">studyDocumentForm.jsp</result>
+            <result name="input">studyDocumentForm.jsp</result>
+            <result name="exception">studyDocumentForm.jsp</result>
+        </action>
+        <action name="saveDocument" class="gov.nih.nichd.ctdb.protocol.action.StudyDocumentAction" method="saveDocument">
+			<result name="success" type="redirectAction">studyDocument</result>
+            <result name="exception">studyDocumentForm.jsp</result>
+            <result name="input">studyDocumentForm.jsp</result>
+        </action>
+        <action name="deleteDocument" class="gov.nih.nichd.ctdb.protocol.action.StudyDocumentAction" method="deleteDocument">
+            <result name="success" type="redirectAction">studyDocument</result>
+            <result name="exception">studyDocumentForm.jsp</result>
+        </action>
+        
+		<!-- Contacts -->
+        <action name="studyContact" class="gov.nih.nichd.ctdb.protocol.action.StudyContactAction">
+            <result name="success">studyContactForm.jsp</result>
+        </action>
+        <action name="saveContact" class="gov.nih.nichd.ctdb.protocol.action.StudyContactAction" method="saveContact">
+			<result name="success" type="redirectAction">studyContact</result>
+            <result name="exception">studyContactForm.jsp</result>
+        </action>
+        <action name="deleteContact" class="gov.nih.nichd.ctdb.protocol.action.StudyContactAction" method="deleteContact">
+            <result name="success" type="redirectAction">studyContact</result>
+            <result name="exception">studyContactForm.jsp</result>
+        </action>
+
+		<!-- Ebinder -->
+        <action name="studyEbinder" class="gov.nih.nichd.ctdb.protocol.action.StudyEbinderAction">
+            <result name="success">studyEbinderForm.jsp</result>
+        </action>
+        <action name="saveEbinder" class="gov.nih.nichd.ctdb.protocol.action.StudyEbinderAction" method="saveEbinder">
+        		<result name="success">studyEbinderForm.jsp</result>
+			<result name="input">studyEbinderForm.jsp</result>
+        </action>
+        <action name="uploadFile" class="gov.nih.nichd.ctdb.protocol.action.StudyEbinderAction" method="uploadFile">
+			<result name="success">studyEbinderHiddenFileForm.jsp</result>
+            <result name="exception">studyEbinderForm.jsp</result>
+        </action>
+        <action name="deleteFile" class="gov.nih.nichd.ctdb.protocol.action.StudyEbinderAction" method="deleteFile">
+        		<result name="success">studyEbinderForm.jsp</result>
+            <result name="input">studyEbinderForm.jsp</result>
+        </action>
+
+    	<action name="protocolCloseout" class="gov.nih.nichd.ctdb.protocol.action.ProtocolCloseoutAction">
+        		<result name="success">protocolCloseoutForm.jsp</result>
+        </action>
+        
+        <action name="protocolSignature" class="gov.nih.nichd.ctdb.protocol.action.ProtocolCloseoutAction" method="digitalSignature">
+        		<result name="success">protocolCloseoutForm.jsp</result>
+        		<allowed-methods>digitalSignature</allowed-methods>
+        </action>
+        
+        <action name="saveProtocolCloseout" class="gov.nih.nichd.ctdb.protocol.action.ProtocolCloseoutAction" method="saveProtocolCloseout">
+        		<result name="success" type="redirectAction">protocolCloseout</result>
+        </action>
+
+		<!-- Protocol Administration -->
+		<action name="protocolDelete" class="gov.nih.nichd.ctdb.protocol.action.ProtocolAdminAction" method="deleteProtocols">
+			<result name="success" type="redirectAction">
+				<param name="actionName">pickStudy</param>
+				<param name="namespace">/</param>
+			</result>
+		</action>
+		<action name="protocolAudit" class="gov.nih.nichd.ctdb.protocol.action.ProtocolAdminAction" method="protocolAudit">
+			<result name="success">protocolAudit.jsp</result>
+		</action>
+	</package>
+	<package name="studyJson" namespace="/studyjson" extends="json-default" >
+		<action name="getSite" class="gov.nih.nichd.ctdb.protocol.action.StudyAction" method="getSiteJSONData">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonString</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">An error occurred while getting the data for a site.</param>
+			</result>
+        </action>
+		<action name="getDrugDevice" class="gov.nih.nichd.ctdb.protocol.action.StudyAction" method="getDrugDeviceJSONData" >
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonString</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">An error occurred while getting the data for a drug device.</param>
+			</result>
+		</action>
+	</package>
+</struts>

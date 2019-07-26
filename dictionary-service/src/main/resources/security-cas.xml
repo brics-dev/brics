@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans" xmlns="http://www.springframework.org/schema/security" xsi:schemaLocation="http://www.springframework.org/schema/beans		http://www.springframework.org/schema/beans/spring-beans.xsd
+              							http://www.springframework.org/schema/security 	http://www.springframework.org/schema/security/spring-security.xsd">
+	
+	<http create-session="never" security="none" pattern="/images/**" />
+	<http create-session="never" security="none" pattern="/styles/**" />
+	<http create-session="never" security="none" pattern="/js/**" />
+	<http create-session="never" security="none" pattern="/common/**" />
+	<http create-session="never" security="none" pattern="/config/**" />
+	
+
+	<http security="none" pattern="/index.html" />
+
+	<http create-session="stateless" security="none" pattern="/publicData/**"/>
+		
+<!-- The default configuration for our project. Uses CAS authentication for any URL that does not match one of the patterns above, which should be all normal traffic. -->
+	<http authentication-manager-ref="authenticationManager" access-decision-manager-ref="accessDecisionManager" entry-point-ref="masterEntryPoint" auto-config="true" use-expressions="true">
+        
+		<!-- RESTFUL WEB SERVICES -->
+	    <intercept-url access="hasRole(&apos;ROLE_GUEST&apos;)" pattern="/api/v1/**"/>
+
+		<!-- This prevents the crazy login messages popping up after session timeout -->
+<!-- 		<session-management invalid-session-url="/jsp/login.jsp" /> -->
+		<access-denied-handler error-page="/jsp/error/aces-denied.html" />
+		<anonymous enabled="true" granted-authority="ROLE_GUEST" username="guest" />
+		<custom-filter position="CAS_FILTER" ref="casFilter" />
+<!-- 		CAS SINGLE SIGNOUT -->
+		<logout invalidate-session="true" delete-cookies="JSESSIONID" logout-success-url="/j_spring_cas_security_logout"/>
+		<custom-filter ref="requestSingleLogoutFilter" before="LOGOUT_FILTER" />
+		<custom-filter ref="singleLogoutFilter" before="CAS_FILTER" />
+	</http>
+	
+	<beans:bean id="casSecurityProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+		<beans:property name="locations">
+			<beans:list>
+				<beans:value>file:///${conf.root}/dictionary-service/cas.properties</beans:value>
+				<!-- <beans:value>file:///opt/apache-tomcat/brics/cas.properties</beans:value> -->
+			</beans:list>
+		</beans:property>
+		<beans:property name="ignoreResourceNotFound" value="true" />
+	</beans:bean>
+	
+<!-- ENTRY POINT: Specified as the authentication location for Spring Security (see http tag).-->
+<!-- Maintains list of CAS instances configured by the cas properties file. -->
+<!-- If an unathenticated request comes in this filter will prompt the user for authentication through CAS -->
+<!-- Selects a CAS based on URL. If no matching URL falls back to user selection (see defaultEntryPoint). This should never occur in normal operation -->
+	<beans:bean id="masterEntryPoint" class="gov.nih.tbi.account.service.complex.BricsAuthenticationEntryPoint">
+		<beans:property name="defaultEntryPoint" ref="entryPoint"/>
+	</beans:bean>
+	<beans:bean id="entryPoint" class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint" >
+		<beans:property name="loginFormUrl" value="/jsp/casSelect.jsp" />
+	</beans:bean>
+	
+	
+<!-- Catches POST requests that CAS makes back to portal as part of the CAS 2.0 protocol -->
+<!-- CAS posts successful authentications to /j_spring_cas_security_check where portal can catch and verify them. -->
+<!-- When a successful CAS authentication is made the PGT is supplied through a seperate POST also caught by this filter. -->
+<!-- This filter only catches POSTs coming from the CAS server to the two specificed URLs -->
+	<beans:bean id="casFilter"
+    		class="gov.nih.tbi.account.service.complex.BricsCasAuthenticationFilter">
+    	<beans:property name="authenticationManager" ref="authenticationManager"/>
+    	<beans:property name="filterProcessesUrl" value="/j_spring_cas_security_check"/>
+    	<beans:property name="proxyReceptorUrl" value="/j_spring_cas_proxy_callback" />
+    	<beans:property name="proxyGrantingTicketStorage" ref="proxyGrantingTicketStorage" />
+    	<beans:property name="sessionAuthenticationStrategy">
+                <beans:bean class="org.jasig.cas.client.session.BricsSessionFixationProtectionStrategy" />
+        </beans:property>
+  	</beans:bean>
+
+
+	<beans:bean id="proxyGrantingTicketStorage" class="org.jasig.cas.client.proxy.ProxyGrantingTicketStorageImpl" />
+	
+	
+	<!-- CAS SIGNOUT -->
+	<!-- This filter handles SLO Requests from the CAS Server because the user clicked logout in another application. -->
+	<!-- Performs a local logout without triggering an SLO logout (which has already been triggered) -->
+	<beans:bean id="singleLogoutFilter" class="org.jasig.cas.client.session.SingleSignOutFilter"/>
+	
+	<!-- This filter catches application logout requests (the user clicked log out link for this application. -->
+	<!-- Performs a local logout with the SpringContextLogoutHandler -->
+	<!-- Also maintains a list of CAS instances from cas.properties file and signals CAS to perform SSO logout. -->
+	<beans:bean id="requestSingleLogoutFilter" class="gov.nih.tbi.account.service.complex.BricsLogoutFilter">
+		<beans:constructor-arg>
+			<beans:bean class="org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler"/>
+		</beans:constructor-arg>
+		<!-- Logout link-->
+		<beans:property name="filterProcessesUrl" value="/j_spring_cas_security_logout"/>
+	</beans:bean>
+	
+	<!-- This is a manual implementaion of the beans that are created and configured with the spring security tag
+	"authentication-manager". That implementation does not allow you to specifiy a class. Since we want to override
+	ProviderManager with BricsProviderManager so we can dynamically create the authentication-providers and so we can
+	more intelliigently pick which providers to use (to avoid race conditions with an expiring cas service ticket) we
+	need to manually implement these beans but the end result is no different from using the <authentication-manager>
+	tag. Note the bean must be called authenticationManager because that is what the casFilter is looking for specifically. -->
+	<beans:bean id="authenticationManager" class="gov.nih.tbi.account.service.complex.BricsProviderManager">
+		<beans:property name="authenticationEventPublisher" ref="defaultAuthenticationEventPublisher" />
+		<beans:property name="proxyGrantingTicketStorage" ref="proxyGrantingTicketStorage" /> <!-- Will be passed to providers -->
+		<beans:property name="authenticationUserDetailsService" ref="casUserDetailsServiceWrapper" /> <!-- Will be passed to providers -->
+	</beans:bean>
+	<beans:bean id="defaultAuthenticationEventPublisher" class="org.springframework.security.authentication.DefaultAuthenticationEventPublisher" />
+	<beans:bean id="casUserDetailsServiceWrapper" class="gov.nih.tbi.account.service.complex.UserDetailsByAuthServiceWrapper">
+		<beans:property name="userDetailsService" ref="accountDetailService" />
+	</beans:bean>
+
+	<beans:bean id="roleHierarchy" class="org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl">
+		<beans:property name="hierarchy">
+			<beans:value>
+				ROLE_ADMIN > ROLE_USER
+				ROLE_ADMIN > ROLE_DICTIONARY_ADMIN
+				ROLE_ADMIN > ROLE_REPOSITORY_ADMIN
+				ROLE_ADMIN > ROLE_ACCOUNT_ADMIN
+				ROLE_ADMIN > ROLE_STUDY_ADMIN
+				ROLE_ADMIN > ROLE_GUID_ADMIN
+				ROLE_ADMIN > ROLE_ORDER_ADMIN
+				ROLE_ADMIN > ROLE_QUERY_ADMIN
+				ROLE_ADMIN > ROLE_PROFORMS_ADMIN
+				ROLE_ADMIN > ROLE_METASTUDY_ADMIN
+				ROLE_USER > ROLE_GUEST
+				ROLE_ACCOUNT_ADMIN >  ROLE_USER
+				ROLE_DICTIONARY_ADMIN > ROLE_DICTIONARY
+				ROLE_DICTIONARY_ADMIN > ROLE_DICTIONARY_EFORM
+				ROLE_STUDY_ADMIN > ROLE_STUDY
+				ROLE_GUID_ADMIN > ROLE_GUID
+				ROLE_QUERY_ADMIN > ROLE_QUERY
+				ROLE_PROFORMS_ADMIN > ROLE_PROFORMS
+				ROLE_METASTUDY_ADMIN > ROLE_METASTUDY
+			</beans:value>
+		</beans:property>
+	</beans:bean>
+	<beans:bean id="expressionHandler" class="org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler">
+		<beans:property name="roleHierarchy" ref="roleHierarchy" />
+	</beans:bean>
+	<beans:bean id="webExpressionVoter" class="org.springframework.security.web.access.expression.WebExpressionVoter">
+		<beans:property name="expressionHandler" ref="expressionHandler" />
+	</beans:bean>
+	<beans:bean id="accessDecisionManager" class="org.springframework.security.access.vote.AffirmativeBased">
+		<beans:property name="decisionVoters">
+			<beans:list>
+				<beans:ref bean="webExpressionVoter" />
+			</beans:list>
+		</beans:property>
+	</beans:bean>
+	
+</beans:beans>

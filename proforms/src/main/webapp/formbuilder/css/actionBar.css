@@ -1,0 +1,137 @@
+
+#actionBar {
+	background-color:#ccc;
+	height: 40px;
+	border-top: 1px solid #CCCCCC;
+	z-index: 50;
+}
+#actionBar_left {
+	float: left;
+}
+#actionBar_right {
+	min-width: 635px;
+	text-align: right;
+}
+
+#formTitle, #formTitle div {
+	font-size: 14px;
+	font-weight: bold;
+	height: 14px;
+	min-height: 14px;
+}
+
+#formSubtitle, #formSubtitle div {
+	font-size: 10px;
+	height: 10px;
+	min-height: 10px;
+}
+
+.actionBar_item {
+	min-width: 100px;
+	color: #000000;
+	text-align: center;
+	padding: 22px 5px 0 5px;
+}
+.actionBar_item a {
+	font-weight: bold;
+}
+#actionBar nav>ul>li {
+	height: 40px;
+}
+
+#actionBar nav ul ul a {
+	width: 145px;
+	line-height: 22px;
+	font-size: 12px;
+	color: #000000;
+}
+#actionBar nav ul ul a:hover {
+	background-color: #ECECEC;
+}
+#fromLibrary {
+	border: 1px solid #DA1C02;
+	background: #FFEA8A;
+	border-radius: 3px;
+	text-align: center;
+}
+
+#saveFormButton {
+	background: url(../images/document-save-5.png) no-repeat top center;
+}
+#editFormDetailsButton {
+	background: url(../images/edit-4.png) no-repeat top center;
+}
+#addSectionButton {
+	background: url(../images/archive-insert-directory-2.png) no-repeat top center;
+}
+#addQuestionButton {
+	background: url(../images/document-new-8.png) no-repeat top center;
+}
+#addTextButton {
+	background: url(../images/draw-text-2.png) no-repeat top center;
+}
+#cancelFormButton {
+	background: url(../images/dialog-cancel-5.png) no-repeat top center;
+}
+
+#layoutButton {
+	background: url(../images/select-rectangular.png) no-repeat top center;
+}
+
+
+#actionBar nav ul ul li a {
+	padding-right: 5px;
+}
+
+#actionBar nav ul ul {
+    display: none;
+}
+#actionBar nav ul li:hover > ul {
+    display: block;
+}
+#actionBar nav ul {
+    display: inline-table;
+    list-style: none outside none;
+    position: relative;
+}
+#actionBar nav ul:after {
+    clear: both;
+    content: "";
+    display: block;
+}
+#actionBar nav ul li {
+    float: left;
+    position: relative;
+}
+
+#actionBar nav ul li a {
+    display: block;
+    text-decoration: none;
+}
+#actionBar nav ul ul {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: #D6D6D6;
+    z-index: 99;
+}
+#actionBar nav ul ul li {
+    float: none;
+    position: relative;
+}
+.actionbar-sticky {
+	position: fixed;
+	top: 0;
+	width: 100%;
+}
+
+.actionbar-nosticky {
+	position: absolute;
+	top: 70px;
+	width: 100%;
+}
+
+.disabled {
+	text: #999999;
+	opacity: 0.5;
+}

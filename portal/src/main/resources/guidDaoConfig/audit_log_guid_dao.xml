@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<queries>
+	<query>
+		<name> createAuditLog 
+		</name>
+		<sql> INSERT INTO audit_log_guid (user_id , event, event_date, success) VALUES (?,?,?,?) 
+		</sql>
+	</query>
+</queries>

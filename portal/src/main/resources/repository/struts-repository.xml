@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+        "http://struts.apache.org/dtds/struts-2.5.dtd">
+<struts>
+	<package name="study" extends="default" namespace="/study">
+		
+		<global-allowed-methods>execute,input,back,cancel,browse,edit,create,view,search,list,submit</global-allowed-methods>
+		
+		<action name="landingAction" class="gov.nih.tbi.repository.portal.StudyAction">
+			<result name="success"> /jsp/studyTool/landing.jsp
+			</result>
+		</action>
+		<action name="viewSubmissionToolInfo" class="gov.nih.tbi.repository.portal.SubmissionToolRepositoryAction">
+			<result name="success"> /jsp/studyTool/submissionTool.jsp
+			</result>
+		</action>
+		<action name="viewUploadToolInfo" class="gov.nih.tbi.repository.portal.UploadToolRepositoryAction">
+			<result name="success"> /jsp/studyTool/uploadTool.jsp
+			</result>
+		</action>
+		<action name="viewMipavToolInfo" class="gov.nih.tbi.repository.portal.MipavToolRepositoryAction">
+			<result name="success"> /jsp/studyTool/mipavTool.jsp
+			</result>
+		</action>
+		<action name="studyAction" class="gov.nih.tbi.repository.portal.StudyAction">
+			<result name="input"> /jsp/studyTool/editStudyDetails.jsp
+			</result>
+			<result name="list"> /jsp/studyTool/listStudies.jsp
+			</result>
+			<result name="view"> /jsp/studyTool/viewStudy.jsp
+			</result>
+			<result name="documentation" type="redirect">
+				<param name="location"> studyDocumentationAction!input.action</param>
+			</result>
+			<result name="dataset" type="redirect">
+				<param name="location"> studyDatasetAction!input.action</param>
+			</result>
+			<result name="permissions"> /jsp/studyTool/editStudyPermissions.jsp
+			</result>
+			<result name="grant"> /jsp/studyTool/grantTable.jsp
+			</result>
+			<result name="clinicalTrial"> /jsp/studyTool/clinicalTrialTable.jsp
+			</result>
+			<result name="clinicalTrialDetails"> /jsp/studyTool/viewClinicalTrial.jsp
+			</result>
+			<result name="sponsorInfoTable"> /jsp/studyTool/sponsorInfoTable.jsp
+			</result>
+			<result name="editResearchMgmt"> /jsp/studyTool/editStudyResearchMgmt.jsp
+			</result>
+			<result name="editStudySite"> /jsp/studyTool/editStudySite.jsp
+			</result>
+			<result name="addKeyword" type="json">
+				<param name="root"> newKeyword </param>
+			</result>
+			<allowed-methods>moveToDetails,moveToDocumentation,moveToPermissions,moveToDataset,viewClinicalTrial,removeClinicalTrial,
+					removeDocumentation,removeSponsorInfo,removeResearchMgmt,removeStudySite,removeGrant,getAllFormStructures,
+					getStudyTableList,getResearchMgmtSet,getDocumentation,getFormStructureList,getSponsorInfoSet,getStudySiteSet,
+					getClinicalTrialSet,getGrantSet,getFormList,getResMgmtEntryToEdit,editResearchManagement,getEmptyResMgmtEntryToAdd</allowed-methods>
+		</action>
+		<action name="viewStudyAction" class="gov.nih.tbi.repository.portal.ViewStudyAction">
+			<result name="view"> /jsp/studyTool/viewStudy.jsp
+			</result>
+			<result name="lightbox"> /jsp/studyTool/viewStudy-lightbox.jsp
+			</result>
+			<result name="list"> /jsp/studyTool/listStudies.jsp
+			</result>
+			<allowed-methods>lightbox,delete,changeVisibility,getStudyPfProtocolList</allowed-methods>
+		</action>
+		<action name="accessRecordDownloadAction" class="gov.nih.tbi.repository.portal.StudyAction">
+			<result name="input"> /jsp/studyTool/downloadAccessReport.jsp
+			</result>
+			<result name="accessRecord"> /jsp/studyTool/accessReportTable.jsp
+			</result>
+			<result name="accessRecordLightbox"> /jsp/studyTool/downloadAccessReport.jsp
+			</result>
+			<result name="export" type="stream">
+				<param name="contentType"> application/vnd.ms-excel 
+				</param>
+				<param name="inputName"> inputStream 
+				</param>
+				<param name="contentDisposition"> attachment;filename="${exportFileName}" 
+				</param>
+				<param name="bufferSize"> 1024 
+				</param>
+			</result>
+			<allowed-methods>searchReports,showDownloadAccessReportLightbox,validationSuccess,downloadReport,adminDownloadReport,searchReportsPage</allowed-methods>
+		</action>
+		<action name="studyReasonValidationAction" class="gov.nih.tbi.repository.portal.ViewStudyAction">
+			<result name="input"> /jsp/studyTool/viewStudy.jsp
+			</result>
+			<result name="view"> /jsp/studyTool/viewStudy.jsp
+			</result>
+			<allowed-methods>approve,deny</allowed-methods>
+		</action>
+		<action name="datasetAction" class="gov.nih.tbi.repository.portal.DatasetAction">
+			<result name="view"> /jsp/dataset/viewDataset.jsp
+			</result>
+			<result name="input"> /jsp/dataset/viewDataset.jsp
+			</result>
+			<result name="lightbox"> /jsp/dataset/viewDatasetBasic.jsp
+			</result>
+			<result name="search"> /jsp/dataset/datasetSearchResults.jsp
+			</result>
+			<result name="redirect" type="redirect"> datasetAction!list.action
+			</result>
+			<allowed-methods>viewLightbox,manageBulkDatasets,reloadData,delete,manageDataset,addToDownloadQueue,bulkList</allowed-methods>
+		</action>
+		<action name="datasetDeletionValidationAction" class="gov.nih.tbi.repository.portal.DatasetAction">
+			<result name="input"> /jsp/dataset/viewDataset.jsp</result>
+			<result name="redirect" type="redirect"> datasetAction!list.action</result>
+			<allowed-methods>delete</allowed-methods>
+		</action>
+		<action name="datasetStatusValidationAction" class="gov.nih.tbi.repository.portal.DatasetAction">
+			<result name="view"> /jsp/dataset/viewDataset.jsp
+			</result>
+			<result name="input"> /jsp/dataset/viewDataset.jsp
+			</result>
+			<allowed-methods>changeStatus,approve,reject</allowed-methods>
+		</action>
+		<action name="studyValidationAction" class="gov.nih.tbi.repository.portal.StudyAction">
+			<result name="input"> /jsp/studyTool/editStudyDetails.jsp
+			</result>
+			<result name="grant"> /jsp/studyTool/grantTable.jsp
+			</result>
+			<result name="clinicalTrial"> /jsp/studyTool/clinicalTrialTable.jsp
+			</result>
+			<result name="view"> /jsp/studyTool/viewStudy.jsp
+			</result>
+			<result name="permissions"> /jsp/studyTool/editStudyPermissions.jsp
+			</result>
+			<result name="documentation" type="redirect">
+				<param name="location"> studyDocumentationAction!input.action</param>
+			</result>
+			<result name="dataset" type="redirect">
+				<param name="location"> studyDatasetAction!input.action</param>
+			</result>
+			<result name="confirm"> /jsp/studyTool/studyRequestConfirmation.jsp
+			</result>
+			<allowed-methods>moveToDocumentation,moveToDataset,moveToPermissions,moveToDetails</allowed-methods>
+		</action>
+		<action name="studyDocumentationAction" class="gov.nih.tbi.repository.portal.StudyDocumentationAction">
+			<result name="input"> /jsp/studyTool/editStudyDocumentation.jsp
+			</result>
+			<result name="supportingDocumentationTable"> /jsp/studyTool/supportingDocumentationTable.jsp
+			</result>
+			<result name="addDocumentationDialog">/jsp/studyTool/addStudyDocumentationDialog.jsp
+			</result>
+			<result name="pubmed" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">pubMedJson</param>
+			</result>
+			<result name="documentation">
+				<param name="location">/jsp/studyTool/editStudyDocumentation.jsp </param>
+				<param name="fileErrors"> ${fileErrors} </param>
+				<param name="addDocSelect">${addDocSelect}</param>
+			</result>
+			<result name="ViewSoftware">/jsp/studyTool/viewSoftware.jsp
+			</result>
+			<result name="ViewPublication">/jsp/studyTool/viewPublication.jsp
+			</result>
+			<allowed-methods>addDocDialog,documentationRefresh,getPubMedInfo,editDocumentation,removeDocumentations,getUploadDocumentation,viewDocumentation</allowed-methods>
+		</action>
+		<action name="studyDocValidationAction" class="gov.nih.tbi.repository.portal.StudyDocumentationAction">
+			<result name="input"> 
+				<param name="location">/jsp/studyTool/addStudyDocumentationDialog.jsp </param>
+			 	<param name="fileErrors"> ${fileErrors} </param>  
+			</result>
+			<result name="documentation">
+				<param name="location">/jsp/studyTool/editStudyDocumentation.jsp </param>
+				<param name="fileErrors"> ${fileErrors} </param>
+				<param name="addDocSelect">${addDocSelect}</param>
+			</result>
+			<result name="editDocumentDataTableSave" type="redirect">
+				<param name="location"> studyAction!editDataDataTableSave.action</param>
+			</result>
+			<allowed-methods>uploadDocumentation,upload</allowed-methods>
+		</action>
+		<action name="studyDatasetAction" class="gov.nih.tbi.repository.portal.StudyDatasetAction">
+			<result name="input"> /jsp/studyTool/editStudyDataset.jsp
+			</result>
+			<result name="datasetTable"> /jsp/studyTool/datasetTableInterface.jsp
+			</result>
+			<allowed-methods>includeErroredDatasets,viewDatasetTable,filterErroredDatasets,cancelDatasetRequest,requestDatasetStatus,datasetDatatable</allowed-methods>
+		</action>
+		<action name="studyAdminDocValidationAction" class="gov.nih.tbi.repository.portal.StudyDocumentationAction">
+			<result name="input"> /jsp/studyTool/editStudyDocumentation.jsp
+			</result>
+			<allowed-methods>updateAdminFile</allowed-methods>
+		</action>
+		<action name="clinicalTrialValidationAction" class="gov.nih.tbi.repository.portal.StudyAction">
+			<result name="input"> /jsp/studyTool/clinicalTrialTable.jsp
+			</result>
+			<result name="clinicalTrial"> /jsp/studyTool/clinicalTrialTable.jsp
+			</result>
+			<allowed-methods>addClinicalTrial</allowed-methods>
+		</action>
+		<action name="grantValidationAction" class="gov.nih.tbi.repository.portal.StudyAction">
+			<result name="input"> /jsp/studyTool/grantTable.jsp
+			</result>
+			<result name="grant"> /jsp/studyTool/grantTable.jsp
+			</result>
+			<allowed-methods>addGrant</allowed-methods>
+		</action>
+		<action name="sponsorInfoValidationAction" class="gov.nih.tbi.repository.portal.StudyAction">
+			<result name="input"> /jsp/studyTool/sponsorInfoTable.jsp
+			</result>
+			<result name="sponsorInfoTable"> /jsp/studyTool/sponsorInfoTable.jsp
+			</result>
+			<allowed-methods>addSponsorInfo</allowed-methods>
+		</action>
+		<action name="researchMgmtValidationAction" class="gov.nih.tbi.repository.portal.StudyAction">
+			<result name="input"> /jsp/studyTool/editStudyResearchMgmt.jsp
+			</result>
+			<result name="editResearchMgmt"> /jsp/studyTool/editStudyResearchMgmt.jsp
+			</result>
+			<allowed-methods>addResearchManagement,editResearchManagement</allowed-methods>
+		</action>
+		<action name="studySiteValidationAction" class="gov.nih.tbi.repository.portal.StudyAction">
+			<result name="input"> /jsp/studyTool/editStudySite.jsp
+			</result>
+			<result name="editStudySite"> /jsp/studyTool/editStudySite.jsp
+			</result>
+			<allowed-methods>addStudySite</allowed-methods>
+		</action>
+		<action name="studyFormAction" class="gov.nih.tbi.repository.portal.StudyAction">
+			<result name="jsonResponse" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">responseJson</param>
+			</result>
+			<allowed-methods>getFsForStudy,getPublishedFsList,addFs,removeFs</allowed-methods>
+		</action>
+		<action name="keywordValidationAction" class="gov.nih.tbi.repository.portal.StudyAction">
+			<result name="input"> /jsp/studyTool/editStudyKeywords.jsp
+			</result>
+			<result name="addKeyword" type="json">
+				<param name="root"> newKeyword </param>
+			</result>
+			<allowed-methods>createKeyword</allowed-methods>
+		</action>
+		
+		<action name="studyPermissionAction" class="gov.nih.tbi.repository.portal.StudyPermissionAction">
+			<result name="view"> /jsp/account/permissions.jsp
+			</result>
+			<result name="inner"> /jsp/account/permissions-inner.jsp
+			</result>
+			<allowed-methods>load,changePermission</allowed-methods>
+		</action>
+		
+		<action name="createStudyDoiAction" class="gov.nih.tbi.repository.portal.StudyAction" method="createDoiForStudy">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">responseJson</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+		</action>
+		
+		<action name="studyAlzPedListAction" class="gov.nih.tbi.repository.portal.StudyAction">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">responseJson</param>
+			</result>			
+			<allowed-methods>getAllTherapeuticAgents</allowed-methods>
+		</action> 
+	</package>
+
+	<package name="studyAdmin" extends="study" namespace="/studyAdmin">
+		<global-allowed-methods>execute,input,back,cancel,browse,edit,create,view,search,list,submit</global-allowed-methods>
+		<action name="studyAction" class="gov.nih.tbi.repository.portal.StudyAction">
+			<result name="list"> /jsp/studyTool/listStudies.jsp
+			</result>
+			<result name="input"> /jsp/studyTool/editStudyDetails.jsp
+			</result>
+			<result name="view"> /jsp/studyTool/viewStudy.jsp
+			</result>
+			<result name="documentation" type="redirect">
+				<param name="location"> studyDocumentationAction!input.action</param>
+			</result>
+			<result name="dataset" type="redirect">
+				<param name="location"> studyDatasetAction!input.action</param>
+			</result>
+			<result name="permissions"> /jsp/studyTool/editStudyPermissions.jsp
+			</result>
+			<result name="grant"> /jsp/studyTool/grantTable.jsp
+			</result>
+			<result name="clinicalTrial"> /jsp/studyTool/clinicalTrialTable.jsp
+			</result>
+			<result name="clinicalTrialDetails"> /jsp/studyTool/viewClinicalTrial.jsp
+			</result>
+			<result name="sponsorInfoTable"> /jsp/studyTool/sponsorInfoTable.jsp
+			</result>
+			<result name="editResearchMgmt"> /jsp/studyTool/editStudyResearchMgmt.jsp
+			</result>
+			<result name="editStudySite"> /jsp/studyTool/editStudySite.jsp
+			</result>
+			<result name="addKeyword" type="json">
+				<param name="root"> newKeyword </param>
+			</result>
+			<allowed-methods>getStudyTableList,moveToDetails,moveToDocumentation,moveToPermissions,moveToDataset,viewClinicalTrial,removeClinicalTrial,
+					removeDocumentation,removeSponsorInfo,removeResearchMgmt,removeStudySite,removeGrant,getAllFormStructures,
+					getStudyTableList,getResearchMgmtSet,getDocumentation,getFormStructureList,getSponsorInfoSet,getStudySiteSet,
+					getClinicalTrialSet,getGrantSet,getFormList,getResMgmtEntryToEdit,editResearchManagement,getEmptyResMgmtEntryToAdd</allowed-methods>
+		</action>
+		<action name="datasetAction" class="gov.nih.tbi.repository.portal.DatasetAction">
+			<result name="view"> /jsp/dataset/viewDataset.jsp
+			</result>
+			<result name="list"> /jsp/dataset/listDatasets.jsp
+			</result>
+			<result name="search"> /jsp/dataset/datasetSearchResults.jsp
+			</result>
+			<result name="lightbox"> /jsp/dataset/viewDatasetBasic.jsp
+			</result>
+			<result name="statusChange"> /jsp/dataset/manageBulkDatasets.jsp
+			</result>
+			<result name="statusChangeLists"> /jsp/dataset/bulkDatasetLists.jsp
+			</result>
+			<result name="redirect" type="redirect"> datasetAction!list.action
+			</result>
+			<result name="manageDataset"> /jsp/dataset/manageDataset.jsp
+			</result>	
+			<allowed-methods>search,searchIdt,viewLightbox,manageBulkDatasets,bulkList,delete,reloadData,addToDownloadQueue,manageDataset</allowed-methods>
+		</action>
+		<action name="bulkDatasetValidationAction" class ="gov.nih.tbi.repository.portal.DatasetAction">	
+			<result name="redirect" type="redirect"> datasetAction!bulkList.action
+			</result>			
+			<allowed-methods>bulkDatasetLists,approveBulkDatasetStatus,rejectBulkDatasetStatus</allowed-methods>
+		</action>
+		<action name="datasetStatusValidationAction" class="gov.nih.tbi.repository.portal.DatasetAction">
+			<result name="view"> /jsp/dataset/viewDataset.jsp
+			</result>
+			<result name="input"> /jsp/dataset/viewDataset.jsp
+			</result>
+			<result name="redirect" type="redirect"> datasetAction!list.action
+			</result>
+			<result name="redirectToView" type="redirectAction" >
+				<param name="actionName">datasetAction</param>
+				<param name="method">view</param>
+				<param name="prefixedId">${currentDataset.prefixedId}</param>
+			</result>
+			<allowed-methods>changeStatus,approve,reject</allowed-methods>
+		</action>
+		<action name="eventLogDocumentationAction" class="gov.nih.tbi.repository.portal.EventLogDocumentationAction">
+			<result name="addDocumentationDialog"> /jsp/dataset/addDocumentationDialog.jsp
+			</result>
+			<result name="documentationRefresh">/jsp/dataset/bulkDatasetDocumentation.jsp
+			</result>
+			<allowed-methods>addDocDialog,documentationRefresh,editDocumentation,removeDocumentations,editDataDataTableSave</allowed-methods>
+		</action>
+		<action name="eventLogDocValidationAction" class="gov.nih.tbi.repository.portal.EventLogDocumentationAction">
+			<result name="input"> 
+				<param name="location">/jsp/dataset/addDocumentationDialog.jsp </param>
+			 	<param name="fileErrors"> ${fileErrors} </param>  
+			</result>
+			<result name="editDocumentDataTableSave" type="redirect">
+				<param name="location"> eventLogDocumentationAction!editDataDataTableSave.action</param>
+			</result>
+			<allowed-methods>uploadDocumentation</allowed-methods>
+		</action>
+	</package>
+
+	<package name="repository" extends="default" namespace="/repository">
+		<global-allowed-methods>execute,input,back,cancel,browse,edit,create,view,search,list,submit</global-allowed-methods>
+		<action name="downloadQueueAction" class="gov.nih.tbi.repository.portal.DownloadQueueAction">
+			<result name="view"> /jsp/repositoryManager/viewDownloadQueue.jsp</result>
+			<allowed-methods>delete</allowed-methods>
+		</action>
+	</package>
+
+</struts>

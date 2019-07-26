@@ -1,0 +1,14 @@
+@CHARSET "ISO-8859-1";
+/*
+ * This provides styling for the bricsCommon.js file and its associated
+ * styling.
+ */
+ 
+body .dataTables_info {
+	width: auto;
+}
+.rowCountContainer {
+	padding-left: 3px;
+	padding-top: 3px;
+	float: left;
+}

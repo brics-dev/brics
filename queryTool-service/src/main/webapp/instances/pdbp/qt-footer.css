@@ -1,0 +1,73 @@
+@CHARSET "ISO-8859-1";
+
+#footer {
+	height: 200px;
+	padding-top: 50px;
+	background: #4a545b;
+	/* Old browsers */
+	background: -moz-linear-gradient(top, #362f2d 0%, #4a545b 80%);
+	/* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #362f2d), color-stop(80%, #4a545b));
+	/* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top, #362f2d 0%, #4a545b 80%);
+	/* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top, #362f2d 0%, #4a545b 80%);
+	/* Opera 11.10+ */
+	background: -ms-linear-gradient(top, #362f2d 0%, #4a545b 80%);
+	/* IE10+ */
+	background: linear-gradient(to bottom, #362f2d 0%, #4a545b 80%);
+	/* W3C */ 
+}
+
+#footer a, #footer p {
+	color: #FFFFFF;
+}
+
+.ext-link {
+	background: url("../../images/icon-new-window-white.png") no-repeat right center;
+	padding-right: 18px;
+}
+
+.footerContent {
+	width: 80%;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.footerLink {
+	margin-right: 10px;
+}
+
+.footerLink:hover {
+	text-decoration: underline;
+}
+
+.footer-links {
+    clear: left;
+    float: none;
+    list-style: outside none none;
+    margin: 0 0 15px;
+    width: 300px;
+    list-style: none;
+}
+
+.footer-links img {
+	height: auto;
+}
+
+.footer-links li {
+    display: block;
+    float: left;
+    margin-bottom: 15px;
+    padding: 0 4px;
+}
+
+.footerLeft {
+	float: left;
+	width: 50%;
+}
+
+.footerRight {
+	float: left;
+	width: 50%;
+}

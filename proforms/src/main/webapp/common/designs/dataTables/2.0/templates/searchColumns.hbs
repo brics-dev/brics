@@ -1,0 +1,11 @@
+<div class="idt_searchContainer">
+	<div class="idt_searchColumnLabel">Search:<span class="fa fa-caret-down idt_searchColumnIcon"></span></div>
+	<div class="idt_selectColumnDrop">
+		{{#each columns}}
+			<div class="idt_selectColumnRow">
+				<input type="checkbox" checked="checked" value="{{name}}" class="idt_selectColumnCheckbox">{{text}}</input>
+			</div>
+		{{/each}}
+	</div>
+	<input type="search" class="idt_searchInput" />
+</div>

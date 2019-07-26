@@ -1,0 +1,343 @@
+ .focuseddTr td:first-child {
+ 	/* border-bottom: 2px solid #fff600;
+    border-left: 2px solid #fff600;
+    border-top: 2px solid #fff600; */
+    border-bottom: 2px solid #FF9300;
+    border-left: 2px solid #FF9300;
+    border-top: 2px solid #FF9300;
+ }
+ .focuseddTr td:nth-child(2) {
+ 	/* border-bottom: 2px solid #fff600;
+    border-right: 2px solid #fff600;
+    border-top: 2px solid #fff600; */
+    /* border-bottom: 2px solid #FF6611;
+    border-right: 2px solid #FF6611;
+    border-top: 2px solid #FF6611; */
+    border-bottom: 2px solid #FF9300;
+    border-right: 2px solid #FF9300;
+    border-top: 2px solid #FF9300;
+ }
+ 
+ .questionContainerTD {
+ 	vertical-align: top;
+ 	border-left: 1px ridge #000000;
+ 	border-right: 1px ridge #000000;
+ }
+ 
+ table {
+ 	border-collapse: collapse;
+ 	border-color: #000000;
+ }
+ 
+ .sectionquestionscellQuestionContainerTable {
+ 	height: 100%;
+ }
+ 
+ .sectionNameTr {
+ 
+ }
+ 
+ input[type="checkbox"], input[type="radio"] {
+ 	float: left;
+ }
+ 
+ .questionTR .questionText {
+ 	width: 90%;
+ 	float: left;
+ }
+ 
+ h1.formName {
+ 	text-decoration: underline;
+ 	margin-bottom: 5px;
+ }
+ 
+ h3.sectionName {
+ 	font-size: 14px;
+ }
+ 
+ .ctdbSectionContainer {
+ 	border-bottom: 1px ridge #000000;
+ }
+ 
+ .sectionNameTd {
+ 	padding-top: 10px;
+ 	background-color: #FFFFFF;
+ }
+ 
+  /* clears out borders so we can build them properly */
+ #divdataentryform .rowTable tr {
+  	border: none;
+ 	table-color: #000000;
+ }
+ 
+ #divdataentryform .rowTable table {
+ 	border: none;
+ 	table-color: #000000;
+ }
+ #divdataentryform .rowTable {
+ 	border: none;
+ }
+ 
+ /*This is where we define the Textbox default height in dataCollection used to be textboxsize in XSL now HTML5 size is not used*/
+ .questionTR input[type="text"]{
+	 /* width:auto; */
+	 width: 99%;
+	 max-width: 200px;
+	  /*border:2px solid green;*/
+ }
+ /**This is where we set the textbox width used to be XSL file where it was defined*/
+ .questionTR textarea{ 
+	 width:300px; 
+	 height:70px;
+	 /*border:2px solid red; */
+ }
+ 
+ #rightColumn #divdataentryform > table table.sectionContainerTable {
+ 	border: none;
+ }
+ 
+ .finalLockCheckBox{
+ 
+ }
+ .markAsCompletedLayout{
+	 float: left;
+	 width: 310px;
+	 margin-bottom: 10px;
+ }
+ 
+ #formButtons .markAsCompletedLayout label {
+ 	width: auto;
+ 	line-height: 10px;
+ 	margin-left: auto;
+ 	padding-left: 10px;
+ }
+ 
+ .floatLeft{
+	 float: left;
+ }
+ 
+ .floatRight{
+	 float: right;
+ }
+ 
+ .height30px{
+ 
+ 	height: 30px;
+ }
+ 
+ .marginRight10px{
+	 margin-right: 10px;
+ }
+ 
+ .marginBottom10px{
+ 	margin-bottom: 10px;
+ }
+ 
+ .lockInstruction{
+	 text-align: justify;
+	 margin-bottom: 10px;
+	 margin-top: 10px;
+ }
+ 
+ .saveFinalLock{
+	 float: left;
+	 margin-right: 10px;
+	 margin-left: 350px;
+ }
+ 
+ .saveAndStay{
+	 float: left;
+	 margin-left: 200px;
+	 margin-right: 5px;
+ }
+ 
+ .saveAndExit{
+	 float: left;
+	 margin-left: 5px;
+	 margin-right: 5px;
+ }
+ 
+ .lockForm{
+	 float: left;
+	 margin-left: 5px;
+	 margin-right: 10px;
+ }
+ 
+
+#overlay {
+	position: fixed;
+	top:0px;
+	left:0px;
+	width:100%;
+	height:100%;
+	z-index:9999;
+	/* background-color:#000; */
+	/* opacity:0.9; */
+}
+ 
+ 
+ 
+#viewModeBanner {
+	width:100%;
+	height:30px;
+	position:fixed;
+	top:0px;
+	left:0px;
+	z-index:9998;
+	background:none;
+	background-color:#FF6600;
+	opacity:0.8;
+}
+
+
+#viewModeBannerText  {
+	color:#fff; 
+	font-size:20px;
+	font-weight:bold; 
+	pointer-events:none;
+}
+	
+.statusCir {
+	    border: 1px solid black;
+    border-radius: 7px;
+    font-size: 10px;
+    font-weight: bold;
+    height: 14px;
+    line-height: 16px;
+    margin: 2px 3px 0;
+    text-align: center;
+    width: 14px;
+}
+	
+.greenCircle{
+	background: #80FF7F;
+}
+
+.redCircle{
+	background: #FF7F7F;
+}
+
+.yellowCircle{
+	background: #FFFF7F;
+}
+
+.paintRed{
+	color: red;
+}
+.whiteCircle{
+	background: white;
+}
+
+.activeDiv{
+	background: #FFEA8A;
+}
+
+.displayNone{
+	display: none;
+}
+
+.visibilityHidden{
+	visibility: hidden;
+}
+
+#divdataentryform {
+    padding-left: 15px;
+    display: table-cell;
+}
+
+#leftSideHeader {
+	text-align: center;
+	margin-bottom: 10px;
+	border-bottom: 1px solid #D0D0D0;
+}
+
+#leftSideHeader h3 {
+	color: #000000;
+}
+
+#colorFormIntervalNavigator a {
+	text-decoration: underline;
+}
+#colorFormIntervalNavigator a:hover {
+	text-decoration: none;
+}
+
+.statusRow {
+	height: 33px;
+	font-size: 10pt;
+}
+
+#formButtons {
+	clear: left;
+	padding-top: 30px;
+}
+
+.questionTR ol, .questionTR ul {
+	margin-left: 15px;
+}
+
+#divdataentryform > table table {
+	border: 1px ridge #000000;
+	width: 100%;
+	border-top: none;
+}
+
+#divdataentryform table.sectionquestionscellQuestionContainerTable {
+	border-top: 1px ridge #000000;
+}
+
+.textblock > p > span {
+	display: block;
+}
+
+.questionContainerTD.hideText .questionTR td.questionTextContainerTd {
+	display: none;
+}
+/* I can do this because the text is hidden */
+.questionContainerTD.hideText .questionTR td {
+	width: 100%;
+}
+
+.ctdbSectionContainer.noHeader, .ctdbSectionContainer.tablePrimary, .sectionContainer.tablePrimary {
+	margin-bottom: 20px;
+}
+
+.ctdbSectionContainer.tablePrimary_repeat {
+	margin-bottom: 0px;
+}
+
+
+input[type="text"], input[type="date"], input[type="datetime"] {
+	margin-top: 3px;
+}
+
+label {
+	display: inline-block;
+	margin-top: 3px;
+}
+
+/* for the processingView process bar */
+.formBuilder_dialog_noclose .ui-dialog-titlebar-close {
+  display: none;
+}
+#processDescription {
+	height: 3em;
+}
+
+.tablePrimary .sectionNameTr, .columnHeader .sectionNameTr, .tableHeader .sectionNameTr {
+    display: none;
+    border-collapse: collapse;
+}
+
+table.sectionContainerTable > tbody > tr:first-child {
+	background: #FFFFFF;
+}
+.sectionContainerTable > tbody > tr:nth-child(2n+4) {
+	background: #E2E4FF;
+}
+
+.sectionContainerTable > tbody > tr:nth-child(2n+4):hover {
+	background: #FFffbA;
+}
+.sectionContainerTable > tbody > tr:not(.sectionNameTr):hover {
+  background: #FFffbA; }

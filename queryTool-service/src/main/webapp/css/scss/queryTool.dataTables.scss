@@ -1,0 +1,655 @@
+/* The specific style rules used to suggest rendering */
+/* for the CSS table design example, starts here */
+#resultsDatatable {
+	position:relative;
+	overflow:hidden;
+}
+
+DIV.base-layer {
+	color: #000000;
+	margin: 0em 0px 0em 0px; 
+	padding: 0; 
+	text-align: center; 
+	width:100%;
+	overflow:auto;
+	
+}
+
+DIV.table-row {
+	border: solid #000000 0px; 
+	color: #000000;
+  	padding: 0; 
+	text-align: left; 
+	width: 100%;
+    white-space: nowrap; 
+    display: table-row;
+   	height:auto;
+}
+
+DIV.space-line {
+	clear: both;
+	margin: 0;
+	padding: 0;
+	width: auto;
+}
+
+
+#tableHeaders {
+	position:relative;
+}
+
+.dataBody {
+    overflow-y: auto;
+   
+    overflow-x: hidden;
+ }
+ 
+
+/* Needed for correct virtual table height */
+#resultsDatatableContainer, #tableContainer {
+	height: 100%;
+}
+#innerdiv {
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 3em);
+  overflow: hidden;
+}
+.centerScroll
+{
+  /* needs extra margin */
+  flex: 1;
+  width: 100%;
+  /* height: 100%; */
+  padding: 0 0 10px 0 !important;
+  overflow-y: auto;
+  overflow-x: auto;
+  box-sizing: border-box;
+}
+
+.headerScroll
+{
+  /* needs extra margin */
+  height: 50px;
+  width: 100%;
+  padding: 0 10px 0 0 !important;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+
+.tableBody {
+  position: relative;
+}
+
+.headerCell {
+  font: bold 11px sans-serif !important;
+  text-align: center !important;
+  word-wrap: break-word;
+  overflow: hidden;
+  box-sizing: border-box;
+  user-select: none;
+  -moz-user-select: none;
+  position: absolute;
+}
+
+.tableCell {
+  font: bold 11px sans-serif !important;
+  text-align: center !important;
+  word-wrap: break-word;
+  overflow: hidden;
+  padding: 2px !important;
+  box-sizing: border-box;
+  user-select: none;
+  -moz-user-select: none;
+  position: absolute;
+  background-color: #f1f2f3;
+}
+
+.frozen {
+  z-index: 10;
+}  
+ 
+ 
+/*.dataBody .table-row:nth-of-type(even) h5.colCell {background: #FFF}
+.dataBody .table-row:nth-of-type(odd) h5.colCell {background: #CCC}*/
+
+.dataBody .table-row:nth-of-type(even) {background: #FFF}
+.dataBody .table-row:nth-of-type(odd) {background: #CCC}
+
+.dataBody .table-row:nth-of-type(even) td {border:1px solid #FFF}
+.dataBody .table-row:nth-of-type(odd) td {border:1px solid #CCC}
+
+DIV.cell {
+	display:inline-block;
+}
+
+.cell {
+    
+    }
+    
+#tableHeaders th {
+border: solid #d8d8d8 1px; 
+background-color:#fff;
+}
+
+#tableHeaders th, #dataBody td {
+	white-space: nowrap;
+	
+}
+
+DIV.space-line {
+  clear: both; margin: 0; padding: 0; width: auto;
+}
+
+#tableHeaders .cell, #frozenTableHeaders .cell {
+	/*height:23px;*/
+}
+/* Some rules for captions, headers and running text */
+
+
+H5.colhdr {
+ 	background-color: #fff; 
+	/*border: solid #d8d8d8 1px;*/ 
+	color: #000;
+ 	font-family: sans-serif; 
+	font-size: 11px; 
+	font-weight: normal; 
+	margin: 0; 
+	padding: 0.3em 0;
+ 	text-align: left; 
+	height:18px;
+	display: block;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    /*width:inherit;*/
+}
+
+#deHeader H5.colhdr {
+	
+}
+
+#deHeader .colValue {
+ float:left;
+ }
+ 
+
+ 
+
+h5.colhdr input {
+	margin: 0px;
+    margin-left: 3px;
+}
+
+H5.colhdr.orange {
+	background-color: #f16d0a;
+	color:#fff;
+	font-weight: bold; 
+}
+
+H5.colhdr.hdrcolor {
+	background-color: $heading-primary;
+	color:#fff;
+	font-weight: bold; 
+	padding: 3px 0px;
+}
+H5.colCell {
+	border: none #3333cc 1px; 
+	color: #000;
+ 	font-family: sans-serif; 
+	font-size: 11px; 
+	font-style: italic;
+	font-weight: normal; 
+	margin: 0; 
+	margin:  0em 0.0em 0 0.0em;
+ 	text-align: left; 
+	/*width: inherit;*/
+	overflow-x:hidden;
+	line-height: 1.8;
+	
+	
+	/*white-space: initial;*/
+}
+
+H5.colCell a {
+	color:#0000EE;
+	text-decoration:underline;
+}
+
+
+
+P.text {
+  border: solid #3333cc 1px; margin: 0; padding: 0.3em 0.3em 0 0.3em;
+  font-style: normal; font-size: 11px; text-align: center; text-indent: 0;
+  width: auto;
+}
+
+/* End of layer specific style rule set */
+/**frozen styles **/
+.freeze {
+	position:absolute;
+	    z-index: 1;
+    height: 0px;
+    top:0;
+}
+
+DIV.cell.frozen h5.colhdr {
+	border-right:none;
+}
+
+/*#frozenRgHeader h5.colhdr {
+	border-right:none;
+}
+#frozenFormHeader h5.colhdr {
+	border-right:none;
+}*/
+ #frozenDeHeader H5.colhdr {
+	width:100%;
+}
+
+#frozenDeHeader .colValue {
+ float:left;
+ }
+ 
+ .frozenDataBody {
+   overflow-y: hidden;
+    width: 100%;
+    overflow-x: hidden;
+ }
+ 
+/*.frozenDataBody .table-row:nth-of-type(even) h5.colCell {background: #FFF}
+.frozenDataBody .table-row:nth-of-type(odd) h5.colCell {background: #CCC}*/
+
+.frozenDataBody .table-row:nth-of-type(even) {background: #FFF}
+.frozenDataBody .table-row:nth-of-type(odd) {background: #CCC}
+
+.frozenDataBody .table-row:nth-of-type(even) td {border:1px solid #FFF}
+.frozenDataBody .table-row:nth-of-type(odd) td {border:1px solid #CCC}
+
+
+
+#frozenTableHeaders th {
+border: solid #d8d8d8 1px; 
+}
+#frozenTableHeaders th, #frozenDataBody td {
+	white-space: nowrap;
+}
+
+
+/**** hamburger sytles *****/
+/*********** hamburger menu **********/
+.tableHamburger {
+     border: 1px none #fff;
+    border-radius: 3px 3px 3px 3px;
+    cursor: pointer;
+    display: block;
+    height: 8px;
+    padding: 0px 4px 4px;
+    position: relative;
+    width: 15px;
+    background: none;
+    margin-top: 0px;
+    float: left;
+  }
+
+/*
+The white stripes in the hamburger button
+*/
+.tableHamburger div {
+  background-color: #fff;
+    border: 1px solid #fff;
+    border-radius: 2px 2px 2px 2px;
+    height: 1px;
+    margin-top: 1px;
+    width: 90%; }
+  
+.hbblack .tableHamburger div {
+	background-color: #000;
+  border: 1px solid #000;
+	
+}
+
+.hbmenu, .rghbmenu { 
+  position:relative;
+display:inline-block;
+   
+  }
+  
+.actionContainer {
+  position:absolute;
+  min-width:170px;
+  height:auto;
+  background:#fff;
+  z-index:100;
+  border:1px solid #000;
+  padding:2px 3px;
+  display:none;
+
+  
+  }
+
+  
+    .actionContainer ul {
+    list-style-type: none;
+    padding:0px;
+    margin:0px;
+    }
+    
+    .actionContainer ul li {
+    }
+    
+    .actionContainer li a {
+    color: #333;
+    font-weight:bold;
+	}
+
+.hbmenu, .rghbmenu { 
+  position:relative;
+display:inline-block;
+  }
+ .hbmenu {
+ 	float:left;
+ }
+
+  
+ .lock {
+  color:#fff !important;
+  line-height: inherit;
+  float:left;
+  padding-left:5px;
+  }
+  .unlock {
+  color: #fff !important;
+  line-height: inherit;
+  float:left;
+  padding-left:5px;
+  }
+  #deHeader .ui-resizable-handle,#frozenDeHeader .ui-resizable-handle  {
+  background:none !important;
+  }
+  
+  /* hack since we are not doing hieght adjustments **/
+   #deHeader .ui-icon-gripsmall-diagonal-se,#frozenDeHeader .ui-icon-gripsmall-diagonal-se  {
+  display:none !important;
+  }
+  
+  /*** sorting columns *****/
+    .sorting {
+        background-image: url("../../images/sort_both.png");
+    }
+    
+   .sort_asc {
+       background-image: url("../../images/sort_asc.png");}
+   
+  .sort_desc {
+      background-image: url("../../images/sort_desc.png");}
+  
+  .sorting, .sort_asc, .sort_desc {
+  background-repeat: no-repeat;
+    background-position: 0% 100%;
+    cursor: pointer;
+    height: 15px;
+    display: inline-block;
+    width: 25px;
+    float: right;
+  }
+  
+  /********** table buttons *******/
+  
+  .biosample {
+  display: block;
+  border-width: 1px;
+  background-color: #fff;
+  background-image: url(../../images/plus-sign.png) !important;
+  background-repeat: no-repeat;
+  background-position: 98% 50%;
+  border: 1px solid $btn-color3;
+  color: $primary-btn-color;
+  margin-right: 0;
+  padding: 0 10px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center; }
+
+.biosample:hover, .biosample:focus {
+  color: #fff;
+  background: $primary-btn-color url(../../images/plus-sign-white.png) no-repeat 98% 50%;
+  text-shadow: none; }
+
+.expandData {
+  display: block;
+  border-width: 1px;
+  background-color: #fff;
+  background-image: url(../../images/arrow-down.gif) !important;
+  background-repeat: no-repeat;
+  background-position: 98% 50%;
+  border: 1px solid $btn-color3;
+  color: $primary-btn-color !important;
+  margin-right: 0;
+  padding: 0 10px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center; }
+
+.expandData:hover, .expandData:focus {
+  color: #fff;
+  background: $primary-btn-color url(../../images/arrow-down.gif) no-repeat 98% 50%;
+  text-shadow: none; }
+
+.expandDataEmpty {
+  display: block;
+  border-width: 1px;
+  background-color: #fff;
+  background-repeat: no-repeat;
+  background-position: 98% 50%;
+  border: 1px solid #c9c9c9;
+  color: #A8A8A8 !important;
+  margin-right: 0;
+  padding: 0 10px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center; }
+
+.expandDataEmpty:hover {
+  text-decoration: none; }
+
+.collapseData {
+  display: block;
+  border-width: 1px;
+  background-color: #fff;
+  background-image: url(../../images/arrow-up.gif) !important;
+  background-repeat: no-repeat;
+  background-position: 98% 50%;
+  border: 1px solid $btn-color3;
+  color: $primary-btn-color;
+  margin-right: 0;
+  padding: 0 10px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center; }
+
+.collapseData:hover, .collapseData:focus {
+  color: #fff;
+  background: $primary-btn-color url(../../images/arrow-up.gif) no-repeat 98% 50%;
+  text-shadow: none; }
+ 
+ 
+ /***** Pagination ****/
+ ul.pagination {
+    display: inline-block;
+    padding: 0;
+    margin: 0;
+    float: right;
+}
+
+ul.pagination li {display: inline;}
+
+ul.pagination li a {
+    color: black;
+    float: left;
+    padding: 8px 16px;
+    text-decoration: none;
+    transition: background-color .3s;
+}
+
+ul.pagination li a.active {
+    background-color: $primary-btn-color;
+    color: white;
+}
+
+ul.pagination li a:hover:not(.active) {background-color: #ddd;}
+
+.pager-gap {
+	float: left;
+    padding-top: 5px;
+ }
+ 
+ /**** menu length styles ****/
+ .styled-select {
+   background: url(http://i62.tinypic.com/15xvbd5.png) no-repeat 96% 0;
+   height: 29px;
+   overflow: hidden;
+   width: 240px;
+}
+
+.styled-select select {
+   background: transparent;
+   border: none;
+   font-size: 14px;
+   height: 29px;
+   padding: 5px; /* If you add too much padding here, the options won't show in IE */
+   width: 268px;
+}
+
+.styled-select.slate {
+   background: url(http://i62.tinypic.com/2e3ybe1.jpg) no-repeat right center;
+   height: 34px;
+   width: 240px;
+}
+
+.styled-select.slate select {
+   border: 1px solid #ccc;
+   font-size: 16px;
+   height: 34px;
+   width: 268px;
+}
+
+.semi-square {
+   -webkit-border-radius: 5px;
+   -moz-border-radius: 5px;
+   border-radius: 5px;
+}
+
+.blue    { background-color: #3b8ec2; }
+
+.blue select    { color: #fff; }
+
+
+.lengthMenuDropdown {
+    margin-right: -12px;
+    float: left;
+}
+
+.ui-resizable-e { 
+	cursor:ew-resize !important;
+}
+
+.highlight-row {
+	background-color:#f0ff9b !important;
+	background:#f0ff9b !important;
+}
+
+/***** d3 table styles ********/
+.centerScroll
+{
+  /* needs extra margin */
+  height: 50vh;
+  width: 100%;
+  /*height: 100%;*/
+  padding: 0 0 10px 0 !important;
+  overflow-y: auto;
+  overflow-x: auto;
+  box-sizing: border-box;
+}
+.centerScroll.centerScrollShort {
+  height: 6.5em;
+}
+.centerScroll > table {
+  margin-left: 155px;
+}
+.centerScroll table {
+  border-collapse: collapse;
+  box-sizing: border-box;
+  border-spacing: 0;
+  margin-bottom: 0;
+  width: auto;
+}
+
+.headerScroll
+{
+  /* needs extra margin */
+  height: 60px;
+  width: 100%;
+  padding: 0 10px 0 0 !important;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+
+.tableBody {
+  position: relative;
+}
+.tableBody .summaryTr {
+  position: absolute;
+}
+.summaryTr td, .centerScrollHeader th {
+  padding: 0 !important;
+ }
+
+.summaryTd {
+  font: 10px sans-serif;
+  overflow: hidden;
+  max-height: 1.2em;
+  box-sizing: border-box;
+  user-select: none;
+  -moz-user-select: none;
+}
+
+.headerCell {
+  font: bold 11px sans-serif !important;
+  text-align: left !important;
+  word-wrap: break-word;
+  overflow: hidden;
+  box-sizing: border-box;
+  user-select: none;
+  -moz-user-select: none;
+  position: absolute;
+  border: solid #d8d8d8 1px;
+}
+
+.tableCell {
+  font: bold 11px sans-serif !important;
+  text-align: center !important;
+  word-wrap: break-word;
+  overflow: hidden;
+  padding: 2px !important;
+  box-sizing: border-box;
+  user-select: none;
+  -moz-user-select: none;
+  position: absolute;
+}
+
+.tableCell.even {
+background-color:#FFF;
+}
+
+
+.deHeader H5.colhdr {
+	
+}
+
+.deHeader .colValue {
+ float:left;
+ }
+ 
+

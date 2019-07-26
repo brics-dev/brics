@@ -1,0 +1,173 @@
+@CHARSET "ISO-8859-1";
+.question {
+	margin: 0px;
+}
+.question.is-active {
+	background: #DDDDFF;
+	border: 1px solid #AAAAAA;
+	box-shadow: 0 5px 5px;
+}
+.question.is-inactive {
+	background: none;
+    border: 1px solid #DDDDFF;
+}
+.questionHeader {
+	height: 22px;
+	padding: 6px 0 6px 3px;
+}
+.questionHeaderLeft {
+	text-align: left;
+}
+.questionHeaderRight {
+	padding-right: 20px;
+}
+
+.questionHeaderRight .row {
+	float: right;
+}
+.questionHeader a {
+	height: 16px;
+	width: 16px;
+	display: block;
+	margin-right: 4px;
+	float: left;
+}
+
+.questionName {
+}
+
+.questionText {
+	vertical-align: top;
+}
+
+.questionTextDiv {
+	vertical-align: top;
+}
+
+.question .statusTooltip {
+	min-width: 100px;
+	padding: 3px;
+	z-index: 100;
+}
+
+.questionExpandCollapse {
+	background: url(../images/collapse.png) no-repeat top left;
+	margin-left: 3px;
+}
+.questionExpandCollapse.collapsed {
+	background: url(../images/expand.png) no-repeat;
+}
+.questionRequired {
+	background: url(../images/status_required.png) no-repeat;
+}
+.questionRequired.off {
+	background: none;
+}
+.questionValidation {
+	background: url(../images/status_validation.png) no-repeat;
+}
+.questionValidation.off {
+	background: none;
+}
+.questionCalculation {
+	background: url(../images/status_calculation.png) no-repeat;
+}
+.questionCalculation.off {
+	background: none;
+}
+.questionPrepopulation {
+	background: url(../images/status_prepopulation.png) no-repeat;
+}
+.questionPrepopulation.off {
+	background: none;
+}
+.questionSkiprule {
+	background: url(../images/status_skiprule.png) no-repeat;
+}
+.questionSkiprule.off {
+	background: none;
+}
+.questionEmail {
+	background: url(../images/status_email.png) no-repeat;
+}
+.questionEmail.off {
+	background: none;
+}
+.questionLinked {
+	background: url(../images/status_linked.png) no-repeat;
+}
+.questionLinked.off {
+	background: none;
+}
+.questionConversion {
+	background: url(../images/status_conversion.png) no-repeat;
+}
+.questionConversion.off {
+	background: none;
+}
+.vsContainer{
+	display: inline-block;
+	margin-left: 20px;
+}
+.textAlignCenter{
+	text-align: center;
+}
+
+.hiddenDiv{
+	display:none;
+}
+
+.showDiv{
+	display:inline-block;
+}
+
+.questionOptionsContainer {
+	width: 100%;
+    border: 1px solid; 
+    border-color:#CCCCCC; 
+    height: 110px;	
+    overflow: auto;
+}
+
+.optionRow {
+	/*cursor: move;*/
+	background: #EEEEEE;
+	border-bottom: 1px solid #CCCCCC;
+	margin-top: 3px;
+	word-wrap: break-word
+	
+}
+
+.skipRow {
+	background: #EEEEEE;
+	border-bottom: 1px solid #CCCCCC;
+	margin-top: 3px;
+	word-wrap: break-word
+	
+}
+
+
+.divQuestionsToSkip {
+	width: 100%;
+    border: 1px solid; 
+    border-color:#CCCCCC; 
+    height: 210px;	
+    overflow: auto;
+}
+
+#skipRuleContainer2 .divSkipRuleHeaders label {
+	text-align:left
+}
+
+#questionText {
+	height: 8em;
+}
+
+.radioOptionHorizontal, .checkboxOptionHorizontal{
+	width: auto;
+}
+
+#conditionalForCalcLabel {
+	display: inline;
+    float: none;
+}

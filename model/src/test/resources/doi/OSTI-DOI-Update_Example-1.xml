@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<records>
+    <record>
+        <osti_id>1224753</osti_id>
+        <title>ARM Climate Modeling Best Estimate Lamont, OK (ARMBE-CLDRAD SGPC1)</title>
+        <creators>Renata McCoy; Shaocheng Xie;</creators>
+        <product_nos>none</product_nos>
+        <contract_nos>AC05-00OR22725</contract_nos>
+        <other_identifying_nos>sgpC1amrbe-cldrd-v3</other_identifying_nos>
+        <contributor_organizations>Pacific Northwest National Laboratory (PNNL); Brookhaven National Laboratory (BNL); Argonne National Laboratory (ANL); Oak Ridge National Laboratory (ORNL); Lawrence Livermore National Laboratory (LLNL)</contributor_organizations>
+        <publication_date>05/14/2012</publication_date>
+        <sponsor_org>USDOE Office of Science (SC), Biological and Environmental Research (BER)</sponsor_org>
+        <keywords>Cloud fraction profiles; Total, high, middle, and low clouds; Liquid water path and precipitable water vapor; Surface radiative fluxes; TOA radiative fluxes</keywords>
+        <description>The ARM CMBE-ATM [Xie, McCoy, Klein et al.] data file contains a best estimate of several selected atmospheric quantities from ACRF observations and NWP analysis data.</description>
+        <site_url>http://iop.archive.arm.gov/arm-iop/0showcase-data/cmbe/cmbe/sgpC1/cmbe-cldrad/</site_url>
+        <doi></doi>
+        <file_extension>cdf</file_extension>
+        <contact_name>ARM Archive User Services</contact_name>
+        <contact_org>ORNL</contact_org>
+        <contact_email>armarchive@ornl.gov</contact_email>
+        <contact_phone>888-276-3282</contact_phone>
+    </record>
+</records>

@@ -1,0 +1,179 @@
+@CHARSET "ISO-8859-1";
+/* Mixins */
+   
+@mixin gradient($color1, $color2, $color3) {            
+  background: $color3; /* Old browsers */
+  background: -moz-linear-gradient(top,  $color1 0%, $color2 80%); /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,$color1), color-stop(80%,$color2)); /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top,  $color1 0%,$color2 80%); /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top,  $color1 0%,$color2 80%); /* Opera 11.10+ */
+  background: -ms-linear-gradient(top, $color1 0%,$color2 80%); /* IE10+ */
+  background: linear-gradient(to bottom,  $color1 0%,$color2 80%); /* W3C */
+} 
+
+/*
+Main Page
+*/
+html {
+  font-family: sans-serif;
+  -ms-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  font-size: 10px;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+body {
+  margin: 0;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  line-height: 1.42857143;
+  color: #333333;
+  background-color: #ffffff;
+}
+
+.clearfix {
+	clear: both;
+}
+
+#mainContent {
+	border: none;
+}
+
+.tileSubContainer {
+	
+}
+
+.selected {
+	background-color: #FFFF00;
+}
+/**** login page styles ****/
+.login-buttons { margin: 5px 0px 15px 145px; }
+.primary {
+	 #main-content {
+	    width: 98%;
+	    max-width: 1346px;
+	    min-width: 900px;
+	    float: left;
+	    margin-left: 15px;
+	    padding: 0 0px;
+	    padding-top: 13px;
+	    min-height: 200px;
+	     
+	    h2 {
+		  margin:0px;
+		  padding:0px;
+		  font:18px Arial Bold, Arial, sans-serif;
+		}
+	  }
+	  
+	 .wide #main-content {
+	    padding: 15px 15px 0px 15px;
+	    width: 96%;
+	    max-width: 1310px;
+	    min-width: 906px;
+  	}
+  	
+  	
+}
+.login-form {
+	form {
+	    margin: 0 8px;
+	    padding: 8px 0;
+	    position: relative;
+	}
+	.form-field, .form-output, .upload-field, .sub-field { padding:5px 0; overflow:hidden; font:12px/normal Arial, Verdana, Helvetica, sans-serif;  }
+	label, .form-output .label { margin:0 5px 0 0; float: left; display: inline; width: 160px; text-align: right; font:12px/bold Arial, Verdana, Helvetica, sans-serif;  font-weight: bold; }
+	label.required { font-weight:bold; }
+	
+	label.required { font-weight:bold; }
+	label.small, .label-small { font:11px/normal Arial, Verdana, Helvetica, sans-serif !important; }
+	
+	form .no-label { padding-left:140px; }
+	
+	form .textarea label { vertical-align: top; }
+	.textfield { padding: 2px 3px 2px 5px; width: 430px;  float: left;  }
+	form select { padding: 2px 3px 2px 5px; width: 439px;  float: left;  }
+	
+	.button {
+	    display: inline-block;
+	    float: left;
+	    cursor: pointer;
+	}
+	
+	.button {
+		  display: inline-block;
+		  float: left;
+		  cursor: pointer;
+		  input, a{
+		    -webkit-border-radius: 5px;
+		    -moz-border-radius: 5px;
+		    -o-border-radius: 5px;
+		    border-radius: 5px; 
+		    padding: 3px 10px;
+		    font: bold 12px / 18px Arial, Verdana, Helvetica, sans-serif;
+		    text-decoration: none;
+		    display: block;
+		    text-transform: uppercase;
+		    padding-top: 3px;
+		    cursor: pointer;
+		  }
+		  button {
+		    -webkit-border-radius: 5px;
+		    -moz-border-radius: 5px;
+		    -o-border-radius: 5px;
+		    border-radius: 5px; 
+		    padding: 3px 10px;
+		    font: bold 12px / 18px Arial, Verdana, Helvetica, sans-serif;
+		    text-decoration: none;
+		    display: inline-block;
+		    text-transform: uppercase;
+		    padding-top: 3px;
+		    cursor: pointer;
+		  }
+		}
+		
+		.button {
+		  input, button {
+		
+		    @include gradient($secondary-btn-color, $primary-btn-color, $secondary-btn-color);
+		    border: 2px solid;
+		    border-color: $medium-gray;
+		    color: $lightest;
+		    &:hover, &:focus {background: $primary-btn-color; border-color: $light-gray;}
+		  }
+		    &.disabled input, &.disabled button {
+		      background: $light-gray;
+		      color: $lightest;
+		      border-color: $light-gray;
+		      &:hover, &:focus {
+		        background: $light-gray;
+		        color: $lightest;
+		      }
+		    }
+  		}
+
+}
+
+/*** versioning styles **/
+.build-notes { 
+	width:80%;
+	.right {
+		float:right;
+		}
+}
+.clear-both {
+	clear:both;
+}
+
+/**** override jquery ui styles ****/
+.ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited {
+    color: $heading-primary;
+}
+
+.ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active {
+    border: 1px solid $heading-primary;
+    color: $heading-primary;
+}
+
+.ui-tabs .ui-tabs-nav {
+    border-bottom: 1px solid $heading-primary;
+}

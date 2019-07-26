@@ -1,0 +1,1 @@
+var currentUserId = $("#userId").val();

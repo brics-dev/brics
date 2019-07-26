@@ -1,0 +1,52 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+	<context:annotation-config />
+	<context:property-placeholder location="file:#{systemProperties['conf.dir']}/proforms-datasource.properties"/>
+	<context:component-scan base-package="gov.nih.nichd.ctdb.ws" />
+	<bean id="applicationProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+		<property name="locations">
+			<list>
+				<value>file:#{systemProperties['conf.dir']}/modules.properties</value>
+			</list>
+		</property>
+		<property name="ignoreResourceNotFound" value="true" />
+	</bean>
+	<bean id="modulesConstants" class="gov.nih.nichd.ctdb.common.ModulesConstants" scope="singleton" />
+	
+	<!-- HikariCP configuration -->
+	<bean id="mainDataSource" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
+		<property name="driverClassName" value="${proforms.db.jdbc.Driver}" />
+		<property name="jdbcUrl" value="${proforms.db.jdbc.url}" />
+		<property name="username" value="${proforms.db.username}"/>
+		<property name="password" value="${proforms.db.password}"/>
+		<property name="maximumPoolSize" value="${proforms.cp.maxPoolSize}" />
+		<property name="idleTimeout" value="${proforms.cp.idleTimeout}" />
+		<property name="maxLifetime" value="${proforms.cp.maxLifetime}" />
+	</bean>
+	
+	<!-- <bean id="systemPropertiesLookUp" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" > -->
+	<bean id="systemPropertiesLookUp" class="gov.nih.nichd.ctdb.util.common.SysPropUtil" >
+		<property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE"/>
+		<property name="locations">
+			<list>
+				<value>file:#{systemProperties['conf.dir']}/proforms.properties</value>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="baseMgr" class="gov.nih.nichd.ctdb.common.CtdbManager">
+		<property name="dataSource" ref="mainDataSource" />
+	</bean>
+	
+	<bean id="sessionAccount" class="gov.nih.tbi.account.model.SessionAccount" scope="session">
+		<aop:scoped-proxy />
+	</bean> 
+</beans>

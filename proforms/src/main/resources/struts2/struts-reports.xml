@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+        "http://struts.apache.org/dtds/struts-2.5.dtd">
+ 
+<struts>
+
+	<package name="reports" namespace="/response" extends="default">
+	
+		<!-- Study Report -->
+		<action name="studyReport" class="gov.nih.nichd.ctdb.response.action.StaticQueryAction">
+			<result name="success">studyReportHome.jsp</result>
+		</action>
+		<action name="getStudyReportList" class="gov.nih.nichd.ctdb.response.action.StaticQueryAction" method="getStudyReportList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>		
+		
+		<!-- Completed Visits -->
+		<action name="completedVisits" class="gov.nih.nichd.ctdb.response.action.ReportingAction" method="showCompletedVisits">
+			<result name="success">completedVisitsReport.jsp</result>
+		</action>
+		<action name="getCompletedVisitsReportList" class="gov.nih.nichd.ctdb.response.action.ReportingAction" method="getCompletedVisitsReportList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>		
+		
+		<!-- Performance Overview -->
+		<action name="performanceOverview" class="gov.nih.nichd.ctdb.response.action.ReportingAction" method="showPerformanceOverview">
+			<result name="success">performanceOverviewReport.jsp</result>
+		</action>
+		<action name="getPerformanceOverviewReportList" class="gov.nih.nichd.ctdb.response.action.ReportingAction" method="getPerformanceOverviewReportList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>		
+		
+		<!-- guids without collections -->
+		<action name="guidsWithoutCollections" class="gov.nih.nichd.ctdb.response.action.ReportingAction" method="showGuidsWithoutCollections">
+			<result name="success">guidsWithoutCollectionsReport.jsp</result>
+		</action>
+		<action name="getGuidsWithoutCollectionsReportsList" class="gov.nih.nichd.ctdb.response.action.ReportingAction" method="getGuidsWithoutCollectionsReportsList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>		
+		
+		<!-- Forms Requiring Lock -->
+		<action name="formsRequiringLock" class="gov.nih.nichd.ctdb.response.action.ReportingAction" method="showFormsReqLock">
+			<result name="success">formsRequiringLockReportHome.jsp</result>
+		</action>
+		<action name="getFormsRequiringLockListList" class="gov.nih.nichd.ctdb.response.action.ReportingAction" method="getFormsRequiringLockListList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>		
+
+		<!-- Locked Forms -->
+		<action name="completedForms" class="gov.nih.nichd.ctdb.response.action.ReportingAction" method="showCompletedForms">
+			<result name="success">completedFormsReportHome.jsp</result>
+		</action>
+		<action name="getCompletedFormsList" class="gov.nih.nichd.ctdb.response.action.ReportingAction" method="getCompletedFormsList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="badRequest" type="httpheader">
+				<param name="error">400</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+		</action>
+		
+		<!-- Submission Summary -->
+		<action name="submissionSummary" class="gov.nih.nichd.ctdb.response.action.ReportingAction" method="showSubmissionSummary">
+			<result name="success">submissionSummaryReport.jsp</result>
+		</action>
+		<action name="getSubmissionSummaryList" class="gov.nih.nichd.ctdb.response.action.ReportingAction" method="getSubmissionSummaryList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonString</param>
+			</result>
+			<result name="badRequest" type="httpheader">
+				<param name="error">400</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+		</action>
+		
+		<!-- Subject Matrix Dashboard -->
+		<action name="subjectMatrixDashboard" class="gov.nih.nichd.ctdb.response.action.SubjectMatrixDashboardAction" method="subjectMatrixDashbaord">
+			<result name="success">subjectMatrixDashboard.jsp</result>
+		</action>
+
+		<!-- Schedule Report -->
+		<action name="scheduleHome" class="gov.nih.nichd.ctdb.response.action.ScheduleAction" method="showGenerateSchedule">
+			<result name="success">scheduleHome.jsp</result>
+		</action>
+		<action name="scheduleReportHomeAction" class="gov.nih.nichd.ctdb.response.action.ScheduleAction">
+			<allowed-methods>getScheduleReportDTList, generateScheduleReport</allowed-methods>
+		</action>
+		<action name="scheduleReportFilterAction" class="gov.nih.nichd.ctdb.response.action.ScheduleAction">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonString</param>
+			</result>
+			<result name="badRequest" type="httpheader">
+				<param name="error">400</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<allowed-methods>getClinicLocListByProto,getPatientListByProto</allowed-methods>
+		</action>
+	</package>
+	
+</struts>

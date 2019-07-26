@@ -1,0 +1,416 @@
+form {
+	margin: 0 8px;
+	padding: 8px 0;
+	position: relative;
+}
+
+.form-field,.form-output,.upload-field,.sub-field {
+	padding: 5px 0;
+	overflow: hidden;
+	color: #362f2d;
+	font: 12px/normal Arial, Verdana, Helvetica, sans-serif;
+}
+
+form .ui-datepicker-trigger {
+	margin-left: 5px;
+	vertical-align: top;
+}
+
+form .short-select {
+	width: 50px !important;
+}
+
+form span.required {
+	color: red;
+}
+
+form p.required {
+	float: right;
+}
+
+label,.form-output .label {
+	margin: 0 5px 0 0;
+	float: left;
+	display: inline;
+	width: 140px;
+	text-align: right;
+	font: 12px/normal Arial, Verdana, Helvetica, sans-serif;
+}
+
+label.required {
+	font-weight: bold;
+}
+
+label.small,.label-small {
+	font: 11px/normal Arial, Verdana, Helvetica, sans-serif !important;
+}
+
+form .no-label {
+	padding-left: 140px;
+}
+
+form .textarea label {
+	vertical-align: top;
+}
+
+.textfield,form select {
+	padding: 2px 3px 2px 5px;
+	width: 300px;
+}
+/* form .textfield { width: 300px; } */
+input.tiny {
+	width: 20px;
+}
+
+input.small {
+	width: 75px;
+}
+
+input.medium {
+	width: 100px;
+}
+
+input.large {
+	width: 175px;
+}
+
+select.tiny {
+	width: 20px;
+}
+
+select.small {
+	width: 75px;
+}
+
+select.medium {
+	width: 130px;
+}
+
+select.large {
+	width: 230px;
+}
+
+select.large-font {
+	font-size: 12px;
+}
+
+.upload-field .file-upload {
+	float: left;
+	display: inline;
+	margin: 0px 0px 0px 10px;
+}
+
+.upload-field select {
+	float: left;
+	width: 200px;
+}
+
+.readonly-text {
+	padding: 0 3px 0 5px;
+	overflow: hidden;
+	color: #666;
+}
+
+form select option {
+	padding: 0 5px 0 10px;
+}
+
+form .documentation-options {
+	margin-left: 20px;
+}
+
+form .documentation-options label {
+	margin: 0 0 0 5px;
+	float: none;
+	display: inline;
+	width: 140px;
+	text-align: right;
+	font: 12px/normal Arial, Verdana, Helvetica, sans-serif;
+}
+
+form .documentation-options .form-field {
+	margin-left: 35px;
+}
+
+form .documentation-options .sub-field {
+	clear: both;
+}
+
+form .hidden {
+	text-align: left;
+	text-indent: -9999px;
+	display: none;
+}
+
+form ul.checkboxgroup {
+	margin: 0 0 0 5px !important;
+	list-style: none !important;
+	float: left;
+	display: inline-block;
+}
+
+form ul.checkboxgroup li {
+	overflow: hidden;
+	margin-bottom: 4px;
+}
+
+form ul.checkboxgroup li label {
+	margin-left: 10px;
+	position: relative;
+	float: none;
+	width: auto;
+}
+
+form ul.checkboxgroup li .textfield-other label {
+	float: left;
+	width: 140px;
+}
+
+.expirationDate {
+	margin: 5px 0px 0px 17px;
+}
+
+form ul.checkboxgroup-horizontal {
+	margin: 0px 0px 0px 0px !important;
+}
+
+form ul.checkboxgroup-horizontal li {
+	display: inline;
+}
+
+form ul.checkboxgroup-horizontal li label {
+	display: inline;
+	margin: 0px 20px 0px 3px;
+	float: none;
+}
+
+form ul.checkboxgroup-vertical li {
+	padding: 5px 3px 5px 40px;
+	overflow: hidden;
+	margin-bottom: 4px;
+}
+
+form ul.checkboxgroup-vertical li label {
+	position: relative;
+	float: none;
+	width: auto;
+}
+
+.disabled {
+	color: #999;
+}
+/* overriding padding */
+form ul.checkboxgroup-vertical .special-instruction {
+	padding: 0px 0px 10px 55px;
+}
+
+form ul.checkboxgroup-vertical li.site {
+	padding: 0px 0px 10px 70px;
+}
+/*overriding the padding*/
+form ul.checkboxgroup-vertical li.site .special-instruction {
+	padding: 0px 0px 0px 15px;
+}
+/* form ul.checkboxgroup-vertical li .textfield-other label { float:left; width:190px;} */
+.textfield-other {
+	
+}
+
+.button {
+	background: url(../images/layout/bkg-form-btn-right.png) no-repeat 100%
+		0;
+	overflow: hidden;
+	padding: 0 6px 3px 0;
+	float: left;
+}
+
+.button input {
+	background: url(../images/layout/bkg-form-btn-left.png) no-repeat 0 0;
+	padding: 3px 14px 5px 20px;
+	font: bold 12px/18px Arial, Verdana, Helvetica, sans-serif;
+	color: #FFF;
+	border: 0;
+	cursor: pointer;
+	float: left;
+}
+
+.right-button {
+	background: url(../images/layout/bkg-form-btn-right.png) no-repeat 100%
+		0;
+	overflow: hidden;
+	padding: 0 6px 3px 0;
+	float: right;
+}
+
+.right-button input {
+	background: url(../images/layout/bkg-form-btn-left.png) no-repeat 0 0;
+	padding: 4px 14px 5px 20px;
+	font: bold 12px/18px Arial, Verdana, Helvetica, sans-serif;
+	color: #FFF;
+	border: 0;
+	cursor: pointer;
+	float: right;
+}
+
+.form-link {
+	float: left;
+	margin: 6px 0 0 8px;
+}
+
+.error-message {
+	color: #ff0000;
+	vertical-align: top;
+	float: right;
+	width: 250px;
+}
+
+.icon-warning {
+	vertical-align: top;
+	margin-right: 5px;
+	margin-left: 3px;
+	float: left;
+}
+
+.error-text {
+	float: left;
+	width: 200px;
+}
+
+.default-error {
+	margin-left: 74px;
+	background: url(../images/brics/common/icon-warning.gif) no-repeat 2% 0;
+	padding: 2px 0px 5px 33px;
+	color: #ff0000;
+	vertical-align: top;
+	width: 300px;
+}
+
+.fieldspan {
+	padding-left: 15px;
+}
+
+.special-instruction {
+	clear: left;
+	padding: 5px 5px 5px 145px;
+	font-style: italic;
+	color: #999;
+}
+
+.inline-special-instruction {
+	padding: 0px 0px 0px 5px;
+	font-style: italic;
+	color: #999;
+}
+
+/* special rules for the login form goes here */
+#login-panel form {
+	margin: 0;
+	padding: 4px 0;
+}
+
+#login-panel form label {
+	width: 55px;
+	font-size: 11px;
+}
+
+#login-panel form input.textfield {
+	width: 150px;
+}
+
+#login-panel .button {
+	float: none;
+}
+
+#login-panel .button input {
+	float: right;
+}
+
+.login-buttons {
+	margin: 5px 0px 15px 145px;
+}
+
+/* special rules for forms using two column layout */
+form .column label {
+	width: 95px;
+}
+
+input.float-left,textarea.float-left {
+	margin-right: 5px;
+}
+
+/* styles server side error message */
+.form-error {
+	background: none repeat scroll 0 0 #FFFFCC;
+	border: 2px solid #FF0000;
+	padding: 15px 5px 5px 5px;
+}
+
+/* styles for horizontal checkboxes */
+.checkbox-horizontal {
+	white-space: nowrap;
+}
+
+.checkbox-horizontal input {
+	vertical-align: middle;
+}
+
+.checkbox-horizontal label {
+	display: block;
+	text-align: left;
+	margin-right: 10px;
+	float: none;
+	display: inline;
+}
+
+.collapsable {
+	cursor: pointer;
+}
+
+.collapsable a {
+	text-decoration: none;
+	color: #004d00;
+}
+
+.leftRightButton {
+	color: #FFF;
+	font-weight: bold;
+}
+
+/* unused at the moment */
+.upload {
+	position: relative;
+	width: 90px;
+	margin: 5px 0px 0px 10px;
+}
+
+.realupload {
+	position: absolute;
+	top: 1px;
+	right: 9px;
+	/* start of transparency styles */
+	opacity: 0;
+	-moz-opacity: 0;
+	filter: alpha(opacity :     0);
+	/* end of transparency styles */
+	cursor: pointer;
+	z-index: 2; /* bring the real upload interactivity up front */
+	width: 74px;
+}
+
+.center-panel {
+	margin: 5px auto 10px 10%;
+}
+
+.realupload-label {
+	width: 78px !important;
+	cursor: pointer !important;
+}
+
+form .fakeupload {
+	background: url(browse.gif) no-repeat 100% 50%;
+}
+
+form .fakeupload input {
+	width: 200px;
+}
+/* end unused */

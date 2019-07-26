@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+        "http://struts.apache.org/dtds/struts-2.5.dtd">
+ 
+<struts>
+	<constant name="enable.SlashesInActionNames" value="false" />
+<!-- 	<constant name="struts.action.excludePattern" value="/images/.*?,/js/.*?,/css/.*?" />  -->
+	
+	<!-- <constant name="struts.devMode" value="false" />-->
+	<constant name="struts.ognl.allowStaticMethodAccess" value="true"/>
+	<constant name="struts.custom.i18n.resources" value="ApplicationResources" />
+	<constant name="struts.multipart.maxSize" value="262144000" />	
+	<constant name="struts.ui.theme" value="simple" />	
+	<constant name="struts.mapper.action.prefix.enabled" value="true" />
+	<constant name="struts.multipart.parser" value="jakarta-stream" />
+	<constant name="struts.enable.DynamicMethodInvocation" value="true" />
+
+	
+	<package name="default" namespace="/" extends="struts-default">
+		<result-types>
+			<result-type name="json" class="org.apache.struts2.json.JSONResult">
+			</result-type>
+		</result-types>
+	
+		<interceptors>
+			<interceptor name="mylogging" class="gov.nih.nichd.ctdb.common.LoggingInterceptor" />
+			<interceptor name="monitoring" class="net.bull.javamelody.StrutsInterceptor"/>
+			<interceptor-stack name="loggingStack">
+				<interceptor-ref name="mylogging" />
+				<interceptor-ref name="monitoring"/>
+				<interceptor-ref name="defaultStack" />
+			</interceptor-stack>
+			<interceptor-stack name="defaultStack">
+				<interceptor-ref name="exception">
+					<param name="exception.logEnabled"> true
+					</param>
+				</interceptor-ref>
+				<interceptor-ref name="alias" />
+				<interceptor-ref name="servletConfig" />
+				<interceptor-ref name="prepare" />
+				<interceptor-ref name="i18n" />
+				<interceptor-ref name="chain" />
+				<interceptor-ref name="debugging" />
+				<interceptor-ref name="profiling" />
+				<interceptor-ref name="scopedModelDriven" />
+				<interceptor-ref name="modelDriven" />
+				<interceptor-ref name="fileUpload">
+					<param name="maximumSize">30485760</param>
+				</interceptor-ref>
+				<interceptor-ref name="multiselect" />
+				<interceptor-ref name="checkbox" />
+				<interceptor-ref name="staticParams" />
+				<interceptor-ref name="params">
+					<param name="excludeParams"> dojo\..*
+					</param>
+				</interceptor-ref>
+				<interceptor-ref name="conversionError" />
+				<interceptor-ref name="validation">
+					<param name="excludeMethods"> input,back,cancel,browse,view,remove
+					</param>
+				</interceptor-ref>
+				<interceptor-ref name="workflow">
+					<param name="excludeMethods"> input,back,cancel,browse
+					</param>
+				</interceptor-ref>
+			</interceptor-stack>
+		</interceptors>
+
+		<default-interceptor-ref name="loggingStack"/>
+
+		<global-results>
+			<result name="welcome">/welcome.jsp</result>
+			<result name="home">/index.jsp</result>
+			<result name="accessdenied">/common/accessDenied.jsp</result>
+			<result name="selectProtocol">/common/selectProtcol.jsp</result>
+			<result name="failure">/common/error_struts2.jsp</result>
+		</global-results>
+
+		<global-allowed-methods>execute,input,back,cancel,browse,view,edit,create</global-allowed-methods>
+
+		<global-exception-mappings>
+			<exception-mapping exception="java.lang.Exception" result="failure" />
+		</global-exception-mappings> 
+	</package>
+
+	<include file="./struts2/struts-home.xml"></include>
+	<include file="./struts2/struts-attachment.xml"></include>
+	<include file="./struts2/struts-patient.xml"></include>
+	<include file="./struts2/struts-collection.xml"></include>
+	<include file="./struts2/struts-form.xml"></include>
+	<include file="./struts2/struts-question.xml"></include>
+	<include file="./struts2/struts-query.xml"></include>
+	<include file="./struts2/struts-protocol.xml"></include>
+	<include file="./struts2/struts-reports.xml"></include>
+	<include file="./struts2/struts-admin.xml"></include>
+	<include file="./struts2/struts-selfreporting.xml"></include>
+</struts>

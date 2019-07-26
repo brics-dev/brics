@@ -1,0 +1,344 @@
+
+/* ----- General, common, reusable styles (You may or may not want to copy all of these for ProForms) ------------------------------------------------- */
+* {
+  margin: 0;
+  padding: 0;
+  font-size: 100.01%; }
+
+body {
+  font: 62.5% Arial, Verdana, Helvetica, sans-serif; }
+
+a {
+  outline: none; }
+  a img {
+    border: 0; }
+
+img {
+  max-width: 100%;
+  height: auto; }
+
+hr {
+  display: none; }
+
+address {
+  font-style: normal; }
+
+table {
+  border-collapse: collapse; }
+
+.img-center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto; }
+
+.center {
+  text-align: center; }
+
+.left {
+  text-align: left; }
+
+.right {
+  text-align: right; }
+
+.float-left {
+  float: left;
+  display: inline; }
+
+.float-right {
+  float: right;
+  display: inline; }
+
+.no-float {
+  float: none !important; }
+
+.clear-left {
+  clear: left; }
+
+.clear-right {
+  clear: right; }
+
+.clear-both {
+  clear: both; }
+
+.clear-float {
+  display: inline-block;
+  overflow: hidden;
+  display: block; }
+
+.auto-width {
+  width: auto !important; }
+
+.margin-left {
+  margin-left: 10px; }
+  .margin-left.wide-margin {
+    margin-left: 20px; }
+  .margin-left.wider-margin {
+    margin-left: 30px; }
+  .margin-left.widest-margin {
+    margin-left: 40px; }
+
+.margin-right {
+  margin-right: 10px; }
+  .margin-right.wide-margin {
+    margin-right: 20px; }
+  .margin-right.wider-margin {
+    margin-right: 30px; }
+  .margin-right.widest-margin {
+    margin-right: 40px; }
+
+.no-margin {
+  margin: 0px !important; }
+
+.no-padding {
+  padding: 0px; }
+
+.no-border {
+  border: 0 !important; }
+
+.no-padding {
+  padding: 1px 0; }
+
+.no-wrap {
+  white-space: nowrap; }
+
+.hidden {
+  display: none; }
+
+/* External links image */
+
+.ext-link {padding-right: 18px; background: url(images/global/new_window_blue.png) no-repeat right;}
+.ext-link.reverse {background: url(images/global/new_window_white.png) no-repeat right;}
+
+/* commented backslash hack (feed all browsers but IE5/Mac) \*/
+.alt {
+  position: absolute;
+  left: -9999px; }
+
+.homepage-bulleted {
+  margin: 0 12px 1em 12px; }
+
+.visuallyhidden {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px; }
+
+.visuallyhidden.focusable:active, .visuallyhidden.focusable:focus {
+  clip: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  position: static;
+  width: auto; }
+
+/* end hack */
+
+/* Typography - declare commonality such as color, font-family, font-size, and line height here. Override common styles in layout.css  */
+h1 {
+  font: 22px Arial Bold, Arial, sans-serif;
+  letter-spacing: 1px;
+  margin: 12px 0 0 0; }
+
+h2 {
+  font: 18px/2.2 Arial Bold, Arial, sans-serif;
+  letter-spacing: 1px; }
+
+h3 {
+  font: 16px/1.2 Arial Bold, Arial, sans-serif;
+  margin: 4px 0; }
+
+h4 {
+  font: 14px/normal Arial, Verdana, Helvetica, sans-serif;
+  margin: 0 0 6px 0; }
+
+h5 {
+  font: bold 12px/normal Arial, Verdana, Helvetica, sans-serif; }
+
+p {
+  font: 12px/1.3 Arial;
+  margin: 0 0 1em 0; }
+
+ul, ol {
+  font: 12px/1.2 Arial;
+  margin: 0 0 1em 0; }
+
+a {
+  color: #141f64; }
+
+/* Content wrapper  styles */
+#content-wrapper {
+  margin-top: 32px; }
+  #content-wrapper .content {
+    overflow: hidden;
+    
+    /***** The following rule is just for purposes of header-footer demo */
+    
+    min-height: 100px;   
+    background: #fff;
+    border-color: #ccc;
+    
+    
+    /*****************************/
+    }
+
+
+/* Calls to action button */
+.action-button {
+  display: inline-block;
+  float: left; }
+  .action-button a {
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    -o-border-radius: 5px;
+    border-radius: 5px;
+    padding: 3px 10px;
+    font: bold 12px/18px Arial, Verdana, Helvetica, sans-serif;
+    text-decoration: none;
+    display: block;
+    text-transform: uppercase;
+    padding-top: 3px; }
+
+#page-container {
+  position: relative;
+  width: 100%; }
+
+.content {
+  width: 960px;
+  margin: 0 auto;
+  overflow: visible;
+  position: relative;
+  z-index: 2;
+  border-bottom-left-radius: 7px;
+  border-bottom-right-radius: 7px;
+  }
+
+/* Header styles */
+#header {
+  border-bottom: 1px solid; }
+  #header .content {
+    height: 119px; }
+
+#logo {
+  margin: 22px 0 0 1px;
+  height: 90px;
+  width: 266px; }
+
+/* login button and form */
+#login-button {
+  margin: 75px 0 0 0; }
+
+#login-link {
+  float: left;
+  width: 90px; }
+  #login-link a {
+    width: 90px;
+    padding: 0 30px 8px 22px;
+    float: left;
+    font: 11px/2.4 Arial, Gadget, sans-serif; }
+
+#login-panel {
+  display: none;
+  position: absolute;
+  top: 103px;
+  right: 0;
+  z-index: 3;
+  width: 254px;
+  text-align: right;
+  padding-bottom: 10px; }
+
+#login-wrapper {
+  padding: 5px 10px; }
+
+
+/* ----------------
+ Styles for primary navigation; secondary navigation (FITBIR Summary Data and About FITBIR links),
+ dropdown menu for About FITBIR, and left column subnavigation links. 
+--------------------- */
+/* Navigation > see mark up on /includes/navigation.htm current state is added by javascript */
+#navigation {
+  position: relative;
+  z-index: 3;
+  width: 960px;
+  margin: 0 auto; }
+
+.lt-ie9 #navigation {
+  z-index: 101; }
+
+.nav-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 960px;
+  z-index: 1; }
+
+#primary-nav {
+  list-style: none;
+  line-height: normal;
+  margin: 0; }
+  #primary-nav li {
+    float: left;
+    padding-right: 3px;
+    height: 42px; }
+    #primary-nav li a {
+      font-weight: bold;
+      display: block;
+      padding: 8px 15px;
+      text-decoration: none; }
+      #primary-nav li a:hover {
+        text-decoration: underline; }
+
+#home-link a span, #home-link a:hover span {
+  padding-left: 18px; }
+
+/* Footer styles */
+#footerDiv {
+  position: relative;
+  top: -40px; }
+
+#footer {
+  padding-top: 45px;
+  margin-top: 20px;
+  overflow: hidden; }
+
+#footer a {
+  text-transform: underline; }
+
+.contact {
+  float: left;
+  display: inline;
+  margin: 0 0 0 16px;
+  float: left;
+  text-align: left;
+  width: 298px; }
+  .contact h4 {
+    font: bold 14px/normal Arial; }
+  .contact h5 {
+    font: bold 12px/normal Arial; }
+  .contact p {
+    font-size: 11px;
+    line-height: 1.4;
+    margin: 0 0 1em 0; }
+
+.footer-links {
+  float: right;
+  list-style: none;
+  margin: 0 0 15px; }
+  .footer-links li {
+    display: inline;
+    padding: 0 4px;
+    margin-bottom: 15px; }
+
+.footer-logos {
+  width: 75%; }
+
+.footer-logos.last {
+  width: 35%; }
+
+.footer-logos .last-item {
+  display: block;
+  margin-top: 4px; }
+  

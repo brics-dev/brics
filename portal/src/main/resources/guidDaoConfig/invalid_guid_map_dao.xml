@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<queries>
+	<!-- Creates a record in the invalid_guid_map table -->
+	<query>
+		<name> createInvalid 
+		</name>
+		<sql> INSERT INTO invalid_guid_map (invalid_guid_map_id, invalid_guid, creator_id, date_created) VALUES (?,?,?,NOW()) 
+		</sql>
+	</query>
+	<!-- Finds a record by the given invalid GUID -->
+	<query>
+		<name> findByInvalidGuid 
+		</name>
+		<sql> SELECT * FROM invalid_guid_map WHERE invalid_guid=? 
+		</sql>
+	</query>
+	<query>
+		<name> containsInvalidGuid 
+		</name>
+		<sql> SELECT * FROM invalid_guid_map WHERE invalid_guid like ? 
+		</sql>
+	</query>
+	<!-- Gets the next number in the sequence for PK modified SQL for oracle, which was SELECT nextval('invalid_guid_map_invalid_guid_map_id_seq') -->
+	<query>
+		<name> nextInvalidGuidMapId 
+		</name>
+		<sql> SELECT nextval('invalid_guid_map_seq') 
+		</sql>
+	</query>
+	<!-- The 2 queries below are created for future update functionality, updating invalid GUIDs to get a valid GUID -->
+	<query>
+		<name> updateInvalid 
+		</name>
+		<sql> UPDATE invalid_guid_map SET updater_id=?, date_updated=NOW(), referred_subject_id=? WHERE invalid_guid_map_id=? 
+		</sql>
+	</query>
+	<query>
+		<name> findByInvalidGuidAndCreatorId 
+		</name>
+		<sql> SELECT * from invalid_guid_map where invalid_guid=? AND creator_id=? 
+		</sql>
+	</query>
+</queries>

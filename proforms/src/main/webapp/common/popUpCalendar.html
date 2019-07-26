@@ -1,0 +1,411 @@
+<HTML>
+<HEAD>
+<TITLE>PopUp Calendar</TITLE>
+<SCRIPT LANGUAGE="JavaScript">
+
+<!-- hide JS code
+//AUTHOR: Unknown
+//MODIFIED BY: Rebecca Xue
+
+var day
+var currYearIndex
+var currMonthIndex
+
+function drawCurrMonth(form)	// display current month in table
+{
+
+	makeMonthArray()
+	var today = new Date();
+	day = today.getDate();
+	currYearIndex	= today.getYear();
+	if (currYearIndex < 1000)
+		currYearIndex += 1900;
+	currYearIndex -= 1880;
+	currMonthIndex = today.getMonth();
+	form.selYear.selectedIndex	 = currYearIndex;
+	form.selMonth.selectedIndex = currMonthIndex;
+	drawCal(form);
+}
+
+function makeMonthArray()		// create array of 12 month objects
+{
+	months = new makeArray(12)
+	months[1]  = new month("January", 31, 0)
+	months[2]  = new month("February", 28, 1)
+	months[3]  = new month("March", 31, 2)
+	months[4]  = new month("April", 30, 3)
+	months[5]  = new month("May", 31, 4)
+	months[6]  = new month("June", 30, 5)
+	months[7]  = new month("July", 31, 6)
+	months[8]  = new month("August", 31, 7)
+	months[9]  = new month("September", 30, 8)
+	months[10] = new month("October", 31, 9)
+	months[11] = new month("November", 30, 10)
+	months[12] = new month("December", 31, 11)
+}
+
+function makeArray(arrayLength)		 // create empty array
+{
+	this.length = arrayLength
+	for (var i = 1; i <= arrayLength; i++)
+		this[i] = 0
+	return this
+}
+
+function month(name, length, index)	 // create month object
+{
+	this.name	= name	 // properties
+	this.length = length
+	this.index	= index
+	this.getFirstMonthDay = getFirstMonthDay	// method
+}
+
+function getFirstMonthDay(theYear)	 // get week-day of first day of month
+{
+	var firstDay = new Date(theYear, this.index, 1)
+	return firstDay.getDay()
+}
+
+function drawCal(form)					 
+{
+    // draw day numbers in cal table
+	var theYearIndex = form.selYear.selectedIndex
+	var theYear		= form.selYear.options[theYearIndex].text
+	var monthIndex = form.selMonth.selectedIndex + 1
+	if (monthIndex == 2)
+		months[2].length = getNumFebDays(theYear)
+	var firstMonthDay = months[monthIndex].getFirstMonthDay(theYear)
+	var numMonthDays	= months[monthIndex].length
+	var temp
+
+    for (var i = 0; i < 42; i++)
+	    if (i < firstMonthDay || i >= (numMonthDays + firstMonthDay))
+		    form.dayBox[i].value = "     "
+		else
+		{
+			temp = i - firstMonthDay + 1
+			if (temp < 10)
+				form.dayBox[i].value = i - firstMonthDay + 1 + "  "
+			else
+				form.dayBox[i].value = i - firstMonthDay + 1					
+			if ((theYearIndex == currYearIndex) && ((monthIndex - 1) == currMonthIndex) && (form.dayBox[i].value == day))
+				form.dayBox[i].focus()				
+		}   
+}
+
+function drawPrevMonth(form)
+{
+	var prevMonthIndex = form.selMonth.selectedIndex - 1
+	if (prevMonthIndex == -1)	  // prev month December?
+	{
+		var prevYearIndex = form.selYear.selectedIndex - 1
+		if (prevYearIndex == -1)	// prev year before 1990?
+		{
+			alert("Sorry, you cannot display any months before 1990!")
+			return
+		}
+		else	// set month to Dec, sub 1 from year
+		{
+			form.selMonth.selectedIndex = 11
+			form.selYear.selectedIndex	 = prevYearIndex
+		}
+	}
+	else	  // set month to prev month
+		form.selMonth.selectedIndex = prevMonthIndex
+	drawCal(form)
+}
+
+function drawNextMonth(form)
+{
+	var nextMonthIndex = form.selMonth.selectedIndex + 1
+	if (nextMonthIndex == 12)							// next month January?
+	{
+		var nextYearIndex = form.selYear.selectedIndex + 1
+		if (nextYearIndex >= form.selYear.length)	 // next year after 2010?
+		{
+			alert("Sorry, you cannot display any months after 2010!")
+			return
+		}
+		else	// set month to Jan, add 1 to year
+		{
+			form.selMonth.selectedIndex = 0
+			form.selYear.selectedIndex	 = nextYearIndex
+		}
+	}
+	else	  // set month to next month
+		form.selMonth.selectedIndex = nextMonthIndex
+	drawCal(form)
+}
+
+function getNumFebDays(theYear)		 // calc num days in February
+{
+	if ((theYear % 4 == 0 && theYear % 100 != 0) || theYear % 400 == 0)
+		return 29
+	else
+		return 28
+}
+
+function returnDate(form, inDay)
+{
+	var selDay = inDay
+	var month = form.selMonth.selectedIndex + 1
+	var year = form.selYear.options[form.selYear.selectedIndex].text
+
+	if ((""+month).length == 1)
+	{
+		month="0"+month
+	}
+	if (parseInt(inDay) > 0 && parseInt(inDay) < 10)
+	{
+		selDay="0"+parseInt(inDay);
+	}		 	
+	if (parseInt(inDay) > 0){
+		document.newVar.value = month + "/" + selDay + "/" + year
+		window.close()
+	}
+	else{			 
+		document.newVar.value = ""
+		window.close()
+	}	
+}
+
+// end JS hide -->
+
+</SCRIPT>
+</HEAD>
+
+<BODY BGCOLOR="#CCCC99" TEXT="black" onLoad="drawCurrMonth(document.calForm)">
+<FORM NAME='calForm'>
+<CENTER>
+
+<SELECT NAME="selMonth" onChange="drawCal(this.form)">
+  <OPTION>January
+  <OPTION>February
+  <OPTION>March
+  <OPTION>April
+  <OPTION>May
+  <OPTION>June
+  <OPTION>July
+  <OPTION>August
+  <OPTION>September
+  <OPTION>October
+  <OPTION>November
+  <OPTION>December
+</SELECT>
+
+<SELECT
+NAME="selYear" onChange="drawCal(this.form)">
+  <OPTION>1880
+  <OPTION>1881
+  <OPTION>1882
+  <OPTION>1883
+  <OPTION>1884
+  <OPTION>1885
+  <OPTION>1886
+  <OPTION>1887
+  <OPTION>1888
+  <OPTION>1889
+  <OPTION>1890
+  <OPTION>1891
+  <OPTION>1892
+  <OPTION>1893
+  <OPTION>1894
+  <OPTION>1895
+  <OPTION>1896
+  <OPTION>1897
+  <OPTION>1898
+  <OPTION>1899
+  <OPTION>1900
+  <OPTION>1901
+  <OPTION>1902
+  <OPTION>1903
+  <OPTION>1904
+  <OPTION>1905
+  <OPTION>1906
+  <OPTION>1907
+  <OPTION>1908
+  <OPTION>1909
+  <OPTION>1910
+  <OPTION>1911
+  <OPTION>1912
+  <OPTION>1913
+  <OPTION>1914
+  <OPTION>1915
+  <OPTION>1916
+  <OPTION>1917
+  <OPTION>1918
+  <OPTION>1919
+  <OPTION>1920
+  <OPTION>1921
+  <OPTION>1922
+  <OPTION>1923
+  <OPTION>1924
+  <OPTION>1925
+  <OPTION>1926
+  <OPTION>1927
+  <OPTION>1928
+  <OPTION>1929
+  <OPTION>1930
+  <OPTION>1931
+  <OPTION>1932
+  <OPTION>1933
+  <OPTION>1934
+  <OPTION>1935
+  <OPTION>1936
+  <OPTION>1937
+  <OPTION>1938
+  <OPTION>1939
+  <OPTION>1940
+  <OPTION>1941
+  <OPTION>1942
+  <OPTION>1943
+  <OPTION>1944
+  <OPTION>1945
+  <OPTION>1946
+  <OPTION>1947
+  <OPTION>1948
+  <OPTION>1949
+  <OPTION>1950
+  <OPTION>1951
+  <OPTION>1952
+  <OPTION>1953
+  <OPTION>1954
+  <OPTION>1955
+  <OPTION>1956
+  <OPTION>1957
+  <OPTION>1958
+  <OPTION>1959
+  <OPTION>1960
+  <OPTION>1961
+  <OPTION>1962
+  <OPTION>1963
+  <OPTION>1964
+  <OPTION>1965
+  <OPTION>1966
+  <OPTION>1967
+  <OPTION>1968
+  <OPTION>1969
+  <OPTION>1970
+  <OPTION>1971
+  <OPTION>1972
+  <OPTION>1973
+  <OPTION>1974
+  <OPTION>1975
+  <OPTION>1976
+  <OPTION>1977
+  <OPTION>1978
+  <OPTION>1979
+  <OPTION>1980
+  <OPTION>1981
+  <OPTION>1982
+  <OPTION>1983
+  <OPTION>1984
+  <OPTION>1985
+  <OPTION>1986
+  <OPTION>1987
+  <OPTION>1988
+  <OPTION>1989
+  <OPTION>1990
+  <OPTION>1991
+  <OPTION>1992
+  <OPTION>1993
+  <OPTION>1994
+  <OPTION>1995
+  <OPTION>1996
+  <OPTION>1997
+  <OPTION>1998
+  <OPTION>1999
+  <OPTION>2000
+  <OPTION>2001
+  <OPTION>2002
+  <OPTION>2003
+  <OPTION>2004
+  <OPTION>2005
+  <OPTION>2006
+  <OPTION>2007
+  <OPTION>2008
+  <OPTION>2009
+  <OPTION>2010
+</SELECT>
+
+<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=1>
+<TR><TD COLSPAN=7></TD></TR>
+
+<TR><TD><CENTER><FONT SIZE=-1 FACE="Arial,Helv,Helvetica"><B>S</B></FONT></CENTER></TD>
+	<TD><CENTER><FONT SIZE=-1 FACE="Arial,Helv,Helvetica"><B>M</B></FONT></CENTER></TD>
+	<TD><CENTER><FONT SIZE=-1 FACE="Arial,Helv,Helvetica"><B>T</B></FONT></CENTER></TD>
+	<TD><CENTER><FONT SIZE=-1 FACE="Arial,Helv,Helvetica"><B>W</B></FONT></CENTER></TD>
+	<TD><CENTER><FONT SIZE=-1 FACE="Arial,Helv,Helvetica"><B>T</B></FONT></CENTER></TD>
+	<TD><CENTER><FONT SIZE=-1 FACE="Arial,Helv,Helvetica"><B>F</B></FONT></CENTER></TD>
+	<TD><CENTER><FONT SIZE=-1 FACE="Arial,Helv,Helvetica"><B>S</B></FONT></CENTER></TD>
+</TR>
+
+<TR>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+</TR>
+
+<TR>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+</TR>
+
+<TR>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+</TR>
+
+<TR>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox VALUE='    ' onClick="returnDate(this.form,this.value)"></TD>
+</TR>
+
+<TR>
+<TD><INPUT TYPE=button NAME=dayBox align="middle" VALUE='     ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox align="middle" VALUE='     ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox align="middle" VALUE='     ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox align="middle" VALUE='     ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox align="middle" VALUE='     ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox align="middle" VALUE='     ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox align="middle" VALUE='     ' onClick="returnDate(this.form,this.value)"></TD>
+</TR>
+
+<TR>
+<TD><INPUT TYPE=button NAME=dayBox align="middle" VALUE='     ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox align="middle" VALUE='     ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox align="middle" VALUE='     ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox align="middle" VALUE='     ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox align="middle" VALUE='     ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox align="middle" VALUE='     ' onClick="returnDate(this.form,this.value)"></TD>
+<TD><INPUT TYPE=button NAME=dayBox align="middle" VALUE='     ' onClick="returnDate(this.form,this.value)"></TD>
+</TR>
+
+</TABLE>
+</CENTER>
+</FORM>
+</BODY>
+
+</HTML>
+
+
+

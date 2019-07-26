@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<validators>
+	<field name="adminUploadFileName">
+		<field-validator type="studydocupload">
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+</validators>

@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+        "http://struts.apache.org/dtds/struts-2.5.dtd">
+<struts>
+	<package name="metastudy" extends="default" namespace="/metastudy">
+	
+		<global-allowed-methods>execute,input,back,cancel,browse,edit,create,view,search,list,submit</global-allowed-methods>
+		
+		<action name="metaStudyListAction" class="gov.nih.tbi.metastudy.portal.MetaStudyListAction">
+			<result name="list"> /jsp/metastudy/listMetaStudies.jsp 
+			</result>
+			<allowed-methods>getMetaStudyTableList</allowed-methods>
+		</action>
+		
+		<action name="metaStudyAction" class="gov.nih.tbi.metastudy.portal.MetaStudyAction">
+			<result name="input"> /jsp/metastudy/editMetaStudyDetails.jsp
+			</result>
+			<result name="list" type="redirect"> metaStudyListAction!list.action
+			</result>
+			<result name="grant"> /jsp/metastudy/grantMetaTable.jsp
+			</result>
+			<result name="documentation" type="redirect">
+				<param name="location"> metaStudyDocAction!input.action</param>
+			</result>
+ 			<result name="dataset"> /jsp/metastudy/editMetaStudyData.jsp
+ 			</result>
+			<result name="metastudyKeyword" type="redirectAction">
+				<param name="actionName">metaStudyKeywordAction</param>
+			</result>
+			<result name="addKeyword" type="json">
+				<param name="root"> newKeyword </param>
+			</result>
+			<result name="addLabel" type="json">
+				<param name="root"> newLabel </param>
+			</result>
+			<result name="view"> /jsp/metastudy/viewMetaStudy.jsp
+			</result>
+			<result name="success">/jsp/metastudy/viewMetaStudy.jsp
+			</result>
+			<result name="permissions"> /jsp/metastudy/editMetaStudyPermissions.jsp
+			</result>
+			<result name="redirectToView" type="redirectAction" >
+				<param name="actionName">metaStudyAction</param>
+				<param name="method">view</param>
+				<param name="metaStudyId">${currentMetaStudy.id}</param>
+			</result>
+			<result name="editMetaStudy">/jsp/metastudy/editMetaStudy.jsp
+			</result>
+			<result name="keywordsAndLabels"> /jsp/metastudy/metaStudyKeywordsAndLabels.jsp
+			</result>
+			<result name="keywords" type="redirectAction">
+				<param name="actionName">editMetaStudyKeywordAction</param>
+			</result>
+			<result name="editDocumentation" type="redirectAction">
+				<param name="actionName">editMetaStudyDocumentationAction</param>
+			</result>
+			<result name="editData">/jsp/metastudy/metaStudyDataTable-Edit.jsp
+			</result>
+			<result name="viewSavedQuery">/jsp/metastudy/viewSavedQuery.jsp
+			</result>
+			<result name="viewSavedQueryInQueryTool"> /jsp/metastudy/viewSavedQueryInQueryTool.jsp
+			</result>
+			<result name="editResearchMgmt"> /jsp/metastudy/editMetaStudyResearchMgmt.jsp
+			</result>
+			<result name="clinicalTrial"> /jsp/metastudy/clinicalTrialMetaTable.jsp
+			</result>
+			<result name="clinicalTrialDetails"> /jsp/metastudy/viewClinicalTrial.jsp
+			</result>
+			<allowed-methods>viewSavedQuery,editPermissions,approve,reject,viewClinicalTrial,keywords,editKeywordSave,
+					removeResearchMgmt,removeClinicalTrial,removeGrant,unpublish,moveToDocumentation,moveToData,moveToKeyword,
+					moveToPreview,moveToDetails,editDataDataTableSave,dataRefresh,submitPermissions,requestPublication,getResearchMgmtMetaSet,getDocumentionList,
+					getMetaStudyDataSet,getClinicalTrialMetaSet,getGrantMetaSet,getResMgmtMetaEntryToEdit,editResearchMgmtAjax</allowed-methods>
+		</action>
+		
+		<action name="metaStudyValidationAction" class="gov.nih.tbi.metastudy.portal.MetaStudyAction">
+			<result name="success"> /jsp/metastudy/viewMetaStudy.jsp
+			</result>
+			<result name="input"> /jsp/metastudy/editMetaStudyDetails.jsp
+			</result>
+			<result name="documentation" type="redirect">
+				<param name="location"> metaStudyDocAction!input.action</param>
+			</result>
+			<result name="dataset"> /jsp/metastudy/editMetaStudyData.jsp
+ 			</result>
+			<result name="metastudyKeyword" type="redirectAction">
+				<param name="actionName">metaStudyKeywordAction</param>
+			</result>
+			<result name="view"> /jsp/metastudy/viewMetaStudy.jsp
+			</result>
+			<result name="redirectToView" type="redirectAction" >
+				<param name="actionName">metaStudyAction</param>
+				<param name="method">view</param>
+				<param name="metaStudyId">${currentMetaStudy.id}</param>
+			</result>
+			<allowed-methods>moveToDocumentation,moveToData,moveToKeyword,moveToPreview,moveToDetails</allowed-methods>
+		</action>
+		
+		<action name="researchMgmtMetaValidationAction" class="gov.nih.tbi.metastudy.portal.MetaStudyAction">
+			<result name="input"> /jsp/metastudy/editMetaStudyResearchMgmt.jsp
+			</result>
+			<result name="editResearchMgmt"> /jsp/metastudy/editMetaStudyResearchMgmt.jsp
+			</result>
+			<allowed-methods>addResearchManagement</allowed-methods>
+		</action>
+		
+		<action name="clinicalTrialMetaValidationAction" class="gov.nih.tbi.metastudy.portal.MetaStudyAction">
+			<result name="input"> /jsp/metastudy/clinicalTrialMetaTable.jsp
+			</result>
+			<result name="clinicalTrial"> /jsp/metastudy/clinicalTrialMetaTable.jsp
+			</result>
+			<allowed-methods>addClinicalTrial</allowed-methods>
+		</action>
+
+		<action name="grantMetaValidationAction" class="gov.nih.tbi.metastudy.portal.MetaStudyAction">
+			<result name="input">/jsp/metastudy/grantMetaTable.jsp
+			</result>
+			<result name="grant"> /jsp/metastudy/grantMetaTable.jsp
+			</result>
+			<allowed-methods>addGrant</allowed-methods>
+		</action>
+		
+		<action name="metaStudyEditValidationAction" class="gov.nih.tbi.metastudy.portal.MetaStudyAction">
+			<result name="input"> /jsp/metastudy/editMetaStudy.jsp
+			</result>
+			<result name="success"> /jsp/metastudy/editMetaStudy.jsp
+			</result>
+			<allowed-methods>editDetailsSave</allowed-methods>
+		</action>
+		
+		<action name="metaStudyDocAction" class="gov.nih.tbi.metastudy.portal.MetaStudyDocumentationAction">
+			<result name="pubmed" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">pubMedJson</param>
+			</result>
+			<result name="input">
+				<param name="location">/jsp/metastudy/editMetaStudyDocumentation.jsp </param>
+			 	<param name="fileErrors"> ${fileErrors} </param>  
+			 	<param name="addDocSelect">${addDocSelect}</param>  
+			</result>
+			<result name="edit"> /jsp/metastudy/metaStudyDocumentationTable-Edit.jsp
+			</result>
+			<result name="documentation">
+				<param name="location">/jsp/metastudy/editMetaStudyDocumentation.jsp </param>
+				<param name="fileErrors"> ${fileErrors} </param>
+				<param name="addDocSelect">${addDocSelect}</param>
+			</result>
+			<result name="addDocumentationDialog"> /jsp/metastudy/addDocumentationDialog.jsp
+			</result>
+			<result name="editDocumentDataTableSave" type="redirect">
+				<param name="location"> metaStudyAction!editDocumentDataTableSave.action</param>
+			</result>
+			<result name="ViewSoftware">/jsp/studyTool/viewSoftware.jsp
+			</result>
+			<result name="ViewPublication">/jsp/studyTool/viewPublication.jsp
+			</result>
+			<allowed-methods>pubMedWS,addDocDialog,documentationRefresh,editDocumentation,removeDocumentations,getUploadDocumentation,
+					viewDocumentation</allowed-methods>
+		</action>
+		
+		<action name="metaStudyDocValidationAction" class="gov.nih.tbi.metastudy.portal.MetaStudyDocumentationAction">
+			<result name="input"> 
+				<param name="location">/jsp/metastudy/addDocumentationDialog.jsp </param>
+			 	<param name="fileErrors"> ${fileErrors} </param>  
+			</result>
+			<result name="documentation">
+				<param name="location">/jsp/metastudy/editMetaStudyDocumentation.jsp </param>
+				<param name="fileErrors"> ${fileErrors} </param>
+				<param name="addDocSelect">${addDocSelect}</param>
+			</result>
+			<result name="editDocumentDataTableSave" type="redirect">
+				<param name="location"> metaStudyAction!editDataDataTableSave.action</param>
+			</result>
+<!-- 			<result name="success" type="httpheader">
+				<param name="status">204</param>
+			</result> -->
+			<allowed-methods>uploadDocumentation</allowed-methods>
+		</action>
+		
+		<action name="metaStudyDataAction" class="gov.nih.tbi.metastudy.portal.MetaStudyDataAction">
+			<result name="input"> /jsp/metastudy/editMetaStudyData.jsp
+			</result>
+ 			<result name="dataset"> /jsp/metastudy/editMetaStudyData.jsp
+ 			</result>
+			<result name="selectSavedQueryDialog"> /jsp/metastudy/selectSavedQueryDialog.jsp
+			</result>
+			<result name="addSavedQueryDialog"> /jsp/metastudy/addSavedQueryDialog.jsp
+			</result>
+			<result name="addDataFileDialog"> /jsp/metastudy/addDataFileDialog.jsp
+			</result>
+			<result name="redirectToData" type="redirect">
+				<param name="location"> metaStudyAction!moveToData.action </param>
+				<param name="fileErrors"> ${fileErrors} </param>
+			</result>
+			<result name="redirectToEditData" type="redirect">
+				<param name="location"> metaStudyAction!editDataSave.action </param>
+				<param name="fileErrors"> ${fileErrors} </param>
+			</result>
+			<result name="editDataDataTableSave" type="redirect">
+				<param name="location"> metaStudyAction!editDataDataTableSave.action</param>
+			</result>
+			<allowed-methods>editData,removeData,uploadData,addSavedQueryDialog,addDataFileDialog,selectSavedQueryDialog,getUploadMetaStudyData,
+				getSavedQuerySet</allowed-methods>
+		</action>
+		
+		<action name="addSavedQueryValidationAction" class="gov.nih.tbi.metastudy.portal.MetaStudyDataAction">
+			<result name="input"> /jsp/metastudy/addSavedQueryDialog.jsp
+			</result>
+			<result name="redirectToEditData" type="redirect">
+				<param name="location"> metaStudyAction!validationSuccess.action </param>
+			</result>
+			<result name="editDataDataTableSave" type="redirect">
+				<param name="location"> metaStudyAction!editDataDataTableSave.action</param>
+			</result>
+			<allowed-methods>uploadData</allowed-methods>
+		</action>
+		
+		<action name="metaStudyDataValidationAction" class="gov.nih.tbi.metastudy.portal.MetaStudyDataAction">
+			<interceptor-ref name="defaultStack">
+				<param name="uploadData.maximumSize">50777216000</param>
+			</interceptor-ref>
+			<result name="input"> /jsp/metastudy/addDataFileDialog.jsp
+			</result>
+			<result name="editDataDataTableSave" type="redirect">
+				<param name="location"> metaStudyAction!editDataDataTableSave.action</param>
+			</result>
+			<allowed-methods>uploadData</allowed-methods>
+		</action>		
+		
+		<action name="keywordNameValidationAction" class="gov.nih.tbi.metastudy.portal.MetaStudyAction">
+			<result name="input"> /jsp/metastudy/addKeyword.jsp
+			</result>
+			<result name="addKeyword" type="json">
+				<param name="root"> newKeyword </param>
+			</result>
+			<allowed-methods>createKeyword</allowed-methods>
+		</action>
+		
+		<action name="labelNameValidationAction" class="gov.nih.tbi.metastudy.portal.MetaStudyAction">
+			<result name="input"> /jsp/metastudy/addLabel.jsp
+			</result>
+			<result name="addLabel" type="json">
+				<param name="root"> newLabel </param>
+			</result>
+			<allowed-methods>createLabel</allowed-methods>
+		</action>
+		<action name="editMetaStudyKeywordAction" class="gov.nih.tbi.metastudy.portal.MetaStudyKeywordAction">
+			<result name="success"> /jsp/metastudy/metaStudyKeywordsAndLabels.jsp
+			</result>
+			<result name="keywords"> /jsp/metastudy/metaStudyKeywordsAndLabels.jsp
+			</result>
+		</action>
+		<action name="metaStudyKeywordAction" class="gov.nih.tbi.metastudy.portal.MetaStudyKeywordAction">
+			<result name="success"> /jsp/metastudy/editMetaStudyKeyword.jsp
+			</result>
+			<result name="editMetaStudy"> /jsp/metastudy/editMetaStudy.jsp
+			</result>
+		</action>
+		<action name="metaStudyPermissionAction" class="gov.nih.tbi.metastudy.portal.MetaStudyPermissionAction">
+			<result name="view"> /jsp/account/permissions.jsp
+			</result>
+			<result name="inner"> /jsp/account/permissions-inner.jsp
+			</result>
+			<allowed-methods>load,changePermission</allowed-methods>
+		</action>
+		<action name="metaStudyExportAction" class="gov.nih.tbi.metastudy.portal.MetaStudyExportAction">
+			<result name="redirectToFileDownload" type="redirectAction" >
+				<param name="actionName">fileDownloadAction</param>
+				<param name="method">download</param>
+				<param name="fileId">${fileId}</param>
+			</result>
+			<result name="export" type="stream">
+				<param name="contentType"> application/vnd.ms-excel 
+				</param>
+				<param name="inputName"> inputStream 
+				</param>
+				<param name="contentDisposition"> attachment;filename="${exportFileName}" 
+				</param>
+				<param name="bufferSize"> 1024 
+				</param>
+			</result>
+			<allowed-methods>download,exportAccessRecords</allowed-methods>
+		</action>
+		<action name="metaStudyAccessRecordDownloadAction" class="gov.nih.tbi.metastudy.portal.MetaStudyAction">
+			<result name="metaStudyAccessTable"> /jsp/metastudy/metaStudyAccessRecordTable.jsp
+			</result>
+			<allowed-methods>searchReports,searchReportsList</allowed-methods>
+		</action>
+		
+		<action name="createDoiForMetaStudy" class="gov.nih.tbi.metastudy.portal.MetaStudyAction" method="createDOIForMetaStudy">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">responseJson</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+		</action>
+	</package>
+</struts>

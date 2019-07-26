@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jaxws="http://cxf.apache.org/jaxws" xmlns:jaxrs="http://cxf.apache.org/jaxrs" xmlns:aop="http://www.springframework.org/schema/aop" xmlns="http://www.springframework.org/schema/beans" xsi:schemaLocation="
+						http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd
+						http://cxf.apache.org/jaxws http://cxf.apache.org/schemas/jaxws.xsd
+						http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd">
+	<import resource="classpath:META-INF/cxf/cxf.xml" />
+	<import resource="classpath:META-INF/cxf/cxf-servlet.xml" />
+
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	<!-- Web Service Implementations -->
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	
+	<!--  SOAP Beans -->
+	<bean id="authenticationWebServiceBean" class="gov.nih.tbi.account.ws.cxf.AuthenticationWebServiceImpl" />
+	<bean id="accountWebServiceBean" class="gov.nih.tbi.account.ws.cxf.AccountWebServiceImpl" />
+	<bean id="repositoryWebServiceBean" class="gov.nih.tbi.repository.ws.cxf.RepositoryWebServiceImpl" />	
+	<bean id="accessionWebServiceBean" class="gov.nih.tbi.repository.ws.cxf.AccessionWebServiceImpl" />
+	
+	<!--  Restful Beans -->
+	<bean id="accountRestServiceBean" class="gov.nih.tbi.account.ws.AccountRestService" />
+	<bean id="repositoryRestServiceBean" class="gov.nih.tbi.repository.ws.cxf.RepositoryRestService" />
+	<bean id="publicStudyServiceBean" class="gov.nih.tbi.repository.ws.PublicStudyService" />
+	<bean id="publicMetaStudyServiceBean" class="gov.nih.tbi.repository.ws.PublicMetaStudyService" />
+	<bean id="publicSubmittedDataServiceBean" class="gov.nih.tbi.repository.ws.PublicSubmittedDataService" />
+	<bean id="summaryDataRestServiceBean" class="gov.nih.tbi.repository.ws.cxf.SummaryDataRestService" />
+	<bean id="dictionaryRestServiceBean" class="gov.nih.tbi.dictionary.ws.cxf.DictionaryRestService"/>
+	<bean id="queryToolRestServiceBean" class="gov.nih.tbi.queryTool.ws.cxf.QueryToolRestService" />
+	<bean id="webstartRestServiceBean" class="gov.nih.tbi.repository.ws.cxf.WebstartRepositoryWebService" />
+	<bean id="webstartDictServiceBean" class="gov.nih.tbi.dictionary.ws.cxf.WebstartDictionaryRestService" />
+	<bean id="orderManagementRestBean" class="gov.nih.tbi.ordermanagement.ws.cxf.OrderManagementRestService" />
+	<bean id="savedQueryRestServiceBean" class="gov.nih.tbi.queryTool.ws.cxf.SavedQueryRestService" />
+	<bean id="repositoryAPIRestServiceBean" class="gov.nih.tbi.repository.ws.cxf.RepositoryAPIRestService" />
+	<bean id="dictionaryAPIRestServiceBean" class="gov.nih.tbi.dictionary.ws.cxf.DictionaryAPIRestService"/>
+	<bean id="metaStudyRestServiceBean" class="gov.nih.tbi.metastudy.ws.cxf.MetaStudyRestService" />
+	<bean id="eformStudyRestServiceBean" class="gov.nih.tbi.dictionary.ws.cxf.EformRestService" />
+	<bean id="eformValidationServiceBean" class="gov.nih.tbi.dictionary.ws.cxf.EformValidationService" />
+	<bean id="statelessAccountRestServiceBean" class="gov.nih.tbi.account.ws.cxf.StatelessAccountRestService" />
+	<bean id="recaptchaRestServiceBean" class="gov.nih.tbi.recaptcha.ws.RecaptchaRestService" />
+	
+	
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	<!-- Web Service Endpoints - Defines address of webservice -->
+	<!-- Note: prepends any URL-Mapping from web.xml (/ws) -->
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	
+	<!-- Authentication Web Service Endpoint (/ws/authenticationWebService?wsdl) -->
+	<jaxws:endpoint id="authenticationWebService" address="/authenticationWebService" implementor="#authenticationWebServiceBean" />
+	<!-- Account Web Service Endpoint (/ws/accountWebService?wsdl) -->
+	<jaxws:endpoint id="accountWebService" address="/accountWebService" implementor="#accountWebServiceBean" />
+	<!-- Accession (GUID) Web Service Endpoint (/ws/accessionWebService?wsdl) -->
+	<jaxws:endpoint id="accessionWebService" address="/accessionWebService" implementor="#accessionWebServiceBean" />
+	<!-- Repository Web Service Endpoint (/ws/repositoryWebService?wsdl) -->
+	<jaxws:endpoint id="repositoryWebService" address="/repositoryWebService" implementor="#repositoryWebServiceBean" />
+	<!-- MEta Study Web Service Endpoint (/ws/metastudyWebService?wsdl) -->
+	<jaxws:endpoint id="metaStudyWebService" address="/metaStudyWebService" implementor="#metaStudyRestServiceBean" />
+	
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	<!-- RESTful Web Service Endpoints - Defines address of webservice -->
+	<!-- Note: prepends any URL-Mapping from web.xml (/ws)-->
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	
+	<!-- CXF configurations to alter the timeouts of the client for the rest web services -->
+	<import resource="classpath:cxf.xml"/>
+	<!-- End configurations -->
+	
+	<jaxrs:server id="dictionaryRestServiceID" address="/ddt">
+		<jaxrs:serviceBeans>
+			<ref bean="dictionaryRestServiceBean" /> 
+			<ref bean="eformStudyRestServiceBean" />
+			<ref bean="eformValidationServiceBean" />
+		</jaxrs:serviceBeans>
+		<jaxrs:extensionMappings>
+      		<entry key="json" value="application/json"/>
+      		<entry key="xml" value="application/xml"/>
+    	</jaxrs:extensionMappings>
+	</jaxrs:server>
+	
+	<jaxrs:server id="RecaptchaRestService" address="/recaptcha">
+		<jaxrs:serviceBeans>
+			<ref bean="recaptchaRestServiceBean" />
+		</jaxrs:serviceBeans>
+		<jaxrs:extensionMappings>
+      		<entry key="json" value="application/json"/>
+      		<entry key="xml" value="application/xml"/>
+    	</jaxrs:extensionMappings>
+	</jaxrs:server>
+	
+	<jaxrs:server id="AccountRestService" address="/account">
+		<jaxrs:serviceBeans>
+			<ref bean="accountRestServiceBean" />
+		</jaxrs:serviceBeans>
+		<jaxrs:extensionMappings>
+      		<entry key="json" value="application/json"/>
+      		<entry key="xml" value="application/xml"/>
+    	</jaxrs:extensionMappings>
+	</jaxrs:server>
+	
+	<jaxrs:server id="StatelessAccountRestService" address="/stateless/account">
+		<jaxrs:serviceBeans>
+			<ref bean="statelessAccountRestServiceBean" />
+		</jaxrs:serviceBeans>
+		<jaxrs:extensionMappings>
+      		<entry key="json" value="application/json"/>
+      		<entry key="xml" value="application/xml"/>
+    	</jaxrs:extensionMappings>
+	</jaxrs:server>
+	
+	<jaxrs:server id="WebstartRepositoryWebService" address="/webstart/repository">
+		<jaxrs:serviceBeans>
+			<ref bean="webstartRestServiceBean" />
+		</jaxrs:serviceBeans>
+		<jaxrs:extensionMappings>
+      		<entry key="json" value="application/json"/>
+      		<entry key="xml" value="application/xml"/>
+    	</jaxrs:extensionMappings>
+	</jaxrs:server>
+	
+	<jaxrs:server id="WebstartDictionaryWebService" address="/webstart">
+		<jaxrs:serviceBeans>
+			<ref bean="webstartDictServiceBean" />
+		</jaxrs:serviceBeans>
+		<jaxrs:extensionMappings>
+      		<entry key="json" value="application/json"/>
+      		<entry key="xml" value="application/xml"/>
+    	</jaxrs:extensionMappings>
+	</jaxrs:server>
+
+	<jaxrs:server id="RepositoryRestService" address="/repository">
+		<jaxrs:serviceBeans>
+			<ref bean="repositoryRestServiceBean" />
+		</jaxrs:serviceBeans>
+		<jaxrs:extensionMappings>
+      		<entry key="json" value="application/json"/>
+      		<entry key="xml" value="application/xml"/>
+    	</jaxrs:extensionMappings>
+	</jaxrs:server>
+	
+	<jaxrs:server id="PublicRepositoryService" address="/public">
+		<jaxrs:serviceBeans>
+			<ref bean="publicStudyServiceBean" />
+			<ref bean="publicMetaStudyServiceBean" />
+			<ref bean="publicSubmittedDataServiceBean" />
+		</jaxrs:serviceBeans>
+		<jaxrs:providers>
+			<bean class="gov.nih.tbi.commons.ws.util.GsonJaxrsProvider"/>
+		</jaxrs:providers>
+		<jaxrs:extensionMappings>
+      		<entry key="json" value="application/json"/>
+      		<entry key="xml" value="application/xml"/>
+    	</jaxrs:extensionMappings>
+	</jaxrs:server>
+	
+	<jaxrs:server id="SummaryDataService" address="/summaryData">
+		<jaxrs:serviceBeans>
+			<ref bean="summaryDataRestServiceBean" />
+		</jaxrs:serviceBeans>
+		<jaxrs:extensionMappings>
+      		<entry key="json" value="application/json" />
+    	</jaxrs:extensionMappings>
+	</jaxrs:server>
+	
+	<jaxrs:server id="QueryToolService" address="/queryToolService">
+		<jaxrs:serviceBeans>
+			<ref bean="queryToolRestServiceBean" />
+		</jaxrs:serviceBeans>
+		<jaxrs:extensionMappings>
+      		<entry key="json" value="application/json"/>
+      		<entry key="xml" value="application/xml"/>
+    	</jaxrs:extensionMappings>
+	</jaxrs:server>
+	
+	<jaxrs:server id="SavedQueryService" address="/savedQueryService">
+		<jaxrs:serviceBeans>
+			<ref bean="savedQueryRestServiceBean" />
+		</jaxrs:serviceBeans>
+		<jaxrs:extensionMappings>
+      		<entry key="json" value="application/json"/>
+      		<entry key="xml" value="application/xml"/>
+    	</jaxrs:extensionMappings>
+	</jaxrs:server>
+	
+	<jaxrs:server id="OrderManagementToolService" address="/orderManagement">
+		<jaxrs:serviceBeans>
+			<ref bean="orderManagementRestBean" />
+		</jaxrs:serviceBeans>
+		<jaxrs:extensionMappings>
+      		<entry key="json" value="application/json"/>
+      		<entry key="xml" value="application/xml"/>
+    	</jaxrs:extensionMappings>
+	</jaxrs:server>
+	
+	<jaxrs:server id="metaStudyRestService" address="/metastudy">
+		<jaxrs:serviceBeans>
+			<ref bean="metaStudyRestServiceBean"/>
+		</jaxrs:serviceBeans>
+		<jaxrs:extensionMappings>
+      		<entry key="json" value="application/json"/>
+      		<entry key="xml" value="application/xml"/>
+    	</jaxrs:extensionMappings>
+	</jaxrs:server>
+	
+	<jaxrs:server id="APIRestService" address="/api">
+		<jaxrs:serviceBeans>
+			<ref bean="dictionaryAPIRestServiceBean" />
+			<ref bean="repositoryAPIRestServiceBean" />
+		</jaxrs:serviceBeans>
+		<jaxrs:extensionMappings>
+      		<entry key="json" value="application/json"/>
+      		<entry key="xml" value="application/xml"/>
+    	</jaxrs:extensionMappings>
+	</jaxrs:server>
+</beans>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC "-//Apache Struts//XWork Validator 1.0.2//EN" "/WEB-INF/xwork-validator-1.0.2.dtd">
+<validators>
+	<field name="accountSignatureForm.firstName">
+		<field-validator short-circuit="true" type="requiredstring">
+			<param name="trim"> true
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator short-circuit="true" type="regex">
+			<param name="trim">false</param>
+			<param name="regex"> ^[A-Za-z0-9 ,.'-]+$
+			</param>
+			<message key="errors.alphanumeric" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 55
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+		<field-validator type="firstnamematch">
+			<param name="trim"> true </param>
+			<message key="errors.mismatch" />
+		</field-validator>
+	</field>
+	<field name="accountSignatureForm.middleName">
+		<field-validator type="regex">
+			<param name="trim">false</param>
+			<param name="regex"> ^[A-Za-z0-9 ,.'-]+$
+			</param>
+			<message key="errors.alphanumeric" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 55
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+		<field-validator type="middlenamematch">
+			<param name="trim"> true </param>
+			<message key="errors.mismatch" />
+		</field-validator>
+	</field>
+	<field name="accountSignatureForm.lastName">
+		<field-validator short-circuit="true" type="requiredstring">
+			<param name="trim"> true
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator short-circuit="true" type="regex">
+			<param name="trim">false</param>
+			<param name="regex"> ^[A-Za-z0-9 ,.'-]+$
+			</param>
+			<message key="errors.alphanumeric" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 55
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+		<field-validator type="lastnamematch">
+			<param name="trim"> true </param>
+			<message key="errors.mismatch" />
+		</field-validator>
+	</field>
+	<field name="accountSignatureForm.password">
+		<field-validator short-circuit="true" type="requiredstring">
+			<param name="trim"> true </param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator short-circuit="true" type="passwordformat">
+			<param name="trim"> true </param>
+			<message key="errors.passwordFormat" />
+		</field-validator>
+		<field-validator type="passwordmatch">
+			<param name="trim"> true </param>
+			<message key="errors.mismatch" />
+		</field-validator>
+	</field>
+</validators>

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+		http://www.springframework.org/schema/task 
+		http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:mail.properties</value>
+				<value>file:#{systemProperties['conf.dir']}/datasource.properties</value>
+				<value>file:#{systemProperties['conf.dir']}/common.properties</value>
+			</list>
+		</property>
+		<property name="ignoreUnresolvablePlaceholders" value="true" />
+	</bean>
+
+	<bean id="applicationProperties"
+		class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+		<property name="locations">
+			<list>
+				<value>file:#{systemProperties['conf.dir']}/modules.properties</value>
+				<value>file:#{systemProperties['conf.dir']}/rdfgen.properties</value>
+			</list>
+		</property>
+		<property name="ignoreResourceNotFound" value="true" />
+	</bean>
+
+	<bean id="messageSource"
+		class="org.springframework.context.support.ResourceBundleMessageSource">
+		<property name="basenames">
+			<list>
+				<value>application</value>
+				<value>mail</value>
+				<value>messages</value>
+			</list>
+		</property>
+	</bean>
+
+	<!-- Scans the classpath of this application for @Components to deploy as 
+		beans -->
+	<context:annotation-config />
+	<context:component-scan base-package="gov.nih.brics, gov.nih.tbi" />
+	<mvc:annotation-driven />
+
+	<task:annotation-driven scheduler="bricsScheduler" />
+	<task:scheduler id="bricsScheduler" pool-size="5" />
+
+	<!-- IMPORT SERVICE DEFINITIONS -->
+	<import resource="context-services.xml" />
+
+	<!-- DATABASE CONNECTIONS -->
+	<import resource="database.xml" />
+
+	<!-- Bean mappings copied from Portal -->
+	<!-- THESE ARE VARIABLE CONFIGURATIONS [RESTART REQUIRED TO TAKE EFFECT] -->
+	<!-- DEFINITIONS OF BEANS -->
+
+	<!-- SINGLETONS -->
+	<bean id="roleHierarchy"
+		class="org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl">
+		<property name="hierarchy">
+			<value>
+				ROLE_ADMIN > ROLE_USER
+				ROLE_ADMIN > ROLE_DICTIONARY_ADMIN
+				ROLE_ADMIN > ROLE_REPOSITORY_ADMIN
+				ROLE_ADMIN > ROLE_ACCOUNT_ADMIN
+				ROLE_ADMIN > ROLE_STUDY_ADMIN
+				ROLE_ADMIN > ROLE_GUID_ADMIN
+				ROLE_ADMIN
+				> ROLE_PROFORMS_ADMIN
+				ROLE_USER > ROLE_GUEST
+				ROLE_DICTIONARY_ADMIN >
+				ROLE_DICTIONARY
+				ROLE_STUDY_ADMIN > ROLE_STUDY
+				ROLE_GUID_ADMIN >
+				ROLE_GUID
+				ROLE_PROFORMS_ADMIN > ROLE_PROFORMS
+			</value>
+		</property>
+	</bean>
+	<bean id="modulesConstants" class="gov.nih.tbi.ModulesConstants"
+		scope="singleton">
+		<property name="wsSet" value="true" />
+	</bean>
+	<bean id="rdfGenConstants" class="gov.nih.tbi.RdfGenConstants"
+		scope="singleton">
+	</bean>
+
+	<mvc:view-controller path="/" view-name="/welcome" />
+
+	<mvc:interceptors>
+		<!-- Changes the locale when a 'locale' request parameter is sent; e.g. 
+			/?locale=de -->
+		<bean class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor" />
+	</mvc:interceptors>
+
+	<mvc:resources mapping="/resources/**" location="/resources/" />
+
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/views/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+</beans>

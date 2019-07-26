@@ -1,0 +1,118 @@
+/*----------------------------------------------------------
+  PDBP Styles 
+------------------------------------------------------------*/
+
+/***
+       
+ * ===>>  CONFIG   <<=============================================================================
+          
+ * Color Variables */
+ 
+/* Grays */  
+$lightest: #fff;
+$disabled-gray: #adadad; 
+$lightest-gray: #f6f6f6;    
+$lighter-gray: #d6d6d6; 
+$light-gray: #A8A8A8;  
+$medium-gray: #808080;
+$dark-gray: #362f2d;
+$darkest: #000;    
+
+/*  Main Colors (change these first, or add color names with hex values)
+** THESE COLORS (+ the grays) SHOULD DEFINE ALL OTHER COLORS IN THE SITE ** 
+*/
+$red: #DD3434;
+$link-blue:  #00008B;
+$medium-blue: #428a9a;   
+$light-blue: #7cbac6;
+$light-yellow: #ffc; 
+$cool-gray: #4a545b;
+$purple: #a74593;
+$yellow-orange: #ffea8a;       
+$orange: #f94936;
+$dark-orange: #da1c02; 
+$darker-orange: #961402;
+$darkest-orange: #7b0f00;
+$dark-green:  #004d00; 
+
+$banner-color:#FF6600;
+  
+/* Semantic Color Variables (change these next - these should be defined by Main Colors) */
+$body-bg: $cool-gray;
+$header-bg: $lightest;  
+$header-text: $darkest; 
+$table-header: $body-bg;
+$heading-primary: $link-blue;
+$heading-secondary: $dark-gray;
+$breadcrumb1: $light-blue; 
+$breadcrumb2: $purple;
+$btn-color: $link-blue;
+$btn-color2: $medium-blue;
+$btn-color3: $light-blue;
+$btn-close: $link-blue;
+$btn-checked: $link-blue;
+$btn-remove: $medium-blue;
+$footer-bg1: $dark-gray;
+$footer-bg2: $body-bg;
+$footer-text: $lightest;
+$footer-headings: $lightest;
+$active-sub1: $light-blue;
+$active-sub2: $link-blue;
+$active-ter: $light-blue;
+$nav-hover2: $footer-bg2;
+$nav-hover1: $footer-bg1;
+
+
+/*****
+    Other Color Variables (do NOT change these - these should always be defined by main or semantic variables) */
+
+    $border-dark: $light-gray;
+    $error: $red; 
+    $success: $dark-green;
+    $highlight: $light-yellow;
+    $highlight-border: $dark-gray;  
+    $highlight-text: $heading-secondary;
+    $reverse-bg: $heading-secondary;
+    $bannerBg: $banner-color;
+
+
+/***
+
+ * ===>>  END CONFIG   <<==================================================================================
+
+***/
+
+
+/* Import BRICS Styles */
+ 
+@import "../../styles/common.scss";  
+@import "../../styles/bootstrap.scss";  
+@import "../../styles/style.scss";  
+@import "../../styles/fancybox.scss";
+@import "../../styles/icon.scss"; 
+@import "../../styles/layout.scss";
+ 
+
+/***
+
+ * ===>>  Instance-specific Style Overrides   <<=================================================================
+
+***/
+
+#header .content {background-position: top right;}
+#logo {width: 300px;
+		text-decoration: none;
+		&::before {
+			    content: "Biomedical Research Informatics Computing System";
+			    display: block;
+			    margin-left: 300px;
+			    width: 185px;
+			    margin-top: 10px;
+			    padding: 0px 0px 0px 25px;
+			    line-height: 15px;
+			    border-left: 1px solid $cool-gray;
+			    font-size: 10pt;
+			    color: $cool-gray;
+		}
+	}
+

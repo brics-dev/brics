@@ -1,0 +1,48 @@
+.idt_searchColumnLabel {
+	height: 30px;
+	display: inline-block;
+	line-height: 30px;
+	cursor: pointer;
+}
+
+.idt_searchColumnIcon {
+	font-size: 16px;
+	padding-left: 5px;
+	vertical-align: middle;
+}
+
+.idt_searchInput {
+	height: 25px;
+	width: 150px;
+}
+
+.idt_searchContainer {
+	float: right;
+	text-align: right;
+}
+.idt_selectColumnIcon {
+	display: inline-block;
+	position: relative;
+}
+.idt_selectColumnDrop {
+	position: absolute;
+	display: none;
+	background: white;
+	border: 1px solid black;
+	z-index: 999;
+	min-width: 150px;
+	padding-right: 10px;
+	padding-left: 10px;
+}
+.idt_searchContainer:hover > .idt_selectColumnDrop {
+	display: block;
+}
+.idt_selectColumnDrop input[type="checkbox"] {
+	width: auto;
+}
+.idt_selectColumnRow {
+	text-align: left;
+}
+.morecontent span {
+    display: none;
+}

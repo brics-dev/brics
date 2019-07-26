@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC "-//Apache Struts//XWork Validator 1.0.2//EN" "http://struts.apache.org/dtds/xwork-validator-1.0.2.dtd">
+<validators>
+	<field name="metaStudyDetailsForm.title">
+		<field-validator type="requiredstring">
+			<param name="trim"> true
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 255
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+		<field-validator type="metastudyunique">
+			<message key="errors.unique" />
+		</field-validator>
+		<field-validator type="xml">
+			<param name="trim"> true
+			</param>
+			<message key="errors.xmlchar" />
+		</field-validator>
+	</field>
+	<field name="metaStudyDetailsForm.abstractText">
+		<field-validator type="requiredstring">
+			<param name="trim"> true
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 4000
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+		<field-validator type="xml">
+			<param name="trim"> true
+			</param>
+			<message key="errors.xmlchar" />
+		</field-validator>
+	</field>
+ 	<field name="metaStudyDetailsForm.aimsText">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 4000
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+		<field-validator type="xml">
+			<param name="trim"> true
+			</param>
+			<message key="errors.xmlchar" />
+		</field-validator>
+	</field>
+	<field name="sessionMetaStudy.metaStudy.primaryPI"> 
+		<field-validator type="required"> 
+			<message>Please Select a Primary Principal Investigator to create a study by clicking at "ADD TO TABLE".</message>
+		</field-validator> 
+	</field> 
+	<field name="metaStudyDetailsForm.fundingSource"> 
+		<field-validator type="required"> 
+			<param name="trim">true</param> 
+			<message key="errors.required" /> 
+		</field-validator> 
+	</field>
+	
+<!-- 	
+	<field name="firstName">
+		<field-validator type="fieldexpression">
+			<param name="expression"><![CDATA[!(firstName.trim().equals(""))]]></param>
+			<param name="trim">true</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	
+	
+	<field name="lastName">
+		<field-validator type="fieldexpression">
+			<param name="expression"><![CDATA[!(lastName.trim().equals(""))]]></param>
+			<param name="trim">true</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	
+	
+	
+	
+	<field name="fundingSource">
+		<field-validator type="fieldexpression">
+			<param name="expression"><![CDATA[!(fundingSource.trim().equals(""))]]></param>
+			<param name="trim">true</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	
+
+	
+	<field name="grantName">
+		<field-validator type="fieldexpression">
+			<param name="expression"><![CDATA[!( grantName.trim().equals(""))]]></param>
+			<param name="trim">true</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	<field name="grantFunders">
+		<field-validator type="fieldexpression">
+			<param name="expression"><![CDATA[!( grantFunders.trim().equals(""))]]></param>
+			<param name="trim">true</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field> -->
+
+
+</validators>

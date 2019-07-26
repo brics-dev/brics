@@ -1,0 +1,602 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:RulesEngineRule xmlns:tns="http://www.example.org/RulesEngineRules"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.example.org/RulesEngineRules RulesEngineRules.xsd ">
+	<DataElementRules>
+		<Field>
+			<Name>Name</Name>
+			<DisplayName>Variable Name</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>New</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>Title</Name>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>Minor</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>Category.ShortName</Name>
+			<DisplayName>Element Type</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>Minor</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>Description</Name> <!-- This name will change to Definition -->
+			<DisplayName>Definition</DisplayName>
+
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>Minor</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>ShortDescription</Name>
+			<DisplayName>Short Description</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>Minor</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>Type.Id</Name>
+			<DisplayName>Data Types</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>New</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>Size</Name>
+			<DisplayName>Maximum Character Quanitity</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>New</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>Restrictions.Id</Name>
+			<DisplayName>Input Restrictions</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>New</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>MaximumValue</Name>
+			<DisplayName>Maximum Value</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>New</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>MinimumValue</Name>
+			<DisplayName>Minimum Value</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>New</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>ValueRangeList</Name>
+			<DisplayName>Pre Defined Value</DisplayName>
+			<FieldList>
+				<Type>gov.nih.tbi.dictionary.model.hibernate.ValueRange</Type>
+				<Key>ValueRange</Key>
+				<Rule>
+					<Operation>Added</Operation>
+					<Severity>New</Severity>
+				</Rule>
+				<Rule>
+					<Operation>Removed</Operation>
+					<Severity>New</Severity>
+				</Rule>
+				<Field>
+					<Name>Description</Name> <!-- assuming working object is RG -->
+					<DisplayName>Value Range Description</DisplayName>
+					<Rule>
+						<Operation>NotEqual</Operation>
+						<Severity>Minor</Severity>
+					</Rule>
+				</Field>
+				<Field>
+					<Name>OutputCode</Name>
+					<DisplayName>Value Range Output Code</DisplayName>
+					<Rule>
+						<Operation>NotEqual</Operation>
+						<Severity>Minor</Severity>
+					</Rule>
+				</Field>
+			</FieldList>
+		</Field>
+		<Field>
+			<Name>Notes</Name>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>Minor</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>MeasuringUnit.Name</Name>
+			<DisplayName>Unit of Measure</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>New</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>SuggestedQuestion</Name>
+			<DisplayName>Preferred Question Text</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>Minor</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>Guidelines</Name>
+			<DisplayName>Guidelines/Instructions</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>Minor</Severity>
+			</Rule>
+		</Field>
+
+
+		<Field>
+			<Name>Keywords</Name>
+			<DisplayName>Keyword</DisplayName>
+			<FieldList>
+				<Type>gov.nih.tbi.dictionary.model.hibernate.Keyword</Type>
+				<Key>Keyword</Key>
+				<Rule>
+					<Operation>Added</Operation>
+					<Severity>Minor</Severity>
+				</Rule>
+				<Rule>
+					<Operation>Removed</Operation>
+					<Severity>Minor</Severity>
+				</Rule>
+
+			</FieldList>
+		</Field>
+		<Field>
+			<Name>Labels</Name>
+			<DisplayName>Label</DisplayName>
+			<FieldList>
+				<Type>gov.nih.tbi.dictionary.model.hibernate.Keyword</Type>
+				<Key>Keyword</Key>
+				<Rule>
+					<Operation>Added</Operation>
+					<Severity>Minor</Severity>
+				</Rule>
+				<Rule>
+					<Operation>Removed</Operation>
+					<Severity>Minor</Severity>
+				</Rule>
+			</FieldList>
+		</Field>
+		<Field>
+			<Name>References</Name>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>Minor</Severity>
+			</Rule>
+		</Field>
+
+		<Field>
+			<Name>ExternalIdSet</Name>
+			<DisplayName>External Id</DisplayName>
+			<FieldList>
+				<Type>gov.nih.tbi.dictionary.model.hibernate.ExternalId</Type>
+				<Key>Schema.Name</Key>
+				<Rule>
+					<Operation>Added</Operation>
+					<Severity>Minor</Severity>
+				</Rule>
+				<Rule>
+					<Operation>Removed</Operation>
+					<Severity>Minor</Severity>
+				</Rule>
+				<Field>
+					<Name>Value</Name> <!-- assuming working object is RG -->
+					<DisplayName>External Id Value</DisplayName>
+					<Rule>
+						<Operation>NotEqual</Operation>
+						<Severity>Minor</Severity>
+					</Rule>
+				</Field>
+			</FieldList>
+		</Field>
+
+		<Field>
+			<Name>SubDomainElementList</Name>
+			<DisplayName>Category Group</DisplayName>
+			<FieldList>
+				<Type>gov.nih.tbi.dictionary.model.hibernate.SubDomainElement</Type>
+				<Key>MultiFields</Key> <!-- May break system when dealing with Data Element import -->
+				<Rule>
+					<Operation>Added</Operation>
+					<Severity>Minor</Severity>
+				</Rule>
+				<Rule>
+					<Operation>Removed</Operation>
+					<Severity>Minor</Severity>
+				</Rule>
+
+			</FieldList>
+		</Field>
+		<Field>
+			<Name>HistoricalNotes</Name>
+			<DisplayName>Historical Notes</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>Minor</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>ClassificationElementList</Name>
+			<DisplayName>Classification</DisplayName>
+			<FieldList>
+				<Type>gov.nih.tbi.dictionary.model.hibernate.ClassificationElement</Type>
+				<Key>MultiFields</Key>
+				<Rule>
+					<Operation>Added</Operation>
+					<Severity>Minor</Severity>
+				</Rule>
+				<Rule>
+					<Operation>Removed</Operation>
+					<Severity>Minor</Severity>
+				</Rule>
+
+			</FieldList>
+		</Field>
+		<Field>
+			<Name>Population.Name</Name>
+			<DisplayName>Population</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>Minor</Severity>
+			</Rule>
+		</Field>
+
+
+		<Field>
+			<Name>UntilDate</Name>
+			<DisplayName>Until Date</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>Minor</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>EffectiveDate</Name>
+			<DisplayName>Effective Date</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>Minor</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>SeeAlso</Name>
+			<DisplayName>See Also</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>Minor</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>SubmittingOrgName</Name>
+			<DisplayName>Submitting Orgazation Name</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>Minor</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>SubmittingContactName</Name>
+			<DisplayName>Submitting Contact Name</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>Minor</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>SubmittingContactInfo</Name>
+			<DisplayName>Submitting Contact Information</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>Minor</Severity>
+			</Rule>
+			.
+		</Field>
+		<Field>
+			<Name>StewardOrgName</Name>
+			<DisplayName>Steward Organization Name</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>Minor</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>StewardContactName</Name>
+			<DisplayName>Steward Contact Name</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>Minor</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>StewardContactInfo</Name>
+			<DisplayName>Steward Contact Information</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>Minor</Severity>
+			</Rule>
+		</Field>
+
+	</DataElementRules>
+	<FormStructureRules>
+		<Field>
+			<Name>ShortName</Name>
+			<DisplayName>Short Name</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>New</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>Title</Name>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>Minor</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>Organization</Name>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>Minor</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>Description</Name>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>Minor</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>FileType.Id</Name>
+			<DisplayName>Form Type</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>Minor</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>Standardization.Name</Name>
+			<DisplayName>Standardization</DisplayName>
+			<Rule>
+				<Operation>NotEqual</Operation>
+				<Severity>Minor</Severity>
+			</Rule>
+		</Field>
+		<Field>
+			<Name>DiseaseList</Name>
+			<DisplayName>Disease</DisplayName>
+			<FieldList>
+				<Type>gov.nih.tbi.dictionary.model.hibernate.DiseaseStructure</Type>
+				<Key>Disease.Id</Key> <!-- May break system when dealing with Data Element import -->
+				<Rule>
+					<Operation>Added</Operation>
+					<Severity>Minor</Severity>
+				</Rule>
+				<Rule>
+					<Operation>Removed</Operation>
+					<Severity>Minor</Severity>
+				</Rule>
+			</FieldList>
+		</Field>
+		<Field>
+			<Name>InstancesRequiredFor</Name>
+			<DisplayName>Required Program Form</DisplayName>
+			<FieldList>
+				<Type>gov.nih.tbi.dictionary.model.InstanceRequiredFor</Type>
+				<Key>Name</Key>
+				<Rule>
+					<Operation>Added</Operation>
+					<Severity>Minor</Severity>
+				</Rule>
+				<Rule>
+					<Operation>Removed</Operation>
+					<Severity>Minor</Severity>
+				</Rule>
+			</FieldList>
+		</Field>
+		<Field>
+			<Name>RepeatableGroups</Name>
+			<DisplayName>Element Group</DisplayName>
+			<FieldList>
+				<Type>gov.nih.tbi.dictionary.model.hibernate.RepeatableGroup</Type>
+				<Key>Name</Key>
+				<Rule>
+					<Operation>Added</Operation>
+					<Severity>New</Severity>
+				</Rule>
+				<Rule>
+					<Operation>Removed</Operation>
+					<Severity>New</Severity>
+				</Rule>
+				<Rule>
+					<Operation>Sequence</Operation>
+					<Severity>New</Severity>
+				</Rule>
+				<!-- If the rule failed the severity record would be: FieldName = RepeatableGroup.Type 
+					SeverityLevel = Major OrigninalValue = Org ChangedValue = Inc -->
+				<Field>
+					<!-- assuming working object is RG -->
+					<Name>Type/Threshold</Name>
+					<Rule>
+						<ThresholdPropertiesRules>
+							<Threshold>
+								<Name>At Least</Name>
+								<ThresholdChange>
+									<Name>At Least</Name>
+									<ChangeSeverity>
+										<Increase>New</Increase>
+										<NoChange />
+										<Decrease>Major</Decrease>
+									</ChangeSeverity>
+								</ThresholdChange>
+								<ThresholdChange>
+									<Name>Exactly</Name>
+									<ChangeSeverity>
+										<Increase>New</Increase>
+										<NoChange>New</NoChange>
+										<Decrease>New</Decrease>
+									</ChangeSeverity>
+								</ThresholdChange>
+								<ThresholdChange>
+									<Name>Less Than</Name>
+									<ChangeSeverity>
+										<Increase>New</Increase>
+										<NoChange>New</NoChange>
+										<Decrease>New</Decrease>
+									</ChangeSeverity>
+								</ThresholdChange>
+							</Threshold>
+							<Threshold>
+								<Name>Exactly</Name>
+								<ThresholdChange>
+									<Name>Exactly</Name>
+									<ChangeSeverity>
+										<Increase>New</Increase>
+										<NoChange />
+										<Decrease>New</Decrease>
+									</ChangeSeverity>
+								</ThresholdChange>
+								<ThresholdChange>
+									<Name>At Least</Name>
+									<ChangeSeverity>
+										<Increase>New</Increase>
+										<NoChange>Major</NoChange>
+										<Decrease>Major</Decrease>
+									</ChangeSeverity>
+								</ThresholdChange>
+								<ThresholdChange>
+									<Name>Up To</Name>
+									<ChangeSeverity>
+										<Increase>Major</Increase>
+										<NoChange>Major</NoChange>
+										<Decrease>New</Decrease>
+									</ChangeSeverity>
+								</ThresholdChange>
+							</Threshold>
+							<Threshold>
+								<Name>Up To</Name>
+								<ThresholdChange>
+									<Name>Up To</Name>
+									<ChangeSeverity>
+										<Increase>New</Increase>
+										<NoChange />
+										<Decrease>New</Decrease>
+									</ChangeSeverity>
+								</ThresholdChange>
+								<ThresholdChange>
+									<Name>At Least</Name>
+									<ChangeSeverity>
+										<Increase>New</Increase>
+										<NoChange>New</NoChange>
+										<Decrease>New</Decrease>
+									</ChangeSeverity>
+								</ThresholdChange>
+								<ThresholdChange>
+									<Name>Exactly</Name>
+									<ChangeSeverity>
+										<Increase>New</Increase>
+										<NoChange>New</NoChange>
+										<Decrease>New</Decrease>
+									</ChangeSeverity>
+								</ThresholdChange>
+							</Threshold>
+						</ThresholdPropertiesRules>
+					</Rule>
+				</Field>
+				<!-- <Field> -->
+				<!-- <Name>Position</Name> assuming working object is RG -->
+				<!-- <Rule> -->
+				<!-- <Operation>NotEqual</Operation> -->
+				<!-- <Severity>Major</Severity> -->
+				<!-- </Rule> -->
+				<!-- </Field> -->
+				<Field>
+					<Name>MapElements</Name>
+					<DisplayName>Data Element</DisplayName>
+					<FieldList>
+						<Type>gov.nih.tbi.dictionary.model.hibernate.MapElement</Type>
+						<Key>Id</Key> <!-- May break system when dealing with Data Element import -->
+						<Rule>
+							<Operation>Added</Operation>
+							<Severity>New</Severity>
+						</Rule>
+						<Rule>
+							<Operation>Removed</Operation>
+							<Severity>New</Severity>
+						</Rule>
+						<Rule>
+							<Operation>Sequence</Operation>
+							<Severity>New</Severity>
+						</Rule>
+						<Field>
+							<Name>RequiredType</Name>
+							<DisplayName>Data Element Optionality</DisplayName>
+							<Rule>
+								<DataElementOptionality>
+									<OriginalOptionality>
+										<Name>Required</Name>
+										<IncomingOptionality>
+											<Name>Recommended</Name>
+											<Severity>Major</Severity>
+										</IncomingOptionality>
+										<IncomingOptionality>
+											<Name>Optional</Name>
+											<Severity>Major</Severity>
+										</IncomingOptionality>
+									</OriginalOptionality>
+									<OriginalOptionality>
+										<Name>Optional</Name>
+										<IncomingOptionality>
+											<Name>Recommended</Name>
+											<Severity>Minor</Severity>
+										</IncomingOptionality>
+										<IncomingOptionality>
+											<Name>Required</Name>
+											<Severity>New</Severity>
+										</IncomingOptionality>
+									</OriginalOptionality>
+									<OriginalOptionality>
+										<Name>Recommended</Name>
+										<IncomingOptionality>
+											<Name>Optional</Name>
+											<Severity>Minor</Severity>
+										</IncomingOptionality>
+										<IncomingOptionality>
+											<Name>Required</Name>
+											<Severity>New</Severity>
+										</IncomingOptionality>
+									</OriginalOptionality>
+								</DataElementOptionality>
+							</Rule>
+						</Field>
+					</FieldList>
+				</Field>
+			</FieldList>
+		</Field>
+	</FormStructureRules>
+</tns:RulesEngineRule>

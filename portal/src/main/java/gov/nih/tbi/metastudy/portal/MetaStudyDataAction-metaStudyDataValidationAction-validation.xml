@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC "-//Apache Struts//XWork Validator 1.0.2//EN" "http://struts.apache.org/dtds/xwork-validator-1.0.2.dtd">
+<validators>
+	<field name="uploadFileName">
+		<field-validator type="metastudydatafile">
+			<message>${errorMessage}</message>
+		</field-validator>
+	</field>
+	<field name="dataFileType">
+		<field-validator type="required">
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	<field name="version">
+		<field-validator type="fieldexpression">
+			<param name="expression"><![CDATA[!(dataFileType.name == "Software" && version.trim().equals(""))]]></param>
+			<param name="trim">true</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	<field name="dataDescription">
+		<field-validator type="requiredstring">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 1000 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="dataSource">
+		<field-validator type="requiredstring">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 255 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+</validators>

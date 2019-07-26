@@ -1,0 +1,54 @@
+@CHARSET "ISO-8859-1";
+
+#footer {
+	height: 250px;
+	background: #3b6f85;
+	/* Old browsers */
+	background: -moz-linear-gradient(top, #0a3040 0%, #3b6f85 80%);
+	/* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #0a3040), color-stop(80%, #3b6f85));
+	/* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top, #0a3040 0%, #3b6f85 80%);
+	/* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top, #0a3040 0%, #3b6f85 80%);
+	/* Opera 11.10+ */
+	background: -ms-linear-gradient(top, #0a3040 0%, #3b6f85 80%);
+	/* IE10+ */
+	background: linear-gradient(to bottom, #0a3040 0%, #3b6f85 80%);
+	/* W3C */ 
+}
+
+#footer a, #footer p {
+	color: #FFFFFF;
+}
+
+.ext-link {
+	background: url("../../images/icon-new-window-white.png") no-repeat right center;
+	padding-right: 18px;
+}
+
+.footerContent {
+	width: 80%;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.footer-links {
+    clear: left;
+    float: none;
+    list-style: outside none none;
+    margin: 0 0 15px;
+    width: 300px;
+    list-style: none;
+}
+
+.footer-links img {
+	height: auto;
+}
+
+.footer-links li {
+    display: block;
+    float: left;
+    margin-bottom: 15px;
+    padding: 0 4px;
+}

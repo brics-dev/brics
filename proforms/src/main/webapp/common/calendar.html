@@ -1,0 +1,17 @@
+<HTML>
+<HEAD>
+  <TITLE>Welcome to the NICHD Clinical Trials Database</TITLE>
+</HEAD>
+<body>
+        <div id='topCalFrame' NAME='topCalFrame'></div>
+        <div id='bottomCalFrame' NAME='bottomCalFrame'></div>
+<script language='javascript'>
+    document.getElementById('topCalFrame').innerHTML = parent.opener.calDocTop;
+    document.getElementById ('bottomCalFrame').innerHTML = parent.opener.calDocBottom;
+        parent.opener.YEAR = document.getElementById ('year');
+    parent.opener.MONTH = document.getElementById ('month');
+</SCRIPT>
+</body>
+
+</HTML>
+

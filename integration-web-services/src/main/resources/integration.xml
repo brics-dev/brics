@@ -1,0 +1,736 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
+        xmlns:file="http://www.springframework.org/schema/integration/file"
+        xmlns:int-http="http://www.springframework.org/schema/integration/http"
+        xmlns:int-sftp="http://www.springframework.org/schema/integration/sftp"
+        xmlns:util="http://www.springframework.org/schema/util"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://www.springframework.org/schema/integration/ws http://www.springframework.org/schema/integration/ws/spring-integration-ws-4.2.xsd
+            http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file-4.2.xsd
+            http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http-4.2.xsd
+            http://www.springframework.org/schema/integration/sftp http://www.springframework.org/schema/integration/sftp/spring-integration-sftp-4.2.xsd
+            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+            http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.2.xsd">
+
+            <!--  Overview
+                WS -> Transformer -> Router -> Response
+                          |
+                          +- - -> (queue) -> External Application -> Transformer -> SFTP out
+             -->
+
+    <!--  CHANNELS -->
+        <channel id="inputChannel"/>
+        <channel id="transformedChannel"/>
+        <channel id="responseChannel"/>
+        <channel id="externalApplicationOutputChannel"/>
+        <channel id="getAlteredFileChannel"/>
+        <channel id="failChannel"/>
+
+        <channel id="externalApplicationInputChannel"><queue capacity="200"/></channel>
+        <channel id="devPdSftpQueue"/>
+        <channel id="devFitbirSftpQueue"/>
+        <channel id="stageFitbirSftpQueue"/>
+        <channel id="stagePdSftpQueue"/>
+        <channel id="stageCnrmSftpQueue"/>
+        <channel id="uatPdSftpQueue"/>
+        <channel id="uatFitbirSftpQueue"/>
+        <channel id="sftpQdemoPdSftpQueueueue"/>
+        <channel id="demoFitbirSftpQueue"/>
+        <channel id="demoCistarsftpQueue"/>
+        <channel id="demoCnrmSftpQueue"/>
+        <channel id="demoEyegeneSftpQueue"/>
+        <channel id="fitbirSftpQueue"/>
+        <channel id="pdSftpQueue"/>
+        <channel id="cnrmSftpQueue"/>
+        <channel id="cistarSftpQueue"/>
+        <channel id="eyegeneSftpQueue"/>
+
+    <!-- WEB SERVICES -->
+    <!-- The service listens for a REST message via a POST request.  This request must contain the parameters:
+                originalFile (name of the existing file)
+                originalPath (location of the existing file)
+                newFile (name of the new file post-processing)
+                newPath (location of the new file after being uploaded to the destination server)
+
+        These may be absolute paths or relative paths.  In the latter case, the directory will be relative
+        to the home directory of the SFTP account (or default directory of the SSH server) -->
+        <int-http:inbound-gateway
+            id="ws-inbound"
+                supported-methods="POST"
+                request-channel="inputChannel"
+                error-channel="failChannel"
+                reply-timeout="10000"
+
+                mapped-response-headers="Return-Status, Return-Status-Msg, HTTP_RESPONSE_HEADERS"
+                path="/workflow">
+        	<int-http:header name="domainURL" expression="#requestParams.get('host')"/>
+ 		</int-http:inbound-gateway>
+        
+                <!--  TRANSFORM THE INPUT INTO OUR OWN OBJECT -->
+        <map-to-object-transformer input-channel="inputChannel" output-channel="transformedChannel" type="gov.nih.brics.spring.integration.ws.PostData"/>
+
+    <!--  TRANSFORMERS  -->
+        <!--
+                This gets the file name from the payload and loads the file into the Message so that the SFTP can send it out (the SFTP channel adapter needs a file, not a filename).
+                In the process, it copies the new name and path into the message headers so they can be used in the final SFTP transfer.
+        -->
+                <!-- expression="new java.io.File('${local.directory}/'+payload.originalPath+'/'+payload.newFile)"/> -->
+        <chain input-channel="getAlteredFileChannel"> <!--output-channel="externalApplicationOutputChannel"-->
+            <header-enricher>
+                <header name="newPath" expression="payload.newPath"/>
+                <header name="newFile" expression="payload.newFile"/>
+            </header-enricher>
+                <transformer id="transformer-file" expression="new java.io.File('${local.directory}/'+payload.newPath+'/'+payload.newFile)"/>
+        </chain>
+
+        <!--  ROUTERS  -->
+        <!--  originally this was to define an "instant response" for the web service once the file was queued for retrieval.  Since the queue channels automatically return
+                nbound-gatewayit is no longer necessary for a dedicated service-activator to return the processing.  It has been left in here in case its ever necessary again.  -->
+         <header-value-router id="router" input-channel="transformedChannel" header-name="domainURL">
+         	<!-- DEV -->
+     		<mapping value="https://pdbp-dev.cit.nih.gov/portal" channel="devPdSftpQueue" />
+    		<mapping value="https://fitbir-dev.cit.nih.gov/portal" channel="devFitbirSftpQueue" />
+    		<mapping value="http://fitbir-portal-local.cit.nih.gov:8080/portal" channel="devFitbirSftpQueue" />
+    		<!-- STAGE -->
+    		<mapping value="https://fitbir-stage.cit.nih.gov/portal" channel="stageFitbirSftpQueue" />
+    		<mapping value="https://pdbp-stage.cit.nih.gov/portal" channel="stagePdSftpQueue" />
+    		<mapping value="https://cnrm-stage.cit.nih.gov/portal" channel="stageCnrmSftpQueue" />
+    		<!-- UAT -->
+    		<mapping value="https://pdbp-uat.cit.nih.gov/portal" channel="uatPdSftpQueue" />
+    		<mapping value="https://fitbir-uat.cit.nih.gov/portal" channel="uatFitbirSftpQueue" />
+    		<!-- DEMO -->
+    		<mapping value="https://pdbp-demo.cit.nih.gov/portal" channel="demoPdSftpQueue" />
+    		<mapping value="https://fitbir-demo.cit.nih.gov/portal" channel="demoFitbirSftpQueue" />
+    		<mapping value="https://cistar-demo.ninds.nih.gov/portal" channel="demoCistarsftpQueue" />
+    		<mapping value="https://cnrm-demo.cit.nih.gov/portal" channel="demoCnrmSftpQueue" />
+    		<mapping value="https://eyegene-demo.cit.nih.gov/portal" channel="demoEyegeneSftpQueue" />
+    		<!-- PROD -->
+    		<mapping value="https://fitbir.nih.gov/portal" channel="fitbirSftpQueue" />
+    		<mapping value="https://pdbp.ninds.nih.gov/portal" channel="pdSftpQueue" />
+    		<mapping value="https://cnrm-dr.nih.gov/portal" channel="cnrmSftpQueue" />
+    		<mapping value="https://cistar.ninds.nih.gov/portal" channel="cistarSftpQueue" />
+    		<mapping value="https://eyegene.nih.gov/portal" channel="eyegeneSftpQueue" />
+		</header-value-router>
+		
+        <!--  SFTP CONFIGURATION  -->
+        <!--  By default the properties are stored in ".../brics/si.properties" -->
+		<beans:bean id="devPdSftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+                <beans:property name="host" value="${dev.pd.sftp.server.name}"/>
+                <beans:property name="port" value="${dev.pd.sftp.server.port}"/>
+                <beans:property name="user" value="${dev.pd.sftp.server.user}"/>
+                <beans:property name="password" value="${dev.pd.sftp.server.password}"/>
+                <beans:property name="allowUnknownKeys" value="${dev.pd.sftp.server.allowUnknownKeys}"/>
+        </beans:bean>
+        
+                <!-- Retrieves a file -->
+        <!-- expression="payload.originalFile"-->
+        <!-- expression="payload.originalPath+'/'+payload.originalFile" -->
+        <int-sftp:outbound-gateway session-factory="devPdSftpSessionFactory"
+                request-channel="devPdSftpQueue"
+                command="get"
+                expression="payload.originalPath + payload.originalFile"
+                id="devPdSftpOutboundGateway"
+                auto-create-local-directory="true"
+                auto-create-directory="true"
+                local-directory-expression="'${local.directory}/'+payload.newPath"
+                mode="IGNORE"
+                reply-channel="responseChannel">
+                <int-sftp:request-handler-advice-chain>
+                               <beans:bean class="org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice" id="SomePieceOfInformation">
+                                <beans:property name="onSuccessExpression" value="payload"/>
+                                <beans:property name="successChannel" ref="externalApplicationInputChannel"/>
+                                <beans:property name="onFailureExpression" value="payload"/>
+                                <beans:property name="failureChannel" ref="failChannel"/>
+                                <beans:property name="returnFailureExpressionResult" value="true"/>
+                                <beans:property name="trapException" value="true"/>
+                        </beans:bean>
+                </int-sftp:request-handler-advice-chain>
+                <!-- <poller fixed-rate="50" receive-timeout="50000"/> -->
+        </int-sftp:outbound-gateway>
+        <!-- Sends a file out 
+        <int-sftp:outbound-channel-adapter session-factory="sftpSessionFactory"
+                channel="externalApplicationOutputChannel"
+                auto-create-directory="true"
+                remote-directory-expression="'${remote.directory}'+headers['newPath']">
+        </int-sftp:outbound-channel-adapter> -->
+        <beans:bean id="devFitbirSftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+                <beans:property name="host" value="${dev.fitbir.sftp.server.name}"/>
+                <beans:property name="port" value="${dev.fitbir.sftp.server.port}"/>
+                <beans:property name="user" value="${dev.fitbir.sftp.server.user}"/>
+                <beans:property name="password" value="${dev.fitbir.sftp.server.password}"/>
+                <beans:property name="allowUnknownKeys" value="${dev.fitbir.sftp.server.allowUnknownKeys}"/>
+        </beans:bean>
+        
+                <!-- Retrieves a file -->
+        <!-- expression="payload.originalFile"-->
+        <!-- expression="payload.originalPath+'/'+payload.originalFile" -->
+        <int-sftp:outbound-gateway session-factory="devFitbirSftpSessionFactory"
+                request-channel="devFitbirSftpQueue"
+                command="get"
+                expression="payload.originalPath + payload.originalFile"
+                id="devFitbirSftpOutboundGateway"
+                auto-create-local-directory="true"
+                auto-create-directory="true"
+                local-directory-expression="'${local.directory}/'+payload.newPath"
+                mode="IGNORE"
+                reply-channel="responseChannel">
+                <int-sftp:request-handler-advice-chain>
+                               <beans:bean class="org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice" id="SomePieceOfInformation">
+                                <beans:property name="onSuccessExpression" value="payload"/>
+                                <beans:property name="successChannel" ref="externalApplicationInputChannel"/>
+                                <beans:property name="onFailureExpression" value="payload"/>
+                                <beans:property name="failureChannel" ref="failChannel"/>
+                                <beans:property name="returnFailureExpressionResult" value="true"/>
+                                <beans:property name="trapException" value="true"/>
+                        </beans:bean>
+                </int-sftp:request-handler-advice-chain>
+                <!-- <poller fixed-rate="50" receive-timeout="50000"/> -->
+        </int-sftp:outbound-gateway>
+        
+        <beans:bean id="stageFitbirSftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+                <beans:property name="host" value="${stage.fitbir.sftp.server.name}"/>
+                <beans:property name="port" value="${stage.fitbir.sftp.server.port}"/>
+                <beans:property name="user" value="${stage.fitbir.sftp.server.user}"/>
+                <beans:property name="password" value="${stage.fitbir.sftp.server.password}"/>
+                <beans:property name="allowUnknownKeys" value="${stage.fitbir.sftp.server.allowUnknownKeys}"/>
+        </beans:bean>
+        
+                <!-- Retrieves a file -->
+        <!-- expression="payload.originalFile"-->
+        <!-- expression="payload.originalPath+'/'+payload.originalFile" -->
+        <int-sftp:outbound-gateway session-factory="stageFitbirSftpSessionFactory"
+                request-channel="stageFitbirSftpQueue"
+                command="get"
+                expression="payload.originalPath + payload.originalFile"
+                id="stageFitbirSftpOutboundGateway"
+                auto-create-local-directory="true"
+                auto-create-directory="true"
+                local-directory-expression="'${local.directory}/'+payload.newPath"
+                mode="IGNORE"
+                reply-channel="responseChannel">
+                <int-sftp:request-handler-advice-chain>
+                               <beans:bean class="org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice" id="SomePieceOfInformation">
+                                <beans:property name="onSuccessExpression" value="payload"/>
+                                <beans:property name="successChannel" ref="externalApplicationInputChannel"/>
+                                <beans:property name="onFailureExpression" value="payload"/>
+                                <beans:property name="failureChannel" ref="failChannel"/>
+                                <beans:property name="returnFailureExpressionResult" value="true"/>
+                                <beans:property name="trapException" value="true"/>
+                        </beans:bean>
+                </int-sftp:request-handler-advice-chain>
+                <!-- <poller fixed-rate="50" receive-timeout="50000"/> -->
+        </int-sftp:outbound-gateway>
+        
+        <beans:bean id="stagePdSftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+                <beans:property name="host" value="${stage.pd.sftp.server.name}"/>
+                <beans:property name="port" value="${stage.pd.sftp.server.port}"/>
+                <beans:property name="user" value="${stage.pd.sftp.server.user}"/>
+                <beans:property name="password" value="${stage.pd.sftp.server.password}"/>
+                <beans:property name="allowUnknownKeys" value="${stage.pd.sftp.server.allowUnknownKeys}"/>
+        </beans:bean>
+        
+                <!-- Retrieves a file -->
+        <!-- expression="payload.originalFile"-->
+        <!-- expression="payload.originalPath+'/'+payload.originalFile" -->
+        <int-sftp:outbound-gateway session-factory="stagePdSftpSessionFactory"
+                request-channel="stagePdSftpQueue"
+                command="get"
+                expression="payload.originalPath + payload.originalFile"
+                id="stagePdSftpOutboundGateway"
+                auto-create-local-directory="true"
+                auto-create-directory="true"
+                local-directory-expression="'${local.directory}/'+payload.newPath"
+                mode="IGNORE"
+                reply-channel="responseChannel">
+                <int-sftp:request-handler-advice-chain>
+                               <beans:bean class="org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice" id="SomePieceOfInformation">
+                                <beans:property name="onSuccessExpression" value="payload"/>
+                                <beans:property name="successChannel" ref="externalApplicationInputChannel"/>
+                                <beans:property name="onFailureExpression" value="payload"/>
+                                <beans:property name="failureChannel" ref="failChannel"/>
+                                <beans:property name="returnFailureExpressionResult" value="true"/>
+                                <beans:property name="trapException" value="true"/>
+                        </beans:bean>
+                </int-sftp:request-handler-advice-chain>
+                <!-- <poller fixed-rate="50" receive-timeout="50000"/> -->
+        </int-sftp:outbound-gateway>
+        
+        <beans:bean id="stageCnrmSftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+                <beans:property name="host" value="${stage.cnrm.sftp.server.name}"/>
+                <beans:property name="port" value="${stage.cnrm.sftp.server.port}"/>
+                <beans:property name="user" value="${stage.cnrm.sftp.server.user}"/>
+                <beans:property name="password" value="${stage.cnrm.sftp.server.password}"/>
+                <beans:property name="allowUnknownKeys" value="${stage.cnrm.sftp.server.allowUnknownKeys}"/>
+        </beans:bean>
+        
+                <!-- Retrieves a file -->
+        <!-- expression="payload.originalFile"-->
+        <!-- expression="payload.originalPath+'/'+payload.originalFile" -->
+        <int-sftp:outbound-gateway session-factory="stageCnrmSftpSessionFactory"
+                request-channel="stageCnrmSftpQueue"
+                command="get"
+                expression="payload.originalPath + payload.originalFile"
+                id="stageCnrmSftpOutboundGateway"
+                auto-create-local-directory="true"
+                auto-create-directory="true"
+                local-directory-expression="'${local.directory}/'+payload.newPath"
+                mode="IGNORE"
+                reply-channel="responseChannel">
+                <int-sftp:request-handler-advice-chain>
+                               <beans:bean class="org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice" id="SomePieceOfInformation">
+                                <beans:property name="onSuccessExpression" value="payload"/>
+                                <beans:property name="successChannel" ref="externalApplicationInputChannel"/>
+                                <beans:property name="onFailureExpression" value="payload"/>
+                                <beans:property name="failureChannel" ref="failChannel"/>
+                                <beans:property name="returnFailureExpressionResult" value="true"/>
+                                <beans:property name="trapException" value="true"/>
+                        </beans:bean>
+                </int-sftp:request-handler-advice-chain>
+                <!-- <poller fixed-rate="50" receive-timeout="50000"/> -->
+        </int-sftp:outbound-gateway>
+        
+        <beans:bean id="uatPdSftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+                <beans:property name="host" value="${uat.pd.sftp.server.name}"/>
+                <beans:property name="port" value="${uat.pd.sftp.server.port}"/>
+                <beans:property name="user" value="${uat.pd.sftp.server.user}"/>
+                <beans:property name="password" value="${uat.pd.sftp.server.password}"/>
+                <beans:property name="allowUnknownKeys" value="${uat.pd.sftp.server.allowUnknownKeys}"/>
+        </beans:bean>
+        
+                <!-- Retrieves a file -->
+        <!-- expression="payload.originalFile"-->
+        <!-- expression="payload.originalPath+'/'+payload.originalFile" -->
+        <int-sftp:outbound-gateway session-factory="uatPdSftpSessionFactory"
+                request-channel="uatPdSftpQueue"
+                command="get"
+                expression="payload.originalPath + payload.originalFile"
+                id="uatPdSftpOutboundGateway"
+                auto-create-local-directory="true"
+                auto-create-directory="true"
+                local-directory-expression="'${local.directory}/'+payload.newPath"
+                mode="IGNORE"
+                reply-channel="responseChannel">
+                <int-sftp:request-handler-advice-chain>
+                               <beans:bean class="org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice" id="SomePieceOfInformation">
+                                <beans:property name="onSuccessExpression" value="payload"/>
+                                <beans:property name="successChannel" ref="externalApplicationInputChannel"/>
+                                <beans:property name="onFailureExpression" value="payload"/>
+                                <beans:property name="failureChannel" ref="failChannel"/>
+                                <beans:property name="returnFailureExpressionResult" value="true"/>
+                                <beans:property name="trapException" value="true"/>
+                        </beans:bean>
+                </int-sftp:request-handler-advice-chain>
+                <!-- <poller fixed-rate="50" receive-timeout="50000"/> -->
+        </int-sftp:outbound-gateway>
+        
+        <beans:bean id="uatFitbirSftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+                <beans:property name="host" value="${uat.fitbir.sftp.server.name}"/>
+                <beans:property name="port" value="${uat.fitbir.sftp.server.port}"/>
+                <beans:property name="user" value="${uat.fitbir.sftp.server.user}"/>
+                <beans:property name="password" value="${uat.fitbir.sftp.server.password}"/>
+                <beans:property name="allowUnknownKeys" value="${uat.fitbir.sftp.server.allowUnknownKeys}"/>
+        </beans:bean>
+        
+                <!-- Retrieves a file -->
+        <!-- expression="payload.originalFile"-->
+        <!-- expression="payload.originalPath+'/'+payload.originalFile" -->
+        <int-sftp:outbound-gateway session-factory="uatFitbirSftpSessionFactory"
+                request-channel="uatFitbirSftpQueue"
+                command="get"
+                expression="payload.originalPath + payload.originalFile"
+                id="uatFitbirSftpOutboundGateway"
+                auto-create-local-directory="true"
+                auto-create-directory="true"
+                local-directory-expression="'${local.directory}/'+payload.newPath"
+                mode="IGNORE"
+                reply-channel="responseChannel">
+                <int-sftp:request-handler-advice-chain>
+                               <beans:bean class="org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice" id="SomePieceOfInformation">
+                                <beans:property name="onSuccessExpression" value="payload"/>
+                                <beans:property name="successChannel" ref="externalApplicationInputChannel"/>
+                                <beans:property name="onFailureExpression" value="payload"/>
+                                <beans:property name="failureChannel" ref="failChannel"/>
+                                <beans:property name="returnFailureExpressionResult" value="true"/>
+                                <beans:property name="trapException" value="true"/>
+                        </beans:bean>
+                </int-sftp:request-handler-advice-chain>
+                <!-- <poller fixed-rate="50" receive-timeout="50000"/> -->
+        </int-sftp:outbound-gateway>
+        
+        <beans:bean id="demoPdSftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+                <beans:property name="host" value="${demo.pd.sftp.server.name}"/>
+                <beans:property name="port" value="${demo.pd.sftp.server.port}"/>
+                <beans:property name="user" value="${demo.pd.sftp.server.user}"/>
+                <beans:property name="password" value="${demo.pd.sftp.server.password}"/>
+                <beans:property name="allowUnknownKeys" value="${demo.pd.sftp.server.allowUnknownKeys}"/>
+        </beans:bean>
+        
+                <!-- Retrieves a file -->
+        <!-- expression="payload.originalFile"-->
+        <!-- expression="payload.originalPath+'/'+payload.originalFile" -->
+        <int-sftp:outbound-gateway session-factory="demoPdSftpSessionFactory"
+                request-channel="demoPdSftpQueue"
+                command="get"
+                expression="payload.originalPath + payload.originalFile"
+                id="demoPdSftpOutboundGateway"
+                auto-create-local-directory="true"
+                auto-create-directory="true"
+                local-directory-expression="'${local.directory}/'+payload.newPath"
+                mode="IGNORE"
+                reply-channel="responseChannel">
+                <int-sftp:request-handler-advice-chain>
+                               <beans:bean class="org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice" id="SomePieceOfInformation">
+                                <beans:property name="onSuccessExpression" value="payload"/>
+                                <beans:property name="successChannel" ref="externalApplicationInputChannel"/>
+                                <beans:property name="onFailureExpression" value="payload"/>
+                                <beans:property name="failureChannel" ref="failChannel"/>
+                                <beans:property name="returnFailureExpressionResult" value="true"/>
+                                <beans:property name="trapException" value="true"/>
+                        </beans:bean>
+                </int-sftp:request-handler-advice-chain>
+                <!-- <poller fixed-rate="50" receive-timeout="50000"/> -->
+        </int-sftp:outbound-gateway>
+        
+        <beans:bean id="demoFitbirSftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+                <beans:property name="host" value="${demo.fitbir.sftp.server.name}"/>
+                <beans:property name="port" value="${demo.fitbir.sftp.server.port}"/>
+                <beans:property name="user" value="${demo.fitbir.sftp.server.user}"/>
+                <beans:property name="password" value="${demo.fitbir.sftp.server.password}"/>
+                <beans:property name="allowUnknownKeys" value="${demo.fitbir.sftp.server.allowUnknownKeys}"/>
+        </beans:bean>
+        
+                <!-- Retrieves a file -->
+        <!-- expression="payload.originalFile"-->
+        <!-- expression="payload.originalPath+'/'+payload.originalFile" -->
+        <int-sftp:outbound-gateway session-factory="demoFitbirSftpSessionFactory"
+                request-channel="demoFitbirSftpQueue"
+                command="get"
+                expression="payload.originalPath + payload.originalFile"
+                id="demoFitbirSftpOutboundGateway"
+                auto-create-local-directory="true"
+                auto-create-directory="true"
+                local-directory-expression="'${local.directory}/'+payload.newPath"
+                mode="IGNORE"
+                reply-channel="responseChannel">
+                <int-sftp:request-handler-advice-chain>
+                               <beans:bean class="org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice" id="SomePieceOfInformation">
+                                <beans:property name="onSuccessExpression" value="payload"/>
+                                <beans:property name="successChannel" ref="externalApplicationInputChannel"/>
+                                <beans:property name="onFailureExpression" value="payload"/>
+                                <beans:property name="failureChannel" ref="failChannel"/>
+                                <beans:property name="returnFailureExpressionResult" value="true"/>
+                                <beans:property name="trapException" value="true"/>
+                        </beans:bean>
+                </int-sftp:request-handler-advice-chain>
+                <!-- <poller fixed-rate="50" receive-timeout="50000"/> -->
+        </int-sftp:outbound-gateway>
+        
+        <beans:bean id="demoCistarSftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+                <beans:property name="host" value="${demo.cistar.sftp.server.name}"/>
+                <beans:property name="port" value="${demo.cistar.sftp.server.port}"/>
+                <beans:property name="user" value="${demo.cistar.sftp.server.user}"/>
+                <beans:property name="password" value="${demo.cistar.sftp.server.password}"/>
+                <beans:property name="allowUnknownKeys" value="${demo.cistar.sftp.server.allowUnknownKeys}"/>
+        </beans:bean>
+        
+                <!-- Retrieves a file -->
+        <!-- expression="payload.originalFile"-->
+        <!-- expression="payload.originalPath+'/'+payload.originalFile" -->
+        <int-sftp:outbound-gateway session-factory="demoCistarSftpSessionFactory"
+                request-channel="demoCistarsftpQueue"
+                command="get"
+                expression="payload.originalPath + payload.originalFile"
+                id="demoCistarSftpOutboundGateway"
+                auto-create-local-directory="true"
+                auto-create-directory="true"
+                local-directory-expression="'${local.directory}/'+payload.newPath"
+                mode="IGNORE"
+                reply-channel="responseChannel">
+                <int-sftp:request-handler-advice-chain>
+                               <beans:bean class="org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice" id="SomePieceOfInformation">
+                                <beans:property name="onSuccessExpression" value="payload"/>
+                                <beans:property name="successChannel" ref="externalApplicationInputChannel"/>
+                                <beans:property name="onFailureExpression" value="payload"/>
+                                <beans:property name="failureChannel" ref="failChannel"/>
+                                <beans:property name="returnFailureExpressionResult" value="true"/>
+                                <beans:property name="trapException" value="true"/>
+                        </beans:bean>
+                </int-sftp:request-handler-advice-chain>
+                <!-- <poller fixed-rate="50" receive-timeout="50000"/> -->
+        </int-sftp:outbound-gateway>
+        
+        <beans:bean id="demoCnrmSftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+                <beans:property name="host" value="${demo.cnrm.sftp.server.name}"/>
+                <beans:property name="port" value="${demo.cnrm.sftp.server.port}"/>
+                <beans:property name="user" value="${demo.cnrm.sftp.server.user}"/>
+                <beans:property name="password" value="${demo.cnrm.sftp.server.password}"/>
+                <beans:property name="allowUnknownKeys" value="${demo.cnrm.sftp.server.allowUnknownKeys}"/>
+        </beans:bean>
+        
+                <!-- Retrieves a file -->
+        <!-- expression="payload.originalFile"-->
+        <!-- expression="payload.originalPath+'/'+payload.originalFile" -->
+        <int-sftp:outbound-gateway session-factory="demoCnrmSftpSessionFactory"
+                request-channel="demoCnrmSftpQueue"
+                command="get"
+                expression="payload.originalPath + payload.originalFile"
+                id="demoCnrmSftpOutboundGateway"
+                auto-create-local-directory="true"
+                auto-create-directory="true"
+                local-directory-expression="'${local.directory}/'+payload.newPath"
+                mode="IGNORE"
+                reply-channel="responseChannel">
+                <int-sftp:request-handler-advice-chain>
+                               <beans:bean class="org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice" id="SomePieceOfInformation">
+                                <beans:property name="onSuccessExpression" value="payload"/>
+                                <beans:property name="successChannel" ref="externalApplicationInputChannel"/>
+                                <beans:property name="onFailureExpression" value="payload"/>
+                                <beans:property name="failureChannel" ref="failChannel"/>
+                                <beans:property name="returnFailureExpressionResult" value="true"/>
+                                <beans:property name="trapException" value="true"/>
+                        </beans:bean>
+                </int-sftp:request-handler-advice-chain>
+                <!-- <poller fixed-rate="50" receive-timeout="50000"/> -->
+        </int-sftp:outbound-gateway>
+        
+        <beans:bean id="demoEyegeneSftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+                <beans:property name="host" value="${demo.eyegene.sftp.server.name}"/>
+                <beans:property name="port" value="${demo.eyegene.sftp.server.port}"/>
+                <beans:property name="user" value="${demo.eyegene.sftp.server.user}"/>
+                <beans:property name="password" value="${demo.eyegene.sftp.server.password}"/>
+                <beans:property name="allowUnknownKeys" value="${demo.eyegene.sftp.server.allowUnknownKeys}"/>
+        </beans:bean>
+        
+                <!-- Retrieves a file -->
+        <!-- expression="payload.originalFile"-->
+        <!-- expression="payload.originalPath+'/'+payload.originalFile" -->
+        <int-sftp:outbound-gateway session-factory="demoEyegeneSftpSessionFactory"
+                request-channel="demoEyegeneSftpQueue"
+                command="get"
+                expression="payload.originalPath + payload.originalFile"
+                id="demoEyegeneSftpOutboundGateway"
+                auto-create-local-directory="true"
+                auto-create-directory="true"
+                local-directory-expression="'${local.directory}/'+payload.newPath"
+                mode="IGNORE"
+                reply-channel="responseChannel">
+                <int-sftp:request-handler-advice-chain>
+                               <beans:bean class="org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice" id="SomePieceOfInformation">
+                                <beans:property name="onSuccessExpression" value="payload"/>
+                                <beans:property name="successChannel" ref="externalApplicationInputChannel"/>
+                                <beans:property name="onFailureExpression" value="payload"/>
+                                <beans:property name="failureChannel" ref="failChannel"/>
+                                <beans:property name="returnFailureExpressionResult" value="true"/>
+                                <beans:property name="trapException" value="true"/>
+                        </beans:bean>
+                </int-sftp:request-handler-advice-chain>
+                <!-- <poller fixed-rate="50" receive-timeout="50000"/> -->
+        </int-sftp:outbound-gateway>
+        
+        <beans:bean id="fitbirSftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+                <beans:property name="host" value="${fitbir.sftp.server.name}"/>
+                <beans:property name="port" value="${fitbir.sftp.server.port}"/>
+                <beans:property name="user" value="${fitbir.sftp.server.user}"/>
+                <beans:property name="password" value="${fitbir.sftp.server.password}"/>
+                <beans:property name="allowUnknownKeys" value="${fitbir.sftp.server.allowUnknownKeys}"/>
+        </beans:bean>
+        
+                <!-- Retrieves a file -->
+        <!-- expression="payload.originalFile"-->
+        <!-- expression="payload.originalPath+'/'+payload.originalFile" -->
+        <int-sftp:outbound-gateway session-factory="fitbirSftpSessionFactory"
+                request-channel="fitbirSftpQueue"
+                command="get"
+                expression="payload.originalPath + payload.originalFile"
+                id="fitbirSftpOutboundGateway"
+                auto-create-local-directory="true"
+                auto-create-directory="true"
+                local-directory-expression="'${local.directory}/'+payload.newPath"
+                mode="IGNORE"
+                reply-channel="responseChannel">
+                <int-sftp:request-handler-advice-chain>
+                               <beans:bean class="org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice" id="SomePieceOfInformation">
+                                <beans:property name="onSuccessExpression" value="payload"/>
+                                <beans:property name="successChannel" ref="externalApplicationInputChannel"/>
+                                <beans:property name="onFailureExpression" value="payload"/>
+                                <beans:property name="failureChannel" ref="failChannel"/>
+                                <beans:property name="returnFailureExpressionResult" value="true"/>
+                                <beans:property name="trapException" value="true"/>
+                        </beans:bean>
+                </int-sftp:request-handler-advice-chain>
+                <!-- <poller fixed-rate="50" receive-timeout="50000"/> -->
+        </int-sftp:outbound-gateway>
+        
+        <beans:bean id="pdSftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+                <beans:property name="host" value="${pd.sftp.server.name}"/>
+                <beans:property name="port" value="${pd.sftp.server.port}"/>
+                <beans:property name="user" value="${pd.sftp.server.user}"/>
+                <beans:property name="password" value="${pd.sftp.server.password}"/>
+                <beans:property name="allowUnknownKeys" value="${pd.sftp.server.allowUnknownKeys}"/>
+        </beans:bean>
+        
+                <!-- Retrieves a file -->
+        <!-- expression="payload.originalFile"-->
+        <!-- expression="payload.originalPath+'/'+payload.originalFile" -->
+        <int-sftp:outbound-gateway session-factory="pdSftpSessionFactory"
+                request-channel="pdSftpQueue"
+                command="get"
+                expression="payload.originalPath + payload.originalFile"
+                id="pdSftpSftpOutboundGateway"
+                auto-create-local-directory="true"
+                auto-create-directory="true"
+                local-directory-expression="'${local.directory}/'+payload.newPath"
+                mode="IGNORE"
+                reply-channel="responseChannel">
+                <int-sftp:request-handler-advice-chain>
+                               <beans:bean class="org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice" id="SomePieceOfInformation">
+                                <beans:property name="onSuccessExpression" value="payload"/>
+                                <beans:property name="successChannel" ref="externalApplicationInputChannel"/>
+                                <beans:property name="onFailureExpression" value="payload"/>
+                                <beans:property name="failureChannel" ref="failChannel"/>
+                                <beans:property name="returnFailureExpressionResult" value="true"/>
+                                <beans:property name="trapException" value="true"/>
+                        </beans:bean>
+                </int-sftp:request-handler-advice-chain>
+                <!-- <poller fixed-rate="50" receive-timeout="50000"/> -->
+        </int-sftp:outbound-gateway>
+        
+        <beans:bean id="cnrmSftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+                <beans:property name="host" value="${cnrm.sftp.server.name}"/>
+                <beans:property name="port" value="${cnrm.sftp.server.port}"/>
+                <beans:property name="user" value="${cnrm.sftp.server.user}"/>
+                <beans:property name="password" value="${cnrm.sftp.server.password}"/>
+                <beans:property name="allowUnknownKeys" value="${cnrm.sftp.server.allowUnknownKeys}"/>
+        </beans:bean>
+        
+                <!-- Retrieves a file -->
+        <!-- expression="payload.originalFile"-->
+        <!-- expression="payload.originalPath+'/'+payload.originalFile" -->
+        <int-sftp:outbound-gateway session-factory="cnrmSftpSessionFactory"
+                request-channel="cnrmSftpQueue"
+                command="get"
+                expression="payload.originalPath + payload.originalFile"
+                id="cnrmSftpOutboundGateway"
+                auto-create-local-directory="true"
+                auto-create-directory="true"
+                local-directory-expression="'${local.directory}/'+payload.newPath"
+                mode="IGNORE"
+                reply-channel="responseChannel">
+                <int-sftp:request-handler-advice-chain>
+                               <beans:bean class="org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice" id="SomePieceOfInformation">
+                                <beans:property name="onSuccessExpression" value="payload"/>
+                                <beans:property name="successChannel" ref="externalApplicationInputChannel"/>
+                                <beans:property name="onFailureExpression" value="payload"/>
+                                <beans:property name="failureChannel" ref="failChannel"/>
+                                <beans:property name="returnFailureExpressionResult" value="true"/>
+                                <beans:property name="trapException" value="true"/>
+                        </beans:bean>
+                </int-sftp:request-handler-advice-chain>
+                <!-- <poller fixed-rate="50" receive-timeout="50000"/> -->
+        </int-sftp:outbound-gateway>
+        
+        <beans:bean id="cistarSftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+                <beans:property name="host" value="${cistar.sftp.server.name}"/>
+                <beans:property name="port" value="${cistar.sftp.server.port}"/>
+                <beans:property name="user" value="${cistar.sftp.server.user}"/>
+                <beans:property name="password" value="${cistar.sftp.server.password}"/>
+                <beans:property name="allowUnknownKeys" value="${cistar.sftp.server.allowUnknownKeys}"/>
+        </beans:bean>
+        
+                <!-- Retrieves a file -->
+        <!-- expression="payload.originalFile"-->
+        <!-- expression="payload.originalPath+'/'+payload.originalFile" -->
+        <int-sftp:outbound-gateway session-factory="cistarSftpSessionFactory"
+                request-channel="cistarSftpQueue"
+                command="get"
+                expression="payload.originalPath + payload.originalFile"
+                id="cistarSftpOutboundGateway"
+                auto-create-local-directory="true"
+                auto-create-directory="true"
+                local-directory-expression="'${local.directory}/'+payload.newPath"
+                mode="IGNORE"
+                reply-channel="responseChannel">
+                <int-sftp:request-handler-advice-chain>
+                               <beans:bean class="org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice" id="SomePieceOfInformation">
+                                <beans:property name="onSuccessExpression" value="payload"/>
+                                <beans:property name="successChannel" ref="externalApplicationInputChannel"/>
+                                <beans:property name="onFailureExpression" value="payload"/>
+                                <beans:property name="failureChannel" ref="failChannel"/>
+                                <beans:property name="returnFailureExpressionResult" value="true"/>
+                                <beans:property name="trapException" value="true"/>
+                        </beans:bean>
+                </int-sftp:request-handler-advice-chain>
+                <!-- <poller fixed-rate="50" receive-timeout="50000"/> -->
+        </int-sftp:outbound-gateway>
+        
+        <beans:bean id="eyegeneSftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+                <beans:property name="host" value="${eyegene.sftp.server.name}"/>
+                <beans:property name="port" value="${eyegene.sftp.server.port}"/>
+                <beans:property name="user" value="${eyegene.sftp.server.user}"/>
+                <beans:property name="password" value="${eyegene.sftp.server.password}"/>
+                <beans:property name="allowUnknownKeys" value="${eyegene.sftp.server.allowUnknownKeys}"/>
+        </beans:bean>
+        
+                <!-- Retrieves a file -->
+        <!-- expression="payload.originalFile"-->
+        <!-- expression="payload.originalPath+'/'+payload.originalFile" -->
+        <int-sftp:outbound-gateway session-factory="eyegeneSftpSessionFactory"
+                request-channel="eyegeneSftpQueue"
+                command="get"
+                expression="payload.originalPath + payload.originalFile"
+                id="eyegeneSftpOutboundGateway"
+                auto-create-local-directory="true"
+                auto-create-directory="true"
+                local-directory-expression="'${local.directory}/'+payload.newPath"
+                mode="IGNORE"
+                reply-channel="responseChannel">
+                <int-sftp:request-handler-advice-chain>
+                               <beans:bean class="org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice" id="SomePieceOfInformation">
+                                <beans:property name="onSuccessExpression" value="payload"/>
+                                <beans:property name="successChannel" ref="externalApplicationInputChannel"/>
+                                <beans:property name="onFailureExpression" value="payload"/>
+                                <beans:property name="failureChannel" ref="failChannel"/>
+                                <beans:property name="returnFailureExpressionResult" value="true"/>
+                                <beans:property name="trapException" value="true"/>
+                        </beans:bean>
+                </int-sftp:request-handler-advice-chain>
+                <!-- <poller fixed-rate="50" receive-timeout="50000"/> -->
+        </int-sftp:outbound-gateway>
+        <!--  END SFTP CONFIGURATION -->
+
+
+
+        <!-- SERVICE ACTIVATORS -->
+        <!--
+                There are two "ExternalCommand" activators to allow them to act in parallel.
+        -->
+        <service-activator input-channel="externalApplicationInputChannel" method="executeCommand" output-channel="getAlteredFileChannel">
+                <beans:bean class="gov.nih.brics.spring.integration.ws.ExternalCommand">
+                        <beans:property name="command" value="${external.command}"/>
+                        <beans:property name="pathToFile" value="${local.directory}"/>
+                </beans:bean>
+                <poller fixed-rate="50" receive-timeout="50000"/>
+        </service-activator>
+        <service-activator input-channel="externalApplicationInputChannel" method="executeCommand" output-channel="getAlteredFileChannel">
+                <beans:bean class="gov.nih.brics.spring.integration.ws.ExternalCommand">
+                        <beans:property name="command" value="${external.command}"/>
+                        <beans:property name="pathToFile" value="${local.directory}"/>
+                </beans:bean>
+                <poller fixed-rate="50" receive-timeout="50000"/>
+        </service-activator>
+        
+                <!-- a dummy response activator -->
+        <service-activator input-channel="responseChannel">
+                <beans:bean class="gov.nih.brics.spring.integration.ws.Response"/>
+        </service-activator>
+
+        <!-- a simple error endpoint -->
+        <service-activator id="errorActivator" input-channel="failChannel" >
+                <beans:bean class="gov.nih.brics.spring.integration.ws.Failure"/>
+        </service-activator>
+</beans:beans>
+        
+        
+        

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC "-//Apache Struts//XWork Validator 1.0.2//EN" "http://struts.apache.org/dtds/xwork-validator-1.0.2.dtd">
+<validators>
+	<field name="startAccessReportDate">
+		<field-validator type="isodatevalidator">
+			<message key="errors.isoDateFormat" />
+		</field-validator>
+	</field>
+	<field name="endAccessReportDate">
+		<field-validator type="isodatevalidator">
+			<message key="errors.isoDateFormat" />
+		</field-validator>
+		<field-validator type="accessrecordstartenddatevalidator">
+			<message key="errors.startDate"/>
+		</field-validator>
+	</field>
+</validators>

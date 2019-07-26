@@ -1,0 +1,79 @@
+.flex {
+	&-no-wrap {
+		display:flex;
+		flex-wrap: nowrap;		
+	}
+	
+	&-vertical {
+		display:flex;
+		flex-wrap: nowrap;
+		align-content: flex-start;
+		flex-direction: column;
+	}
+	
+	&-checkbox {
+		margin-bottom: 7px;
+		
+		label{
+			text-align: left;
+		}
+		
+		> input {
+			margin-right: 3px;
+			
+		}
+	}
+
+	&-checkbox-left {
+		margin-bottom: 7px;
+		
+		label{
+			text-align: right;
+			float: none;
+		}
+		
+		> input {
+			margin-right: 3px;
+		}
+	}
+
+	&-checkbox-horizontal {
+		margin-right: 5px;
+		
+		label{
+			text-align: right;
+			float: none;
+		}
+		
+		> input {
+			margin-right: 2px;
+		}
+	}
+
+	&-justify {
+		&-start {
+			display: flex;
+  			justify-content: flex-start;
+		}
+	
+		&-end {
+			display: flex;
+ 			justify-content: flex-end;
+		}
+	
+		&-around {
+  			display: flex;
+  			justify-content: space-around; 
+  		}
+  	
+  		&-between {
+ 			display: flex;
+  			justify-content: space-between; 
+  		}
+  	
+  		&-evenly {
+ 			display: flex;
+ 			justify-content: space-evenly; 
+ 		}
+  	}
+}

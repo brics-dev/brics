@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+        "http://struts.apache.org/dtds/struts-2.5.dtd">
+<struts>
+	<constant name="struts.multipart.maxSize" value="50777216000" />
+	<constant name="struts.mapper.action.prefix.enabled" value="true" />
+	<constant name="struts.enable.DynamicMethodInvocation" value="true" />
+	<constant name="struts.ognl.allowStaticMethodAccess" value="true" />
+	
+	<package name="default" extends="struts-default" namespace="/">
+		<result-types>
+			<result-type name="json" class="org.apache.struts2.json.JSONResult">
+			</result-type>
+		</result-types>
+
+		<interceptors>
+			<interceptor name="exception"
+				class="gov.nih.tbi.commons.portal.TBIExceptionInterceptor" />
+			<interceptor name="multiselect"
+				class="org.apache.struts2.interceptor.MultiselectInterceptor" />
+			<interceptor name="actionLogger"
+				class="gov.nih.tbi.portal.ActionLogInterceptor" />
+			<interceptor name="tokenSession"
+				class="gov.nih.tbi.commons.portal.TokenSessionInterceptor">
+				<param name="includeMethods">accountRequestPrivileges,submit,update,adminSubmit,changePassword,reactivate,approvePrivileges,approve,reject,editKeywords,editValueRange,review,commitChange,adminSaveDataElements,saveOrder,moveToDocumentation,upload,editRepeatableElementGroup,addRepeatableElementGroup</param>
+				<param name="excludeMethods"> input,back,cancel,browse,view,remove </param>
+			</interceptor>
+			<interceptor-stack name="defaultStack">
+				<interceptor-ref name="exception">
+					<param name="exception.logEnabled"> true
+					</param>
+					<!-- <param name="exception.logLevel">INFO</param> -->
+				</interceptor-ref>
+				<interceptor-ref name="alias" />
+				<interceptor-ref name="servletConfig" />
+				<interceptor-ref name="prepare" />
+				<interceptor-ref name="i18n" />
+				<interceptor-ref name="chain" />
+				<interceptor-ref name="debugging" />
+				<interceptor-ref name="profiling" />
+				<interceptor-ref name="scopedModelDriven" />
+				<interceptor-ref name="modelDriven" />
+				<interceptor-ref name="actionLogger">
+					<param name="exception.logEnabled">true</param>
+					<param name="exception.logLevel">WARN</param>
+				</interceptor-ref>
+				<interceptor-ref name="fileUpload">
+					<param name="maximumSize">30485760</param>
+				</interceptor-ref>
+				<interceptor-ref name="multiselect" />
+				<interceptor-ref name="checkbox" />
+				<interceptor-ref name="staticParams" />
+				<interceptor-ref name="params">
+					<param name="excludeParams"> dojo\..*
+					</param>
+				</interceptor-ref>
+				<interceptor-ref name="conversionError" />
+				<interceptor-ref name="validation">
+					<param name="excludeMethods"> input,back,cancel,browse,view,remove
+					</param>
+				</interceptor-ref>
+				<interceptor-ref name="workflow">
+					<param name="excludeMethods"> input,back,cancel,browse
+					</param>
+				</interceptor-ref>
+			</interceptor-stack>
+			<interceptor name="monitoring" class="net.bull.javamelody.StrutsInterceptor"/>
+			<interceptor-stack name="myStack">
+				<interceptor-ref name="monitoring"/>
+				<interceptor-ref name="defaultStack"/>
+			</interceptor-stack>	
+		</interceptors>
+		
+		<default-interceptor-ref name="myStack"/>
+		
+		<global-results>
+			<result name="error"> /jsp/error/error-notify.jsp
+			</result>
+			<result name="Exception"> /jsp/error/error-notify.jsp
+			</result>
+			<result name="PermissionException"> /jsp/error/permission-error.jsp
+			</result>
+			<result name="useraccessdenied"> /jsp/error/user-access-error.jsp
+			</result>
+		</global-results>
+		
+		<global-allowed-methods>execute,input,back,cancel,browse,view,edit,create</global-allowed-methods>
+		
+		<global-exception-mappings>
+			<exception-mapping
+				exception="gov.nih.tbi.commons.service.UserPermissionException"
+				result="PermissionException" />
+			<exception-mapping
+				exception="gov.nih.tbi.account.ws.exception.UserAccessDeniedException"
+				result="useraccessdenied" />	
+			<exception-mapping
+				exception="gov.nih.tbi.dictionary.service.rulesengine.model.RulesEngineException"
+				result="RulesEngineException" />
+			<exception-mapping exception="java.lang.Exception"
+				result="Exception" />
+		</global-exception-mappings>
+		<!-- Base Action -->
+		<action name="baseAction" class="gov.nih.tbi.commons.portal.BaseAction">
+			<result name="footer">/common/footer.jsp</result>
+			<result name="navigation">/common/navigation.jsp</result>
+			<result name="in">/common/login.jsp</result>
+			<result name="out">/common/logout.jsp</result>
+			<result name="dashboard">/jsp/dashboard.jsp</result>
+			<result name="landing">/jsp/workspaceLanding.jsp</result>
+			<result name="adminDashboard">/jsp/workspace/adminDashboard.jsp</result>
+
+			<!-- ADD NEW WEBSTARTS HERE -->
+			<result name="validationTool">/jnlps/validationTool.jsp</result>
+			<result name="submissionTool">/jnlps/submissionTool.jsp</result>
+			<result name="uploadTool">/jnlps/uploadTool.jsp</result>
+			<result name="uploadButton">/jsp/contribute/uploadButton.jsp</result>
+			<result name="downloadTool">/jnlps/downloadTool.jsp</result>
+			<allowed-methods>landing,loginCheck,launch,dashboard,adminDashboard,footer,permissionError,getManifest</allowed-methods>
+		</action>
+
+		<action name="viewValidationToolInfo"
+			class="gov.nih.tbi.dictionary.portal.ValidationToolDictionaryAction">
+			<result name="success"> /jsp/dictionaryTool/validationTool.jsp
+			</result>
+		</action>
+
+		<!-- Repository Manager Stuff -->
+		<action name="fileUploadAction" class="gov.nih.tbi.repository.portal.FileUploadAction">
+			<result name="view"> /jsp/dictionaryTool/fileUpload.jsp
+			</result>
+		</action>
+
+		<action name="fileDownloadAction" class="gov.nih.tbi.repository.portal.FileDownloadAction">
+			<result name="input" type="stream">
+				<param name="contentType">application/octet-stream</param>
+				<param name="inputName">myStream</param>
+				<param name="contentDisposition">attachment;filename="${filename}"</param>
+				<param name="contentLength">${fileSize}</param>
+			</result>
+			
+			<result name="download" type="stream">
+				<param name="contentType"> contentType
+				</param>
+				<param name="inputName"> inputStream
+				</param>
+				<param name="contentDisposition"> attachment;filename="${zipFileName}"
+				</param>
+				<param name="bufferSize"> 1024
+				</param>
+			</result>
+
+			<allowed-methods>download,downloadDDT,downloadAll</allowed-methods>
+		</action>
+		
+		
+		
+		<action name="fileDeleteAction" class="gov.nih.tbi.repository.portal.FileDownloadAction">		
+			<allowed-methods>deleteUserFile</allowed-methods>
+		</action>
+		
+		
+		
+		
+		
+		
+		
+
+		<action name="keepAlive" class="gov.nih.tbi.commons.portal.KeepAliveAction">
+			<!-- Send the "No Content" success HTTP status code. -->
+			<result name="success" type="httpheader">
+				<param name="status">204</param>
+			</result>
+		</action>
+	</package>
+	<include file="account/struts-account.xml" />
+	<include file="dictionary/struts-dictionary.xml" />
+	<include file="guid/struts-guid.xml" />
+	<include file="repository/struts-repository.xml" />
+	<include file="metastudy/struts-metastudy.xml" />
+	<include file="ordermanager/struts-ordermanager.xml" />
+	<include file="esign/struts-esign.xml" />
+</struts>

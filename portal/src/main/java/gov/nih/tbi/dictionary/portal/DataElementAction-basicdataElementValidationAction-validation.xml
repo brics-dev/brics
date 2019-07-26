@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC "-//Apache Struts//XWork Validator 1.0.2//EN" "/WEB-INF/xwork-validator-1.0.2.dtd">
+<validators>
+	<field name="dataElementForm.name">
+		<field-validator type="requiredstring">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="dataelementname">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.unique" />
+		</field-validator>
+		<field-validator type="regex">
+			<param name="trim">false</param>
+			<param name="regex"> [A-Za-z][A-Za-z0-9_]* 
+			</param>
+			<message key="errors.specialchar" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 30 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="dataElementForm.title">
+		<field-validator type="requiredstring">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="regex">
+			<param name="trim">false</param>
+			<param name="regex"> [\S].* 
+			</param>
+			<message key="errors.spacechar" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 255 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="dataElementForm.description">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 4000 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="dataElementForm.shortDescription">
+		<field-validator type="requiredstring">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 255 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<!--  
+		<field name="dataElementForm.classification">
+		<field-validator type="dataelementclassification">
+			<message key="errors.classification" />
+		</field-validator>
+	</field>
+	<field name="dataElementForm.diseaseList">
+		<field-validator type="dataelementdisease">
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	<field name="dataElementForm.population">
+		<field-validator type="required">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>-->
+	<field name="dataElementForm.notes">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 4000 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="dataElementForm.historicalNotes">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 4000 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="dataElementForm.references">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 4000 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<!-- <field name="dataElementForm.diseaseList">
+		<field-validator type="required">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	<field name="dataElementForm.domain">
+		<field-validator type="required">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	<field name="dataElementForm.subdomain">
+		<field-validator type="required">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field> -->
+	<field name="dataElementForm.category">
+		<field-validator type="required">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	<field name="dataElementForm.loincId">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 55 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="dataElementForm.cadsrId">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 55 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="dataElementForm.snomedId">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 55 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="dataElementForm.cdiscId">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 55 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="dataElementForm.nindsId">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 55 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	
+</validators>

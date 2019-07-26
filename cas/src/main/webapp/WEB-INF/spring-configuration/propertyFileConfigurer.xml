@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+	<description>
+		This file lets CAS know where you've stored the cas.properties file which details some of the configuration options
+		that are specific to your environment.  You can specify the location of the file here.  You may wish to place the file outside
+		of the Servlet context if you have options that are specific to a tier (i.e. test vs. production) so that the WAR file 
+		can be moved between tiers without modification.
+	</description>
+
+    <util:properties id="casProperties" location="file:#{systemProperties['conf.dir']}/cas.properties" ignore-resource-not-found="false" />
+
+    <context:property-placeholder properties-ref="casProperties"/>
+	
+	<!-- expose specific properties to application  -->
+	<bean id="applicationProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+		<property name="singleton" value="true" />
+		<property name="properties">
+			<props>
+				<prop key="instance.diseaseKey">${instance.diseaseKey}</prop>
+				<prop key="portal.url">${portal.url}</prop>
+				<prop key="modules.style.key">${modules.style.key}</prop>
+				<prop key="dictionary.url">${dictionary.url}</prop>
+				<prop key="proforms.url">${proforms.url}</prop>
+				<prop key="guid.url">${guid.url}</prop>
+				<prop key="query.url">${query.url}</prop>
+				<prop key="reporting.url">${reporting.url}</prop>
+				<prop key="ops.email">${ops.email}</prop>
+			</props>
+		</property>
+		<property name="ignoreResourceNotFound" value="true" />
+	</bean>
+
+	
+</beans>

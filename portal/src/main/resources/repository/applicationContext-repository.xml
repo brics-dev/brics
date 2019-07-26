@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context" default-lazy-init="true" xmlns="http://www.springframework.org/schema/beans" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+       	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+	<bean id="userFileDao" class="gov.nih.tbi.repository.dao.hibernate.UserFileDaoImpl">
+	</bean>
+	<bean id="datafileEndpointInfoDaoImpl" class="gov.nih.tbi.repository.dao.hibernate.DatafileEndpointInfoDaoImpl">
+	</bean>
+	<bean id="dataStoreDao" class="gov.nih.tbi.repository.dao.jdbc.DataStoreDaoImpl" />
+	<bean id="dataStoreInfoDao" class="gov.nih.tbi.repository.dao.hibernate.DataStoreInfoDaoImpl">
+	</bean>
+	<bean id="dataStoreTabularInfoDao" class="gov.nih.tbi.repository.dao.hibernate.DataStoreTabularInfoDaoImpl">
+	</bean>
+	<bean id="dataStoreTabularColumnInfoDao" class="gov.nih.tbi.repository.dao.hibernate.DataStoreTabularColumnInfoDaoImpl">
+	</bean>
+	<bean id="dataStoreBinaryInfoDao" class="gov.nih.tbi.repository.dao.hibernate.DataStoreBinaryInfoDaoImpl" />
+	<bean id="studyDao" class="gov.nih.tbi.repository.dao.hibernate.StudyDaoImpl" />
+	<bean id="studyFormDao" class="gov.nih.tbi.repository.dao.hibernate.StudyFormDaoImpl" />
+	<bean id="grantDao" class="gov.nih.tbi.repository.dao.hibernate.GrantDaoImpl" />
+	<bean id="clinicalTrialDao" class="gov.nih.tbi.repository.dao.hibernate.ClinicalTrialDaoImpl" />
+	<bean id="supportingDocumentationDao" class="gov.nih.tbi.repository.dao.hibernate.SupportingDocumentationDaoImpl" />
+	<bean id="datasetDao" class="gov.nih.tbi.repository.dao.hibernate.DatasetDaoImpl" />
+	<bean id="datasetFileDao" class="gov.nih.tbi.repository.dao.hibernate.DatasetFileDaoImpl" />
+	<bean id="submissionRecordJoinDao" class="gov.nih.tbi.repository.dao.hibernate.SubmissionRecordJoinDaoImpl" />
+	<bean id="datasetSubjectDao" class="gov.nih.tbi.repository.dao.hibernate.DatasetSubjectDaoImpl" />
+	<bean id="datasetDataStructureDao" class="gov.nih.tbi.repository.dao.hibernate.DatasetDataStructureDaoImpl" />
+	<bean id="accessRecordDao" class="gov.nih.tbi.repository.dao.hibernate.AccessRecordDaoImpl" />
+	<bean id="invalidSubjectdDao" class="gov.nih.tbi.commons.dao.hibernate.InvalidSubjectDaoImpl" />
+	<bean id="downloadPackageDao" class="gov.nih.tbi.commons.dao.hibernate.DownloadPackageDaoImpl" />
+	<bean id="basicDatasetDao" class="gov.nih.tbi.repository.dao.hibernate.BasicDatasetDaoImpl" />
+	<bean id="downloadableDao" class="gov.nih.tbi.repository.dao.hibernate.DownloadableDaoImpl" />
+	<bean id="downloadFileDatasetDao" class="gov.nih.tbi.repository.dao.hibernate.DownloadFileDatasetDaoImpl" />
+</beans>

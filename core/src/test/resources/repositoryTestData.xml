@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dataset>
+	<user_file file_name="x.txt" file_description="x" file_path="testFolder/" datafile_endpoint_info_id="1" user_id="1" id="1" />
+	<user_file file_name="y.txt" file_description="y" file_path="testFolder/" datafile_endpoint_info_id="1" user_id="1" id="2" />
+	<user_file file_name="u.txt" file_description="u" file_path="testFolder/" datafile_endpoint_info_id="1" user_id="1" id="3" />
+	<user_file file_name="z.txt" file_description="z" file_path="testFolder/" datafile_endpoint_info_id="1" user_id="1" id="4" />
+	<user_file file_name="f.txt" file_description="f" file_path="testFolder/" datafile_endpoint_info_id="1" user_id="1" id="5" />
+	
+	<DATAFILE_ENDPOINT_INFO id="1" ENDPOINT_NAME="name" CONN_URL="url" CONN_NAME="cName" CONN_PASS="REPLACED" CONN_PORT="111" />
+	
+	<DATASTORE_BINARY_INFO id="-1" DATAFILE_ENDPOINT_INFO_ID="1" PATH="path" />
+	
+	<datastore_info id="1" data_structure_id="1" tabular="true" federated="false" archived="false" DATASTORE_BINARY_INFO_ID="-1" />
+	<datastore_info id="2" data_structure_id="2" tabular="true" federated="false" archived="false" DATASTORE_BINARY_INFO_ID="-1" />
+	<datastore_info id="3" data_structure_id="3" tabular="true" federated="false" archived="false" DATASTORE_BINARY_INFO_ID="-1" />
+	
+	<datastore_tabular_info id="1" />
+</dataset>

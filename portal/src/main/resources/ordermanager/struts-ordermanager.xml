@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+        "http://struts.apache.org/dtds/struts-2.5.dtd">
+<struts>
+	<package name="ordermanager" extends="default" namespace="/ordermanager">
+		
+		<global-allowed-methods>execute,input,back,cancel,browse,edit,create,view,search,list,submit</global-allowed-methods>
+		
+		<!-- If the URL is hello.action the call the execute method of class orderAction.
+		If the result returned by the execute method is success render the orderManager.jsp -->
+		<action name="openQueue" class="gov.nih.tbi.ordermanager.action.QueueAction">
+			<result name="success">/jsp/orderManager/queue.jsp</result>
+			<allowed-methods>removeFromQueue,getQueueList</allowed-methods>
+		</action>
+		
+		<action name="viewOrders" class="gov.nih.tbi.ordermanager.action.OrderAction">
+			<result name="success">/jsp/orderManager/ordersList.jsp</result>
+			<allowed-methods>getBiosampleOrdersList,openOrderList</allowed-methods>
+		</action>
+		
+		<action name="removeOrders" class="gov.nih.tbi.ordermanager.action.OrderAction">
+			<result name="success">/jsp/orderManager/ordersList.jsp</result>
+			<allowed-methods>removeBiospeceminOrder</allowed-methods>
+		</action>
+		
+		<action name="adminOrders" class="gov.nih.tbi.ordermanager.action.OrderAction">
+			<result name="success">/jsp/orderManager/adminOrdersList.jsp</result>
+			<allowed-methods>openAdminOrderList,getAdminOrdersList</allowed-methods>
+		</action>
+		
+		<action name="adminOrder" class="gov.nih.tbi.ordermanager.action.OrderAction">
+			<result name="success">/jsp/orderManager/adminOrderManager.jsp</result>
+			<allowed-methods>openAdminOrder,getOidBiosampleOrderTableList</allowed-methods>
+		</action>
+		
+		<action name="orderManager" class="gov.nih.tbi.ordermanager.action.OrderAction">
+			<result name="success">/jsp/orderManager/orderManager.jsp</result>
+			<allowed-methods>removeBiospecimenItemFromOrder,removeFile,addToExistingOrder,openOrder,getOidBiosampleOrderTableList</allowed-methods>
+		</action>
+		
+		<action name="openOrder" class="gov.nih.tbi.ordermanager.action.OrderAction">
+			<result name="success">/jsp/orderManager/orderManager.jsp</result>
+			<allowed-methods>openOrder</allowed-methods>
+		</action>
+		
+		<action name="orderAction" class="gov.nih.tbi.ordermanager.action.OrderAction">
+			<interceptor-ref name="defaultStack">
+				<param name="fileUpload.maximumSize">50777216000</param>
+			</interceptor-ref>
+			<result name="view">/jsp/orderManager/orderMgrFileIO.jsp
+			</result>
+			<result name="redirect" type="redirect">
+				<param name="location"> orderManager!openOrder.action
+				</param>
+			</result>
+			<result name="reportLightbox">/jsp/orderManager/orderReport-lightbox.jsp
+			</result>
+			<allowed-methods>upload,reportLightbox</allowed-methods>
+		</action>
+		
+		<action name="adminOrderAction" class="gov.nih.tbi.ordermanager.action.OrderAction">
+			<interceptor-ref name="defaultStack">
+				<param name="fileUpload.maximumSize">50777216000</param>
+			</interceptor-ref>
+			<result name="view">/jsp/orderManager/adminOrderMgrFileIO.jsp
+			</result>
+			<result name="redirect" type="redirect">
+				<param name="location"> adminOrder!openAdminOrder.action
+				</param>
+			</result>
+			<allowed-methods>upload</allowed-methods>
+		</action>
+		
+		<action name="fileOrder" class="gov.nih.tbi.ordermanager.action.OrderAction" method="upload">
+			<result name="redirect" type="redirect">/jsp/orderManager/orderManager.jsp</result>
+		</action>
+		
+		<action name="fileRemove" class="gov.nih.tbi.ordermanager.action.OrderAction" method="remove">
+			<result name="redirect" type="redirect">
+				<param name="location"> orderManager!openOrder.action
+				</param>
+			</result>
+		</action>
+		
+		
+		<action name="saveOrderValidation" class="gov.nih.tbi.ordermanager.action.OrderAction">
+			<exception-mapping exception="gov.nih.tbi.ordermanager.model.exception.EmptyOrderException" result="input" />
+			<result name="success">/jsp/orderManager/ordersList.jsp</result>
+			<result name="input">/jsp/orderManager/orderManager.jsp</result>
+			<allowed-methods>saveOrder</allowed-methods>
+		</action>
+		<action name="adminRemoveOrders" class="gov.nih.tbi.ordermanager.action.OrderAction">
+			<result name="success">/jsp/orderManager/adminOrdersList.jsp</result>
+			<result name="input">/jsp/orderManager/adminOrderManager.jsp</result>
+			<allowed-methods>removeBiospeceminOrderAdmin</allowed-methods>
+		</action>
+		<action name="saveAdminOrderValidation" class="gov.nih.tbi.ordermanager.action.OrderAction">
+			<result name="success">/jsp/orderManager/adminOrdersList.jsp</result>
+			<result name="input">/jsp/orderManager/adminOrderManager.jsp</result>
+			<allowed-methods>saveOrder</allowed-methods>
+		</action>
+		<action name="saveDraftOrderValidation" class="gov.nih.tbi.ordermanager.action.OrderAction">
+			<result name="success">/jsp/orderManager/ordersList.jsp</result>
+			<result name="input">/jsp/orderManager/orderManager.jsp</result>
+			<allowed-methods>saveOrder</allowed-methods>
+		</action>
+		
+		<action name="saveOrder" class="gov.nih.tbi.ordermanager.action.OrderAction">
+			<result name="success">/jsp/orderManager/ordersList.jsp</result>
+			<result name="input">/jsp/orderManager/orderManager.jsp</result>
+			
+		</action>
+		
+		<action name="biospecimenReportAction" class="gov.nih.tbi.ordermanager.action.OrderExportAction">
+			<result name="export" type="stream">
+				<param name="contentType"> application/vnd.ms-excel 
+				</param>
+				<param name="inputName"> inputStream 
+				</param>
+				<param name="contentDisposition"> attachment;filename="${fileName}" 
+				</param>
+				<param name="bufferSize"> 1024
+				</param>
+			</result>
+			<result name="input"> /jsp/orderManager/orderReport-lightbox.jsp
+			</result>	
+			<allowed-methods>validateShippedForm,download</allowed-methods>
+		</action>
+		
+		<action name="biosampleUnblind" class="gov.nih.tbi.ordermanager.action.BiosampleUnblindAction">
+			<allowed-methods>generateUnblindReport</allowed-methods>
+		</action>
+		
+		<action name="biospecimenDownloadAction" class="gov.nih.tbi.ordermanager.action.OrderAction">
+			<allowed-methods>downloadResults,getFilteredResults</allowed-methods>
+		</action>
+	</package>
+
+</struts>

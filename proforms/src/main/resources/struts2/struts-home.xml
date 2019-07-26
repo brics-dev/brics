@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+        "http://struts.apache.org/dtds/struts-2.5.dtd">
+ 
+<struts>
+
+	<package name="home" namespace="/" extends="default">
+	
+		<!-- Home Page -->
+		<action name="home" class="gov.nih.nichd.ctdb.workspace.action.HomeAction">
+			<result name="success">home.jsp</result>
+		</action>
+		<action name="getProtocolList" class="gov.nih.nichd.ctdb.workspace.action.HomeAction" method="getProtocolList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>		
+        <action name="casLoginRedirect" class="gov.nih.nichd.ctdb.security.action.CasLoginRedirectAction">
+        	<result name="success">security/casLoginRedirect.jsp</result>
+        </action>
+		
+		<!-- Dashboard -->
+		<action name="dashboard" class="gov.nih.nichd.ctdb.workspace.action.MyWorkspaceAction">
+			<result name="success">workspace/myWorkspace.jsp</result>
+			<result name="pickstudy">home.jsp</result>
+		</action>
+		<action name="getQaAlertsList" class="gov.nih.nichd.ctdb.workspace.action.MyWorkspaceAction" method="getQaAlertsList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>
+		<action name="pickStudy" class="gov.nih.nichd.ctdb.workspace.action.MyWorkspaceAction">
+			<result name="success">home.jsp</result>
+		</action>		
+			
+		<!-- Dashboard with reporting graphs -->
+		<action name="reportingDashboardJsonAction" class="gov.nih.nichd.ctdb.workspace.action.MyWorkspaceAction" >
+			<result name="jsonData" type="json">workspace/myWorkspace.jsp
+			<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			<param name="root">populationList</param>
+			</result>
+			<allowed-methods>reportingDashboard,getDrillDownForStatusEformJson</allowed-methods>
+		</action>
+		
+		<action name="showViewData" class="gov.nih.nichd.ctdb.workspace.action.MyWorkspaceAction" method="showViewData">
+			<result name="viewData">workspace/viewData.jsp</result>
+			<allowed-methods>showViewData</allowed-methods>
+		</action>
+		
+		<action name="populateViewDataAction" class="gov.nih.nichd.ctdb.workspace.action.ViewDataDashboardAction">
+			<result name="viewData" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonData</param>
+			</result>
+			<result name="badRequest" type="httpheader">
+				<param name="error">400</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<result name="error" type="json">
+				<param name="statusCode">500</param>
+				<param name="root">errRespMsg</param>
+			</result>
+			<allowed-methods>populateViewData, getVisitTypeListByGuid, geteFormsForInterval, viewDataGraph, getGuidForViewData</allowed-methods>
+		</action>
+		
+		<action name="getDashboardFilterAction" class="gov.nih.nichd.ctdb.workspace.action.MyWorkspaceAction">
+            <result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonList</param>
+			</result>
+			<result name="badRequest" type="httpheader">
+				<param name="error">400</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<allowed-methods>getDashBoardSitesList,getDashBoardGuidsList,getDashBoardCollStatusList</allowed-methods>
+        </action>
+        
+        <action name="getDashboardOverallStatusAction" class="gov.nih.nichd.ctdb.workspace.action.DashboardOverAllStatusAction">
+            <result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonList</param>
+			</result>
+			<result name="badRequest" type="httpheader">
+				<param name="error">400</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<allowed-methods>getDashBoardOverAllStatusList,getDashBoardStudyInformation</allowed-methods>
+        </action>
+        
+        <!-- "Adverse Event Log" JSON -->
+		<action name="aeJson" class="gov.nih.nichd.ctdb.workspace.action.MyWorkspaceAction" method="getAEsData">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>
+	</package>
+	
+</struts>

@@ -1,0 +1,168 @@
+
+
+.dhtmlgoodies_floatingWindow{
+		position:absolute;
+		width:224px;
+		padding-bottom:1px;
+		background-color:#FFF;
+		border:1px solid #006600;
+		left:50px;
+	}
+   
+
+    .dhtmlgoodies_floatingWindow .floatingWindow_topRow{
+		padding-bottom:1px;
+		
+		/* width:222px;
+		padding-left:2px;
+		*/		
+		width:100%;
+		border-bottom:3px double #006600;
+		background-color:#E2E3B9;
+		white-space:nowrap;
+		overflow:hidden;
+	
+		/* CSS HACK */
+        height:16px;
+        height/* */:/**/16px;	/* Other browsers */
+		height: /**/18px;
+		
+	}
+
+	.dhtmlgoodies_floatingWindow .floatingWindow_statusBar{
+		height:13px;
+		padding-bottom:1px;
+		width:100%;
+		border-top:3px double #006600;
+		background-color:#E2E3B9;
+		clear:both;
+		
+		/* CSS HACK */
+		height: 17px;	/* IE 5.x */
+		height/* */:/**/13px;	/* Other browsers */
+		height: /**/13px;		
+		
+	}
+	
+	.dhtmlgoodies_floatingWindow .floatingWindow_moveBar{
+		height:7px;
+		background-color:#1F7C1F;
+		border-top:2px solid #006600;
+		border-right:4px solid #1F7C1F;
+		border-left:2px solid #006600;
+		position:relative;
+		cursor:move;
+		
+		/* CSS HACK */
+		height: 9px;	/* IE 5.x */
+		height/* */:/**/7px;	/* Other browsers */
+		height: /**/7px;			
+	
+	}
+	
+	
+	.floatingWindowTab_inactive,.floatingWindowTab_active{
+		height:17px;
+		padding-left:4px;
+        cursor:pointer;
+	}
+	.floatingWindowTab_inactive span{
+		background-image:url('/ctdb/images/dhtmlPortlet/images/tab_left_inactive.gif');
+	}
+	
+	.floatingWindowTab_active span{
+		background-image:url('/ctdb/images/dhtmlPortlet/images/tab_left_active.gif');
+
+	}
+
+	span.floatingWindowTab_inactiveRight {
+		background-image:url('/ctdb/images/dhtmlPortlet/images/tab_right_inactive.gif');
+	}
+
+	span.floatingWindowTab_activeRight {
+		background-image:url('/ctdb/images/dhtmlPortlet/images/tab_right_active.gif');
+
+	}
+
+    .floatingWindowTab_inactive span, .floatingWindowTab_active span{
+		line-height:16px;
+		font-weight:bold;
+		font-family:arial;
+		font-size:11px;
+		padding-top:1px;
+		vertical-align:middle;
+		background-position:top left;
+		background-repeat: no-repeat;
+
+        float:left;
+		padding-left:0px;
+        padding-right:0px;
+        margin-right:0px;
+        -moz-user-select:no;
+	}
+    .floatingWindowTab_inactiveRight, .floatingWindowTab_activeRight {
+		line-height:16px;
+		font-weight:bold;
+		font-family:arial;
+		font-size:11px;
+		padding-top:1px;
+		vertical-align:middle;
+		background-position:top right;
+		background-repeat: no-repeat;
+         z-index:10000;
+        float:right;
+		padding-left:0px;
+        padding-right:0px;
+        margin-right:0px;
+        -moz-user-select:no;
+	}
+	.dhtmlgoodies_floatingWindow .floatingWindow_statusBar img{
+		position:absolute;
+		right:0px;
+		bottom:0px;
+        cursor:nw-resize;
+	}
+	.floatingWindowTab_inactive img,.floatingWindowTab_active img{
+		float:left;
+        margin-left:0px;
+    }
+	.floatingWindowCloseButton{
+		text-align:center;
+		line-height:10px;
+		border:1px solid #006600;
+		position:absolute;
+		right:1px;
+		font-size:12px;
+		font-weight:bold;
+		top:10px;
+		padding:1px;
+		
+		cursor:hand;	
+		cursor/* */:/**/pointer;	/* Other browsers */
+		cursor: /**/pointer;	
+				
+		/* CSS HACK */
+		width: 15px;	/* IE 5.x */
+		width/* */:/**/11px;	/* Other browsers */
+		width: /**/11px;	
+		
+		/* CSS HACK */
+		height: 15px;	/* IE 5.x */
+		height/* */:/**/11px;	/* Other browsers */
+		height: /**/11px;	
+				
+	}
+	#floatingWindow_statusBarTxt{
+		font-size:11px;
+		font-family:arial;
+		vertical-align:top;
+		line-height:13px;
+	}
+	.dhtmlgoodies_floatingWindow .floatingWindowContent{
+		padding:2px;
+		font-size:11px;
+		overflow-x:hidden;
+		overflow-y:scroll;
+		overflow: -moz-scrollbars-vertical;
+	
+	}

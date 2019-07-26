@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context" 
+	   default-lazy-init="true" xmlns="http://www.springframework.org/schema/beans" 
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+       
+       <bean id="metaStudyDao" class="gov.nih.tbi.metastudy.dao.hibernate.MetaStudyDaoImpl" />
+       <bean id="metaStudyKeywordDao" class="gov.nih.tbi.metastudy.dao.hibernate.metaStudyKeywordDaoImpl" />
+       <bean id="metaStudyLabelDao" class="gov.nih.tbi.metastudy.dao.hibernate.metaStudyLabelDaoImpl" />
+	
+</beans>

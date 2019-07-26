@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache>
+    <diskStore path="java.io.tmpdir"/>
+    <cache eternal="true" maxEntriesLocalHeap="10000"
+        name="accountEmailReportSettings" overflowToDisk="true"/>
+    <cache eternal="true" maxEntriesLocalHeap="10000"
+        name="accountHistory" overflowToDisk="true"/>
+    <cache eternal="true" maxEntriesLocalHeap="60" name="state" overflowToDisk="true"/>
+    <cache eternal="true" maxEntriesLocalHeap="500" name="country" overflowToDisk="true"/>
+    <cache eternal="true" maxEntriesLocalHeap="10000" name="accountRole" overflowToDisk="true"/>
+    <cache eternal="true" maxEntriesLocalHeap="5000" name="user" overflowToDisk="true"/>
+    <cache eternal="true" maxEntriesLocalHeap="10000"
+        name="permissionGroupMember" overflowToDisk="true"/>
+    <cache eternal="true" maxEntriesLocalHeap="5000" name="account" overflowToDisk="true"/>
+    <cache eternal="true" maxEntriesLocalHeap="5000"
+        name="permissionGroup" overflowToDisk="true"/>
+    <cache eternal="true" maxElementsInMemory="5000"
+        memoryStoreEvictionPolicy="LFU" name="info" overflowToDisk="true"/>
+    <cache eternal="true" maxElementsInMemory="5000"
+        memoryStoreEvictionPolicy="LFU"
+        name="org.hibernate.cache.internal.StandardQueryCache" overflowToDisk="true"/>
+    <defaultCache eternal="true" maxElementsInMemory="50000"
+        memoryStoreEvictionPolicy="LFU" overflowToDisk="true"/>
+</ehcache>

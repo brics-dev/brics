@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC "-//Apache Struts//XWork Validator 1.0.2//EN" "/WEB-INF/xwork-validator-1.0.2.dtd">
+<validators>
+	<field name="permissibleValue">
+		<field-validator type="requiredstring">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 200 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+		<field-validator type="permissiblevaluename">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.unique" />
+		</field-validator>
+		<field-validator type="permissiblevalueformat">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.hassemicolon" />
+		</field-validator>
+		<field-validator type="permissibleValueNumeric">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.numeric" />
+		</field-validator>
+	</field>
+	<field name="valueDescription">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 1000 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="outputCode">
+    	<field-validator type="int">
+        	<param name="min">-10000</param>
+        	<param name="max">10000</param>
+        	<message key="invalid.fieldvalue.outputCode" />
+    	</field-validator>		
+		<field-validator type="pvOutputCodeUnique">
+			<param name="trim">true</param>
+			<message key="errors.unique" />
+		</field-validator>
+	</field>
+</validators>

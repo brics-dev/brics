@@ -1,0 +1,10 @@
+<%@taglib prefix="s" uri="/struts-tags"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/sql" prefix="sql"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/xml" prefix="x"%>
+<%@taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
+<%@taglib prefix="page" uri="http://www.opensymphony.com/sitemesh/page"%>
+<%@taglib prefix="idt" uri="/WEB-INF/tag-libs/datatables.tld"%>
+<%@taglib prefix="ndar" tagdir="/WEB-INF/tags"%>

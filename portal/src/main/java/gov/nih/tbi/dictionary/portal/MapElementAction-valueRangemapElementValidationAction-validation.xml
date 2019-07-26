@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC "-//Apache Struts//XWork Validator 1.0.2//EN" "/WEB-INF/xwork-validator-1.0.2.dtd">
+<validators>
+	<field name="valueRangeForm.type">
+		<field-validator type="required">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	<field name="valueRangeForm.size">
+		<field-validator type="dataelementsize">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="dataelementminsize">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.int" />
+		</field-validator>
+	</field>
+	<field name="valueRangeForm.guidelines">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 4000 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="valueRangeForm.minimumValue">
+		<field-validator type="double">
+			<param name="min"> -99999999999 
+			</param>
+			<param name="max"> 99999999999 
+			</param>
+			<message key="errors.number" />
+		</field-validator>
+	</field>
+	<field name="valueRangeForm.maximumValue">
+		<field-validator type="double">
+			<param name="min"> -99999999999 
+			</param>
+			<param name="max"> 99999999999 
+			</param>
+			<message key="errors.number" />
+		</field-validator>
+		<field-validator type="minmax">
+			<message key="errors.minmax" />
+		</field-validator>
+	</field>
+	<field name="valueRangeForm.measurementType">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 10 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="valueRangeForm.multiple">
+		<field-validator type="minpermissiblevalues">
+			<message key="errors.minpermissiblevalues" />
+		</field-validator>
+	</field>
+	<validator type="permissibleValueNumeric">
+		<message key="errors.allNumeric" />
+	</validator>
+</validators>

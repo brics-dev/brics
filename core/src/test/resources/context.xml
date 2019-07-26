@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="
+       http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context 
+       http://www.springframework.org/schema/context/spring-context-2.5.xsd
+	   http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx-2.0.xsd">
+
+    
+    <!-- IMPORTS FOR MORE CONFIGURATIONS -->
+       
+       <!-- DATABASE CONNECTIONS -->
+   <import resource="database-local.xml"/> 
+   
+       	<!-- DEFINITIONS OF CRMETA DAOS -->
+    <import resource="applicationContext-commons.xml"/>
+    	<!-- DEFINITIONS OF ACCOUNT DAOS -->
+	<import resource="applicationContext-account.xml"/>
+		<!-- DEFINITIONS OF DICTIONARY DAOS -->
+	<import resource="applicationContext-dictionary.xml"/>
+			<!-- DEFINITIONS OF REPOSITORY DAOS -->
+	<import resource="applicationContext-repository.xml"/>
+	
+	
+	 <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <!--  Transaction Manager bean  -->
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <bean id="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+        <property name="sessionFactory" ref="metaFactory" />
+    </bean>
+
+
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <!--  enable the configuration of transactional behavior based on annotations  -->
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <tx:annotation-driven transaction-manager="transactionManager" />
+	
+    
+    
+    <!-- SESSION FACTORY BEANS -->
+    
+	<!-- META FACTORY -->
+	<bean id="metaFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<property name="dataSource" ref="metaConnection" />
+		<property name="hibernateProperties">
+			<value>
+				hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+			</value>
+		</property>
+		<property name="packagesToScan" value="gov.nih.tbi" />
+	</bean>
+	
+	<!-- REPOS FACTORY -->
+	<bean id="reposFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<property name="dataSource" ref="repositoryConnection" />
+		<property name="hibernateProperties">
+			<value>
+				hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+			</value>
+		</property>
+		<property name="packagesToScan" value="gov.nih.tbi" />
+	</bean>
+	
+	<!-- GUID FACTORY -->
+	<bean id="guidFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<property name="dataSource" ref="guidConnection" />
+		<property name="hibernateProperties">
+			<value>
+				hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+			</value>
+		</property>
+		<property name="packagesToScan" value="gov.nih.tbi.guid" />
+	</bean>
+	
+	
+
+	<context:annotation-config />
+	<context:component-scan base-package="gov.nih.tbi" />
+	
+	<!-- THESE ARE VARIABLE CONFIGURATIONS [RESTART REQUIRED TO TAKE EFFECT] -->
+	
+	<!-- DEFINITIONS OF BEANS -->
+	
+	<bean id="commonsDaoComponent" class="gov.nih.tbi.CommonsDaoComponent">
+	</bean>
+	
+	<bean id="accountDaoComponent" class="gov.nih.tbi.AccountDaoComponent">
+	</bean>
+	
+	<bean id="dictionaryDaoComponent" class="gov.nih.tbi.DictionaryDaoComponent">
+	</bean>
+	
+	<bean id="repositoryDaoComponent" class="gov.nih.tbi.RepositoryDaoComponent">
+	</bean>
+	
+</beans>

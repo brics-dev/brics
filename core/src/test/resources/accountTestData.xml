@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dataset>
+	<state id="1" name="Virginia" code="VA"/>
+	<state id="2" name="Maryland" code="MD"/>
+	<state id="3" name="Hawaii"	  code="HI"/>
+	
+	<country id="1"	name="Mordor"/>
+	<country id="2" name="Canadia"/>
+	<country id="3" name="United States of America"/>
+	
+	<tbi_user first_name="harry" last_name="potter" id="1" email="harry@hogwarts.edu"/>
+	<tbi_user first_name="ron" last_name="weasley" id="2" email="ron@hogwarts.edu" />
+	<tbi_user first_name="hermione" last_name="granger" id="3" email="herminoe@hogwarts.edu" />
+	<tbi_user first_name="ginny" last_name="weasley" id="4" email="weasley@hogwarts.edu" />
+	<tbi_user first_name="sirius" last_name="black" id="5" email="black@hogwarts.edu" />
+	<tbi_user first_name="remus" last_name="lupin" id="6" email="lupin@hogwarts.edu" />
+	
+	<account user_name="user1" user_id="1" id="1" />
+	<account user_name="user" user_id="2" id="2" />
+	<account user_name="mvalei" user_id="3" id="3" />
+	<account user_name="aaaaaa" user_id="4" id="4" />
+	<account user_name="bbbbbb" user_id="5" id="5" />
+	<account user_name="cccccc" user_id="6" id="6" />
+
+	<account_role account_id="1" id="1" role_type_id="1" role_status_id="0"/>
+	
+	<entity_map id="1" type_id="0" entity_id="1" account_id="1" permission_type_id="3"/> 
+	<entity_map id="13" type_id="0" entity_id="1" permission_type_id="0"/>
+	<entity_map id="2" type_id="0" entity_id="2" account_id="1" permission_type_id="3"/>
+	<entity_map id="3" type_id="0" entity_id="3" account_id="1" permission_type_id="3"/>
+	<entity_map id="4" type_id="0" entity_id="4" account_id="1" permission_type_id="3"/>
+	<entity_map id="5" type_id="0" entity_id="5" account_id="1" permission_type_id="3"/>
+	<entity_map id="6" type_id="0" entity_id="6" account_id="1" permission_type_id="3"/>
+	
+	<!-- DATA ELEMENTS -->
+	<entity_map id="7" type_id="1" entity_id="1" account_id="1" permission_type_id="3"/>
+	<entity_map id="8" type_id="1" entity_id="2" account_id="1" permission_type_id="3"/>
+	<entity_map id="9" type_id="1" entity_id="3" account_id="1" permission_type_id="3"/>
+	<entity_map id="10" type_id="1" entity_id="4" account_id="1" permission_type_id="3"/>
+	<entity_map id="11" type_id="1" entity_id="5" account_id="1" permission_type_id="3"/>
+	<entity_map id="12" type_id="1" entity_id="6" account_id="1" permission_type_id="3"/>
+		
+	<permission_group_member id="1" account_id="1" permission_group_id="1"/>
+</dataset>

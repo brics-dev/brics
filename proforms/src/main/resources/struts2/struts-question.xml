@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+        "http://struts.apache.org/dtds/struts-2.5.dtd">
+ 
+<struts>
+
+	<package name="question" namespace="/question" extends="default">
+
+		<!-- Image Map -->
+		<action name="addImageType" class="gov.nih.nichd.ctdb.question.action.ImageMapWizardAction" method="addImageType">
+			<result name="success">uploadImageMap.jsp</result>
+		</action>
+		<action name="editImageType" class="gov.nih.nichd.ctdb.question.action.ImageMapWizardAction" method="editImageType">
+			<result name="success" type="redirectAction">defineImageMap</result>
+		</action>
+		<action name="uploadImageMap" class="gov.nih.nichd.ctdb.question.imagemap.action.UploadImageMapAction">
+			<result name="success" type="redirectAction">defineImageMap</result>
+			<result name="exception">uploadImageMap.jsp</result>
+		</action>
+		<action name="defineImageMap" class="gov.nih.nichd.ctdb.question.imagemap.action.DefineImageMapAction">
+			<result name="success">defineImageMap.jsp</result>
+			<result name="exception">defineImageMap.jsp</result>
+		</action>
+		<action name="saveGridResolution" class="gov.nih.nichd.ctdb.question.imagemap.action.DefineImageMapAction" method="saveGridResolution">
+			<result name="success" type="redirectAction">showImageMapAnswer</result>
+			<result name="exception">defineImageMap.jsp</result>
+		</action>
+		<action name="showImageMapAnswer" class="gov.nih.nichd.ctdb.question.imagemap.action.ImageMapAnswersAction">
+			<result name="success">imageMapAnswers.jsp</result>
+			<result name="exception">imageMapAnswers.jsp</result>
+		</action>
+		<action name="saveImageMapAnswers" class="gov.nih.nichd.ctdb.question.imagemap.action.ImageMapAnswersAction" method="saveImageMapAnswers">
+			<result name="success">imageMapDone.jsp</result>
+			<result name="exception">imageMapAnswers.jsp</result>
+		</action>
+		
+		<!-- Graphics -->
+		<action name="showQuestionImage" class="gov.nih.nichd.ctdb.question.action.QuestionImageAction">
+			<result name="success">questionImageForm.jsp</result>
+		</action>
+		<action name="saveQuestionImage" class="gov.nih.nichd.ctdb.question.action.QuestionImageAction" method="saveQuestionImage">
+			<result name="success">addGraphicDone.jsp</result>
+			<result name="exception">questionImageForm.jsp</result>
+			<result name="input">questionImageForm.jsp</result>
+		</action>
+		<action name="deleteQuestionImage" class="gov.nih.nichd.ctdb.question.action.QuestionImageAction" method="deleteQuestionImage" />
+		
+	</package>
+	<package name="questionJson" namespace="/questionjson" extends="json-default" >
+		
+		<!-- Question Library -->
+		<action name="getQuestionLibrary" class="gov.nih.nichd.ctdb.question.action.QuestionLibraryAction" method="getQuestionLibrary">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonString</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">An error occurred while getting the question library.</param>
+			</result>
+			<result name="badRequest" type="httpheader">
+				<param name="error">400</param>
+				<param name="errorMessage">One or more of the query parameters are invalid.</param>
+			</result>
+		</action>
+		<action name="getQuestionFromLibrary" class="gov.nih.nichd.ctdb.question.action.QuestionLibraryAction" method="getQuestionFromLibrary">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonString</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">An error occurred while getting the question from the library.</param>
+			</result>
+		</action>
+		<action name="getQuestionIdFromQuestionName" class="gov.nih.nichd.ctdb.question.action.QuestionLibraryAction" method="getQuestionIdFromQuestionName">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonString</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">An error occurred while getting the question ID.</param>
+			</result>
+		</action>
+		
+	</package>
+	
+</struts>

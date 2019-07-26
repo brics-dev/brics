@@ -1,0 +1,57 @@
+
+.idt_selectAll {
+	background-image: url(../images/checkbox_checked.png);
+	background-repeat:  no-repeat;
+	background-position: left center;
+}
+
+.idt_selectFilter {
+	background-image: url(../images/checkbox_indeterminate.png);
+	background-repeat:  no-repeat;
+	background-position: left center;
+}
+
+.idt_selectNone {
+	background-image: url(../images/checkbox_unchecked.png);
+	background-repeat:  no-repeat;
+	background-position: left center;
+}
+
+.idt_selectAllSelector {
+	height: 20px;
+	width: 30px;
+	position: relative;
+	float: left;
+	background-position: 5px center;
+}
+
+.idt_selectAllHeader {
+	display: block;
+	text-align: right;
+	line-height: 30px;
+	padding-right: 5px;
+	border: none;
+	width: 30px;
+	height: 20px;
+}
+
+.idt_selectAllMenu {
+	display: none;
+	padding: 3px;
+	background: #FFF;
+	min-width: 150px;
+	border: 1px solid #000;
+	position: relative;
+	top: 0;
+	line-height: 20px;
+	z-index: 99;
+}
+
+.idt_selectAllSelector:hover > .idt_selectAllMenu {
+	display: block;
+}
+
+.idt_selectAllItem {
+	display: block;
+	padding-left: 20px;
+}

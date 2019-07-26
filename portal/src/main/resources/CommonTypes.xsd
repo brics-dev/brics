@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://fitbir.nih.gov/portal/ws/dictionary/CommonTypes"
+	elementFormDefault="qualified"
+	xmlns:Q1="http://fitbir.nih.gov/portal/ws/dictionary/CommonTypes"
+	xmlns:pref="http://fitbir.nih.gov/portal/ws/dictionary/MapElement">
+
+	<import schemaLocation="MapElement.xsd" namespace="http://fitbir.nih.gov/portal/ws/dictionary/MapElement"></import>
+	<complexType name="Disease">
+		<sequence>
+			<element name="Name" type="string"></element>
+			<element name="isActive" type="boolean"></element>
+			<element name="id" type="long"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="Domain">
+		<sequence>
+			<element name="Name" type="string"></element>
+			<element name="isActive" type="boolean"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="Subgroup">
+		<sequence>
+			<element name="subgroupName" type="string"></element>
+			<element name="id" type="long"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="Population">
+		<sequence>
+			<element name="name" type="string"></element>
+			<element name="id" type="long"></element>
+		</sequence>
+	</complexType>
+	
+	<complexType name="Category">
+		<sequence>
+			<element name="name" type="string"></element>
+			<element name="id" type="long"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="Classification">
+		<sequence>
+			<element name="Name" type="string"></element>
+			<element name="isActive" type="boolean"></element>
+			<element name="canCreate" type="boolean"></element>
+			<element name="id" type="long"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="Subdomain">
+		<sequence>
+			<element name="name" type="string"></element>
+			<element name="id" type="long"></element>
+			<element name="isActive" type="boolean"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="RepeatableGroup">
+		<sequence>
+			<element name="id" type="long"></element>
+			<element name="name" type="string"></element>
+			<element name="type" type="Q1:RepeatableType"></element>
+			<element name="threshold" type="integer"></element>
+			<element name="mapElements" type="pref:MapElement"
+				maxOccurs="unbounded" minOccurs="0">
+			</element>
+		</sequence>
+	</complexType>
+
+	<simpleType name="RepeatableType">
+		<restriction base="string">
+			<enumeration value="EXACTY"></enumeration>
+			<enumeration value="MORETHAN"></enumeration>
+			<enumeration value="LESSTHAN"></enumeration>
+		</restriction>
+	</simpleType>
+
+	<complexType name="AbstractDataStructure">
+		<sequence>
+			<element name="id" type="long"></element>
+			<element name="shortName" type="string"></element>
+			<element name="verison" type="integer"></element>
+			<element name="title" type="string"></element>
+			<element name="description" type="string"></element>
+			<element name="status" type="Q1:StatusType"></element>
+			<element name="publicationDate" type="date"></element>
+			<element name="validatable" type="boolean"></element>
+			<element name="organization" type="string"></element>
+			<element name="documentationUrl" type="string"></element>
+			<element name="documentationFileId" type="long"></element>
+			<element name="fileType" type="Q1:SubmissionType"></element>
+			<element name="isCopyrighted" type="boolean"></element>
+		</sequence>
+	</complexType>
+
+	<simpleType name="StatusType">
+		<restriction base="string">
+			<enumeration value="DRAFT"></enumeration>
+			<enumeration value="AWAITING_PUBLICATION"></enumeration>
+			<enumeration value="PUBLISHED"></enumeration>
+			<enumeration value="ARCHIVED"></enumeration>
+
+		</restriction>
+	</simpleType>
+
+	<simpleType name="SubmissionType">
+		<restriction base="string">
+			<enumeration value="CLINICAL"></enumeration>
+			<enumeration value="GENOMICS"></enumeration>
+			<enumeration value="IMAGING"></enumeration>
+			<enumeration value="DATA_FILE"></enumeration>
+		</restriction>
+	</simpleType>
+</schema>

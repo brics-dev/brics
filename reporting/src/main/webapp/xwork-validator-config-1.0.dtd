@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!ELEMENT validators (validator)+>
+
+<!ELEMENT validator (#PCDATA)>
+<!ATTLIST validator
+	name CDATA #REQUIRED
+    class CDATA #REQUIRED
+>

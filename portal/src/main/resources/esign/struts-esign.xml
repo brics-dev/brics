@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+        "http://struts.apache.org/dtds/struts-2.5.dtd">
+<struts>
+	<package name="esign" extends="default" namespace="/esign">
+	
+		<global-allowed-methods>input,submit</global-allowed-methods>
+		
+		<action name="esignAction" class="gov.nih.tbi.esign.portal.ESignAction">
+			<result name="view">/jsp/esign/esignValidateName.jsp</result>
+			<result name="edit">/jsp/esign/esignEditName.jsp</result>
+			<result name="success">/jsp/esign/esignDoc.jsp</result>
+			<allowed-methods>validateName,editName,esign</allowed-methods>
+		</action>
+		
+		<action name="esignEditValidationAction" class="gov.nih.tbi.esign.portal.ESignAction">
+			<result name="input">/jsp/esign/esignEditName.jsp</result>
+			<result name="success">/jsp/esign/esignDoc.jsp</result>
+			<allowed-methods>saveNameChanges</allowed-methods>
+		</action>
+		
+		<action name="esignValidationAction" class="gov.nih.tbi.esign.portal.ESignAction">
+			<result name="input">/jsp/esign/esignDoc.jsp</result>
+			<result name="success" type="redirect">baseAction!landing.action</result>
+		</action>
+		
+	</package>	
+</struts>

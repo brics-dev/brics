@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="
+       http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context 
+       http://www.springframework.org/schema/context/spring-context-2.5.xsd
+	   http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx-2.0.xsd">
+
+	<bean id="metaConnection" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
+		<property name="driverClassName" value="${jdbc.meta.driverClassName}" />
+		<property name="jdbcUrl" value="${jdbc.meta.url}" />
+		<property name="username" value="${jdbc.meta.username}" />
+		<property name="password" value="${jdbc.meta.password}" />
+		<property name="maximumPoolSize" value="10" />
+		<property name="idleTimeout" value="600000" />
+		<property name="maxLifetime" value="3600000" />
+	</bean>
+
+	<bean id="dictionaryConnection" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
+		<property name="driverClassName" value="${jdbc.meta.driverClassName}" />
+		<property name="jdbcUrl" value="${jdbc.meta.url}" />
+		<property name="username" value="${jdbc.meta.username}" />
+		<property name="password" value="${jdbc.meta.password}" />
+		<property name="maximumPoolSize" value="10" />
+		<property name="idleTimeout" value="600000" />
+		<property name="maxLifetime" value="3600000" />
+	</bean>
+
+	<bean id="repositoryConnection" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
+		<property name="driverClassName" value="${jdbc.repo.driverClassName}" />
+		<property name="jdbcUrl" value="${jdbc.repo.url}" />
+		<property name="username" value="${jdbc.repo.username}" />
+		<property name="password" value="${jdbc.repo.password}" />
+		<property name="maximumPoolSize" value="10" />
+		<property name="idleTimeout" value="600000" />
+		<property name="maxLifetime" value="3600000" />
+	</bean>
+
+	<bean id="rdfConnection" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
+		<property name="driverClassName" value="virtuoso.jdbc4.Driver" />
+		<property name="jdbcUrl" value="${rdf.url}" />
+		<property name="username" value="${rdf.username}" />
+		<property name="password" value="${rdf.password}" />
+		<property name="maximumPoolSize" value="10" />
+		<property name="idleTimeout" value="600000" />
+		<property name="maxLifetime" value="3600000" />
+	</bean>
+
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	<!-- SESSION FACTORY BEANS -->
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	<!-- META FACTORY -->
+	<bean id="metaFactory"
+		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+		<property name="dataSource" ref="metaConnection" />
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.PostgreSQLDialect</prop>
+				<prop key="hibernate.show_sql">false</prop>
+				<prop key="hibernate.format_sql">false</prop>
+				<prop key="hibernate.use_sql_comments">false</prop>
+			</props>
+		</property>
+		<property name="packagesToScan" value="gov.nih.tbi" />
+		<!-- Add Entity Interceptor -->
+		<!-- <property name="entityInterceptor">
+			<bean class="gov.nih.tbi.portal.TbiInterceptor" />
+		</property> -->
+	</bean>
+
+	<!-- Dictionary FACTORY -->
+	<bean id="dictionaryFactory"
+		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+		<property name="dataSource" ref="dictionaryConnection" />
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.PostgreSQLDialect</prop>
+				<prop key="hibernate.show_sql">false</prop>
+				<prop key="hibernate.format_sql">false</prop>
+				<prop key="hibernate.use_sql_comments">false</prop>
+			</props>
+		</property>
+		<property name="packagesToScan" value="gov.nih.tbi" />
+		<!-- <property name="entityInterceptor">
+			<bean class="gov.nih.tbi.portal.TbiInterceptor" />
+		</property> -->
+	</bean>
+
+	<!-- REPOS FACTORY -->
+	<bean id="reposFactory"
+		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+		<property name="dataSource" ref="repositoryConnection" />
+		<property name="hibernateProperties">
+			<value> hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+			</value>
+		</property>
+		<property name="packagesToScan" value="gov.nih.tbi" />
+	</bean>
+
+
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	<!-- Transaction Manager bean -->
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	<bean id="metaTransactionManager"
+		class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="metaFactory" />
+	</bean>
+
+	<bean id="dictionaryTransactionManager"
+		class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="dictionaryFactory" />
+	</bean>
+
+	<bean id="repositoryTransactionManager"
+		class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="reposFactory" />
+	</bean>
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	<!-- enable the configuration of transactional behavior based on annotations -->
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	<tx:annotation-driven transaction-manager="metaTransactionManager" />
+	<tx:annotation-driven transaction-manager="dictionaryTransactionManager" />
+	<tx:annotation-driven transaction-manager="repositoryTransactionManager" />
+
+</beans>

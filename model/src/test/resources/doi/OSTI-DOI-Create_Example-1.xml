@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<records>
+    <record>
+        <title>LBA Regional Global Historical Climatology Network, V.1, 1832-1990</title>
+        <creators>Vose, R.S.; Schmoyer, R.L.; Steurer, P.M.; Peterson, T.C.; Hein, R.; Karl, T.R.; Eischeid, J.K.</creators>
+        <publisher>ORNL Distributed Active Archive Center (DAAC) for Biogeochemical Dynamics, National Aeronautics and Space Administration</publisher>
+        <publication_date>12/31/2002</publication_date>
+        <site_url>http://daac.ornl.gov/cgi-bin/dsviewer.pl?ds_id=702</site_url>
+        <product_type>Dataset</product_type>
+        <product_type_specific>Numeric Data</product_type_specific>
+        <product_nos>P00745</product_nos>
+        <description>This dataset consists of a subset of the Global Historical Climatology Network (GHCN) Version 1 database for the study area of the Large Scale Biosphere-Atmosphere Experiment in Amazonia (LBA) in South America (i.e., longitude 85 to 30 degrees W, latitude 25 degrees S to 10 degrees N). There are three files available, one each for precipitation, temperature, and pressure data. Within this subset the oldest data date from 1832 and the most recent from 1990. All data taken at Latitude: 10.00N To 25.00S, Longitude: 30.00W to 85.00W. More information about LBA and links to other LBA project sites can be found at http://www.daac.ornl.gov/LBA/misc_amazon.html.</description>
+        <keywords>Rainforest; FIFE; BOREAS; Remote-Sensing Techniques; Selective Logging; Carbon Storage; Nutrient Dynamics; Trace Gas Fluxes</keywords>
+        <related_resource></related_resource>
+        <contributor_organizations></contributor_organizations>
+        <sponsor_org>National Aeronautics and Space Administration (NASA), U.S.; Centro de Previsao de Tempo e Estudos Climaticos, Brazil; Instituto Nacional De Pesquisas Espaciais, Brazil); Instituto Nactional de Pesquisas da Amazonia, Brazil</sponsor_org>
+        <contract_nos>1 U01 NS082157-01</contract_nos>
+        <other_identifying_nos></other_identifying_nos>
+        <file_extension>.dat</file_extension>
+        <availability>ORNL DAAC</availability>
+        <contact_name>J. Smith</contact_name>
+        <contact_org>ORNL DAAC</contact_org>
+        <contact_email>smith@daac.ornl.gov</contact_email>
+        <contact_phone>865-497-3155</contact_phone>
+    </record>
+</records>

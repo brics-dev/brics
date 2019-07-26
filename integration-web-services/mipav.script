@@ -1,0 +1,1 @@
+PlugInDialogTriPlanarVolumesCreator("input_image_1 ext_image $image1", "output_format string jpg")

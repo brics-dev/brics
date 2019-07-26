@@ -1,0 +1,1307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+        "http://struts.apache.org/dtds/struts-2.5.dtd">
+<struts>
+	<package name="dictionary" extends="default" namespace="/dictionary">
+
+		<global-results>
+			<result name="useraccessdenied"> /jsp/error/user-access-error.jsp
+			</result>
+		</global-results>
+		
+		<global-allowed-methods>execute,input,back,cancel,browse,edit,create,view,search,searchList,getSearch,list,submit</global-allowed-methods>
+
+		<global-exception-mappings>
+			<exception-mapping
+				exception="gov.nih.tbi.account.ws.exception.UserAccessDeniedException"
+				result="useraccessdenied" />	
+		</global-exception-mappings>
+
+		<action name="landingAction" class="gov.nih.tbi.dictionary.portal.LandingPageDictionaryAction">
+			<result name="success"> /jsp/dictionaryTool/landing.jsp </result>
+		</action>
+		<!-- New Dictionary Tool Stuff -->
+		<action name="baseDictionaryAction" class="gov.nih.tbi.dictionary.portal.BaseDictionaryAction">
+			<result name="success">/jsp/dictionaryTool/redirect/listDataStructuresRedirect.jsp
+			</result>
+			<result name="button">/jsp/define/dictionaryToolButton.jsp</result>
+			<allowed-methods>removeSessionDataStructure</allowed-methods>
+		</action>
+		<action name="listDataStructureAction" class="gov.nih.tbi.dictionary.portal.DataStructureSearchAction">
+			<result name="search"> /jsp/dictionaryTool/searchDataStructures.jsp
+			</result>
+			<result name="searchResults">
+				/jsp/dictionaryTool/searchDataStructuresResults.jsp
+			</result>
+			<result name="searchPublished">
+				/jsp/dictionaryTool/searchPublishedDataStructures.jsp
+			</result>
+			<result name="list"> /jsp/dictionaryTool/searchDataStructures.jsp
+			</result>
+			<result name="filterPublished">
+				/jsp/dictionaryTool/filterPublishedDataStructures.jsp
+			</result>
+			<result name="iframe"> /jsp/define/publicDataStructureContainer.jsp
+			</result>
+			<allowed-methods>searchPublished</allowed-methods>
+		</action>
+		<action name="dataStructureReasonValidationAction" class="gov.nih.tbi.dictionary.portal.DataStructureAction">
+			<result name="view"> /jsp/dictionaryTool/viewDataStructure.jsp
+			</result>
+			<result name="input"> /jsp/dictionaryTool/viewDataStructure.jsp
+			</result>
+		</action>
+		<action name="dataStructureAction" class="gov.nih.tbi.dictionary.portal.DataStructureAction">
+			<result name="view"> /jsp/dictionaryTool/viewDataStructure.jsp
+			</result>
+			<result name="review"> /jsp/dictionaryTool/reviewDataStructure.jsp
+			</result>
+			<result name="input"> /jsp/dictionaryTool/editDataStructure.jsp
+			</result>
+			<result name="header"> /jsp/dictionaryTool/dataStructureHeader.jsp
+			</result>
+			<result name="redirect">
+				/jsp/dictionaryTool/redirect/listDataStructuresRedirect.jsp
+			</result>
+
+			<result name="lightbox">
+				/jsp/dictionaryTool/viewDataStructure-lightbox.jsp
+			</result>
+			<result name="publication">
+				/jsp/dictionaryTool/dataStructure/publicationInterface.jsp
+			</result>
+			<result name="detailsPage"> /jsp/dictionaryTool/editDataStructure.jsp
+			</result>
+			<result name="elementsPage">
+				/jsp/dictionaryTool/dataStructure/editDataStructure-elements.jsp
+			</result>
+			<result name="permissionsPage">
+				/jsp/dictionaryTool/dataStructure/editDataStructure-permissions.jsp
+			</result>
+			<result name="documentationsPage" type="redirectAction">
+				<param name="actionName">dataStructureFileAction</param>
+				<param name="method">input</param>
+			</result>
+			<result name="statusChange">
+				/jsp/dictionaryTool/dataStructure/formStructureStatusChange.jsp
+			</result>
+			<result name="attachedDEStatusChange">
+				/jsp/dictionaryTool/dataStructure/attachedDEStatusChange.jsp
+			</result>
+			<result name="eventLogTable"> /jsp/dictionaryTool/dictionaryEventLogList.jsp
+			</result>
+			<result name="redirectToView" type="redirect">
+				<param name="location"> dataStructureAction!view.action</param>
+				<param name="dataStructureName">${currentDataStructure.shortName}</param>
+				<param name="version">${currentDataStructure.version}</param>
+				<param name="dataStructureId">${currentDataStructure.dataStructureId}</param>
+			</result>
+			<result name="listAttachedDEs"> /jsp/dictionaryTool/dataElementsList.jsp
+			</result>
+			<result name="supportDocTable"> /jsp/dictionaryTool/supportDocList.jsp
+			</result>
+			<allowed-methods>publication,moveToPermissions,moveToDocumentations,moveToElements,moveToReview,moveToDetails,
+					lightboxView,editDocumentDataTableSave,changeCurrentStructure,formStructureStatusChange,
+					attachedDEStatusChange,submitFSStatusChange,approve,deny,refreshEventLogTable,refreshSupportDoc,
+					listAttachedDEs,addDataElements,delete,saveAndFinish,getSupportingDocumentationList,getEventLogDocumentationList,
+					getHistoryLogList,getDictionaryEventLogList,getDataElementsList</allowed-methods>
+		</action>
+		<action name="fsEventLogDocumentationAction" class="gov.nih.tbi.dictionary.portal.FSEventLogDocumentationAction">
+			<result name="addDocumentationDialog"> /jsp/dictionaryTool/addDocumentationDialog.jsp
+			</result>
+			<result name="documentationRefresh"> /jsp/dictionaryTool/dictionaryStatusChange.jsp
+			</result>
+			<result name="editDocumentDataTableSave" type="redirect">
+				<param name="location">
+					dataStructureAction!editDocumentDataTableSave.action
+				</param>
+			</result>
+			<allowed-methods>addDocDialog,documentationRefresh,editDocumentation,removeDocumentations</allowed-methods>
+		</action>
+		<action name="fsEventLogDocValidationAction" class="gov.nih.tbi.dictionary.portal.FSEventLogDocumentationAction">
+			<interceptor-ref name="defaultStack">
+				<param name="fileUpload.maximumSize">50777216000</param>
+			</interceptor-ref>
+			<result name="input">
+				<param name="location">
+					/jsp/dictionaryTool/addDocumentationDialog.jsp
+				</param>
+				<param name="fileErrors"> ${fileErrors} </param>
+			</result>
+			<result name="editDocumentDataTableSave" type="redirect">
+				<param name="location">
+					dataStructureAction!editDocumentDataTableSave.action</param>
+			</result>
+			<allowed-methods>uploadDocumentation,editDocumentation</allowed-methods>
+		</action>
+		<action name="reviewDataStructureValidationAction" class="gov.nih.tbi.dictionary.portal.DataStructureAction">
+			<result name="view" type="redirectAction">
+				<param name="actionName">dataStructureAction</param>
+				<param name="method">view</param>
+				<param name="dataStructureName">${currentDataStructure.shortName}</param>
+			</result>
+			<result name="input"> /jsp/dictionaryTool/reviewDataStructure.jsp
+			</result>
+			<allowed-methods>saveAndFinish,moveToPermissions</allowed-methods>
+		</action>
+		<action name="importDataStructureAction" class="gov.nih.tbi.dictionary.portal.DataStructureImportAction">
+			<result name="input"> /jsp/dictionaryTool/adminImportFormStructure.jsp
+			</result>
+			<result name="redirect"> /jsp/dictionaryTool/adminImportFormStructure.jsp
+			</result>
+			<result name="lightbox">
+				/jsp/dictionaryTool/viewDataStructure-lightbox.jsp
+			</result>
+			<result name="importFormStructure"> /jsp/dictionaryTool/adminImportFormStructure.jsp
+			</result>
+			<allowed-methods>importFormStructure</allowed-methods>
+		</action>
+		<action name="conditionalLogicAction" class="gov.nih.tbi.dictionary.portal.ConditionalLogicAction">
+			<result name="inner">
+				/jsp/dictionaryTool/editConditionalLogic-inner.jsp
+			</result>
+			<result name="input"> /jsp/dictionaryTool/editConditionalLogic.jsp
+			</result>
+			<result name="view"> /jsp/dictionaryTool/editConditionalLogic.jsp
+			</result>
+			<allowed-methods>delete,viewInner</allowed-methods>
+		</action>
+		<action name="conditionalLogicValidationAction" class="gov.nih.tbi.dictionary.portal.ConditionalLogicAction">
+			<result name="inner">
+				/jsp/dictionaryTool/editConditionalLogic-inner.jsp
+			</result>
+			<result name="input"> /jsp/dictionaryTool/editConditionalLogic.jsp
+			</result>
+			<result name="view"> /jsp/dictionaryTool/editConditionalLogic.jsp
+			</result>
+		</action>
+		<action name="dataStructureCsvExportAction" class="gov.nih.tbi.dictionary.portal.DataStructureCsvExportAction">
+			<result name="export" type="stream">
+				<param name="contentType"> application/vnd.ms-excel
+				</param>
+				<param name="inputName"> inputStream
+				</param>
+				<param name="contentDisposition"> attachment;filename="${fileName}"
+				</param>
+				<param name="bufferSize"> 1024
+				</param>
+			</result>
+			<allowed-methods>export,exportWithData</allowed-methods>
+		</action>
+		<action name="addRepeatableElementGroupAction" class="gov.nih.tbi.dictionary.portal.DataStructureElementAction">
+			<result name="refresh">
+				/jsp/dictionaryTool/dataStructure/editDataStructure-elements.jsp
+			</result>
+			<result name="input">
+				/jsp/dictionaryTool/addRepeatableElementGroup.jsp
+			</result>
+			<allowed-methods>addRepeatableElementGroup</allowed-methods>
+		</action>
+		<action name="editRepeatableElementGroupAction" class="gov.nih.tbi.dictionary.portal.DataStructureElementAction">
+			<result name="refresh">
+				/jsp/dictionaryTool/dataStructure/editDataStructure-elements.jsp
+			</result>
+			<result name="input">
+				/jsp/dictionaryTool/addRepeatableElementGroup.jsp
+			</result>
+			<allowed-methods>editRepeatableElementGroup</allowed-methods>
+		</action>
+		<action name="dataStructureElementAction" class="gov.nih.tbi.dictionary.portal.DataStructureElementAction">
+			<result name="view"> /jsp/dictionaryTool/viewDataElement-details.jsp
+			</result>
+			<result name="search"> /jsp/dictionaryTool/searchDataElements.jsp
+			</result>
+			<result name="elements">
+				/jsp/dictionaryTool/dataStructure/attachedDataElements.jsp
+			</result>
+			<result name="groupLightbox">
+				/jsp/dictionaryTool/addRepeatableElementGroup.jsp
+			</result>
+			<result name="refresh">
+				/jsp/dictionaryTool/dataStructure/editDataStructure-elements.jsp
+			</result>
+			<result name="edit">
+				/jsp/dictionaryTool/dataStructure/editDataStructure-elements.jsp
+			</result>
+			<allowed-methods>addDataElements,viewMapElement,removeAllMapElements,removeRepeatableGroup,moveRepeatableGroup,
+					changeRequiredType,searchElements,showEditGroupLightbox,showAddGroupLightbox,removeMapElement,
+					checkRetiredDataElements,moveToElements,moveMapElement</allowed-methods>
+		</action>
+		<action name="dataStructureValidationAction" class="gov.nih.tbi.dictionary.portal.DataStructureAction">
+			<result name="view"> /jsp/dictionaryTool/viewDataStructure.jsp
+			</result>
+			<result name="input"> /jsp/dictionaryTool/editDataStructure.jsp
+			</result>
+			<result name="detailsPage"> /jsp/dictionaryTool/editDataStructure.jsp
+			</result>
+			<result name="elementsPage">
+				/jsp/dictionaryTool/dataStructure/editDataStructure-elements.jsp
+			</result>
+			<result name="permissionsPage">
+				/jsp/dictionaryTool/dataStructure/editDataStructure-permissions.jsp
+			</result>
+			<result name="documentationsPage" type="redirectAction">
+				<param name="actionName">dataStructureFileAction</param>
+				<param name="method">input</param>
+			</result>
+			<result name="review"> /jsp/dictionaryTool/reviewDataStructure.jsp
+			</result>
+			<allowed-methods>moveToDocumentations,moveToElements,moveToReview,moveToDetails,moveToPermissions</allowed-methods>
+		</action>
+		<action name="dataStructureFileValidationAction" class="gov.nih.tbi.dictionary.portal.DataStructureFileAction">
+			<interceptor-ref name="defaultStack">
+				<param name="fileUpload.maximumSize">50777216000</param>
+			</interceptor-ref>
+			<result name="input">
+				<param name="location">
+					/jsp/common/documentationUpload/addDocumentationDialog.jsp
+				</param>
+				<param name="fileErrors"> ${fileErrors} </param>
+			</result>
+			<result name="editDocumentDataTableSave" type="redirect">
+				<param name="location">
+					dataStructureAction!editDocumentDataTableSave.action</param>
+			</result>
+			<allowed-methods>uploadDocumentation</allowed-methods>
+		</action>
+		<action name="dataStructureFileAction" class="gov.nih.tbi.dictionary.portal.DataStructureFileAction">
+			<interceptor-ref name="defaultStack">
+				<param name="fileUpload.maximumSize">50777216000</param>
+			</interceptor-ref>
+			<result name="view"> /jsp/dictionaryTool/fileUpload.jsp
+			</result>
+			<result name="input">
+				/jsp/dictionaryTool/dataStructure/editDataStructure-uploadDocumentations.jsp
+			</result>
+			<result name="error"> /dictionary/dataStructureFileAction!view.ajax
+			</result>
+			<result name="redirect" type="redirect">
+				<param name="location"> dataStructureAction!edit.action
+				</param>
+				<param name="fileErrors"> ${fileErrors}
+				</param>
+			</result>
+			<result name="editDocumentation">
+				/jsp/dictionaryTool/dataStructure/editDataStructure-uploadDocumentations.jsp
+			</result>
+			<result name="addDocumentationDialog">
+				/jsp/common/documentationUpload/addDocumentationDialog.jsp
+			</result>
+			<result name="editDocumentDataTableSave" type="redirect">
+				<param name="location">
+					dataStructureFileAction!editDocumentDataTableSave.action</param>
+			</result>
+			<allowed-methods>addDocDialog,uploadDocumentation,documentationRefresh,editDocumentation,removeDocumentations,getUploadDocumentation</allowed-methods>
+		</action>
+		<action name="searchDataElementAction" class="gov.nih.tbi.dictionary.portal.DataElementSearchAction">
+			<result name="list"> /jsp/dictionaryTool/searchDataElements.jsp
+			</result>
+			<result name="filter">
+				/jsp/dictionaryTool/searchDataElements-dataElementFilters.jsp
+			</result>
+			<result name="search"> /jsp/dictionaryTool/dataElementSearchResults.jsp
+			</result>
+			<result name="input"> /jsp/dictionaryTool/dataElementSearchResults.jsp
+			</result>
+			<result name="subDomain">
+				/jsp/dictionaryTool/dataElement/includes/searchTreeSubdomainInterface.jsp
+			</result>
+			<result name="domain">
+				/jsp/dictionaryTool/dataElement/includes/searchTreeDomainInterface.jsp
+			</result>
+			<result name="disease">
+				/jsp/dictionaryTool/dataElement/includes/searchTreeDiseaseInterface.jsp
+			</result>
+			<result name="subgroup">
+				/jsp/dictionaryTool/dataElement/includes/searchTreeSubgroupInterface.jsp
+			</result>
+			<result name="classification">
+				/jsp/dictionaryTool/dataElement/includes/searchTreeClassificationInterface.jsp
+			</result>
+			<result name="advanced" type="json">
+				<param name="root"> AdvSearchOpts
+				</param>
+			</result>
+			<allowed-methods>updateDisease,updateClassifications,updateDomain,updateSubDomain,wsTest</allowed-methods>
+		</action>
+		<action name="createDataElementAction" class="gov.nih.tbi.dictionary.portal.DataElementSearchAction">
+			<result name="subDomain">
+				/jsp/dictionaryTool/dataElement/includes/createTreeSubdomainInterface.jsp
+			</result>
+			<result name="domain">
+				/jsp/dictionaryTool/dataElement/includes/createTreeDomainInterface.jsp
+			</result>
+			<result name="disease">
+				/jsp/dictionaryTool/dataElement/includes/createTreeDiseaseInterface.jsp
+			</result>
+			<result name="classification">
+				/jsp/dictionaryTool/dataElement/includes/createTreeClassificationsInterface.jsp
+			</result>
+			<allowed-methods>updateClassifications,updateDomain,updateSubDomain</allowed-methods>
+		</action>
+		<action name="dataStructureXmlExportAction" class="gov.nih.tbi.dictionary.portal.DataStructureXmlExportAction">
+			<result name="export" type="stream">
+				<param name="contentType"> text/xml
+				</param>
+				<param name="inputName"> inputStream
+				</param>
+				<param name="contentDisposition"> attachment;filename="${fileName}"
+				</param>
+				<param name="bufferSize"> 1024
+				</param>
+			</result>
+			<allowed-methods>export</allowed-methods>
+		</action>
+		<action name="dataElementExportAction" class="gov.nih.tbi.dictionary.portal.DataElementExportAction">
+			<result name="download" type="stream">
+				<param name="contentType"> ${contentType}
+				</param>
+				<param name="inputName"> inputStream
+				</param>
+				<param name="contentDisposition"> attachment;filename="${fileName}"
+				</param>
+				<param name="bufferSize"> 1024
+				</param>
+			</result>
+			<allowed-methods>xmlExport,csvExport,xsdExport,exportFSDataElementsDetail</allowed-methods>
+		</action>
+		<action name="detailsdataElementValidationAction" class="gov.nih.tbi.dictionary.portal.DataElementAction">
+			<result name="view"> /jsp/dictionaryTool/viewDataElement.jsp
+			</result>
+			<result name="input"> /jsp/dictionaryTool/editDataElementDetails.jsp
+			</result>
+			<result name="editDetails"> /jsp/dictionaryTool/editDataElement.jsp
+			</result>
+			<result name="editKeywords">
+				/jsp/dictionaryTool/dataElement/keywordInterface.jsp
+			</result>
+			<result name="editValueRange">
+				/jsp/dictionaryTool/dataElement/valueRangeInterface.jsp
+			</result>
+			<result name="review"> /jsp/dictionaryTool/reviewDataElement.jsp
+			</result>
+			<result name="editDocumentation" type="redirectAction">
+				<param name="actionName">dataElementFileAction</param>
+				<param name="method">input</param>
+			</result>
+			<allowed-methods>editDetails,editDocumentation,editValueRange,editKeywords,editStandardDetails,review</allowed-methods>
+		</action>
+		<action name="basicdataElementValidationAction" class="gov.nih.tbi.dictionary.portal.DataElementAction">
+			<result name="view"> /jsp/dictionaryTool/viewDataElement.jsp
+			</result>
+			<result name="input"> /jsp/dictionaryTool/editDataElement.jsp
+			</result>
+			<result name="editDetails"> /jsp/dictionaryTool/editDataElement.jsp
+			</result>
+			<result name="editStandardDetails"> /jsp/dictionaryTool/editDataElementDetails.jsp
+			</result>
+			<result name="editKeywords">
+				/jsp/dictionaryTool/dataElement/keywordInterface.jsp
+			</result>
+			<result name="editValueRange">
+				/jsp/dictionaryTool/dataElement/valueRangeInterface.jsp
+			</result>
+			<result name="review"> /jsp/dictionaryTool/reviewDataElement.jsp
+			</result>
+			<result name="editDocumentation" type="redirectAction">
+				<param name="actionName">dataElementFileAction</param>
+				<param name="method">input</param>
+			</result>
+			<allowed-methods>editDetails,editDocumentation,editValueRange,editKeywords,editStandardDetails,review</allowed-methods>
+		</action>
+		<action name="reviewDataElementValidationAction" class="gov.nih.tbi.dictionary.portal.DataElementAction">
+			<result name="view" type="redirectAction">
+				<param name="actionName">dataElementAction</param>
+				<param name="method">view</param>
+				<param name="dataElementName">${currentDataElement.name}</param>
+			</result>
+			<result name="input"> /jsp/dictionaryTool/reviewDataElement.jsp
+			</result>
+		</action>
+		<action name="valueRangedataElementValidationAction" class="gov.nih.tbi.dictionary.portal.DataElementAction">
+			<result name="view"> /jsp/dictionaryTool/viewDataElement.jsp
+			</result>
+			<result name="input">
+				/jsp/dictionaryTool/dataElement/valueRangeInterface.jsp
+			</result>
+			<result name="editDetails"> /jsp/dictionaryTool/editDataElement.jsp
+			</result>
+			<result name="editKeywords">
+				/jsp/dictionaryTool/dataElement/keywordInterface.jsp
+			</result>
+			<result name="editValueRange">
+				/jsp/dictionaryTool/dataElement/valueRangeInterface.jsp
+			</result>
+			<result name="editDocumentation" type="redirectAction">
+				<param name="actionName">dataElementFileAction</param>
+				<param name="method">input</param>
+			</result>
+			<result name="editStandardDetails"> /jsp/dictionaryTool/editDataElementDetails.jsp
+			</result>
+			<result name="review"> /jsp/dictionaryTool/reviewDataElement.jsp
+			</result>
+			<allowed-methods>editDetails,editDocumentation,editValueRange,editKeywords,editStandardDetails,review</allowed-methods>
+		</action>
+		<action name="keywordInterfacedataElementValidationAction" class="gov.nih.tbi.dictionary.portal.DataElementAction">
+			<result name="input"> /jsp/dictionaryTool/dataElement/addKeyword.jsp
+			</result>
+			<result name="addKeyword" type="json">
+				<param name="root"> newKeyword
+				</param>
+			</result>
+			<allowed-methods>createKeyword</allowed-methods>
+		</action>
+		<action name="labelInterfacedataElementValidationAction" class="gov.nih.tbi.dictionary.portal.DataElementAction">
+			<result name="input"> /jsp/dictionaryTool/dataElement/addLabel.jsp
+			</result>
+			<result name="addKeyword" type="json">
+				<param name="root"> newLabel
+				</param>
+			</result>
+			<allowed-methods>createLabel</allowed-methods>
+		</action>
+		<action name="dataElementAction" class="gov.nih.tbi.dictionary.portal.DataElementAction">
+			<result name="view"> /jsp/dictionaryTool/viewDataElement.jsp
+			</result>
+			<result name="viewDetails"> /jsp/dictionaryTool/viewDataElement-details.jsp
+			</result>
+			<result name="input"> /jsp/dictionaryTool/editDataElement.jsp
+			</result>
+			<result name="list" type="redirect"> searchDataElementAction!list.action
+			</result>
+			<result name="editDetails"> /jsp/dictionaryTool/editDataElement.jsp
+			</result>
+			<result name="editKeywords">
+				/jsp/dictionaryTool/dataElement/keywordInterface.jsp
+			</result>
+			<result name="editValueRange">
+				/jsp/dictionaryTool/dataElement/valueRangeInterface.jsp
+			</result>
+			<result name="status">
+				/jsp/dictionaryTool/dataElement/elementStatusInterface.jsp
+			</result>
+			<result name="publication">
+				/jsp/dictionaryTool/dataElement/elementStatusInterface.jsp
+			</result>
+			<result name="updateClassifications">
+				/jsp/dictionaryTool/dataElement/includes/diseaseClassifications.jsp
+			</result>
+			<result name="createClassifications">
+				/jsp/dictionaryTool/dataElement/includes/createTreeClassificationsInterface.jsp
+			</result>
+			<result name="editStandardDetails"> /jsp/dictionaryTool/editDataElementDetails.jsp
+			</result>
+			<result name="review"> /jsp/dictionaryTool/reviewDataElement.jsp
+			</result>
+			<result name="editDocumentation" type="redirectAction">
+				<param name="actionName">dataElementFileAction</param>
+				<param name="method">input</param>
+			</result>
+			<result name="addKeyword" type="json">
+				<param name="root"> newKeyword
+				</param>
+			</result>
+			<result name="confirm">
+				/jsp/dictionaryTool/dataElement/createDataElementConfirmation.jsp
+			</result>
+			<result name="subDomain">
+				/jsp/dictionaryTool/dataElement/includes/searchTreeSubdomainInterface.jsp
+			</result>
+			<result name="domain">
+				/jsp/dictionaryTool/dataElement/includes/searchTreeDomainInterface.jsp
+			</result>
+			<result name="statusChange">
+				/jsp/dictionaryTool/dataElement/dataElementStatusChange.jsp
+			</result>
+			<result name="eventLogTable"> /jsp/dictionaryTool/dictionaryEventLogList.jsp
+			</result>
+			<result name="redirectToView" type="redirect">
+				<param name="location"> dataElementAction!view.action</param>
+				<param name="dataElementName">${currentDataElement.name}</param>
+				<param name="dataElementId">${currentDataElement.id}</param>
+				<param name="version">${currentDataElement.version}</param>
+			</result>
+			<result name="supportDocTable"> /jsp/dictionaryTool/supportDocList.jsp
+			</result>
+			<result name="bulkStatusChange">
+				/jsp/dictionaryTool/dataElement/bulkDataElementStatusChange.jsp
+			</result>
+			<result name="listBulkDEs"> /jsp/dictionaryTool/dataElementsList.jsp
+			</result>
+			<allowed-methods>viewDetails,bulkAP,bulkPublish,dataElementStatusChange,submitDEStatusChange,approve,deny,
+					refreshEventLogTable,refreshSupportDoc,listBulkDEs,review,removeDataElement,domainUpdate,editDetails,
+					viewPublication,changePublication,editDocumentation,editValueRange,editKeywords,editStandardDetails,
+					editDocumentDataTableSave,getHistoryLogList,getDictionaryEventLogList,getSupportingDocumentationList,
+					getEventLogDocumentationList,getDataElementsList,getEventLogDocumentationList,getDataElementsList,getDataElementsList,getDataElementPvList</allowed-methods>
+		</action>
+		<action name="dEEventLogDocumentationAction" class="gov.nih.tbi.dictionary.portal.DEEventLogDocumentationAction">
+			<result name="addDocumentationDialog"> /jsp/dictionaryTool/addDocumentationDialog.jsp
+			</result>
+			<result name="documentationRefresh"> /jsp/dictionaryTool/dictionaryStatusChange.jsp
+			</result>
+			<result name="editDocumentDataTableSave" type="redirect">
+				<param name="location">
+					dataElementAction!editDocumentDataTableSave.action</param>
+			</result>
+			<allowed-methods>addDocDialog,documentationRefresh,editDocumentation,removeDocumentations</allowed-methods>
+		</action>
+		<action name="dEEventLogDocValidationAction" class="gov.nih.tbi.dictionary.portal.DEEventLogDocumentationAction">
+			<interceptor-ref name="defaultStack">
+				<param name="fileUpload.maximumSize">50777216000</param>
+			</interceptor-ref>
+			<result name="input">
+				<param name="location">
+					/jsp/dictionaryTool/addDocumentationDialog.jsp
+				</param>
+				<param name="fileErrors"> ${fileErrors} </param>
+			</result>
+			<result name="editDocumentDataTableSave" type="redirect">
+				<param name="location">
+					dataElementAction!editDocumentDataTableSave.action</param>
+			</result>
+			<allowed-methods>uploadDocumentation</allowed-methods>
+		</action>
+		<action name="multiDiseaseElementValidationAction" class="gov.nih.tbi.dictionary.portal.DataElementAction">
+			<result name="input"> /jsp/dictionaryTool/editDataElement.jsp
+			</result>
+			<result name="editDetails"> /jsp/dictionaryTool/editDataElement.jsp
+			</result>
+			<result name="editKeywords">
+				/jsp/dictionaryTool/dataElement/keywordInterface.jsp
+			</result>
+			<result name="editValueRange">
+				/jsp/dictionaryTool/dataElement/valueRangeInterface.jsp
+			</result>
+			<result name="review"> /jsp/dictionaryTool/reviewDataElement.jsp
+			</result>
+			<result name="view"> /jsp/dictionaryTool/viewDataElement.jsp
+			</result>
+			<allowed-methods>review</allowed-methods>
+		</action>
+		<action name="publishedDataElementValidationAction" class="gov.nih.tbi.dictionary.portal.DataElementAction">
+			<result name="input"> /jsp/dictionaryTool/editDataElement.jsp
+			</result>
+			<result name="editDetails"> /jsp/dictionaryTool/editDataElement.jsp
+			</result>
+			<result name="editKeywords">
+				/jsp/dictionaryTool/dataElement/keywordInterface.jsp
+			</result>
+			<result name="editValueRange">
+				/jsp/dictionaryTool/dataElement/valueRangeInterface.jsp
+			</result>
+			<result name="view"> /jsp/dictionaryTool/viewDataElement.jsp
+			</result>
+			<result name="review"> /jsp/dictionaryTool/reviewDataElement.jsp
+			</result>
+		</action>
+		<action name="dataElementReasonValidationAction" class="gov.nih.tbi.dictionary.portal.DataElementAction">
+			<result name="view"> /jsp/dictionaryTool/viewDataElement.jsp
+			</result>
+			<result name="input"> /jsp/dictionaryTool/viewDataElement.jsp
+			</result>
+		</action>
+		<action name="importDataElementAction" class="gov.nih.tbi.dictionary.portal.ImportDataElementAction">
+			<!-- These results are for User Data Element Import Functionality -->
+			<result name="import"> /jsp/dictionaryTool/adminImportDataElement.jsp
+			</result>
+			<result name="input"> /jsp/dictionaryTool/adminImportDataElement.jsp
+			</result>
+			<result name="list" type="redirect"> searchDataElementAction!list.action
+			</result>
+			<result name="viewDetails"> /jsp/dictionaryTool/viewDataElement-details.jsp
+			</result>
+			<allowed-methods>userImport,adminUpload,adminSaveDataElements,viewDetails,checkExistingDataElements</allowed-methods>
+		</action>
+		<action name="dataElementFileValidationAction" class="gov.nih.tbi.dictionary.portal.DataElementFileAction">
+			<interceptor-ref name="defaultStack">
+				<param name="fileUpload.maximumSize">50777216000</param>
+			</interceptor-ref>
+			<result name="input">
+				<param name="location">
+					/jsp/common/documentationUpload/addDocumentationDialog.jsp
+				</param>
+				<param name="fileErrors"> ${fileErrors} </param>
+			</result>
+			<result name="editDocumentDataTableSave" type="redirect">
+				<param name="location">
+					dataElementAction!editDocumentDataTableSave.action</param>
+			</result>
+			<allowed-methods>uploadDocumentation</allowed-methods>
+		</action>
+		<action name="dataElementFileAction" class="gov.nih.tbi.dictionary.portal.DataElementFileAction">
+			<interceptor-ref name="defaultStack">
+				<param name="fileUpload.maximumSize">50777216000</param>
+			</interceptor-ref>
+			<result name="input">
+				/jsp/dictionaryTool/editDataElement-uploadDocumentations.jsp
+			</result>
+			<result name="error"> /dictionary/dataElementAction!view.ajax
+			</result>
+			<result name="redirect" type="redirect">
+				<param name="location"> dataElementAction!edit.action
+				</param>
+				<param name="fileErrors"> ${fileErrors}
+				</param>
+			</result>
+			<result name="editDocumentation">
+				/jsp/dictionaryTool/editDataElement-uploadDocumentations.jsp
+			</result>
+			<result name="addDocumentationDialog">
+				/jsp/common/documentationUpload/addDocumentationDialog.jsp
+			</result>
+			<result name="editDocumentDataTableSave" type="redirect">
+				<param name="location">
+					dataElementAction!editDocumentDataTableSave.action</param>
+			</result>
+			<allowed-methods>documentationRefresh,addDocDialog,editDocumentation,removeDocumentations,getUploadDocumentation</allowed-methods>
+		</action>
+		<action name="detailsmapElementValidationAction" class="gov.nih.tbi.dictionary.portal.MapElementAction">
+			<result name="redirect">
+				/jsp/dictionaryTool/redirect/editDataStructureRedirect.jsp
+			</result>
+			<result name="view"> /jsp/dictionaryTool/viewMapElement.jsp
+			</result>
+			<result name="input"> /jsp/dictionaryTool/editDataElement.jsp
+			</result>
+			<result name="editDetails"> /jsp/dictionaryTool/editDataElement.jsp
+			</result>
+			<result name="editKeywords">
+				/jsp/dictionaryTool/dataElement/keywordInterface.jsp
+			</result>
+			<result name="editValueRange">
+				/jsp/dictionaryTool/dataElement/valueRangeInterface.jsp
+			</result>
+			<result name="editAttachments"> /jsp/dictionaryTool/editMapElement.jsp
+			</result>
+			<result name="review"> /jsp/dictionaryTool/reviewDataElement.jsp
+			</result>
+		</action>
+		<action name="valueRangemapElementValidationAction" class="gov.nih.tbi.dictionary.portal.MapElementAction">
+			<result name="redirect">
+				/jsp/dictionaryTool/redirect/editDataStructureRedirect.jsp
+			</result>
+			<result name="view"> /jsp/dictionaryTool/viewMapElement.jsp
+			</result>
+			<result name="input">
+				/jsp/dictionaryTool/dataElement/valueRangeInterface.jsp
+			</result>
+			<result name="editDetails"> /jsp/dictionaryTool/editDataElement.jsp
+			</result>
+			<result name="editKeywords">
+				/jsp/dictionaryTool/dataElement/keywordInterface.jsp
+			</result>
+			<result name="editValueRange">
+				/jsp/dictionaryTool/dataElement/valueRangeInterface.jsp
+			</result>
+			<result name="editAttachments"> /jsp/dictionaryTool/editMapElement.jsp
+			</result>
+			<result name="review"> /jsp/dictionaryTool/reviewDataElement.jsp
+			</result>
+		</action>
+		<action name="keywordInterfacemapElementValidationAction" class="gov.nih.tbi.dictionary.portal.MapElementAction">
+			<result name="input"> /jsp/dictionaryTool/dataElement/addKeyword.jsp
+			</result>
+			<result name="addKeyword" type="json">
+				<param name="root"> newKeyword
+				</param>
+			</result>
+		</action>
+		<action name="mapElementAction" class="gov.nih.tbi.dictionary.portal.MapElementAction">
+			<result name="redirect">
+				/jsp/dictionaryTool/redirect/editDataStructureRedirect.jsp
+			</result>
+			<result name="view"> /jsp/dictionaryTool/viewMapElement.jsp
+			</result>
+			<result name="viewDetails"> /jsp/dictionaryTool/viewDataElement-details.jsp
+			</result>
+			<result name="input"> /jsp/dictionaryTool/editDataElement.jsp
+			</result>
+			<result name="editDetails"> /jsp/dictionaryTool/editDataElement.jsp
+			</result>
+			<result name="editKeywords">
+				/jsp/dictionaryTool/dataElement/keywordInterface.jsp
+			</result>
+			<result name="editValueRange">
+				/jsp/dictionaryTool/dataElement/valueRangeInterface.jsp
+			</result>
+			<result name="editAttachments"> /jsp/dictionaryTool/editMapElement.jsp
+			</result>
+			<allowed-methods>domainUpdate</allowed-methods>
+		</action>
+		<action name="keywordAction" class="gov.nih.tbi.dictionary.portal.KeywordAction">
+			<result name="current" type="json">
+				<param name="root"> currentKeywords
+				</param>
+			</result>
+			<result name="search" type="json">
+				<param name="root"> availableKeywords
+				</param>
+			</result>
+		</action>
+		<action name="valueRangeAction" class="gov.nih.tbi.dictionary.portal.ValueRangeAction">
+			<result name="view">
+				/jsp/dictionaryTool/dataElement/valueRangeTable.jsp
+			</result>
+			<allowed-methods>display,remove</allowed-methods>
+		</action>
+		<action name="aliasAction" class="gov.nih.tbi.dictionary.portal.AliasAction">
+			<result name="display">
+				/jsp/dictionaryTool/mapElement/aliasInterface.jsp
+			</result>
+			<result name="input">
+				/jsp/dictionaryTool/mapElement/aliasInterface.jsp
+			</result>
+			<allowed-methods>display,remove</allowed-methods>
+		</action>
+		<action name="permissibleValueAction" class="gov.nih.tbi.dictionary.portal.ValueRangeAction">
+			<result name="view">
+				/jsp/dictionaryTool/dataElement/valueRangeTable.jsp
+			</result>
+			<result name="input">
+				/jsp/dictionaryTool/dataElement/valueRangeTable.jsp
+			</result>
+		</action>
+		<action name="dataStructurePermissionAction"
+			class="gov.nih.tbi.dictionary.portal.DataStructurePermissionManagementAction">
+			<result name="view"> /jsp/account/permissions.jsp
+			</result>
+			<result name="inner"> /jsp/account/permissions-inner.jsp
+			</result>
+			<allowed-methods>load,changePermission</allowed-methods>
+		</action>
+		<action name="rulesEngineTestAction"
+			class="gov.nih.tbi.dictionary.portal.RulesEngineTestAction">
+			<result name="input">
+				/jsp/dictionaryTool/rulesEngine/RulesEngineTester.jsp
+			</result>
+			<allowed-methods>rulesEngineEvaluation</allowed-methods>
+		</action>
+		<action name="schemaMappingAction"
+			class="gov.nih.tbi.dictionary.portal.SchemaMappingAction">
+			<result name="view"> /jsp/dictionaryTool/viewPvSchemaMapping.jsp
+			</result>
+			<allowed-methods>adminUploadSchemaMapping,viewSchemaMappingValues,getSchemaPvList</allowed-methods>
+		</action>
+		<action name="eformDetailedViewAction" class="gov.nih.tbi.dictionary.portal.EformAction">
+			<result name="success">/jsp/dictionaryTool/eform/viewDetailedEform.jsp
+			</result>
+			<allowed-methods>viewFormDetail</allowed-methods>
+		</action>
+		<action name="eFormAction" class="gov.nih.tbi.dictionary.portal.EformAction"
+			method="createEform">
+			<result name="list" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonString</param>
+			</result>
+			<result name="success">/jsp/dictionaryTool/eform/createEform.jsp
+			</result>
+			<result name="viewDetails" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonFsDe</param>
+			</result>
+			<result name="basicView">/jsp/dictionaryTool/eform/viewBasicEform.jsp
+			</result>
+			<result name="publication">/jsp/dictionaryTool/eform/eformActionBar.jsp
+			</result>
+			<result name="editCopy" type="redirectAction">
+				<param name="actionName">eformEditAction!editEform.action</param>
+				<param name="eformId"> ${sessionEform.eform.id} </param>
+			</result>
+			<allowed-methods>getPublishedFS,getSelectedFS,standardize,copyEform,createEform</allowed-methods>
+		</action>
+		<action name="eformReasonValidationAction" class="gov.nih.tbi.dictionary.portal.EformAction">
+			<result name="publication">/jsp/dictionaryTool/eform/eformActionBar.jsp
+			</result>
+			<result name="basicView"> /jsp/dictionaryTool/eform/viewBasicEform.jsp
+			</result>
+			<result name="input"> /jsp/dictionaryTool/eform/viewBasicEform.jsp
+			</result>
+			<allowed-methods>changePublication,publicationDecision,approvePublication</allowed-methods>
+		</action>
+		<action name="eFormUpdateStatusAction" class="gov.nih.tbi.dictionary.portal.EformAction">
+			<result name="publication">/jsp/dictionaryTool/eform/eformActionBar.jsp
+			</result>
+			<result name="basicView"> /jsp/dictionaryTool/eform/viewBasicEform.jsp
+			</result>
+			<result name="input"> /jsp/dictionaryTool/eform/viewBasicEform.jsp
+			</result>
+			<allowed-methods>approvePublication</allowed-methods>
+		</action>
+		<action name="eFormSave" class="gov.nih.tbi.dictionary.portal.EformAction" method="save">
+			<result name="view"> /jsp/dictionaryTool/viewEformSearch.jsp</result>
+			<result name="basicView">/jsp/dictionaryTool/eform/viewBasicEform.jsp
+			</result>
+		</action>
+		<!-- will return to same page since it's ajax we don't need result -->
+		<action name="questionSave" class="gov.nih.tbi.dictionary.portal.EformAction" method="saveQuestionAjax">
+			<result name="advanced" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">questionJson</param>
+			</result>
+		</action>
+		<action name="validateEformAction" class="gov.nih.tbi.dictionary.portal.EformAction" method="validateEform">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">validationJson</param>
+			</result>
+			<allowed-methods>validateEform</allowed-methods>
+		</action>
+		<action name="eFormSearchAction" class="gov.nih.tbi.dictionary.portal.EformSearchAction">
+			<result name="list"> /jsp/dictionaryTool/eform/listEformSearch.jsp
+			</result>
+			<result name="search"> /jsp/dictionaryTool/eform/eformSearch.jsp
+			</result>
+			<result name="listAssociatedEforms">/jsp/dictionaryTool/eform/listEformDataStruture.jsp
+			</result>
+			<allowed-methods>searchAssociatedFormStructures,getSearchAssociatedForm</allowed-methods>
+		</action>
+		<action name="eformEditAction" class="gov.nih.tbi.dictionary.portal.EformAction">
+			<result name="view"> /jsp/dictionaryTool/viewEformSearch.jsp</result>
+			<result name="basicView">/jsp/dictionaryTool/eform/viewBasicEform.jsp
+			</result>
+			<result name="edit">/jsp/dictionaryTool/eform/createEform.jsp
+			</result>
+			<allowed-methods>editEform</allowed-methods>
+		</action>
+		<action name="eformDeleteAction" class="gov.nih.tbi.dictionary.portal.EformAction" method="delete">
+			<result name="list" type="redirectAction">eFormSearchAction!list.action
+			</result>
+			<allowed-methods>delete</allowed-methods>
+		</action>
+		<action name="eFormDeleteQuestionsAction" class="gov.nih.tbi.dictionary.portal.EformAction" method="deleteEformQuestions">
+			<result name="list" type="redirectAction">eFormSearchAction!list.action
+			</result>
+			<allowed-methods>deleteEformQuestions</allowed-methods>
+		</action>
+		<action name="eformEditJsonAction" class="gov.nih.tbi.dictionary.portal.EformAction" method="createEformJSONForEdit">
+			<result name="edit" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">json</param>
+			</result>
+			<allowed-methods>createEformJSONForEdit</allowed-methods>
+		</action>
+		<action name="showQuestionImage" class="gov.nih.tbi.dictionary.portal.eform.QuestionAction" method="showQuestionImage">
+			<result name="success">/jsp/dictionaryTool/eform/questionImageForm.jsp
+			</result>
+			<result name="failure">/jsp/error/error-notify.jsp</result>
+			<allowed-methods>showQuestionImage</allowed-methods>
+		</action>
+		<action name="saveQuestionImage" class="gov.nih.tbi.dictionary.portal.eform.QuestionAction" method="saveQuestionImage">
+			<result name="success">/jsp/dictionaryTool/eform/addGraphicDone.jsp
+			</result>
+			<result name="exception">questionImageForm.jsp</result>
+			<result name="input">questionImageForm.jsp</result>
+			<result name="failure">/jsp/error/error-notify.jsp</result>
+		</action>
+		<action name="renderImageAction" class="gov.nih.tbi.dictionary.portal.eform.QuestionAction" method="renderImage">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">fileJson</param>
+			</result>
+			<allowed-methods>renderImage,renderSingleImage</allowed-methods>
+		</action>
+		<action name="renderSingleImage" class="gov.nih.tbi.dictionary.portal.eform.QuestionAction" method="renderImage">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">fileJson</param>
+			</result>
+			<allowed-methods>renderSingleImage</allowed-methods>
+		</action>
+		<action name="deleteQuestionImage" class="gov.nih.tbi.dictionary.portal.eform.QuestionAction" method="deleteQuestionImage">
+			<result name="success">/jsp/dictionaryTool/eform/questionImageForm.jsp
+			</result>
+			<result name="failure">/jsp/error/error-notify.jsp</result>
+		</action>
+		<action name="eformPermissionAction" class="gov.nih.tbi.dictionary.portal.eform.EformPermissionAction">
+			<result name="view"> /jsp/account/permissions.jsp
+			</result>
+			<result name="inner"> /jsp/account/permissions-inner.jsp
+			</result>
+			<allowed-methods>load,changePermission</allowed-methods>
+		</action>
+		<action name="eformExportAction" class="gov.nih.tbi.dictionary.portal.EformExportAction">
+			<result name="export" type="stream">
+				<param name="contentType"> application/xml
+				</param>
+				<param name="inputName"> inputStream
+				</param>
+				<param name="contentDisposition"> attachment;filename="${fileName}"
+				</param>
+				<param name="bufferSize"> 1024
+				</param>
+			</result>
+			<allowed-methods>export</allowed-methods>
+		</action>
+	</package>
+	
+	<package name="dictionaryAdmin" extends="dictionary" namespace="/dictionaryAdmin">
+	
+		<global-allowed-methods>execute,input,back,cancel,browse,edit,create,view,search,searchList,list,submit</global-allowed-methods>
+		
+		<action name="importDataElementAction" class="gov.nih.tbi.dictionary.portal.ImportDataElementAction">
+			<result name="import"> /jsp/dictionaryTool/adminImportDataElement.jsp
+			</result>
+			<result name="input"> /jsp/dictionaryTool/adminImportDataElement.jsp
+			</result>
+			<result name="list" type="redirect"> searchDataElementAction!list.action
+			</result>
+			<result name="viewDetails"> /jsp/dictionaryTool/viewDataElement-details.jsp
+			</result>
+			<result name="redirect" type="redirect">
+				dataStructureAction!moveToElements.action
+			</result>
+			<result name="errorRedirect" type="redirect">
+				importDataElementAction!attach.action
+			</result>
+			<result name="importFormStructure"> /jsp/dictionaryTool/adminImportFormStructure.jsp
+			</result>
+			<result name="importDataElementSchema">
+				/jsp/dictionaryTool/adminImportDataElementSchema.jsp
+			</result>
+			<allowed-methods>adminFormStructureImport,adminUpload,adminSaveDataElements,viewDetails,checkExistingDataElements</allowed-methods>
+		</action>
+		<action name="deleteDataElementAction" class="gov.nih.tbi.dictionary.portal.DeleteDataElementAction">
+			<!-- These results are for User Data Element Import Functionality -->
+			<result name="delete">/jsp/dictionaryTool/adminDeleteDataElements.jsp</result>
+			<result name="adminDelete">/jsp/dictionaryTool/adminDeleteDataElements.jsp</result>
+			<result name="success">/jsp/dictionaryTool/listDataStructure.jsp</result>
+			<result name="view">/jsp/dictionaryTool/searchDataElements.jsp</result>
+			<allowed-methods>delete,adminDelete,cancel</allowed-methods>
+		</action>
+		<action name="schemaMappingAction" class="gov.nih.tbi.dictionary.portal.SchemaMappingAction">
+			<result name="importDataElementSchema">
+				/jsp/dictionaryTool/adminImportDataElementSchema.jsp
+			</result>
+			<result name="view"> /jsp/dictionaryTool/viewPvSchemaMapping.jsp
+			</result>
+			<allowed-methods>adminDataElementSchemaImport,adminUploadSchemaMapping,viewSchemaMappingValues,getSchemaPvList</allowed-methods>
+		</action>
+		
+		<action name="ePermissionAction" class="gov.nih.tbi.dictionary.portal.eform.EformPermissionAction"
+			method="load" />
+
+		<action name="eformDetailedViewAction" class="gov.nih.tbi.dictionary.portal.EformAction">
+			<result name="success">/jsp/dictionaryTool/eform/viewDetailedEform.jsp
+			</result>
+			<allowed-methods>viewFormDetail</allowed-methods>
+		</action>
+		<action name="eFormAction" class="gov.nih.tbi.dictionary.portal.EformAction" method="createEform">
+			<result name="list" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonString</param>
+			</result>
+			<result name="success">/jsp/dictionaryTool/eform/createEform.jsp
+			</result>
+			<result name="viewDetails" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonFsDe</param>
+			</result>
+			<result name="basicView">/jsp/dictionaryTool/eform/viewBasicEform.jsp
+			</result>
+			<result name="publication">/jsp/dictionaryTool/eform/eformActionBar.jsp
+			</result>
+			<result name="editCopy" type="redirectAction">
+				<param name="actionName">eformEditAction!editEform.action</param>
+				<param name="eformId"> ${sessionEform.eform.id} </param>
+			</result>
+			<allowed-methods>getPublishedFS,getSelectedFS,standardize,copyEform</allowed-methods>
+		</action>
+		<action name="eFormUpdateStatusAction" class="gov.nih.tbi.dictionary.portal.EformAction">
+			<result name="publication">/jsp/dictionaryTool/eform/eformActionBar.jsp
+			</result>
+			<result name="basicView"> /jsp/dictionaryTool/eform/viewBasicEform.jsp
+			</result>
+			<result name="input"> /jsp/dictionaryTool/eform/viewBasicEform.jsp
+			</result>
+			<allowed-methods>approvePublication</allowed-methods>
+		</action>
+		<action name="eformReasonValidationAction" class="gov.nih.tbi.dictionary.portal.EformAction">
+			<result name="publication">/jsp/dictionaryTool/eform/eformActionBar.jsp
+			</result>
+			<result name="basicView"> /jsp/dictionaryTool/eform/viewBasicEform.jsp
+			</result>
+			<result name="input"> /jsp/dictionaryTool/eform/viewBasicEform.jsp
+			</result>
+			<allowed-methods>changePublication,publicationDecision,approvePublication</allowed-methods>
+		</action>
+		<action name="eFormSave" class="gov.nih.tbi.dictionary.portal.EformAction" method="save">
+			<result name="view"> /jsp/dictionaryTool/viewEformSearch.jsp</result>
+			<result name="basicView">/jsp/dictionaryTool/eform/viewBasicEform.jsp
+			</result>
+		</action>
+		<!-- will return to same page since it's ajax we don't need result -->
+		<action name="questionSave" class="gov.nih.tbi.dictionary.portal.EformAction" method="saveQuestionAjax">
+			<result name="advanced" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">questionJson</param>
+			</result>
+			<allowed-methods>saveQuestionAjax</allowed-methods>
+		</action>
+		<action name="validateEformAction" class="gov.nih.tbi.dictionary.portal.EformAction" method="validateEform">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">validationJson</param>
+			</result>
+			<allowed-methods>validateEform</allowed-methods>
+		</action>
+		<action name="eFormSearchAction" class="gov.nih.tbi.dictionary.portal.EformSearchAction">
+			<result name="list"> /jsp/dictionaryTool/eform/listEformSearch.jsp
+			</result>
+			<result name="search"> /jsp/dictionaryTool/eform/eformSearch.jsp
+			</result>
+			<result name="listAssociatedEforms">/jsp/dictionaryTool/eform/listEformDataStruture.jsp
+			</result>
+			<allowed-methods>searchAssociatedFormStructures,getSearch,getSearchAssociatedForm</allowed-methods>
+		</action>
+		<action name="eformEditAction" class="gov.nih.tbi.dictionary.portal.EformAction">
+			<result name="view"> /jsp/dictionaryTool/viewEformSearch.jsp</result>
+			<result name="basicView">/jsp/dictionaryTool/eform/viewBasicEform.jsp
+			</result>
+			<result name="edit">/jsp/dictionaryTool/eform/createEform.jsp
+			</result>
+			<allowed-methods>editEform</allowed-methods>
+		</action>
+		<action name="eformDeleteAction" class="gov.nih.tbi.dictionary.portal.EformAction" method="delete">
+			<result name="list" type="redirectAction">eFormSearchAction!list.action
+			</result>
+			<allowed-methods>delete</allowed-methods>
+		</action>
+		<action name="eFormDeleteQuestionsAction" class="gov.nih.tbi.dictionary.portal.EformAction" method="deleteEformQuestions">
+			<result name="list" type="redirectAction">eFormSearchAction!list.action
+			</result>
+			<allowed-methods>deleteEformQuestions</allowed-methods>
+		</action>
+		<action name="eformEditJsonAction" class="gov.nih.tbi.dictionary.portal.EformAction" method="createEformJSONForEdit">
+			<result name="edit" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">json</param>
+			</result>
+			<allowed-methods>createEformJSONForEdit</allowed-methods>
+		</action>
+		<action name="questionImageAction" class="gov.nih.tbi.dictionary.portal.eform.QuestionAction" method="showQuestionImage">
+			<result name="success">/jsp/dictionaryTool/eform/questionImageForm.jsp
+			</result>
+			<result name="failure">/jsp/error/error-notify.jsp</result>
+		</action>
+		<action name="showQuestionImage" class="gov.nih.tbi.dictionary.portal.eform.QuestionAction" method="showQuestionImage">
+			<result name="success">/jsp/dictionaryTool/eform/questionImageForm.jsp
+			</result>
+			<result name="failure">/jsp/error/error-notify.jsp</result>
+			<allowed-methods>showQuestionImage</allowed-methods>
+		</action>
+		<action name="saveQuestionImage" class="gov.nih.tbi.dictionary.portal.eform.QuestionAction" method="saveQuestionImage">
+			<result name="success">/jsp/dictionaryTool/eform/addGraphicDone.jsp
+			</result>
+			<result name="exception">questionImageForm.jsp</result>
+			<result name="input">questionImageForm.jsp</result>
+			<result name="failure">/jsp/error/error-notify.jsp</result>
+		</action>
+		<action name="renderImageAction" class="gov.nih.tbi.dictionary.portal.eform.QuestionAction" method="renderImage">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">fileJson</param>
+			</result>
+			<allowed-methods>renderImage,renderSingleImage</allowed-methods>
+		</action>
+		<action name="renderSingleImage" class="gov.nih.tbi.dictionary.portal.eform.QuestionAction" method="renderImage">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">fileJson</param>
+			</result>
+			<allowed-methods>renderImage,renderSingleImage</allowed-methods>
+		</action>
+		<action name="deleteQuestionImage" class="gov.nih.tbi.dictionary.portal.eform.QuestionAction" method="deleteQuestionImage">
+			<result name="success">/jsp/dictionaryTool/eform/questionImageForm.jsp
+			</result>
+			<result name="failure">/jsp/error/error-notify.jsp</result>
+			<allowed-methods>deleteQuestionImage</allowed-methods>
+		</action>
+		<action name="eformPermissionAction"
+			class="gov.nih.tbi.dictionary.portal.eform.EformPermissionAction">
+			<result name="view"> /jsp/account/permissions.jsp
+			</result>
+			<result name="inner"> /jsp/account/permissions-inner.jsp
+			</result>
+			<allowed-methods>load,changePermission</allowed-methods>
+		</action>
+		<action name="eformExportAction" class="gov.nih.tbi.dictionary.portal.EformExportAction">
+			<result name="export" type="stream">
+				<param name="contentType"> text/xml
+				</param>
+				<param name="inputName"> inputStream
+				</param>
+				<param name="contentDisposition"> attachment;filename="${fileName}"
+				</param>
+				<param name="bufferSize"> 1024
+				</param>
+			</result>
+			<allowed-methods>export</allowed-methods>
+		</action>
+		<action name="eformImportAction" class="gov.nih.tbi.dictionary.portal.eform.EformImportAction">
+			<result name="input"> /jsp/dictionaryTool/eform/importEform.jsp`
+			</result>
+			<result name="redirect"> /jsp/dictionaryTool/eform/importEform.jsp
+			</result>
+			<result name="importEform"> /jsp/dictionaryTool/eform/importEform.jsp
+			</result>
+			<allowed-methods>importEformView,importEform,updateEformShortName</allowed-methods>
+		</action>
+
+<!-- Temp Action Class for Validating Migrated eForms. Will be removed once the cleanup has completed. -->
+		<action name="eFormMigrationValidationAction" class="gov.nih.tbi.dictionary.portal.EformMigrationValidationAction" >
+			<result name="success">
+				/jsp/dictionaryTool/eform/eFormMigrationValidation.jsp
+			</result>
+		</action>
+
+		<!-- Added by Ching-Heng -->
+		<action name="promisDataStructureAction" class="gov.nih.tbi.dictionary.portal.PromisDataStructureAction">
+			<result name="list"> /jsp/dictionaryTool/adminListPromisForm.jsp
+			</result>
+			<result name="download" type="stream">
+				<param name="contentType"> contentType
+				</param>
+				<param name="inputName"> inputStream
+				</param>
+				<param name="contentDisposition"> attachment;filename="${fileName}"
+				</param>
+				<param name="bufferSize"> 1024
+				</param>
+			</result>
+			<allowed-methods>adminListNonexistentPromisForms,adminListNonexistentPromisFormsTable,exportFormStructureElement</allowed-methods>
+		</action>
+		<action name="promisCsvToXMLAction" class="gov.nih.tbi.dictionary.portal.PromisCsvToXMLAction">
+			<result name="input"> /jsp/dictionaryTool/adminPromisCsvImport.jsp
+			</result>
+			<result name="redirect"> /jsp/dictionaryTool/adminPromisCsvImport.jsp
+			</result>
+			<result name="download" type="stream">
+				<param name="contentType"> contentType
+				</param>
+				<param name="inputName"> inputStream
+				</param>
+				<param name="contentDisposition"> attachment;filename="${fileName}"
+				</param>
+				<param name="bufferSize"> 1024
+				</param>
+			</result>
+			<allowed-methods>importCSV, exportXML</allowed-methods>
+		</action>
+		<!-- -->
+	</package>
+
+	<package name="publicData" extends="default" namespace="/publicData">
+		<global-allowed-methods>execute,input,back,cancel,browse,edit,create,view,search,list,submit</global-allowed-methods>
+		
+		<action name="dataElementSummaryAction" class="gov.nih.tbi.dictionary.portal.DataElementSummaryAction">
+			<result name="typeGraph"> /jsp/data/dataElementGraph.jsp
+			</result>
+		</action>
+		<action name="dataElementExportAction" class="gov.nih.tbi.dictionary.portal.DataElementExportAction">
+			<result name="download" type="stream">
+				<param name="contentType"> contentType
+				</param>
+				<param name="inputName"> inputStream
+				</param>
+				<param name="contentDisposition"> attachment;filename="${fileName}"
+				</param>
+				<param name="bufferSize"> 1024
+				</param>
+			</result>
+			<allowed-methods>xmlExport,csvExport,xsdExport,exportFSDataElementsDetail</allowed-methods>
+		</action>
+		<action name="schemaMappingAction" class="gov.nih.tbi.dictionary.portal.SchemaMappingAction">
+			<result name="view"> /jsp/dictionaryTool/viewPvSchemaMapping.jsp
+			</result>
+			<allowed-methods>adminUploadSchemaMapping,viewSchemaMappingValues,getSchemaPvList</allowed-methods>
+		</action>
+		<action name="dataStructureSummaryAction" class="gov.nih.tbi.dictionary.portal.DataStructureSummaryAction">
+			<result name="typeGraph"> /jsp/data/formStructureGraph.jsp
+			</result>
+		</action>
+		<action name="searchDataElementAction" class="gov.nih.tbi.dictionary.portal.DataElementSearchAction">
+			<result name="iframe"> /jsp/define/publicDataElementContainer.jsp
+			</result>
+			<result name="load"> /jsp/define/publicDataElementInterface.jsp
+			</result>
+			<result name="searchPublic"> /jsp/dictionaryTool/dataElementSearchResults.jsp
+			</result>
+			<result name="subDomain">
+				/jsp/dictionaryTool/dataElement/includes/searchTreeSubdomainInterface.jsp
+			</result>
+			<result name="domain">
+				/jsp/dictionaryTool/dataElement/includes/searchTreeDomainInterface.jsp
+			</result>
+			<result name="disease">
+				/jsp/dictionaryTool/dataElement/includes/searchTreeDiseaseInterface.jsp
+			</result>
+			<result name="subgroup">
+				/jsp/dictionaryTool/dataElement/includes/searchTreeSubgroupInterface.jsp
+			</result>
+			<result name="classification">
+				/jsp/dictionaryTool/dataElement/includes/searchTreeClassificationInterface.jsp
+			</result>
+			<allowed-methods>loadIFrame,loadPublicSearch,updateDisease,updateClassifications,updateDomain,updateSubDomain,wsTest</allowed-methods>
+		</action>
+		<action name="listDataStructureAction" class="gov.nih.tbi.dictionary.portal.DataStructureSearchAction">
+			<result name="search"> /jsp/dictionaryTool/searchDataStructures.jsp
+			</result>
+			<result name="searchResults">
+				/jsp/dictionaryTool/searchDataStructuresResults.jsp
+			</result>
+			<result name="searchPublished">
+				/jsp/dictionaryTool/searchPublishedDataStructures.jsp
+			</result>
+			<result name="list"> /jsp/dictionaryTool/searchDataStructures.jsp
+			</result>
+			<result name="filterPublished">
+				/jsp/dictionaryTool/filterPublishedDataStructures.jsp
+			</result>
+			<result name="iframe"> /jsp/define/publicDataStructureContainer.jsp
+			</result>
+			<allowed-methods>loadIFrame,searchPublished</allowed-methods>
+		</action>
+		<action name="dataElementAction" class="gov.nih.tbi.dictionary.portal.DataElementAction">
+			<result name="viewDetails"> /jsp/dictionaryTool/viewDataElement-details.jsp
+			</result>
+			<result name="view"> /jsp/dictionaryTool/viewDataElement.jsp
+			</result>
+			<allowed-methods>viewDetails,viewPublication,changePublication,editDocumentation,editValueRange,editKeywords,
+				editStandardDetails,bulkAP,bulkPublish,dataElementStatusChange,submitDEStatusChange,approve,deny,refreshEventLogTable,
+				refreshSupportDoc,listBulkDEs,removeDataElement,review,domainUpdate,editDetails,getHistoryLogList,getDictionaryEventLogList,
+				getSupportingDocumentationList,getEventLogDocumentationList,getDataElementsList,getEventLogDocumentationList,getDataElementsList</allowed-methods>
+		</action>
+		<action name="dataStructureAction" class="gov.nih.tbi.dictionary.portal.DataStructureAction">
+			<result name="view"> /jsp/dictionaryTool/viewDataStructure.jsp
+			</result>
+			<result name="header"> /jsp/dictionaryTool/dataStructureHeader.jsp
+			</result>
+			<result name="publication">
+				/jsp/dictionaryTool/dataStructure/publicationInterface.jsp
+			</result>
+			<result name="lightbox">
+				/jsp/dictionaryTool/viewDataStructure-lightbox.jsp
+			</result>
+			<allowed-methods>publication,moveToPermissions,moveToDocumentations,moveToElements,moveToReview,
+					moveToDetails,lightboxView,editDocumentDataTableSave,changeCurrentStructure,formStructureStatusChange,
+					attachedDEStatusChange,submitFSStatusChange,approve,deny,refreshEventLogTable,refreshSupportDoc,
+					listAttachedDEs,addDataElements,getSupportingDocumentationList,getEventLogDocumentationList,getHistoryLogList,
+					getDictionaryEventLogList,getDataElementsList</allowed-methods>
+		</action>
+	</package>
+</struts>

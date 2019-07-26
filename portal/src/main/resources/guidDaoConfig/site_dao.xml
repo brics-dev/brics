@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<queries>
+	<query>
+		<name> create 
+		</name>
+		<sql> INSERT INTO site (user_name, site_password, email_address, phone_number, ownor_id, date_created) VALUES (?,?,?,?,?,?,?,NOW()) 
+		</sql>
+	</query>
+	<query>
+		<name> findByUsername 
+		</name>
+		<sql> SELECT * FROM site WHERE user_name=? 
+		</sql>
+	</query>
+	<query>
+		<name> findById 
+		</name>
+		<sql> SELECT * FROM site WHERE site_id=? 
+		</sql>
+	</query>
+</queries>

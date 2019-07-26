@@ -1,0 +1,325 @@
+/* The specific style rules used to suggest rendering */
+/* for the CSS table design example, starts here */
+#resultsDatatable {
+	position:relative;
+	overflow:hidden;
+}
+
+DIV.base-layer {
+
+	color: #000000;
+  margin: 0em 0px 0em 0px; 
+padding: 0; 
+text-align: center; 
+width:100%;
+overflow:auto;
+min-height: 200px;
+max-height: 500px;
+}
+
+DIV.table-row {
+  border: solid #000000 0px; 
+	color: #000000;
+  padding: 0; 
+text-align: left; 
+width: 100%;
+    white-space: nowrap; 
+    display: table-row;
+}
+
+DIV.space-line {
+	clear: both;
+	margin: 0;
+	padding: 0;
+	width: auto;
+}
+
+
+#tableHeaders {
+	position:relative;
+}
+
+.dataBody .table-row:nth-of-type(even) h5.colCell {background: #FFF}
+.dataBody .table-row:nth-of-type(odd) h5.colCell {background: #CCC}
+
+.dataBody .table-row:nth-of-type(even) {background: #FFF}
+.dataBody .table-row:nth-of-type(odd) {background: #CCC}
+
+DIV.cell {
+display:inline-block;
+}
+
+
+DIV.space-line {
+  clear: both; margin: 0; padding: 0; width: auto;
+}
+
+
+/* Some rules for captions, headers and running text */
+
+
+H5.colhdr {
+  background-color: #fff; 
+	border: solid #d8d8d8 1px; 
+color: #000;
+  font-family: sans-serif; 
+font-size: 11px; 
+
+ font-weight: normal; 
+margin: 0; 
+padding: 0.3em 0.3em 0 0.3em;
+  text-align: left; 
+width: auto;
+}
+
+H5.colhdr.orange {
+background-color: #f16d0a;
+color:#fff;
+ font-weight: bold; 
+}
+
+H5.colhdr.hdrcolor {
+background-color: red;
+color:#fff;
+ font-weight: bold; 
+}
+H5.colCell {
+	border: none #3333cc 1px; 
+color: #000;
+  font-family: sans-serif; 
+font-size: 11px; 
+font-style: italic;
+  font-weight: normal; 
+margin: 0; 
+padding: 0.3em 0.3em 0 0.3em;
+  text-align: left; 
+width: auto;
+}
+
+
+
+P.text {
+  border: solid #3333cc 1px; margin: 0; padding: 0.3em 0.3em 0 0.3em;
+  font-style: normal; font-size: 11px; text-align: center; text-indent: 0;
+  width: auto;
+}
+
+/* End of layer specific style rule set */
+/**frozen styles **/
+.freeze {
+	position:absolute;
+	    z-index: 1;
+	    width: 0px;
+    height: 0px;
+}
+
+DIV.cell.frozen h5.colhdr {
+	border-right:none;
+}
+
+
+/**** hamburger sytles *****/
+/*********** hamburger menu **********/
+.tableHamburger {
+     border: 1px none #fff;
+    border-radius: 3px 3px 3px 3px;
+    cursor: pointer;
+    display: block;
+    height: 8px;
+    padding: 0px 4px 4px;
+    position: relative;
+    width: 15px;
+    background: none;
+    margin-top: 0px;
+    float: left;
+  /* background: -moz-linear-gradient(top,  #fff 0%, #4062a5 100%);
+   background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fff), color-stop(100%,#4062a5));
+   background: -webkit-linear-gradient(top,  #fff 0%,#4062a5 100%);
+   background: -o-linear-gradient(top,  #fff 0%,#4062a5 100%);
+   background: -ms-linear-gradient(top,  #fff 0%,#4062a5 100%);
+   background: linear-gradient(to bottom,  #fff 0%,#4062a5 100%);
+   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fff', endColorstr='#4062a5',GradientType=0 );*/ }
+
+/*
+The white stripes in the hamburger button
+*/
+.tableHamburger div {
+  background-color: #fff;
+    border: 1px solid #fff;
+    border-radius: 2px 2px 2px 2px;
+    height: 1px;
+    margin-top: 1px;
+    width: 90%; }
+  
+.hbblack .tableHamburger div {
+	background-color: #000;
+  border: 1px solid #000;
+	
+}
+
+.hbmenu, .rghbmenu { 
+  position:relative;
+display:inline-block;
+   
+  }
+  
+.actionContainer {
+  position:absolute;
+  top:24px;
+  min-width:170px;
+  height:auto;
+  background:#fff;
+  z-index:100;
+  border:1px solid #000;
+  padding:2px 3px;
+  display:none;
+  
+  }
+  
+    .actionContainer ul {
+    
+    list-style-type: none;
+    }
+    
+    .actionContainer ul li {
+    }
+
+
+.hbmenu, .rghbmenu { 
+  position:relative;
+display:inline-block;
+   
+  }
+  
+.actionContainer {
+  position:absolute;
+  top:24px;
+  min-width:170px;
+  height:auto;
+  background:#fff;
+  z-index:100;
+  border:1px solid #000;
+  padding:2px 3px;
+  display:none;
+  
+  }
+  
+    .actionContainer ul {
+    
+    list-style-type: none;
+    }
+    
+    .actionContainer ul li {
+    }
+  .lock {
+  color:#fff !important;
+  }
+  
+  #deHeader .ui-resizable-handle,#frozenDeHeader .ui-resizable-handle  {
+  background:none !important;
+  }
+  
+  /* hack since we are not doing hieght adjustments **/
+   #deHeader .ui-icon-gripsmall-diagonal-se,#frozenDeHeader .ui-icon-gripsmall-diagonal-se  {
+  display:none !important;
+  }
+  
+  /*** sorting columns *****/
+    .sorting {
+        background-image: url("images/sort_both.png");
+    }
+    
+   .sort_asc {
+       background-image: url("images/sort_asc.png");}
+   
+  .sort_desc {
+      background-image: url("images/sort_desc.png");}
+  
+  .sorting, .sort_asc, .sort_desc {
+  background-repeat: no-repeat;
+    background-position: 95% 100%;
+    cursor: pointer;
+    height: 15px;
+    display: inline-block;
+    width: 15px;
+    float: right;
+  }
+  
+  /********** table buttons *******/
+  
+  .biosample {
+  display: block;
+  border-width: 1px;
+  background-color: #fff;
+  background-image: url(images/plus-sign.png) !important;
+  background-repeat: no-repeat;
+  background-position: 98% 50%;
+  border: 1px solid #f94936;
+  color: #961402;
+  margin-right: 0;
+  padding: 0 10px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center; }
+
+.biosample:hover, .biosample:focus {
+  color: #fff;
+  background: #961402 url(images/plus-sign-white.png) no-repeat 98% 50%;
+  text-shadow: none; }
+
+.expandData {
+  display: block;
+  border-width: 1px;
+  background-color: #fff;
+  background-image: url(images/arrow-down.gif) !important;
+  background-repeat: no-repeat;
+  background-position: 98% 50%;
+  border: 1px solid #f94936;
+  color: #961402;
+  margin-right: 0;
+  padding: 0 10px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center; }
+
+.expandData:hover, .expandData:focus {
+  color: #fff;
+  background: #961402 url(images/arrow-down.gif) no-repeat 98% 50%;
+  text-shadow: none; }
+
+.expandDataEmpty {
+  display: block;
+  border-width: 1px;
+  background-color: #fff;
+  background-repeat: no-repeat;
+  background-position: 98% 50%;
+  border: 1px solid #c9c9c9;
+  color: #A8A8A8 !important;
+  margin-right: 0;
+  padding: 0 10px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center; }
+
+.expandDataEmpty:hover {
+  text-decoration: none; }
+
+.collapseData {
+  display: block;
+  border-width: 1px;
+  background-color: #fff;
+  background-image: url(images/arrow-up.gif) !important;
+  background-repeat: no-repeat;
+  background-position: 98% 50%;
+  border: 1px solid #f94936;
+  color: #961402;
+  margin-right: 0;
+  padding: 0 10px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center; }
+
+.collapseData:hover, .collapseData:focus {
+  color: #fff;
+  background: #961402 url(images/arrow-up.gif) no-repeat 98% 50%;
+  text-shadow: none; }

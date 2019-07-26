@@ -1,0 +1,299 @@
+@CHARSET "ISO-8859-1";
+
+.clearfix {
+	clear: both;
+}
+
+#breadcrumbContainer {
+	float: left;
+}
+
+.panes {
+	border-left: 1px solid #666666;
+	border-bottom: 1px solid #666666;
+	border-right: 1px solid #666666;
+}
+
+#breadcrumb { /*position: relative;*/
+	padding-bottom: 30px;
+	display: inline-block;
+	margin-left: 5px;
+}
+
+.breadcrumbDropdownContainer {
+	background: #FFFFFF;
+	border: 1px solid #359AEC;
+	width: 290px;
+	/* 	padding-left: 10px; */
+	z-index: 900;
+	/* 	position: absolute; */
+	/* 	left: 0px; */
+	/* 	top: 0px; */
+}
+
+.breadcrumbDropdownContainer a {
+	width: 215px;
+	display: block;
+	height: 2em;
+	line-height: 2em;
+	float: left;
+	overflow: hidden;
+}
+
+.breadcrumbDropdownContainer a.addToCompareLink {
+	width: 70px;
+	text-align: right;
+	font-size: 8pt;
+	padding-right: 5px;
+}
+
+.breadCrumbHeader {
+	padding-right: 10px;
+	margin-left: 10px;
+	display: inline-block;
+	height: 25px;
+	line-height: 25px;
+	background: url(../images/brics/guid/selectArrow.png) no-repeat center
+		right;
+	border: 1px solid #FFFFFF;
+	z-index: 901;
+}
+
+.breadcrumbHeaderActive {
+	color: #DD3434;
+	background: url(../images/brics/guid/selectArrowDown.png) no-repeat
+		center right;
+}
+
+/* root element for tabs  */
+ul.tabs {
+	list-style: none;
+	margin: 0 !important;
+	padding: 0;
+	border-bottom: 1px solid #666666;
+	height: 30px;
+}
+
+/* single tab */
+ul.tabs li {
+	float: left;
+	text-indent: 0;
+	padding: 0;
+	margin: 0 !important;
+	list-style-image: none !important;
+}
+
+/* link inside the tab. uses a background image */
+ul.tabs a {
+	background: url(../images/brics/guid/blue.png) no-repeat -420px 0;
+	font-size: 11px;
+	display: block;
+	height: 30px;
+	line-height: 30px;
+	width: 134px;
+	text-align: center;
+	text-decoration: none;
+	color: #333;
+	padding: 0px;
+	margin: 0px;
+	position: relative;
+	top: 1px;
+}
+
+ul.tabs a:active {
+	outline: none;
+}
+
+/* when mouse enters the tab move the background image */
+ul.tabs a:hover {
+	background-position: -420px -31px;
+	color: #fff;
+}
+
+/* active tab uses a class name "current". its highlight is also done by moving the background image. */
+ul.tabs a.current,ul.tabs a.current:hover,ul.tabs li.current a {
+	background-position: -420px -62px;
+	cursor: default !important;
+	color: #000 !important;
+}
+
+/* Different widths for tabs: use a class name: w1, w2, w3 or w2 */
+
+/* width 1 */
+ul.tabs a.s {
+	background-position: -553px 0;
+	width: 81px;
+}
+
+ul.tabs a.s:hover {
+	background-position: -553px -31px;
+}
+
+ul.tabs a.s.current {
+	background-position: -553px -62px;
+}
+
+/* width 2 */
+ul.tabs a.l {
+	background-position: -248px -0px;
+	width: 174px;
+}
+
+ul.tabs a.l:hover {
+	background-position: -248px -31px;
+}
+
+ul.tabs a.l.current {
+	background-position: -248px -62px;
+}
+
+/* width 3 */
+ul.tabs a.xl {
+	background-position: 0 -0px;
+	width: 248px;
+}
+
+ul.tabs a.xl:hover {
+	background-position: 0 -31px;
+}
+
+ul.tabs a.xl.current {
+	background-position: 0 -62px;
+}
+
+div.panes div {
+	height: 400px;
+	width: 720px;
+	padding: 1px;
+}
+/*
+.panes div {
+	
+}
+*/
+.panes #tab3 {
+	text-align: center;
+	overflow: auto;
+}
+
+#statisticsGuidList {
+	margin-left: auto;
+	margin-right: auto;
+	width: 400px;
+	text-align: left;
+	margin-top: 20px;
+}
+
+/* initially all panes are hidden */
+.panes .pane {
+	/* uses the "offset left" hide method so that the charts can get height/width values */
+	position: absolute;
+	left: -10000px;
+}
+
+/* use a semi-transparent image for the overlay */
+#overlay {
+	background-image: url(../images/transparent.png);
+	/*height:450px;*/
+	display: none;
+	width: 640px;
+	padding: 35px;
+}
+
+/* container for external content. uses vertical scrollbar, if needed */
+div.contentWrap {
+	height: 475px;
+	overflow-y: auto;
+	background: #FFFFFF;
+	border: 1px solid #000000;
+	-moz-box-shadow: 0 0 50px #000;
+	-webkit-box-shadow: 0 0 50px #000;
+	padding: 10px;
+}
+
+.overlay .close {
+	background-image: url(../images/close.png);
+	position: absolute;
+	right: 5px;
+	top: 5px;
+	cursor: pointer;
+	height: 35px;
+	width: 35px;
+}
+
+.statisticsGuidContentContainer {
+	text-align: center;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.statisticsGuidContentContainer table {
+	text-align: left;
+}
+
+#comparisonContainer {
+	float: right;
+}
+
+#comparisonEditor { /*height:450px;*/
+	display: none;
+	width: 500px;
+	padding: 35px;
+	z-index: 999;
+}
+
+#comparisonChart {
+	height: 400px;
+	display: none;
+	width: 958px;
+	padding: 35px;
+	z-index: 999;
+}
+
+h2.comparisonSectionHeader {
+	padding: 5px 0px 5px 0px;
+	text-align: center;
+	text-decoration: underline;
+}
+
+a.showComparison {
+	text-align: center;
+	display: block;
+	padding-top: 5px;
+}
+
+#comparisonEditor div.contentWrap {
+	height: auto;
+}
+
+.comparisonListingName {
+	display: inline-block;
+	font-size: 1.2em;
+	font-weight: bold;
+	width: 225px;
+}
+
+.comparisonListing {
+	width: 300px;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 3px;
+}
+
+.comparisonListing a {
+	display: inline-block;
+	text-align: right;
+	width: 75px;
+}
+
+#breadCrumbHeaderHome {
+	vertical-align: top;
+}
+
+.breadcrumbHeaderContainer {
+	display: inline-block;
+}
+
+#breadcrumbContainerLabel {
+	display: inline-block;
+}

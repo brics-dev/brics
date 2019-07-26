@@ -1,0 +1,316 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="Eforms">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="Eform" minOccurs="1" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="Eform">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element type="xs:long" name="id" minOccurs="0" maxOccurs="1"/>
+				<xs:element type="xs:string" name="title"/>
+				<xs:element type="xs:string" name="shortName"/>
+				<xs:element type="xs:string" name="description" minOccurs="0" maxOccurs="1" />
+				<xs:element type="xs:string" name="status" minOccurs="0" maxOccurs="1"/>
+				<xs:element type="xs:string" name="createBy" minOccurs="0" maxOccurs="1"/>
+				<xs:element type="xs:dateTime" name="createDate" minOccurs="0" maxOccurs="1"/>
+				<xs:element type="xs:dateTime" name="updatedDate" minOccurs="0" maxOccurs="1"/>
+				<xs:element type="xs:string" name="updatedBy" minOccurs="0" maxOccurs="1"/>
+				<xs:element type="xs:boolean" name="formBorder"/>
+				<xs:element type="xs:boolean" name="sectionBorder"/>
+				<xs:element type="xs:string" name="formNameFont"/>
+				<xs:element type="xs:string" name="formNameColor"/>
+				<xs:element type="xs:string" name="sectionNameFont"/>
+				<xs:element type="xs:string" name="sectionNameColor"/>
+				<xs:element type="xs:int" name="orderVal" minOccurs="0" maxOccurs="1"/>
+				<xs:element type="xs:string" name="header" minOccurs="0"/>
+				<xs:element type="xs:string" name="footer" minOccurs="0"/>
+				<xs:element type="xs:int" name="fontSize"/>
+				<xs:element type="xs:int" name="dataEntryWorkFlowType" minOccurs="0" maxOccurs="1"/>
+				<xs:element type="xs:int" name="cellPadding"/>
+				<xs:element type="xs:boolean" name="attachFiles" minOccurs="0" maxOccurs="1"/>
+				<xs:element type="xs:string" name="enableDataSpring" minOccurs="0" maxOccurs="1"/>
+				<xs:element type="xs:boolean" name="tabDisplay" minOccurs="0"/>
+				<xs:element type="xs:boolean" name="copyRight" minOccurs="0" maxOccurs="1"/>
+				<xs:element type="xs:string" name="formStructureShortName"/>
+				<xs:element type="xs:boolean" name="allowMultipleCollectionInstances"/>
+				<xs:element type="xs:boolean" name="isLegacy" minOccurs="0" maxOccurs="1"/>
+				<xs:element type="xs:boolean" name="isShared" minOccurs="0" maxOccurs="1"/>
+				<xs:element type="xs:boolean" name="isCAT" minOccurs="0" maxOccurs="1"/>
+				<xs:element type="xs:string" name="catOid" minOccurs="0" maxOccurs="1"/>
+				<xs:element type="xs:string" name="measurementType" minOccurs="0" maxOccurs="1"/>
+				<xs:element ref="SectionSet" minOccurs="1" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<xs:element name="SectionSet">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="Section" maxOccurs="unbounded" minOccurs="0"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<xs:element name="Section">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element type="xs:long" name="id"/>
+				<xs:element type="xs:string" name="name"/>
+				<xs:element type="xs:string" name="description"/>
+				<xs:element type="xs:int" name="orderVal" minOccurs="0"/>
+				<xs:element type="xs:int" name="formRow"/>
+				<xs:element type="xs:int" name="formCol"/>
+				<xs:element type="xs:boolean" name="suppressFlag" minOccurs="0"/>
+				<xs:element type="xs:string" name="label" minOccurs="0"/>
+				<xs:element type="xs:string" name="altLabel" minOccurs="0"/>
+				<xs:element type="xs:boolean" name="intoBoolean" minOccurs="0"/>
+				<xs:element type="xs:boolean" name="collapsable" minOccurs="0"/>
+				<xs:element type="xs:boolean" name="isResponseImage" minOccurs="0"/>
+				<xs:element type="xs:boolean" name="isRepeatable"/>
+				<xs:element type="xs:int" name="minimumValue"/>
+				<xs:element type="xs:int" name="maximumValue"/>
+				<xs:element type="xs:long" name="repeatedSectionParent" minOccurs="0"/>
+				<xs:element type="xs:string" name="groupName"/>
+				<xs:element type="xs:boolean" name="isManuallyAdded" minOccurs="0"/>
+				<xs:element ref="SectionQuestionSet" maxOccurs="1" minOccurs="0"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<xs:element name="SectionQuestionSet">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="SectionQuestion" maxOccurs="unbounded" minOccurs="0"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+		
+	<xs:element name="SectionQuestion">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element type="xs:short" name="id" minOccurs="0"/>
+				<xs:element type="xs:int" name="questionOrder"/>
+				<xs:element type="xs:boolean" name="suppressFlag" minOccurs="0"/>
+				<xs:element type="xs:int" name="questionOrderColumn"/>
+				<xs:element type="xs:string" name="calculation" minOccurs="0"/>
+				<xs:element ref="Question" maxOccurs="unbounded" minOccurs="0"/>
+				<xs:element ref="CalculatedQuestionSet" maxOccurs="1" minOccurs="0"/>
+				<xs:element ref="SkipRuleQuestionSet" maxOccurs="1" minOccurs="0"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<xs:element name="SkipRuleQuestionSet">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="SkipRuleQuestion" maxOccurs="unbounded" minOccurs="0"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<xs:element name="CalculatedQuestionSet">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="CalculationQuestion" maxOccurs="unbounded" minOccurs="0"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<xs:element name="CalculationQuestion">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="CalculationQuestionReference" maxOccurs="1" minOccurs="0"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="CalculationQuestionReference">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element type="xs:long" name="calculationQuestion"/>
+				<xs:element type="xs:long" name="calculationSection"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="SkipRuleQuestion">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="SkipRuleQuestionReference" maxOccurs="1" minOccurs="0" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="SkipRuleQuestionReference">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element type="xs:long" name="skipRuleQuestion"/>
+				<xs:element type="xs:long" name="skipRuleSection"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="Question">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element type="xs:long" name="id"/>
+				<xs:element type="xs:string" name="name"/>
+				<xs:element type="xs:string" name="text"/>
+				<xs:element type="xs:string" name="type"/>
+				<xs:element type="xs:string" name="defaultValue" minOccurs="0"/>
+				<xs:element type="xs:string" name="unansweredValue" minOccurs="0"/>
+				<xs:element type="xs:string" name="catOid" minOccurs="0"/>
+				<xs:element type="xs:string" name="formItemOid" minOccurs="0" maxOccurs="1"/>
+				<xs:element type="xs:boolean" name="isCde" minOccurs="0"/>
+				<xs:element type="xs:boolean" name="copyRight" minOccurs="0"/>
+				<xs:element type="xs:int" name="copyRightIndex" minOccurs="0"/>
+				<xs:element type="xs:string" name="descriptionUp" minOccurs="0"/>
+				<xs:element type="xs:string" name="descriptionDown" minOccurs="0"/>
+				<xs:element type="xs:boolean" name="includeOther"/>
+				<xs:element type="xs:boolean" name="displayPV" minOccurs="0"/>
+				<xs:element type="xs:string" name="htmltext" minOccurs="0"/>
+				<xs:element ref="QuestionAttribute" maxOccurs="1" minOccurs="1"/>
+				<xs:element ref="VisualScale" maxOccurs="1" minOccurs="1"/>
+				<xs:element ref="QuestionDocument"  maxOccurs="unbounded" minOccurs="0"/>
+				<xs:element ref="QuestionAnswerOption"  maxOccurs="unbounded" minOccurs="0"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="QuestionAttribute">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element type="xs:short" name="id" minOccurs="0"/>
+				<xs:element type="xs:boolean" name="requiredFlag"/>
+				<xs:element type="xs:boolean" name="calculatedFlag" minOccurs="0"/>
+				<xs:element type="xs:boolean" name="skipRuleFlag" minOccurs="0"/>
+				<xs:element type="xs:string" name="skipRuleEquals" minOccurs="0"/>
+				<xs:element type="xs:string" name="skipRuleType" minOccurs="0"/>
+				<xs:element type="xs:string" name="skipRuleOperatorType" minOccurs="0"/>
+				<xs:element type="xs:string" name="hAlign"/>
+				<xs:element type="xs:string" name="vAlign"/>
+				<xs:element type="xs:string" name="textColor"/>
+				<xs:element type="xs:string" name="fontFace"/>
+				<xs:element type="xs:string" name="fontSize"/>
+				<xs:element type="xs:int" name="indent"/>
+				<xs:element type="xs:string" name="rangeOperator"/>
+				<xs:element type="xs:string" name="rangeValue1" minOccurs="0"/>
+				<xs:element type="xs:string" name="rangeValue2" minOccurs="0"/>
+				<xs:element type="xs:int" name="dtConversionFactor"/>
+				<xs:element type="xs:string" name="answerType"/>
+				<xs:element type="xs:int" name="minCharacters"/>
+				<xs:element type="xs:int" name="maxCharacters"/>
+				<xs:element type="xs:boolean" name="horizontalDisplay"/>
+				<xs:element type="xs:int" name="textBoxHeight"/>
+				<xs:element type="xs:int" name="textBoxWidth"/>
+				<xs:element type="xs:int" name="textBoxLength"/>
+				<xs:element type="xs:boolean" name="dataSpring" minOccurs="0"/>
+				<xs:element type="xs:string" name="xhtmlText" minOccurs="0"/>
+				<xs:element type="xs:boolean" name="horizontalDisplayBreak"/>
+				<xs:element type="xs:string" name="dataElementName"/>
+				<xs:element type="xs:boolean" name="prepopulation"/>
+				<xs:element type="xs:string" name="prepopulationValue" minOccurs="0"/>
+				<xs:element type="xs:int" name="decimalPrecision"/>
+				<xs:element type="xs:boolean" name="hasConversionFactor"/>
+				<xs:element type="xs:string" name="conversionFactor" minOccurs="0"/>
+				<xs:element type="xs:string" name="groupName"/>
+				<xs:element type="xs:boolean" name="showText"/>
+				<xs:element type="xs:int" name="tableHeaderType" minOccurs="0"/>
+				<xs:element ref="EmailTrigger" maxOccurs="unbounded" minOccurs="0"/>
+				<xs:element type="xs:boolean" name="conditionalForCalc"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="EmailTrigger">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element type="xs:long" name="id" minOccurs="0"/>
+				<xs:element type="xs:long" name="version" minOccurs="0"/>
+				<xs:element type="xs:string" name="toEmailAddress"/>
+				<xs:element type="xs:string" name="ccEmailAddress"/>
+				<xs:element type="xs:string" name="subject"/>
+				<xs:element type="xs:string" name="body"/>
+				<xs:element name="EmailTriggerValue" maxOccurs="unbounded" minOccurs="0"/>			
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="EmailTriggerValue">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element type="xs:long" name="id" minOccurs="0"/>
+				<xs:element type="xs:string" name="answer"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>			
+	<xs:element name="VisualScale">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element type="xs:long" name="id" minOccurs="0"/>
+				<xs:element type="xs:int" name="startRange"/>
+				<xs:element type="xs:int" name="endRange"/>
+				<xs:element type="xs:int" name="widthMM"/>
+				<xs:element type="xs:string" name="leftText" minOccurs="0"/>
+				<xs:element type="xs:string" name="rightText" minOccurs="0"/>
+				<xs:element type="xs:string" name="centerText" minOccurs="0"/>
+				<xs:element type="xs:boolean" name="showHandle"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>		  
+	<xs:element name="QuestionAnswerOption">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element type="xs:long" name="id" minOccurs="0"/>
+				<xs:element type="xs:string" name="display"/>
+				<xs:element type="xs:string" name="submittedValue"/>
+				<xs:element type="xs:string" name="itemResponseOid" minOccurs="0"/>
+				<xs:element type="xs:string" name="elementOid" minOccurs="0"/>
+				<xs:element type="xs:float" name="score"/>
+				<xs:element type="xs:string" name="questionAnswerDataType"/>
+				<xs:element type="xs:int" name="minCharacters" minOccurs="0"/>
+				<xs:element type="xs:int" name="maxCharacters" minOccurs="0"/>
+				<xs:element type="xs:string" name="selected" minOccurs="0"/>
+				<xs:element type="xs:string" name="includeOther" minOccurs="0"/>
+				<xs:element type="xs:byte" name="orderVal"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<xs:element name="QuestionDocument">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="QuestionDocumentPk">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element type="xs:string" name="fileName"/>
+              <xs:element type="xs:long" name="question" maxOccurs="unbounded" minOccurs="0"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element type="xs:string" name="removeFile"/>
+        <xs:element name="UserFile">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="datafileEndpointInfo">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:string" name="endpointName"/>
+                    <xs:element type="xs:long" name="id"/>
+                    <xs:element type="xs:string" name="password"/>
+                    <xs:element type="xs:byte" name="port"/>
+                    <xs:element type="xs:string" name="url"/>
+                    <xs:element type="xs:string" name="userName"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element type="xs:string" name="description" minOccurs="0" maxOccurs="1"/>
+              <xs:element type="xs:short" name="id"/>
+              <xs:element type="xs:string" name="name"/>
+              <xs:element type="xs:string" name="path"/>
+              <xs:element type="xs:dateTime" name="uploadedDate"/>
+              <xs:element type="xs:long" name="userId"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>			
+</xs:schema>

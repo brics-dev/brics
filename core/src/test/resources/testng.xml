@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Suite" parallel="false">
+	<test name="Database">
+		<parameter name="commonsDataSource" value="metaConnection" />
+		<parameter name="commonsDataSource" value="metaConnection" />
+		<parameter name="dictionaryDataSource" value="metaConnection" />
+		<parameter name="accountDataSource" value="metaConnection" />
+		<parameter name="repositoryMetaDataSource" value="metaConnection" />
+		<parameter name="repositoryDataSource" value="repositoryConnection" />
+		
+		<parameter name="repositoryTestData" value="src/test/resources/repositoryTestData.xml" />
+		<parameter name="commonsTestData" value="src/test/resources/accountTestData.xml" />
+		<parameter name="dictionaryTestData" value="src/test/resources/dictionaryTestData.xml" />
+		<parameter name="accountTestData" value="src/test/resources/accountTestData.xml" />
+	
+		<packages>
+			<package name="gov.nih.tbi"/>
+		</packages>
+	</test>
+
+	<test name="Database-Account">
+		<parameter name="accountDataSource" value="metaConnection" />
+		<parameter name="accountTestData" value="src/test/resources/accountTestData.xml" />
+	
+		<packages>
+			<package name="gov.nih.tbi.account.dao" />
+		</packages>
+	</test>
+	
+	<test name="Database-Commons">
+		<parameter name="commonsDataSource" value="metaConnection" />
+		<parameter name="commonsTestData" value="src/test/resources/accountTestData.xml" />
+		
+		<packages>
+			<package name="gov.nih.tbi.commons.dao"/>
+		</packages>
+
+	</test>
+	
+	<test name="Database-Dictionary">
+		<parameter name="dictionaryDataSource" value="metaConnection" />
+		<parameter name="dictionaryTestData" value="src/test/resources/dictionaryTestData.xml" />
+				
+		<packages>
+			<package name="gov.nih.tbi.dictionary.dao" />
+		</packages>
+	</test>
+	
+	<test name="Database-Repository">
+		<parameter name="repositoryMetaDataSource" value="metaConnection" />
+		<parameter name="repositoryDataSource" value="repositoryConnection" />
+		
+		<parameter name="repositoryTestData" value="src/test/resources/repositoryTestData.xml" />
+		
+		<packages>
+			<package name="gov.nih.tbi.repository.dao" />
+		</packages>
+	</test>
+</suite>

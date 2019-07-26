@@ -1,0 +1,18 @@
+<project>
+       <target name="sass.compile">
+       	<property name="sass.dir" value=". ../.." />
+        <property name="css.dir" value="../../instances/fitbir" />
+
+        <apply executable="C:\Ruby193\bin\sass.bat" dest="${css.dir}" verbose="true" force="true" failonerror="true">
+          <arg value="--unix-newline" />
+          <arg value="--compass" />
+          <srcfile />
+          <targetfile />
+          <fileset dir="${sass.dir}" includes="**/*.scss,**/*.sass" excludes="**/_*" />
+          <firstmatchmapper>
+            <globmapper from="*.sass" to="*.css" />
+            <globmapper from="*.scss" to="*.css" />
+          </firstmatchmapper>
+        </apply>
+    </target>
+</project>

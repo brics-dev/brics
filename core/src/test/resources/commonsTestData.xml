@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dataset>
+	<file_type id="1" name="Data Submission Agreement" classification_id="0" is_active="true"/>
+	<file_type id="2" name="TBI Data Access Agreement" classification_id="0" is_active="true"/>
+	<file_type id="3" name="SF-424 (RR)" classification_id="0" is_active="true"/>
+	<file_type id="4" name="Request for Ongoing Study" classification_id="0" is_active="true"/>
+	<file_type id="5" name="Test" classification_id="0" is_active="false"/>
+	<file_type id="6" name="User File" classification_id="1" is_active="true"/>
+	<file_type id="7" name="URL" classification_id="1" is_active="true"/>
+</dataset>

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<decorators defaultdir="/WEB-INF/decorators">
+	<!-- Any urls that are excluded will never be decorated by Sitemesh -->
+	<excludes>
+		<pattern> /nodecorate/*
+		</pattern>
+		<pattern> /styles/*
+		</pattern>
+		<pattern> /scripts/*
+		</pattern>
+		<pattern> /images/*
+		</pattern>
+		<pattern> /dojo/*
+		</pattern>
+		<pattern> /struts/*
+		</pattern>
+		<pattern> /*.ajax*
+		</pattern>
+	</excludes>
+
+<!-- Default BRICS -->
+	<decorator name="default-style" page="main-default.jsp">
+		<pattern> /*.action </pattern>
+		<pattern> /*.jsp </pattern>
+	</decorator>
+	
+	<!-- ************************
+		GRDR
+		***************************** -->
+
+	<decorator name="grdr-style" page="main-grdr.jsp">
+		<pattern> /*.action </pattern>
+		<pattern> /*.jsp </pattern>
+	</decorator>	
+	
+	<!-- ************************
+		NIA
+		***************************** -->
+
+	<decorator name="nia-style" page="main-nia.jsp">
+		<pattern> /*.action </pattern>
+		<pattern> /*.jsp </pattern>
+	</decorator>	
+	
+	<!-- ************************
+		NINDS
+		***************************** -->
+
+	<decorator name="ninds-style" page="main-ninds.jsp">
+		<pattern> /*.action </pattern>
+		<pattern> /*.jsp </pattern>
+	</decorator>
+	
+	<!-- ************************
+		GSDR
+		***************************** -->
+
+	<decorator name="gsdr-style" page="main-gsdr.jsp">
+		<pattern> /*.action </pattern>
+		<pattern> /*.jsp </pattern>
+	</decorator>
+	
+
+
+	<!-- ************************
+		CNRM
+		***************************** -->
+
+	<decorator name="cnrm-style" page="main-cnrm.jsp">
+		<pattern> /*.action </pattern>
+		<pattern> /*.jsp </pattern>
+	</decorator>
+	
+
+
+	<!-- ************************
+		PDBP
+		***************************** -->
+
+	<decorator name="pdbp-style" page="main-pdbp.jsp">
+		<pattern> /*.action </pattern>
+		<pattern> /*.jsp </pattern>
+	</decorator>
+
+	
+	<!-- ************************
+		EYEGENE
+		***************************** -->
+
+	<decorator name="eyegene-style" page="main-eyegene.jsp">
+		<pattern> /*.action </pattern>
+		<pattern> /*.jsp </pattern>
+	</decorator>
+
+
+	<!-- ************************
+		FITBIR
+		***************************** -->
+	<!-- Dictionary Dev Style and Theme Configuration -->
+	<decorator name="fitbir-style" page="main-fitbir.jsp">
+		<pattern> /*.action </pattern>
+		<pattern> /*.jsp </pattern>
+	</decorator>
+	
+	<!-- ************************
+	CISTAR
+	***************************** -->
+	<!-- Dictionary Dev Style and Theme Configuration -->
+	<decorator name="cistar-style" page="main-cistar.jsp">
+		<pattern> /*.action </pattern>
+		<pattern> /*.jsp </pattern>
+	</decorator>
+
+	<!-- ************************
+		cdRNS
+		***************************** -->
+	<!-- cdrns Dev Style and Theme Configuration -->
+	<decorator name="cdrns-style" page="main-cdrns.jsp">
+		<pattern> /*.action </pattern>
+		<pattern> /*.jsp </pattern>
+	</decorator>
+	
+	<!-- ************************
+		NTI
+		***************************** -->
+	<!-- Dictionary Dev Style and Theme Configuration -->
+	<decorator name="nti-style" page="main-nti.jsp">
+		<pattern> /*.action </pattern>
+		<pattern> /*.jsp </pattern>
+	</decorator>
+</decorators>

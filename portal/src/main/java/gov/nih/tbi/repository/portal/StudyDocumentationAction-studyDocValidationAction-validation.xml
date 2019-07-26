@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC "-//Apache Struts//XWork Validator 1.0.2//EN" "http://struts.apache.org/dtds/xwork-validator-1.0.2.dtd">
+<validators>
+	<field name="uploadFileName">
+		<field-validator type="documentfile">
+			<message>${errorMessage}</message>
+		</field-validator>
+	</field> 
+	<field name="url">
+		<field-validator type="documenturl">
+			<message>${errorMessage}</message>
+		</field-validator>
+	</field> 
+	<field name="supportingDocType">
+		<field-validator type="required">
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	<field name="supportingDocTitle">
+		<field-validator type="fieldexpression">
+			<param name="expression">
+				<![CDATA[!(supportingDocType.name != "Publication" && supportingDocTitle.trim().equals(""))]]>
+			</param>
+			<param name="trim">true</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 500 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="version">
+		<field-validator type="fieldexpression">
+			<param name="expression"><![CDATA[!("file".equals(addDocSelect) && supportingDocType.name == "Software" && version.trim().equals(""))]]></param>
+			<param name="trim">true</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 10 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="supportingDocDescription">
+		<field-validator type="fieldexpression">
+			<param name="expression">
+				<![CDATA[!(supportingDocType.name != "Publication" && supportingDocDescription.trim().equals(""))]]>
+			</param>
+			<param name="trim">true</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 1000 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="pubEntry.title">
+		<field-validator type="fieldexpression">
+			<param name="expression"><![CDATA[!(supportingDocType.name == "Publication" && pubEntry.title.trim().equals(""))]]></param>
+			<param name="trim">true</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 1000 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="pubEntry.publicationDate">
+		<field-validator type="fieldexpression">
+			<param name="expression"><![CDATA[!(supportingDocType.name == "Publication" && pubEntry.publicationDate == null)]]></param>
+			<param name="trim">true</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	<field name="pubEntry.firstAuthor.firstName">
+		<field-validator type="fieldexpression">
+			<param name="expression"><![CDATA[!(supportingDocType.name == "Publication" && pubEntry.firstAuthor.firstName.trim().equals(""))]]></param>
+			<param name="trim">true</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	<field name="pubEntry.firstAuthor.lastName">
+		<field-validator type="fieldexpression">
+			<param name="expression"><![CDATA[!(supportingDocType.name == "Publication" && pubEntry.firstAuthor.lastName.trim().equals(""))]]></param>
+			<param name="trim">true</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	<field name="pubEntry.description">
+		<field-validator type="fieldexpression">
+			<param name="expression"><![CDATA[!(supportingDocType.name == "Publication" && pubEntry.description.trim().equals(""))]]></param>
+			<param name="trim">true</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 10000
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+</validators>

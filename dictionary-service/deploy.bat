@@ -1,0 +1,1 @@
+mvn clean tomcat7:redeploy -Dconf.root=%CONF_HOME%\brics -Dproperty.dir=%CONF_HOME%\brics\dictionary -Dserver.name=build.tomcat.all -Dsec.level=cas -Ddeploy.port=8081

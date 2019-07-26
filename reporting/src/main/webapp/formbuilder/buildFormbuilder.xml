@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE project>
+<project name="compileFormBuilder" default="all" basedir=".">
+	<property name="dir.yui" value="build" />
+	<property name="yui.jar" value="yuicompressor-2.4.7.jar" />
+	<property name="dir.headerfooter" value="build" />
+	<property name="file.footer" value="formBuilderFooter.jsp" />
+	<property name="file.header" value="formBuilderHeader.jsp" />
+	<property name="file.jsFinal" value="formBuilder.min.js" />
+	<property name="file.cssFinal" value="formBuilder.min.css" />
+	<property name="file.jspFinal" value="newCreateEditForm.jsp" />
+	<property name="path.yui" value="${dir.yui}\${yui.jar}" />
+	<property name="dir.js" value="js" />
+	<property name="dir.collections" value="${dir.js}/collections" />
+	<property name="dir.core" value="${dir.js}/collections" />
+	
+	
+	<available file="${path.yui}" property="YUI_AVAILABLE" />
+	<fail unless="YUI_AVAILABLE" message="YUI not found" />
+	
+	<target name="jsp" description="Concatenate all jsp files">
+	    <concat destfile="${file.jspFinal}" append="yes">
+	        <fileset dir="*" includes="**/*.jsp">
+	        	<exclude name="${dir.headerfooter}/${file.header}" />
+	        	<exclude name="${dir.headerfooter}/${file.footer}" />
+	        	<exclude name="*test*" />
+	        	<exclude name="**/sandbox.jsp" />
+	        </fileset>
+	        <header file="${dir.headerfooter}/${file.header}" />
+	        <footer file="${dir.headerfooter}/${file.footer}" />
+	    </concat>
+	</target>
+
+	<target name="js" description="Concatenate all js files">
+	    <concat destfile="formBuilder.js">
+	    	<fileset dir="js/core" includes="**/*.js">
+	    		<exclude name="**/*.min.js" />
+	    		<exclude name="**/*-min.js" />
+	    		<exclude name="**/*qunit*" />
+	    	</fileset>
+	    	<fileset dir="js/util" includes="**/*.js">
+	    		<exclude name="**/*.min.js" />
+	    		<exclude name="**/*-min.js" />
+	    		<exclude name="**/*qunit*" />
+	    	</fileset>
+	    	<fileset dir="js/collections" includes="**/*.js">
+	    		<exclude name="**/*.min.js" />
+	    		<exclude name="**/*-min.js" />
+	    		<exclude name="**/*qunit*" />
+	    	</fileset>
+	    	<fileset dir="js/models" includes="**/*.js">
+	    		<exclude name="**/*.min.js" />
+	    		<exclude name="**/*-min.js" />
+	    		<exclude name="**/*qunit*" />
+	    	</fileset>
+    		<fileset dir="js/views" includes="**/*.js">
+	    		<exclude name="**/*.min.js" />
+	    		<exclude name="**/*-min.js" />
+	    		<exclude name="**/*qunit*" />
+	    	</fileset>
+	    </concat>
+	</target>
+	
+	<filelist id="filelist" dir="${dir.js}">
+		<file name="util.js"/>
+		<file name="commons.js" />
+	</filelist>
+	
+	<target name="css" description="Concatenate all css files">
+	    <concat destfile="formBuilder.css">
+	        <fileset dir="css" includes="**/*.css" excludes="**/*.min.css" />
+	    </concat>
+	</target>
+
+	<target name="compressJS" depends="js" description="Compress formBuilder.js to formBuilder.min.js">
+	    <apply executable="java" parallel="false">
+	        <filelist dir="build" files="${file.jsFinal}" />
+	        <arg line="-jar" />
+	        <arg path="${path.yui}" />
+	        <srcfile />
+	        <arg line="-o" />
+	        <mapper type="glob" from="*.js" to="build/*-min.js" />
+	        <targetfile />
+	    </apply>
+	</target>
+	
+	<target name="compressCSS" depends="css" description="Compress formBuilder.css to formBuilder.min.css">
+	    <apply executable="java" parallel="false">
+	        <filelist dir="build" files="${file.cssFinal}" />
+	        <arg line="-jar" />
+	        <arg path="${path.yui}" />
+	        <srcfile />
+	        <arg line="-o" />
+	        <mapper type="glob" from="*.css" to="*.min.css" />
+	        <targetfile />
+	    </apply>
+	</target>
+	
+	<target name="all" depends="jsp,compressCSS,compressJS">
+	
+	</target>
+</project>

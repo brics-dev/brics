@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC "-//Apache Struts//XWork Validator 1.0.2//EN" "/WEB-INF/xwork-validator-1.0.2.dtd">
+<validators>
+	<field name="userName">
+		<field-validator type="requiredstring">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="userName">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.unique" />
+		</field-validator>
+		<field-validator type="regex">
+			<param name="trim">false</param>
+			<param name="regex"> ^[A-Za-z]{1}[A-Za-z0-9@\._]{2,44}$ 
+			</param>
+			<message key="errors.specialchar" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 30 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+</validators>

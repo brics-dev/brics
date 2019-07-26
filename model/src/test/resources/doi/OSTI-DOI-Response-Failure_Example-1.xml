@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<records>
+	<record>
+		<osti_id>0</osti_id>
+		<product_nos>none</product_nos>
+		<title>ARM Climate Modeling Best Estimate Lamont, OK (ARMBE-CLDRAD SGPC1)</title>
+		<contract_nos>AC05-00OR22725</contract_nos>
+		<doi></doi>
+		<status>FAILURE</status>
+		<status_message>Data too long, maximum number characters for dataset type is 2</status_message>
+	</record>
+</records>

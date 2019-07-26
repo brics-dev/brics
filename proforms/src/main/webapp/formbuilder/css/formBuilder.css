@@ -1,0 +1,216 @@
+@CHARSET "ISO-8859-1";
+
+body {
+	text-align: left;
+	background-color: #FFFFFF;
+	padding-top: 20px;
+	font-size: 12px;
+	font-family: Arial,Helvetica,sans-serif;
+}
+
+form {
+	margin: 0;
+}
+header {
+	color: #FF0000;
+	padding-left: 12px;
+	height: 50px;
+	font-size: 24px;
+}
+
+#formContainer {
+	padding: 3px;
+	margin-top: 40px;
+}
+
+.top-buffer {
+	margin-top: 5px;
+}
+
+.form-inline {
+
+}
+
+/*
+	modifying the base editor styles
+*/
+.ui-dialog .ui-dialog-titlebar {
+	padding: 0 0 0 5px;
+}
+.ui-tabs .ui-tabs-nav li a {
+	padding: 2px;
+}
+
+.formcreator_dialog input, .formcreator_dialog select, .formcreator_dialog textarea {
+	width: 100%;
+}
+.formcreator_dialog .row input[type="checkbox"] {
+	width: auto;
+}
+
+.editButton {
+	background: url(../images/cog.png) no-repeat;
+}
+.deleteButton {
+	background: url(../images/window-close-3.png) no-repeat;
+}
+.deleteButton.disabled {
+	background: url(../images/window-close_disabled.png) no-repeat;
+}
+
+.addButton {
+	background: url(../images/list-add-6.png) no-repeat;
+}
+
+.statusTooltip {
+	z-index: 999;
+}
+
+.formcreator_dialog label {
+	font-weight: bold;
+	line-height: 27px;
+	vertical-align: bottom;
+	text-align: right;
+	display: inline-block;
+	width: 100%;
+}
+
+.formcreator_dialog .optionsHeader label {
+	text-align: left;
+}
+
+.formcreator_dialog label.required:after {
+	content: "*";
+	font-weight: bold;
+	color: #FF0000;
+	display: inline-block;
+	width: 11px;
+	font-size: 19px;
+}
+.formcreator_dialog label:after {
+	content: " ";
+	font-weight: bold;
+	color: #FFFFFF;
+	display: inline-block;
+	width: 11px;
+	font-size: 19px;
+}
+
+.formcreator_dialog div.displayValue {
+	line-height: 27px;
+	vertical-align: bottom;
+}
+
+label.optionsHeader {
+	text-align: left;
+}
+
+label.left {
+	text-align: left;
+}
+
+.statusTooltip label {
+	font-weight: bold;
+}
+
+.requiredStar {
+	color: #FF0000;
+	width: 0.8em;
+	display: inline-block;
+}
+
+.fb-icon-small {
+	display: block;
+    height: 16px;
+    width: 16px;	
+}
+
+.floatLeft {
+	float: left;
+}
+
+/* Hides the editor close button */
+.formBuilder_editor .ui-dialog-titlebar-close {
+  display: none;
+}
+.formBuilder_dialog_noclose .ui-dialog-titlebar-close {
+  display: none;
+}
+#processDescription {
+	height: 3em;
+}
+
+.ui-priority-primary, .ui-widget-content .ui-priority-primary, .ui-widget-header .ui-priority-primary{
+	background: #B81802; /* Old browsers */
+	background: linear-gradient(to bottom, #da1c02 0%, #961402 80%) repeat scroll 0 0 rgba(0, 0, 0, 0);
+    border: 2px solid gray;
+    color: white;
+    text-shadow: none;
+}
+
+.ui-priority-secondary, .ui-widget-content .ui-priority-secondary, .ui-widget-header .ui-priority-secondary {
+	opacity: 1;
+}
+
+.userHelpAddSection {
+	height: 145px;
+	background: url(../images/uparrowcurve.png) no-repeat top right;
+	width: 500px;
+	font-size: 24px;
+	padding-right: 125px;
+	padding-top: 20px;
+}
+
+.layoutEditorButton {
+	height: 92px;
+	width: 122px;
+	display: block;
+}
+
+.joinRowUp {
+	background: url(../images/joinRowUp.png) no-repeat;
+}
+.joinRowUp.disabled {
+	background: url(../images/joinRowUp_disabled.png) no-repeat; 
+}
+
+.joinRowDown {
+	background: url(../images/joinRowDown.png) no-repeat;
+}
+.joinRowDown.disabled {
+	background: url(../images/joinRowDown_disabled.png) no-repeat; 
+}
+
+.leaveRowDown {
+	background: url(../images/leaveRowDown.png) no-repeat;
+}
+.leaveRowDown.disabled {
+	background: url(../images/leaveRowDown_disabled.png) no-repeat; 
+}
+
+.leaveRowUp {
+	background: url(../images/leaveRowUp.png) no-repeat;
+}
+.leaveRowUp.disabled {
+	background: url(../images/leaveRowUp_disabled.png) no-repeat; 
+}
+
+.reorderUp {
+	background: url(../images/reorderUp.png) no-repeat;
+}
+.reorderUp.disabled {
+	background: url(../images/reorderUp_disabled.png) no-repeat;
+}
+
+.reorderDown {
+	background: url(../images/reorderDown.png) no-repeat;
+}
+.reorderDown.disabled {
+	background: url(../images/reorderDown_disabled.png) no-repeat;
+}
+
+
+
+
+
+

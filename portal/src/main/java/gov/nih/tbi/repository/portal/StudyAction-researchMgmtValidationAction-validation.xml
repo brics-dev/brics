@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC "-//Apache Struts//XWork Validator 1.0.2//EN" "/WEB-INF/xwork-validator-1.0.2.dtd">
+<validators>
+ 	<field name="researchMgmtEntry.role">
+		<field-validator type="required">
+			<message key="errors.required" />
+		</field-validator>
+	</field>  
+	<field name="researchMgmtEntry.firstName">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 55 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+		<field-validator type="requiredstring">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	<field name="researchMgmtEntry.mi">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 1 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="researchMgmtEntry.lastName">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 55 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+		<field-validator type="requiredstring">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	<field name="researchMgmtEntry.suffix">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 10 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="researchMgmtEntry.email">
+		<field-validator type="email">
+			<message key="errors.emailformat" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 55 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="researchMgmtEntry.orgName">
+		<field-validator type="requiredstring">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 255 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="researchMgmtEntry.orcId">
+		<field-validator type="regex">
+			<param name="regex"><![CDATA[[0-9]{4}[-][0-9]{4}[-][0-9]{4}[-][0-9]{4}]]></param>
+			<message>ORCID code is incomplete or in improper format. Correct format: 0000-0000-0000-0000</message>
+		</field-validator>	
+	</field>
+	<field name="pictureFileName">
+		<field-validator type="regex">
+			<param name="regex"><![CDATA[(.*/)*.+\.(png|jpg|gif|bmp|jpeg|PNG|JPG|GIF|BMP)$]]></param>
+			<message key="errors.pictureFileName" />
+		</field-validator>	</field>
+</validators>

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+        "http://struts.apache.org/dtds/struts-2.5.dtd">
+ 
+<struts>
+
+	<package name="response" namespace="/response" extends="default">
+	
+		<!-- Data Collection -->
+		<action name="dataCollectingLandingSearch" class="gov.nih.nichd.ctdb.response.action.DataCollectingLandingSearchAction">
+			<result name="success">collectDataLandingHome.jsp</result>
+		</action>
+		
+		<action name="getDataCollectionPVList" class="gov.nih.nichd.ctdb.response.action.DataCollectingLandingSearchAction" method="getDataCollectionPVList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>
+		
+		<action name="getDataCollectionDataFormList" class="gov.nih.nichd.ctdb.response.action.DataCollectingLandingSearchAction" method="getDataCollectionDataFormList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>
+		
+		<action name="dataCollection" class="gov.nih.nichd.ctdb.response.action.DataCollectionAction">
+			<result name="success">dataCollection.jsp</result>
+			<result name="exception">dataCollection.jsp</result>
+			<result name="stayInSamePage">dataCollection.jsp</result>
+			<result name="refreshAndStayInSamePage" type="redirectAction">dataCollection</result>
+			<result name="myCollections" type="redirectAction">collectDataPreviousHome</result>
+			<result name="dataCollection" type="redirectAction">dataCollectingLandingSearch</result>
+			<!--  <result name="dataCollectionPSR">dataCollection_patientSelfReporting.jsp</result> -->
+		</action>
+
+		<action name="viewForm" class="gov.nih.nichd.ctdb.response.action.ViewFormAction">
+			<result name="success">viewForm.jsp</result>
+			<result name="exception">viewForm.jsp</result>
+		</action>
+		<action name="viewEditedAnswer" class="gov.nih.nichd.ctdb.response.action.ViewEditedAnswerAction">
+			<result name="success">viewEditedAnswer.jsp</result>
+		</action>
+		<action name="getDataEntryList" class="gov.nih.nichd.ctdb.response.action.ViewEditedAnswerAction" method="getDataEntryList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>
+		<action name="getFinalLockedList" class="gov.nih.nichd.ctdb.response.action.ViewEditedAnswerAction" method="getFinalLockedList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>
+		<action name="getEditArchivesList" class="gov.nih.nichd.ctdb.response.action.ViewEditedAnswerAction" method="getEditArchivesList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>
+		<action name="getSentEmailsList" class="gov.nih.nichd.ctdb.response.action.ViewEditedAnswerAction" method="getSentEmailsList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>								
+		
+		<!-- My Collections -->
+		<action name="collectDataPreviousHome" class="gov.nih.nichd.ctdb.response.action.MyCollectionsAction">
+			<result name="success">myCollections.jsp</result>
+		</action>
+		<action name="getMyCollection" class="gov.nih.nichd.ctdb.response.action.MyCollectionsAction" method="getMyCollection">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>
+		<action name="editAssignment" class="gov.nih.nichd.ctdb.response.action.EditAssignmentAction">
+			<result name="success">editAssignment.jsp</result>
+		</action>
+		<action name="saveAssignment" class="gov.nih.nichd.ctdb.response.action.EditAssignmentAction" method="saveAssignment">
+			<result name="success" type="redirectAction">collectDataPreviousHome</result>
+		</action>
+		<action name="viewAssignment" class="gov.nih.nichd.ctdb.response.action.ViewAssignmentAction">
+			<result name="success">viewAssignment.jsp</result>
+		</action>
+		<action name="deleteDataEntry" class="gov.nih.nichd.ctdb.response.action.MyCollectionsAction" method="deleteDataEntry">
+			<result name="cancel" type="redirectAction">dataCollectingLandingSearch</result>
+			<result name="success" type="redirectAction">collectDataPreviousHome</result>
+		</action>
+		
+		<!--  export  -->
+		<action name="dataCollectionExport" class="gov.nih.nichd.ctdb.response.action.DataCollectionExportAction" method="exportDataCollection">
+			<result name="success" type="redirectAction">collectDataPreviousHome</result>
+			<result name="exception" type="redirectAction">collectDataPreviousHome</result>
+		</action>
+		
+		<action name="getInitialDataEntryList" class="gov.nih.nichd.ctdb.response.action.ViewEditedAnswerAction" method="getInitialDataEntryList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>
+		
+	</package>
+	
+</struts>

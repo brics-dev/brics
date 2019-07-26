@@ -1,0 +1,535 @@
+<!doctype html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+<title>IBIS Initial Design</title>
+
+<script src="common/jquery-1.7.2.min.js" type="text/javascript"></script>
+<script src="common/jquery-ui-1.8.18.custom.min.js" type="text/javascript"></script>
+
+<link rel="stylesheet" type="text/css" href="common/formalize.css" />
+<script src="common/jquery.formalize.js" type="text/javascript"></script>
+<script src="common/jquery.tools.min.js" type="text/javascript"></script>
+<script src="common/ibisCommon.js" type="text/javascript"></script>
+<script src="common/jquery.ui.accordion.activationExtension.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+$(function() {
+	$( "#leftNav" ).accordion({
+		activeSublinkClassName: "activeSubLink",
+		autoHeight: false,
+		navigation: true,
+		navigationFilter: function() {
+			// for now, this compares only the file name (NOT query options) part of the full urls
+			var thisUrlSplit = this.href.toLowerCase().split("?");
+			var currentUrlSplit = location.href.toLowerCase().split("?");
+			return thisUrlSplit[0] == currentUrlSplit[0] && this.href.indexOf("#") != this.href.length-1;
+		},
+		create: function(event, ui) {
+			$("#"+this.id).accordion("highlightCurrentSublink");
+		}
+	});
+});
+
+$(document).ready(function() {
+	$("#login").tooltip({
+		tip: "#login_over",
+		position: "bottom center",
+		//relative: true,
+		offset: [-3,-82]
+	});
+});
+$(document).ready(function() {
+	$("#perspectiveSelectContainer").tooltip({
+		position: "bottom center",
+		relative: true,
+		offset: [0,0]
+	});
+});
+</script>
+
+
+
+
+
+<style type="text/css">
+/*  
+Sticky Footer Solution
+by Steve Hatcher 
+http://stever.ca
+http://www.cssstickyfooter.com
+*/
+* {margin:0;padding:0;} 
+/* must declare 0 margins on everything, also for main layout components use padding, not 
+vertical margins (top and bottom) to add spacing, else those margins get added to total height 
+and your footer gets pushed down a bit more, creating vertical scroll bars in the browser */
+html, body {height: 100%;}
+#wrap {min-height: 100%;}
+#main {overflow:auto;
+	padding-bottom: 180px;}  /* must be same height as the footer */
+#footer {position: relative;
+	margin-top: -180px; /* negative value of footer height */
+	height: 180px;
+	clear:both;} 
+/*Opera Fix*/
+body:before {/* thanks to Maleika (Kohoutec)*/
+content:"";
+height:100%;
+float:left;
+width:0;
+margin-top:-32767px;/* thank you Erik J - negate effect of float*/
+}
+
+body {color: #000000; font-family: Arial, Helvetica, sans-serif; font-size: 12px; text-align: center;}
+
+h1 {color: #0f570f; text-decoration: none; font-weight: bold; line-height: 44px; font-size: 16px; vertical-align: middle;}
+h2 {color: #0f570f; text-decoration: none; font-weight: bold; line-height: 44px; font-size: 14px; vertical-align: middle;}
+h3 {color: #0f570f; text-decoration: none; font-weight: bold; line-height: 18px; font-size: 13px; width: 100%;}
+h3 + p {border-top: 1px solid #0f570f; padding-top: 10px;}
+h4 {color: #000000; text-decoration: none; font-weight: bold; padding-bottom: 1em; font-size: 12px; padding-top: 1em;}
+
+a, a:link, a:visited {color: #141f64; text-decoration: none;}
+a:hover, a:active {color: #141f64; text-decoration: underline;}
+
+.container960 {width: 960px; min-width: 960px; margin-left: auto; margin-right: auto; text-align: left;}
+.container940 {width: 940px; min-width: 940px; margin-left: auto; margin-right: auto; text-align: left;}
+.containerFull {width: 100%; min-width: 100%; text-align: left;}
+.container798 {width: 798px; min-width: 798px; margin-left: auto; margin-right: auto; text-align: left;}
+
+.clearboth {clear: both;}
+#wrap {background: #FFFFFF url(images/pageBackgroundIE.png) repeat-y top center; }
+<!--[if lte IE 7]>#wrap {background: #FFFFFF url(images/pageBackgroundIE.png) repeat-y top center; }<![endif]-->
+#clear {}
+#header {background: #ECECEC; min-width: 960px; position: relative;}
+#headerContainer {
+	background: url(images/ibis.png) no-repeat bottom left;
+	height: 89px;
+	position: relative;
+}
+#logo {
+	font-size: 72px;
+	text-decoration: none;
+	padding-left: 160px;
+	float: left;
+}
+#topNavContainer {
+	border-top: 1px solid #FFFFFF;
+	background: #141f64;
+}
+#topNav {
+	height: 32px;
+	list-style: none;
+}
+#topNav li {
+	border-left: 1px solid #FFFFFF;
+	float: left;
+	line-height: 32px;
+	text-align: center;
+}
+#topNav li a {
+	color: #FFFFFF;
+	font-weight: bold;
+	height: 32px;
+	width: 159px;
+	display: block;
+}
+#topNav li a.selectedToplink, #topNav li a:hover {
+	background: #9cbdd2;
+	color: #000000;
+	text-decoration: none;
+}
+#topNav li:first-child {
+	border-left: 1px solid #141f64;
+}
+#main {
+}
+
+#mainHeaderArea {
+	height: 46px;
+	background: #ECECEC url(images/headerBorder.png) repeat-x bottom left;
+	padding-left: 162px;
+	position: relative;
+}
+#mainContent {
+	padding: 10px 10px 10px 30px;
+	float: left;
+	width: 759px;
+}
+
+#leftNav {
+	width: 161px;
+	min-width: 161px;
+	float: left;
+}
+
+/**
+ * Styling the left nav accordion
+ */
+.ui-accordion h3 {
+	padding: 0px;
+	line-height: 22px;
+	margin-top: 5px;
+	padding-left: 10px;
+	width: 144px;
+	text-indent: -6px;
+}
+h3.ui-state-active {
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	border: 1px solid #9c9e99;
+	background: #61823c;
+	background: -moz-linear-gradient(top, #b5cb9e 0%, #64853f 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#b5cb9e), color-stop(100%,#64853f));
+	background: -webkit-linear-gradient(top, #b5cb9e 0%,#64853f 100%);
+	background: -o-linear-gradient(top, #b5cb9e 0%,#64853f 100%);
+	background: -ms-linear-gradient(top, #b5cb9e 0%,#64853f 100%);
+	background: linear-gradient(top, #b5cb9e 0%,#64853f 100%);
+	text-decoration: none;
+	position: relative;
+	padding-left: 15px;
+}
+h3.ui-state-active:after {
+	content: url(images/leftNavDownArrow.png);
+	position: absolute;
+	right: 15px;
+	bottom: -11px;
+}
+.ui-state-active a {
+	color: #FFFFFF;
+	margin-left: -7px;
+	
+}
+.ui-state-active a:hover, .ui-state-active a:active {
+	text-decoration: none;
+}
+
+.ui-accordion-content-active a {
+	line-height: 20px;
+	padding-left: 13px;
+	border: 1px solid #ECECEC;
+	width: 136px;
+	margin-left: 2px;
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+.ui-accordion-content-active a:hover {
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	border: 1px solid #999999;
+	background: #c1c0c0;
+	background-image: linear-gradient(top, #F3F2F2 0%, #999999 100%);
+	background-image: -o-linear-gradient(top, #F3F2F2 0%, #999999 100%);
+	background-image: -moz-linear-gradient(top, #F3F2F2 0%, #999999 100%);
+	background-image: -webkit-linear-gradient(top, #F3F2F2 0%, #999999 100%);
+	background-image: -ms-linear-gradient(top, #F3F2F2 0%, #999999 100%);
+	background-image: -webkit-gradient(
+		linear,
+		left top,
+		left bottom,
+		color-stop(0, #F3F2F2),
+		color-stop(1, #999999)
+	);
+	text-decoration: none;
+}
+
+.ui-accordion-content-active a.activeSubLink {
+	color: #141F64;
+	background: #FF0000;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	border: 1px solid #999999;
+	background: #bcc9ab;
+	background-image: linear-gradient(top, #E3EED6 0%, #B5C6A2 100%);
+	background-image: -o-linear-gradient(top, #E3EED6 0%, #B5C6A2 100%);
+	background-image: -moz-linear-gradient(top, #E3EED6 0%, #B5C6A2 100%);
+	background-image: -webkit-linear-gradient(top, #E3EED6 0%, #B5C6A2 100%);
+	background-image: -ms-linear-gradient(top, #E3EED6 0%, #B5C6A2 100%);
+	background-image: -webkit-gradient(
+		linear,
+		left top,
+		left bottom,
+		color-stop(0, #E3EED6),
+		color-stop(1, #B5C6A2)
+	);
+	position: relative;
+	width: 140px;
+}
+.ui-accordion-content a {
+	display: block;
+	text-indent: -7px;
+	font-size: 11px;
+	width: 140px;
+}
+.ui-accordion-content-active {
+	width: 159px;
+	border: 1px solid #999999;
+	border-top: 1px solid #ECECEC;
+	border-left: none;
+	background: #ECECEC;
+	font-weight: bold;
+	padding-top: 4px;
+}
+/**
+ * end styling of the left nav
+ */
+#footer {
+	background: #141F64;
+}
+#footerInnerTop {
+	background: #FFFFFF;
+	-webkit-border-bottom-right-radius: 3px;
+	-webkit-border-bottom-left-radius: 3px;
+	-moz-border-radius-bottomright: 3px;
+	-moz-border-radius-bottomleft: 3px;
+	border-bottom-right-radius: 3px;
+	border-bottom-left-radius: 3px;
+	height: 30px;
+}
+
+#mainHeaderArea h1 {
+	width: 50%;
+}
+
+#perspectiveSelectContainer {
+	position: absolute;
+	bottom: 0px;
+	right: 0px;
+	width: 316px;
+	height: 27px;
+	line-height: 25px;
+	background: #FFFFFF url(images/perspectiveBackground.png) no-repeat top left;
+	padding-left: 5px;
+}
+#perspectiveSelectContainer:hover {
+	text-decoration: none;
+}
+
+.button {
+	border: 1px solid #CCCCCC;
+	display: inline-block;
+	background: #cddee8;
+	background: -moz-linear-gradient(top, #fcfdfe 0%, #a8bcc8 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcfdfe), color-stop(100%,#a8bcc8));
+	background: -webkit-linear-gradient(top, #fcfdfe 0%,#a8bcc8 100%);
+	background: -o-linear-gradient(top, #fcfdfe 0%,#a8bcc8 100%);
+	background: -ms-linear-gradient(top, #fcfdfe 0%,#a8bcc8 100%);
+	background: linear-gradient(top, #fcfdfe 0%,#a8bcc8 100%);
+	color: #141f64;
+	font-size: 12px;
+	text-decoration: none;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	width: 71px;
+	height: 24px;
+	line-height: 24px;
+	font-weight: bold;
+	padding-left: 4px;
+}
+.buttonText{float: left;}
+.button:hover {
+	text-decoration: none;
+	background: #ADC0CB;
+	color: #FFFFFF;
+}
+.button img {
+	float: right;
+	padding-right: 3px;
+	border: none;
+}
+
+#headerTopContent {
+	float: right;
+	padding-top: 11px;
+}
+#headerBottomContent {
+	position: absolute;
+	bottom: 10px;
+	right: 0px;
+	line-height: 24px;
+}
+#headerBottomContent input[type="search"] {
+	
+}
+
+#search {
+	float: left; 
+	margin-top: 2px;
+	vertical-align: middle;
+	width: 236px;
+	margin-right: 5px;
+}
+#headerLinks {float: left; line-height: 24px; padding-right: 10px;}
+
+#login_over {
+	display: none;
+	background: #ADC0CB;
+	width: 231px;
+	height: 170px;
+	z-index: 250;
+	-moz-box-shadow: -5px 5px 5px #888;
+	-webkit-box-shadow: -5px 5px 5px #888;
+	box-shadow: -5px 5px 5px #888;
+	padding: 5px;
+	position: absolute;
+}
+#loginForm {
+	font-weight: bold;
+}
+#loginForm label {
+	color: #141F64;
+	line-height: 100%;
+	padding-top: 6px;
+	padding-right: 10px;
+	float: left;
+}
+#loginForm input[type="text"], #loginForm input[type="password"] {
+	width: 158px;
+	float: left;
+}
+#usernameContainer {padding-top: 10px;}
+#forgotUsername, #forgotPassword, #loginButton {text-align: right; padding-bottom: 10px;}
+#ssoLogin {padding-top: 5px;}
+#login {position: relative;}
+
+#perspectiveDropdown {
+	display: none;
+	z-index: 200;
+	border: 1px solid #888;
+	border-top: none;
+	border-right: none;
+	-moz-box-shadow: -5px 5px 5px #888;
+	-webkit-box-shadow: -5px 5px 5px #888;
+	box-shadow: -5px 5px 5px #888;
+	padding: 5px;
+	width: 308px;
+	overflow: hidden;
+	white-space: nowrap;
+	line-height: 2em;
+	background: #FFFFFF;
+}
+#perspectiveDropdown ul {
+	list-style: none;
+}
+#perspectiveDropdown a {
+	width: 100%;
+	display: block;
+}
+
+</style>
+</head>
+<body>
+	<div id="wrap">
+		<div id="header">
+			<div id="headerContainer" class="container960">
+				<a href="#" id="logo">IBIS</a>
+				<div id="headerTopContent">
+					<div id="headerLinks">
+						<a href="#">About IBIS</a> | <a href="#">Help</a>
+					</div>
+					<a href="#" class="button" id="login"><span class="buttonText">Log In</span><img src="images/dropdownArrow24.png" alt="expand to log in" /></a>
+					
+				</div>
+				<div id="headerBottomContent">
+					<form id="searchbox" action="#" method="post">
+						<input type="search" name="search" id="search" placeholder="Search" />
+						<label for="search">
+							<a href="#" class="button"><span class="buttonText">Search</span><img src="images/searchIcon.png" alt="search" /></a>
+						</label>
+					</form>
+				</div>
+			</div>
+			<div id="topNavContainer">
+				<ul id="topNav" class="container960">
+					<li><a href="#">My Workspace</a></li>
+					<li><a href="#">Manage Patients</a></li>
+					<li><a href="#">Collect Data</a></li>
+					<li><a href="#">Manage Forms</a></li>
+					<li><a href="#" class="selectedToplink">Manage Studies</a></li>
+					<li><a href="#">Report Query</a>
+				</ul>
+			</div>
+		</div>
+		<div id="main" class="container960">
+			<div id="mainHeaderArea" class="container798">
+				<h1>Your Workspace: Overview</h1>
+				<a id="perspectiveSelectContainer" href="javascript:;">
+					Exceptionally Long and Descriptive Study Title Th...
+				</a>
+				<div id="perspectiveDropdown">
+					<ul>
+						<li><a href="#">Another Study</a></li>
+						<li><a href="#">Yet Another Study - And More</a></li>
+						<li><a href="#">Here We Go Again, More Study</a></li>
+						<li><a href="#">Study Names are Long</a></li>
+						<li><a href="#">You Are In Charge Of All These?</a></li>
+					</ul>
+				</div>
+			</div>
+			<div id="contentContainer" class="container960">
+				<div id="leftNav">
+					<h3><a href="#">Lorem Ipsum Dolor</a></h3><div></div>
+					<h3><a href="#">Vestibulum Ante Ipsum Dolor Amit</a></h3>
+					<div>
+						<a href="design_1_0.html">Ut Dictum Al Modernarium Et Quom Videris</a>
+						<a href="#">Suspendisse A</a>
+						<a href="#">Aliquan Vulputate</a>
+					</div>
+					<h3><a href="#">Donnec Ultricies</a></h3><div></div>
+					<h3><a href="#">Amgna Sapien</a></h3><div></div>
+					
+				</div>
+				<div id="mainContent">
+					this would be the main content
+					<br /><br />
+					<p>
+						This is a paragraph that has text
+					</p>
+					<h2>Header Level 2</h2>
+					<h3>Header Level 3</h3>
+					<p>
+						With content below the Headling Level 3 - which serves as a section header
+					</p>
+					<h4>Header Level 4</h4>
+				</div>
+				<br class="clearfix" />
+			</div>
+		</div>
+		<div id="login_over">
+			<form action="#" method="post" name="login" id="loginForm">
+				<div id="usernameContainer">
+					<label for="username">Username</label>
+					<input type="text" name="username" id="username" placeholder="Username" />
+				</div>
+				<div id="forgotUsername">
+					<a href="#">Forgot Username</a>
+				</div>
+				<div id="passwordContainer">
+					<label for="password">Password</label>
+					<input type="password" name="password" id="password" placeholder="Password" />
+				</div>
+				<div id="forgotPassword">
+					<a href="#">Forgot Password</a>
+				</div>
+				<div id="loginButton">
+					<input type="submit" value="Log In" />
+				</div>
+				<div id="ssoLogin">
+					<a href="#">Sign in using NIH SSO</a>
+				</div>
+			</form>
+		</div>
+	</div>
+	<div id="footer" class="containerFull">
+		<div id="footerInnerTop" class="container960">
+			<!-- keep this empty - it's for padding -->	
+		</div>
+		<div id="footerInnerBottom" class="container960">
+			<!-- put footer content here -->
+		</div>
+	</div>
+</body>
+</html>

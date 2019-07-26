@@ -1,0 +1,60 @@
+<html>
+	<head>
+		<title>Monthly Accounts Report</title>
+	</head>
+	<body>
+	<p>${SYSTEM_LOGO}</p>
+	
+	<p>&nbsp;</p>
+		<table border="1">
+		<caption>${ORG_NAME} Account Report ${DATE_RANGE}</caption>
+			<tr>
+				<th>Account Type</th>
+				<th>New Account Requests</th>
+				<th>Approved Account Requests</th>
+				<th>Rejected Account Requests</th>
+				<th>Awaiting Documentation Account Requests</th>
+				<th>Pending Approval Account Requests</th>
+			</tr>
+			<tr>
+				<td align="center">DSR</td>
+				<td align="center">${DSR_NEW}</td>
+				<td align="center">${DSR_APPROVED}</td>
+				<td align="center">${DSR_REJECTED}</td>
+				<td align="center">${DSR_AWAITING}</td>
+				<td align="center">${DSR_PENDING}</td>
+			</tr>
+			<tr>
+				<td align="center">DAR</td>
+				<td align="center">${DAR_NEW}</td>
+				<td align="center">${DAR_APPROVED}</td>
+				<td align="center">${DAR_REJECTED}</td>
+				<td align="center">${DAR_AWAITING}</td>
+				<td align="center">${DAR_PENDING}</td>
+			</tr>
+			<tr>
+				<td align="center">DSR + DAR</td>
+				<td align="center">${DSR_DAR_NEW}</td>
+				<td align="center">${DSR_DAR_APPROVED}</td>
+				<td align="center">${DSR_DAR_REJECTED}</td>
+				<td align="center">${DSR_DAR_AWAITING}</td>
+				<td align="center">${DSR_DAR_PENDING}</td>
+			</tr>
+			<tr>
+				<td align="center">Other</td>
+				<td align="center">${OTHER_NEW}</td>
+				<td align="center">${OTHER_APPROVED}</td>
+				<td align="center">${OTHER_REJECTED}</td>
+				<td align="center">${OTHER_AWAITING}</td>
+				<td align="center">${OTHER_PENDING}</td>
+			</tr>
+
+		</table>
+		
+		<p><b>Annual Tallies for ${RUNNING_TALLY_YEAR}</b></p>
+		<p>Approved Running Tally for DAR : ${RUNNING_TALLY_APPROVED}</p>
+		<p>Rejected Running Tally for DAR : ${RUNNING_TALLY_REJECTED}</p>
+		<p>Total Running Tally for DAR : ${RUNNING_TALLY_SUM}</p>
+		
+</body>
+</html>

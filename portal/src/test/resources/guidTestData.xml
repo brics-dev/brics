@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dataset>
+	<audit_log_guid />
+	<invalid_guid_map creator_id="1" date_created="2011-08-08" invalid_guid="TBI_INVEV488TYC" invalid_guid_map_id="3" referred_subject_id="9" />
+	<invalid_guid_map creator_id="1" date_created="2011-08-08" invalid_guid="TBI_INVVM867AYY" invalid_guid_map_id="1" />
+	<invalid_guid_map creator_id="1" date_created="2011-08-08" invalid_guid="TBI_INVXG312ZB5" invalid_guid_map_id="2" />
+	<subject creator_id="9" creator_user_id="2" date_created="2011-08-08" guid="TBIJL565NGV" status="2" subject_id="7" subject_type="1" />
+	<subject creator_id="1" creator_user_id="2" date_created="2011-08-08" guid="TBIFJ232KP1" status="2" subject_id="8" subject_type="1" />
+	<subject creator_id="1" creator_user_id="2" date_created="2011-08-08" guid="TBITH896LEX" status="2" subject_id="9" subject_type="1" />
+	<subject_merging_map />
+</dataset>

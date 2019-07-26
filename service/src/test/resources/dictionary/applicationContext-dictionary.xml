@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	default-lazy-init="true" xmlns="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+	<bean id="basicDataStructureDao"
+		class="gov.nih.tbi.dictionary.dao.hibernate.BasicDataStructureDaoImpl">
+	</bean>
+	<bean id="dataStructureDao"
+		class="gov.nih.tbi.dictionary.dao.hibernate.DataStructureDaoImpl">
+	</bean>
+	<bean id="mapElementDao" class="gov.nih.tbi.dictionary.dao.hibernate.MapElementDaoImpl">
+	</bean>
+	<bean id="dataElementDao" class="gov.nih.tbi.dictionary.dao.hibernate.DataElementDaoImpl">
+	</bean>
+	<bean id="validationPluginDao"
+		class="gov.nih.tbi.dictionary.dao.hibernate.ValidationPluginDaoImpl">
+	</bean>
+	<bean id="keywordDao" class="gov.nih.tbi.dictionary.dao.hibernate.KeywordDaoImpl">
+	</bean>
+	<bean id="keywordElementDao"
+		class="gov.nih.tbi.dictionary.dao.hibernate.KeywordElementDaoImpl">
+	</bean>
+	<bean id="aliasDao" class="gov.nih.tbi.dictionary.dao.hibernate.AliasDaoImpl">
+	</bean>
+	<bean id="classificationDao"
+		class="gov.nih.tbi.dictionary.dao.hibernate.ClassificationDaoImpl">
+	</bean>
+	<bean id="populationDao" class="gov.nih.tbi.dictionary.dao.hibernate.PopulationDaoImpl">
+	</bean>
+	<bean id="categoryDao" class="gov.nih.tbi.dictionary.dao.hibernate.CategoryDaoImpl">
+	</bean>
+	<bean id="diseaseDao" class="gov.nih.tbi.dictionary.dao.hibernate.DiseaseDaoImpl">
+	</bean>
+	<bean id="domainDao" class="gov.nih.tbi.dictionary.dao.hibernate.DomainDaoImpl">
+	</bean>
+	<bean id="subDomainDao" class="gov.nih.tbi.dictionary.dao.hibernate.SubDomainDaoImpl">
+	</bean>
+	<bean id="diseaseElementDao"
+		class="gov.nih.tbi.dictionary.dao.hibernate.DiseaseElementDaoImpl">
+	</bean>
+	<bean id="dictionaryAuditLogDao"
+		class="gov.nih.tbi.dictionary.dao.hibernate.DictionaryAuditLogDaoImpl">
+	</bean>
+	<bean id="repeatableGroupDao"
+		class="gov.nih.tbi.dictionary.dao.hibernate.RepeatableGroupDaoImpl">
+	</bean>
+	<bean id="externalIdDao" class="gov.nih.tbi.dictionary.dao.hibernate.ExternalIdDaoImpl">
+	</bean>
+	<bean id="measuringUnitDao"
+		class="gov.nih.tbi.dictionary.dao.hibernate.MeasuringUnitDaoImpl">
+	</bean>
+	<bean id="measuringTypeDao"
+		class="gov.nih.tbi.dictionary.dao.hibernate.MeasuringTypeDaoImpl">
+	</bean>
+	<bean id="conditionDao" class="gov.nih.tbi.dictionary.dao.hibernate.ConditionDaoImpl">
+	</bean>
+	<bean id="classificationDiseaseDao"
+		class="gov.nih.tbi.dictionary.dao.hibernate.ClassificationDiseaseDaoImpl"></bean>
+	<bean id="subgroupDiseaseDao"
+		class="gov.nih.tbi.dictionary.dao.hibernate.SubgroupDiseaseDaoImpl"></bean>
+</beans>

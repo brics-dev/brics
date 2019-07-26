@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<queries>
+	<query>
+		<name> create 
+		</name>
+		<sql> INSERT INTO subject_merging_map (referring_subject_id, referred_subject_id, creator_id, date_created) VALUES (?,?,?,NOW()) 
+		</sql>
+	</query>
+	<query>
+		<name> findAllByReferringSubjectId 
+		</name>
+		<sql> SELECT * FROM subject_merging_map where referring_subject_id=? 
+		</sql>
+	</query>
+	<query>
+		<name> findAllByReferredSubjectId 
+		</name>
+		<sql> SELECT * FROM subject_merging_map WHERE referred_subject_id=? 
+		</sql>
+	</query>
+	<query>
+		<name> updateReferredId 
+		</name>
+		<sql> UPDATE subject_merging_map SET referred_subject_id=?, updater_id=?, date_updated=NOW() WHERE subject_merging_map_id=? 
+		</sql>
+	</query>
+	<!-- Commented out query because it's not being used anywhere in the system. <query> <name>update</name> <sql>UPDATE subject_merging_map SET referring_subject_id=?, referred_subject_id=?, updater_id=? WHERE subject_merging_map_id=?</sql> </query> -->
+</queries>

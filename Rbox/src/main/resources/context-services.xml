@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xmlns:jaxrs="http://cxf.apache.org/jaxrs" 
+		xmlns="http://www.springframework.org/schema/beans" 
+		xsi:schemaLocation="
+						http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://cxf.apache.org/jaxws http://cxf.apache.org/schemas/jaxws.xsd
+						http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd
+      				 	">
+
+	<bean id="rboxServiceBean" class="gov.nih.tbi.service.RboxService" />
+	
+	<jaxrs:server id="RboxService" address="/script">
+		<jaxrs:serviceBeans>
+			<ref bean="rboxServiceBean" />
+		</jaxrs:serviceBeans>
+		<jaxrs:providers>
+            <ref bean="jsonProvider"/>
+        </jaxrs:providers>
+	</jaxrs:server>
+	
+	
+	
+	<bean id="jsonProvider" class="org.codehaus.jackson.jaxrs.JacksonJsonProvider"/>
+	
+</beans>

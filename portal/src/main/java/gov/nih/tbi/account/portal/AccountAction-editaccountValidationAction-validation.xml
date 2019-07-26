@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC "-//Apache Struts//XWork Validator 1.0.2//EN" "/WEB-INF/xwork-validator-1.0.2.dtd">
+<validators>
+	<field name="accountDetailsForm.userName">
+		<field-validator type="requiredstring">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="userName">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.unique" />
+		</field-validator>
+		<field-validator type="regex">
+			<param name="trim">false</param>
+			<param name="regex"> ^[A-Za-z]{1}[A-Za-z0-9@\._-]{2,44}$ 
+			</param>
+			<message key="errors.specialchar" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 30 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<!-- <field name="accountDetailsForm.passwordString"> -->
+	<!-- <field-validator type="requiredpassword"> -->
+	<!-- <message key="errors.required" /> -->
+	<!-- </field-validator> -->
+	<!-- <field-validator type="confirmpassword"> -->
+	<!-- <param name="trim">true</param> -->
+	<!-- <message key="errors.confirmPassword" /> -->
+	<!-- </field-validator> -->
+	<!-- <field-validator type="passwordformat"> -->
+	<!-- <param name="trim">true</param> -->
+	<!-- <message key="errors.passwordFormat" /> -->
+	<!-- </field-validator> -->
+	<!-- </field> -->
+	<!-- <field name="accountDetailsForm.confirmPassword"> -->
+	<!-- <field-validator type="requiredpassword"> -->
+	<!-- <message key="errors.required" /> -->
+	<!-- </field-validator> -->
+	<!-- </field> -->
+	<field name="accountDetailsForm.firstName">
+		<field-validator type="regex">
+			<param name="trim">false</param>
+			<param name="regex"> ^[A-Za-z0-9 ,.'-]+$
+			</param>
+			<message key="errors.alphanumeric" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 55 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+		<field-validator type="requiredstring">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	<field name="accountDetailsForm.middleName">
+		<field-validator type="regex">
+			<param name="trim">false</param>
+			<param name="regex"> ^[A-Za-z0-9 ,.'-]+$
+			</param>
+			<message key="errors.alphanumeric" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 55
+			</param>
+			<param name="trim"> true
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="accountDetailsForm.lastName">
+		<field-validator type="regex">
+			<param name="trim">false</param>
+			<param name="regex"> ^[A-Za-z0-9 ,.'-]+$
+			</param>
+			<message key="errors.alphanumeric" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 55 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+		<field-validator type="requiredstring">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	<field name="accountDetailsForm.email">
+		<field-validator type="email">
+			<message> E-Mail address is not valid 
+			</message>
+		</field-validator>
+		<field-validator type="emailunique">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.unique" />
+		</field-validator>
+		<field-validator type="requiredstring">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 55 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="accountDetailsForm.affiliatedInstitution">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 55 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+		<field-validator type="requiredstring">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	<field name="accountDetailsForm.address1">
+		<field-validator type="requiredstring">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 255 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="accountDetailsForm.address2">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 255 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="accountDetailsForm.city">
+		<field-validator type="requiredstring">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 255 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="accountDetailsForm.country">
+		<field-validator type="required">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	<field name="accountDetailsForm.state">
+		<field-validator type="state">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	<field name="accountDetailsForm.phone">
+		<field-validator type="requiredstring">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="phonenumber">
+			<message key="errors.phoneNumber" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 30 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="accountDetailsForm.eraId">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 30 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="accountDetailsForm.postalCode">
+		<field-validator type="requiredstring">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 15 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+		<field-validator type="regex">
+			<param name="trim">false</param>
+			<param name="regex"> [A-Za-z\s0-9\-]*
+			</param>
+			<message key="errors.postalCode" />
+		</field-validator>
+	</field>
+	<field name="accountDetailsForm.interestInTbi">
+		<field-validator type="requiredstring">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 4000 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="accountDetailsForm.adminNote">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 1000 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+</validators>

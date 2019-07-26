@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC "-//Apache Struts//XWork Validator 1.0.2//EN" "/WEB-INF/xwork-validator-1.0.2.dtd">
+<validators>
+	<field name="uploadDescription">
+		<field-validator type="required" short-circuit="true">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="uniqueaccountfiletype">
+			<message key="errors.uniqueaccountfiletype" />
+		</field-validator>
+	</field>
+</validators>

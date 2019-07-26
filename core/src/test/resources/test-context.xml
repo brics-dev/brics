@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:context="http://www.springframework.org/schema/context" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p" xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop" xmlns:task="http://www.springframework.org/schema/task" xmlns="http://www.springframework.org/schema/beans" xsi:schemaLocation="
+       http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context 
+       http://www.springframework.org/schema/context/spring-context-2.5.xsd
+       http://www.springframework.org/schema/aop
+       http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+	   http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
+       http://www.springframework.org/schema/task 
+       http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<!-- <value>file:///opt/apache-tomcat/brics/datasource.properties</value> -->
+				<value>file:///c:/brics/datasource.properties</value>
+				<!-- <value>file:///opt/apache-tomcat/brics/common.properties</value> -->
+				<value>file:///c:/brics/common.properties</value>
+			</list>
+		</property>
+		<property name="ignoreUnresolvablePlaceholders" value="true" />
+	</bean>
+
+	<bean id="applicationProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+		<property name="locations">
+			<list>
+				<!-- <value>file:///opt/apache-tomcat/brics/modules.properties</value> -->
+				<value>file:///c:/brics/modules.properties</value>
+			</list>
+		</property>
+		<property name="ignoreResourceNotFound" value="true" />
+	</bean>
+
+	<context:annotation-config />
+	<bean id="classificationSparqlDao"
+		class="gov.nih.tbi.dictionary.dao.sparql.ClassificationSparqlDaoImpl">
+	</bean>
+	<bean id="formStructureSparqlDao"
+		class="gov.nih.tbi.dictionary.dao.sparql.FormStructureSparqlDaoImpl">
+	</bean>
+	<bean id="dataElementSparqlDao"
+		class="gov.nih.tbi.dictionary.dao.sparql.DataElementSparqlDaoImpl">
+	</bean>
+	<bean id="keywordSparqlDao"
+		class="gov.nih.tbi.dictionary.dao.sparql.KeywordSparqlDaoImpl">
+	</bean>
+	<bean id="rdfConnection" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
+		<property name="driverClassName" value="virtuoso.jdbc4.Driver" />
+		<property name="jdbcUrl" value="jdbc:virtuoso://REPLACED:1111" />
+		<property name="username" value="REPLACED" />
+		<property name="password" value="REPLACED" />
+		<property name="maximumPoolSize" value="10" />
+		<property name="idleTimeout" value="600000" />
+		<property name="maxLifetime" value="3600000" />
+	</bean>
+	<bean id="virtuosoStore" class="gov.nih.tbi.VirtuosoStore">
+		<property name="graphURI" value="demoTest" />
+		<property name="schema" value="http://brics/schema/" />
+	</bean>
+</beans>

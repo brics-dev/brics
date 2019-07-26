@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://fitbir.nih.gov/portal/ws/dictionary/MapElement"
+	xmlns:tns="http://fitbir.nih.gov/portal/ws/dictionary/MapElement"
+	elementFormDefault="qualified"
+	xmlns:Q1="http://fitbir.nih.gov/portal/ws/dictionary/CommonTypes" xmlns:pref="http://fitbir.nih.gov/portal/ws/dictionary/DataElement">
+
+	<import schemaLocation="CommonTypes.xsd"
+		namespace="http://fitbir.nih.gov/portal/ws/dictionary/CommonTypes" />
+
+	<import schemaLocation="DataElement.xsd" namespace="http://fitbir.nih.gov/portal/ws/dictionary/DataElement"></import>
+	<simpleType name="RequiredType">
+		<restriction base="string">
+			<enumeration value="Required"></enumeration>
+			<enumeration value="Recommended"></enumeration>
+			<enumeration value="Optional"></enumeration>
+			<enumeration value="Conditionally Required"></enumeration>
+			<enumeration value="Condtionally Prohibited"></enumeration>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="ConditionalOperators">
+		<restriction base="string">
+			<enumeration value="="></enumeration>
+			<enumeration value="!="></enumeration>
+			<enumeration value="&gt;"></enumeration>
+			<enumeration value="&lt;"></enumeration>
+			<enumeration value="&gt;="></enumeration>
+			<enumeration value="&lt;="></enumeration>
+		</restriction>
+	</simpleType>
+
+	<complexType name="Condition">
+		<sequence>
+			<element name="id" type="long"></element>
+			<element name="operator" type="tns:ConditionalOperators"></element>
+			<element name="value" type="string"></element>
+		</sequence>
+	</complexType>
+
+
+
+	<complexType name="MapElement">
+		<sequence>
+			<element name="repeatableGroup" type="Q1:RepeatableGroup"></element>
+			<element name="dataElement" type="pref:DataElement"></element>
+			<element name="position" type="integer"></element>
+			<element name="requiredTypeId" type="tns:RequiredType"></element>
+			<element name="condition" type="tns:Condition"></element>
+		</sequence>
+	</complexType>
+
+
+
+	<element name="MapElement" type="tns:MapElement"></element>
+</schema>

@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans" xmlns="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="	http://www.springframework.org/schema/beans		http://www.springframework.org/schema/beans/spring-beans.xsd
+              							http://www.springframework.org/schema/security 	http://www.springframework.org/schema/security/spring-security.xsd">
+
+	<http security="none" pattern="/images/*" />
+	<http create-session="never" security="none" pattern="/styles/*" />
+	<http create-session="never" security="none" pattern="/js/*" />
+	<http security="none" pattern="/common/*" />
+
+	<!-- No Authentication for Web Services -->
+	<http security="none" pattern="/ws/**" />
+	<http security="none" pattern="/ws/dictionary/**" />
+
+	<!-- No Authentication for Public Pages -->
+	<http security="none" pattern="/jsp/about/*.jsp" />
+	<http security="none" pattern="/jsp/about/news/*.jsp" />
+	<http security="none" pattern="/jsp/general/*.jsp" />
+	<http security="none" pattern="/jsp/access/*.jsp" />
+	<http security="none" pattern="/jsp/contribute/*.jsp" />
+	<http security="none" pattern="/jsp/data/*.jsp" />
+	<http security="none" pattern="/jsp/define/*.jsp" />
+	<http security="none" pattern="/jsp/error/*.jsp" />
+	<http security="none" pattern="/index.jsp" />
+
+	<http create-session="never" security="none" pattern="/ws/public/**" />
+
+	<!-- LOGIN PAGE -->
+	<http access-decision-manager-ref="accessDecisionManager"
+		auto-config="true" use-expressions="true">
+		<intercept-url access="hasRole(&apos;ROLE_GUEST&apos;)"
+			pattern="/jsp/login.jsp" />
+		<!-- <intercept-url pattern="/ws/*" access="hasRole('ROLE_USER')" /> -->
+
+		<!-- PUBLIC SITE BUTTONS -->
+		<intercept-url access="hasRole(&apos;ROLE_GUEST&apos;)"
+			pattern="/dictionary/baseDictionaryAction!dictionaryToolButton.ajax*" />
+		<intercept-url access="hasRole(&apos;ROLE_GUEST&apos;)"
+			pattern="/guid/GuidAction!guidButton.ajax*" />
+		<!-- DICTIONARY -->
+		<intercept-url access="hasRole(&apos;ROLE_GUEST&apos;)"
+			pattern="/dictionary/dataElementAction!updateStatus.ajax*" />
+		<intercept-url access="hasRole(&apos;ROLE_GUEST&apos;)"
+			pattern="/dictionary/dataElementAction!view*" />
+		<intercept-url access="hasRole(&apos;ROLE_GUEST&apos;)"
+			pattern="/dictionary/listDataStructureAction!loadIFrame*" />
+		<intercept-url access="hasRole(&apos;ROLE_GUEST&apos;)"
+			pattern="/dictionary/listDataStructureAction!searchPublished*" />
+		<intercept-url access="hasRole(&apos;ROLE_GUEST&apos;)"
+			pattern="/dictionary/dataStructureAction!lightboxView.ajax*" />
+		<intercept-url access="hasRole(&apos;ROLE_GUEST&apos;)"
+			pattern="/dictionary/searchDataElementAction*" />
+		<intercept-url access="hasRole(&apos;ROLE_GUEST&apos;)"
+			pattern="/dictionary/dataStructureXmlExportAction*" />
+		<intercept-url access="hasRole(&apos;ROLE_GUEST&apos;)"
+			pattern="/dictionary/dataStructureCsvExportAction*" />
+		<intercept-url access="hasRole(&apos;ROLE_GUEST&apos;)"
+			pattern="/dictionary/fileDownloadAction!download.ajax*" />
+		<intercept-url access="hasRole(&apos;ROLE_GUEST&apos;)"
+			pattern="/dictionary/fileDownloadAction!downloadDDT.ajax*" />
+		<intercept-url access="hasRole(&apos;ROLE_DICTIONARY&apos;)"
+			pattern="/dictionary/*" />
+		<intercept-url access="hasRole(&apos;ROLE_DICTIONARY_ADMIN&apos;)"
+			pattern="/dictionaryAdmin/*" />
+		<!-- ACCOUNTS -->
+		<!-- <intercept-url pattern="/accounts/*" access="hasRole('ROLE_GUEST')" 
+			/> -->
+		<intercept-url access="hasRole(&apos;ROLE_GUEST&apos;)"
+			pattern="/publicAccounts/*" />
+		<intercept-url access="hasRole(&apos;ROLE_USER&apos;)"
+			pattern="/accounts/*" />
+		<!-- REPOSITORY -->
+		<intercept-url
+			access="hasAnyRole(&apos;ROLE_STUDY_ADMIN&apos;)"
+			pattern="/repositoryAdmin/*" />
+		<intercept-url access="hasRole(&apos;ROLE_STUDY&apos;)"
+			pattern="/repository/*" />
+		<!-- STUDY -->
+		<intercept-url
+			access="hasAnyRole(&apos;ROLE_STUDY&apos;)"
+			pattern="/study/*" />
+		<intercept-url
+			access="hasAnyRole(&apos;ROLE_STUDY_ADMIN&apos;)"
+			pattern="/studyAdmin/*" />
+		<!-- METASTUDY -->
+		<intercept-url access="hasAnyRole(&apos;ROLE_METASTUDY&apos;)"
+			pattern="/metastudy/*" />
+		<intercept-url access="hasRole(&apos;ROLE_METASTUDY_ADMIN&apos;)"
+			pattern="/metastudyAdmin/*" />
+		<!-- GUID -->
+		<intercept-url access="hasRole(&apos;ROLE_GUID&apos;)"
+			pattern="/guid/*" />
+		<intercept-url access="hasRole(&apos;ROLE_GUID_ADMIN&apos;)"
+			pattern="/guidAdmin/*" />
+		<!-- ACCOUNT ADMIN -->
+		<intercept-url access="hasRole(&apos;ROLE_ACCOUNT_ADMIN&apos;)"
+			pattern="/accountAdmin/*" />
+		<!-- ADMIN -->
+		<intercept-url access="hasRole(&apos;ROLE_ADMIN&apos;)"
+			pattern="/admin/*" />
+		<intercept-url
+			access="hasAnyRole(&apos;ROLE_ADMIN&apos;,&apos;ROLE_ACCOUNT_ADMIN&apos;)"
+			pattern="/jsp/admin/index.jsp" />
+		<!-- SSO -->
+		<intercept-url access="hasRole(&apos;ROLE_USER&apos;)"
+			pattern="/jsp/sso/sso.html" />
+		<!-- PUBLIC PAGES -->
+		<intercept-url access="hasRole(&apos;ROLE_GUEST&apos;)"
+			pattern="**/baseAction!footer.ajax*" />
+		<intercept-url access="hasRole(&apos;ROLE_GUEST&apos;)"
+			pattern="**/baseAction!loginCheck.ajax*" />
+
+		<intercept-url access="hasRole(&apos;ROLE_ADMIN&apos;)"
+			pattern="/**/*.jsp" />
+		<intercept-url access="hasRole(&apos;ROLE_USER&apos;)"
+			pattern="/*landing.action" />
+		<intercept-url access="hasRole(&apos;ROLE_USER&apos;)"
+			pattern="/*dashboard.action" />
+		<intercept-url
+			access="hasRole(&apos;ROLE_ADMIN&apos;,&apos;ROLE_ACCOUNT_ADMIN&apos;)"
+			pattern="/*adminDashboard.action" />
+
+		<form-login authentication-failure-handler-ref="accountDetailService"
+			authentication-success-handler-ref="accountDetailService" login-page="/jsp/login.jsp" />
+		<!-- This prevents the crazy login messages popping up after session timeout -->
+		<session-management invalid-session-url="/jsp/login.jsp" />
+		<access-denied-handler error-page="/jsp/error/redirect-403-error.jsp" />
+		<custom-filter before="FORM_LOGIN_FILTER" ref="authFilter" />
+		<anonymous enabled="true" granted-authority="ROLE_GUEST"
+			username="guest" />
+	</http>
+
+	
+
+	<beans:bean id="preauthAuthProvider"
+		class="org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider">
+		<beans:property name="preAuthenticatedUserDetailsService">
+			<beans:bean id="userDetailsServiceWrapper"
+				class="org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper">
+				<beans:property name="userDetailsService" ref="accountDetailService" />
+			</beans:bean>
+		</beans:property>
+	</beans:bean>
+
+	<authentication-manager alias="authenticationManager">
+		<authentication-provider user-service-ref="accountDetailService">
+			<password-encoder hash="sha-256">
+			</password-encoder>
+		</authentication-provider>
+		<authentication-provider ref="preauthAuthProvider" />
+	</authentication-manager>
+	
+	<beans:bean id="authFilter"
+		class="gov.nih.tbi.account.service.complex.BricsAuthenticationFilter">
+
+		<beans:property name="authenticationManager" ref="authenticationManager" />
+		<beans:property name="filterProcessesUrl" value="/j_spring_security_check" />
+		<beans:property name="authenticationFailureHandler">
+			<beans:bean id="simpleUrlAuthenticationFailureHandler"
+				class="org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler">
+				<beans:property name="defaultFailureUrl" value="/jsp/login.jsp?login_error=1" />
+			</beans:bean>
+		</beans:property>
+	</beans:bean>
+
+	<beans:bean id="expressionHandler"
+		class="org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler">
+		<beans:property name="roleHierarchy" ref="roleHierarchy" />
+	</beans:bean>
+	<beans:bean id="roleHierarchy"
+		class="org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl">
+		<beans:property name="hierarchy">
+			<beans:value>
+				ROLE_ADMIN > ROLE_USER
+				ROLE_ADMIN > ROLE_DICTIONARY_ADMIN
+				ROLE_ADMIN > ROLE_ACCOUNT_ADMIN
+				ROLE_ADMIN >
+				ROLE_STUDY_ADMIN
+				ROLE_ADMIN > ROLE_GUID_ADMIN
+				ROLE_ADMIN >
+				ROLE_ORDER_ADMIN
+				ROLE_ADMIN > ROLE_QUERY_ADMIN
+				ROLE_ADMIN >
+				ROLE_PROFORMS_ADMIN
+				ROLE_ADMIN > ROLE_METASTUDY_ADMIN
+				ROLE_ACCOUNT_REVIEWER > ROLE_USER
+				ROLE_USER >
+				ROLE_GUEST
+				ROLE_ACCOUNT_ADMIN > ROLE_USER
+				ROLE_DICTIONARY_ADMIN >
+				ROLE_DICTIONARY
+				ROLE_DICTIONARY_ADMIN > ROLE_DICTIONARY_EFORM
+				ROLE_STUDY_ADMIN > ROLE_STUDY
+				ROLE_GUID_ADMIN > ROLE_GUID
+				ROLE_QUERY_ADMIN > ROLE_QUERY
+				ROLE_PROFORMS_ADMIN > ROLE_PROFORMS
+				ROLE_METASTUDY_ADMIN > ROLE_METASTUDY
+			</beans:value>
+		</beans:property>
+	</beans:bean>
+	<beans:bean id="webExpressionVoter"
+		class="org.springframework.security.web.access.expression.WebExpressionVoter">
+		<beans:property name="expressionHandler" ref="expressionHandler" />
+	</beans:bean>
+	<beans:bean id="accessDecisionManager"
+		class="org.springframework.security.access.vote.AffirmativeBased">
+		<beans:property name="decisionVoters">
+			<beans:list>
+				<beans:ref bean="webExpressionVoter" />
+			</beans:list>
+		</beans:property>
+	</beans:bean>
+</beans:beans>

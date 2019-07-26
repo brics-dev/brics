@@ -1,0 +1,107 @@
+/*----------------------------------------------------------
+cdRNs  Styles 
+------------------------------------------------------------*/
+
+/***
+       
+ * ===>>  CONFIG   <<================================================================================
+
+ * Color Variables */
+
+/* Grays */  
+$lightest: #fff;
+$disabled-gray: #adadad; 
+$lightest-gray: #ececec;    
+$lighter-gray: #d6d6d6; 
+$light-gray: #A8A8A8;  
+$medium-gray: #808080;
+$dark-gray: #362f2d;
+$darkest: #000;  
+$transparent:transparent;  
+
+/*  Main Colors (change these first, or add color names with hex values)
+** THESE COLORS (+ the grays) SHOULD DEFINE ALL OTHER COLORS IN THE SITE ** 
+*/
+$dark-blue: #1E2A7C;
+$dark-pink: #C20072;
+$red: #DD3434;
+$link-blue:  #141f64;   
+$light-blue: #359AEC;
+$light-yellow: #ffc; 
+$cool-gray: #4a545b;
+$yellow-orange: #ffea8a;       
+$orange: #797258;
+$dark-orange: #D2B684; 
+$darker-orange: #9F9675;
+$darkest-orange: #7b0f00;
+$light-green: #678747;
+$dark-green:  #004d00; 
+
+$banner-color:#FF6600;
+  
+/* Semantic Color Variables (change these next - these should be defined by Main Colors) */
+$body-bg: $cool-gray;
+$header-bg: $lightest; 
+$header-text: $darkest;
+$instanceHeaderOneBg : $transparent;
+$table-header: $body-bg;
+$heading-primary: $dark-blue;
+$heading-secondary:  $dark-gray;
+$breadcrumb1: $light-blue; 
+$breadcrumb2: $red;
+$primary-btn-color: $dark-pink;
+$secondary-btn-color: $dark-blue;
+$btn-color3: $dark-pink;
+$btn-close: $link-blue;
+$btn-checked: $darkest-orange;
+$btn-remove: $darker-orange;
+$footer-bg1: $dark-gray;
+$footer-bg2: $body-bg;
+$footer-text: $lightest;
+$footer-headings: $lightest;
+$active-sub1: $dark-pink;
+$active-sub2: $dark-blue;
+$active-ter: $yellow-orange;
+$nav-hover2: $footer-bg2;
+$nav-hover1: $footer-bg1;
+
+$nav-testing: $red;
+
+/*****
+    Other Color Variables (do NOT change these - these should always be defined by main or semantic variables) */
+
+    $border-dark: $light-gray;
+    $success: $dark-green;
+    $error: $red; 
+    $highlight: $light-yellow;
+    $highlight-border: $dark-gray;  
+    $highlight-text: $heading-secondary;
+    $reverse-bg: $heading-secondary;
+    $bannerBg: $banner-color;
+
+
+/***
+
+ * ===>>  END CONFIG   <<==================================================================================
+
+***/
+
+
+/* Import BRICS Styles */
+ 
+@import "../../qt-header.scss";  
+@import "../../qt-structure.scss";
+@import "../../qt-general.scss";  
+@import "../../queryTool.dataTables.scss";  
+
+ 
+
+/***
+
+ * ===>>  Instance-specific Style Overrides   <<=================================================================
+
+***/
+
+#header .content {background-position: top right;}
+
+#logo { width:332px; }

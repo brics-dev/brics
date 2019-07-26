@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+        "http://struts.apache.org/dtds/struts-2.5.dtd">
+ 
+<struts>
+
+	<package name="admin" namespace="/admin" extends="default">
+	
+		<!-- Users -->
+		<action name="userHome" class="gov.nih.nichd.ctdb.security.action.UserHomeAction" method="showUserHome">
+			<result name="success">userHome.jsp</result>
+		</action>
+		<action name="getUsersList" class="gov.nih.nichd.ctdb.security.action.UserHomeAction" method="getUsersList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>		
+		<action name="searchUser" class="gov.nih.nichd.ctdb.security.action.UserHomeAction" method="searchUser">
+			<result name="success">userHome.jsp</result>
+		</action>
+
+		<!-- Roles and Privileges -->
+		<action name="rolesAdmin" class="gov.nih.nichd.ctdb.security.action.RolesAdminAction">
+			<result name="success">roles/rolesAdmin.jsp</result>
+			<result name="input">roles/rolesAdmin.jsp</result>
+		</action>
+		<action name="getSystemRolesList" class="gov.nih.nichd.ctdb.security.action.RolesAdminAction" method="getSystemRolesList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>		
+		<action name="editRole" class="gov.nih.nichd.ctdb.security.action.RoleAction" method="showEditRole">
+			<result name="success">roles/roleForm.jsp</result>
+			<result name="input">roles/roleForm.jsp</result>
+		</action>
+		<action name="addRole" class="gov.nih.nichd.ctdb.security.action.RoleAction" method="showAddRole">
+			<result name="success">roles/roleForm.jsp</result>
+			<result name="input">roles/roleForm.jsp</result>
+		</action>
+		<action name="saveRole" class="gov.nih.nichd.ctdb.security.action.RoleAction" method="saveRole">
+			<result name="success" type="redirectAction">rolesAdmin</result>
+			<result name="exception">roles/roleForm.jsp</result>
+			<result name="input">roles/roleForm.jsp</result>
+		</action>
+		
+		<!-- Site URLs -->
+		<action name="siteLinkAdmin" class="gov.nih.nichd.ctdb.security.action.SiteLinkAdminAction">
+			<result name="success">sitelink/siteLinkAdmin.jsp</result>
+			<result name="input">sitelink/siteLinkAdmin.jsp</result>
+		</action>
+		<action name="getSiteLinkAdmin" class="gov.nih.nichd.ctdb.security.action.SiteLinkAdminAction" method="getSiteLinkAdmin">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>			
+		<action name="siteLinkOrder" class="gov.nih.nichd.ctdb.security.action.SiteLinkOrderAction">
+			<result name="success">sitelink/siteLinkOrderForm.jsp</result>
+		</action>
+		<action name="updateSiteLinkOrder" class="gov.nih.nichd.ctdb.security.action.SiteLinkOrderAction" method="updateSiteLinkOrder">
+			<result name="success" type="redirectAction">siteLinkAdmin</result>
+		</action>
+		<action name="deleteSiteLink" class="gov.nih.nichd.ctdb.security.action.SiteLinkAdminAction" method="deleteSiteLink">
+			<result name="success">sitelink/siteLinkAdmin.jsp</result>
+		</action>
+		<action name="addSiteLink" class="gov.nih.nichd.ctdb.security.action.SiteLinkAction">
+			<result name="success">sitelink/siteLinkForm.jsp</result>
+			<result name="input">sitelink/siteLinkForm.jsp</result>
+		</action>
+		<action name="editSiteLink" class="gov.nih.nichd.ctdb.security.action.SiteLinkAction" method="showEditSiteLink">
+			<result name="success">sitelink/siteLinkForm.jsp</result>
+			<result name="input">sitelink/siteLinkForm.jsp</result>
+		</action>
+		<action name="saveSiteLink" class="gov.nih.nichd.ctdb.security.action.SiteLinkAction" method="saveSiteLink">
+			<result name="success" type="redirectAction">siteLinkAdmin</result>
+			<result name="exception">sitelink/siteLinkForm.jsp</result>
+			<result name="input">sitelink/siteLinkForm.jsp</result>
+		</action>
+		
+		
+		<!-- eForm Migration -->
+		<action name="eFormMigrateHome" class="gov.nih.nichd.ctdb.security.action.EformMigrationAction">
+			<result name="success">eformMigration/eformMigration.jsp</result>
+			<result name="error">eformMigration/eformMigration.jsp</result>
+		</action>
+		<action name="eFormConversion" class="gov.nih.nichd.ctdb.security.action.EformMigrationAction" method="formToEformConversion">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">eFormJson</param>
+			</result>
+			<result name="forbidden" type="httpheader">
+				<param name="error">403</param>
+				<param name="errorMessage">Only system admins have access to this action.</param>
+			</result>
+			<result name="badRequest" type="httpheader">
+				<param name="error">400</param>
+				<param name="errorMessage">Invalid form ID or version.</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">Couldn't create an eForm JSON object for the specified form ID.</param>
+			</result>
+		</action>
+		<action name="createEForm" class="gov.nih.nichd.ctdb.security.action.EformMigrationAction" method="createEForm">
+			<result name="forbidden" type="httpheader">
+				<param name="error">403</param>
+				<param name="errorMessage">Only system admins have access to this action.</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">Couldn't create an eForm in the Dictionary.</param>
+			</result>
+		</action>
+		<action name="linkEFormToForm" class="gov.nih.nichd.ctdb.security.action.EformMigrationAction" method="linkEFormToForm">
+			<result name="success" type="httpheader">
+				<param name="status">204</param>
+			</result>
+			<result name="forbidden" type="httpheader">
+				<param name="error">403</param>
+				<param name="errorMessage">Only system admins have access to this action.</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">Couldn't link an eForm JSON object to a ProFoRMS form.</param>
+			</result>
+		</action>
+		<action name="testXmlDownload" class="gov.nih.nichd.ctdb.security.action.EformMigrationAction" method="testXmlDownload">
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">Couldn't send back the test XML file.</param>
+			</result>
+		</action>
+		
+		<!-- This is the navigation for the admin form submit to the data submission table  -->
+		<action name="formSubmissionAdmin" class="gov.nih.nichd.ctdb.security.action.AdminDataSubmissionAction">
+			<result name="success">dataSubmission/dataSubmission.jsp</result>
+			<result name="error">dataSubmission/dataSubmission.jsp</result>
+		</action>
+		
+		<action name="addCollection" class="gov.nih.nichd.ctdb.security.action.AdminDataSubmissionAction" method="setCollectionForMirth">
+			<result name="success">dataSubmission/dataSubmission.jsp</result>
+			<result name="error">dataSubmission/dataSubmission.jsp</result>
+		</action>
+	</package>
+</struts>

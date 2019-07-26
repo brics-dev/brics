@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<queries>
+	<query>
+		<name> findByCreatorIdAndUserId 
+		</name>
+		<sql> SELECT * FROM siteuser WHERE site_id=? AND user_id=? 
+		</sql>
+	</query>
+	<query>
+		<name> findByUsername 
+		</name>
+		<sql> SELECT * FROM siteuser WHERE user_name=? 
+		</sql>
+	</query>
+</queries>

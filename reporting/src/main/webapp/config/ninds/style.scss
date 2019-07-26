@@ -1,0 +1,108 @@
+/*----------------------------------------------------------
+  NINDS Styles    
+------------------------------------------------------------*/
+   
+/***      
+   
+ * ===>>  CONFIG   <<=======================================================================  
+   
+ * Color Variables */ 
+ 
+/* Grays */  
+$lightest: #fff;
+$disabled-gray: #adadad; 
+$lightest-gray: #ececec;       
+$lighter-gray: #d6d6d6; 
+$light-gray: #A8A8A8;  
+$medium-gray: #808080;
+$dark-gray: #362f2d;
+$darkest: #000;
+ 
+/*  Main Colors (change these first, or add color names with hex values)
+** THESE COLORS (+ the grays) SHOULD DEFINE ALL OTHER COLORS IN THE SITE ** 
+*/
+$red: #DD3434;
+$link-blue: #2b2e6a;
+$blue: #40539e;
+$light-blue: #cce0eb;  
+$light-yellow: #ffc;
+$dark-orange: #a02504;
+$orange: #ed9800;
+$yellow-orange: #CC9900; 
+$dark-green:  #004d00; 
+$green: #567830;
+$light-green: #678747;
+$lighter-green: #ced9c0;  
+$banner-color:#FF6600;
+
+
+/* Semantic Color Variables (change these next - these should be defined by Main Colors) */
+$body-bg: $link-blue; 
+$header-bg: $lightest; 
+$header-text: $darkest;
+$table-header: $body-bg; 
+$heading-primary: $dark-orange;
+$heading-secondary:  $dark-gray;
+$breadcrumb1: $light-blue;
+$breadcrumb2: $dark-orange;
+$btn-color: $dark-orange;
+$btn-color2: $orange; 
+$btn-color3: $lighter-green; 
+$btn-close: $link-blue;
+$btn-checked: $light-green;
+$btn-remove: $light-green;
+$footer-bg1: $lightest;
+$footer-bg2: $light-blue; 
+$footer-text: $darkest; 
+$footer-headings: $heading-primary; 
+$active-sub1: $orange;
+$active-sub2: $dark-orange;
+$active-ter: $orange;
+$nav-hover2: $body-bg;
+$nav-hover1: $blue;     
+
+
+/*****
+    Other Color Variables (do NOT change these - these should always be defined by main or semantic variables) */
+    $border-dark: $light-gray;
+    $error: $red;
+    $success: $dark-green;
+    $highlight: $light-yellow;
+    $highlight-border: $dark-gray;
+    $highlight-text: $heading-secondary;
+    $reverse-bg: $heading-secondary;
+    $bannerBg: $banner-color;
+
+/***
+
+ * ===>>  END CONFIG   <<=================================================================
+
+***/
+
+
+/* Import BRICS Styles */
+ 
+@import "../../styles/common.scss";   
+@import "../../styles/style.scss";   
+@import "../../styles/fancybox.scss"; 
+ 
+
+/***
+
+ * ===>>  Instance-specific Style Overrides   <<=================================================================
+
+***/
+
+#header {
+    background: $light-blue;
+    .content {
+        border: 1px solid #ccc; border-top: 3px solid $link-blue;
+        background: $lightest;
+    }
+}
+#logo {height: 40px; width: 600px; margin:0 10px; display:block; position:relative;}
+#login-button {position: relative; right: 20px; top: -80px; margin: 0;}
+#content-wrapper {background-repeat: repeat-x; clear: both;
+    .content {border: 1px solid #ccc;}
+}
+

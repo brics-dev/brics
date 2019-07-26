@@ -1,0 +1,31 @@
+{
+  "ecmaVersion": 5,
+  "plugins": {
+    "guess-types": {
+      
+    },
+    "outline": {
+      
+    },
+    "eslint": {
+      "config": {
+        "globals" : {
+         "_" : true,
+         "QueryTool" : true,
+         "TemplateManager" : true,
+         "QT" : true,
+         "Backbone" : true
+        }
+      }
+    },
+    "jquery-ui1-12": {
+      
+    }
+  },
+  "libs": [
+    "ecma5",
+    "browser",
+    "underscore",
+    "jquery"
+  ]
+}

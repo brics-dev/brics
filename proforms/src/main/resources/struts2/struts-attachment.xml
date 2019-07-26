@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+        "http://struts.apache.org/dtds/struts-2.5.dtd">
+ 
+<struts>
+
+	<package name="attachment" namespace="/attachments" extends="default">
+	
+		<!-- Attachment Audit -->
+		<action name="attachmentAudit" class="gov.nih.nichd.ctdb.attachments.action.AttachmentAuditAction">
+			<result name="success">attachmentAudit.jsp</result>
+		</action>
+
+		<!-- Attachment Category -->
+        <action name="attachmentCategoryList" class="gov.nih.nichd.ctdb.attachments.action.AttachmentCategoryListAction">
+			<result name="success">attachmentCategoryListForm.jsp</result>
+			<result name="exception">attachmentCategoryForm.jsp</result>
+       </action>
+        <action name="attachmentCategory" class="gov.nih.nichd.ctdb.attachments.action.AttachmentCategoryAction">
+			<result name="success">attachmentCategoryForm.jsp</result>
+			<result name="exception">attachmentCategoryForm.jsp</result>
+       </action>
+		<action name="saveAttachmentCategory" class="gov.nih.nichd.ctdb.attachments.action.AttachmentCategoryAction" method="saveAttachmentCategory">
+			<result name="success">attachmentCategoryForm.jsp</result>
+			<result name="error">attachmentCategoryForm.jsp</result>
+		</action>
+		<action name="deleteAttachmentCategory" class="gov.nih.nichd.ctdb.attachments.action.AttachmentCategoryAction" method="deleteAttachmentCategory">
+			<result name="success">attachmentCategoryForm.jsp</result>
+			<result name="error">attachmentCategoryForm.jsp</result>
+		</action>
+		
+		<!-- File Download -->
+        <action name="download" class="gov.nih.nichd.ctdb.attachments.action.FileAction" method="downloadFile">
+            <result name="exception">/common/error_struts2.jsp</result>
+        </action>
+
+	</package>
+	
+</struts>

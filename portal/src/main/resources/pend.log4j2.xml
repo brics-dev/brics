@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+    <appender name="stdout" class="org.apache.log4j.ConsoleAppender">
+        <param name="Target" value="System.out"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d{ISO8601} %-5p [%F:%L] : %m%n"/>
+        </layout>
+    </appender>
+    <logger name="catalina">
+        <level value="INFO"/>
+    </logger>
+    <logger name="com.opensymphony.sitemesh">
+        <level value="WARN"/>
+    </logger>
+    <logger name="org.apache">
+        <level value="INFO"/>
+    </logger>
+    <logger name="org.apache.struts2">
+        <level value="INFO"/>
+    </logger>
+    <logger name="org.hibernate">
+        <level value="WARN"/>
+    </logger>
+
+    <logger name="org.hibernate.jdbc">
+        <level value="ERROR"/>
+    </logger>
+
+
+    <logger name="org.springframework.security">
+        <level value="ERROR"/>
+    </logger>
+
+    <logger name="org.springframework">
+        <level value="WARN"/>
+    </logger>
+
+    <logger name="org.apache.struts2">
+        <level value="WARN"/>
+    </logger>
+
+    <logger name="com.opensymphony.xwork2">
+        <level value="WARN"/>
+    </logger>
+
+    <logger name="com.jolbox">
+        <level value="WARN"/>
+    </logger>
+
+    <logger name="gov.nih.tbi.account.service.complex">
+        <level value="INFO"/>
+    </logger>
+
+    <logger name="gov.nih.tbi.ordermanagement">
+        <level value="INFO"/>
+    </logger>
+
+    <logger name="gov.nih.tbi.ordermanager">
+        <level value="INFO"/>
+    </logger>
+
+    <logger name="gov.nih.tbi.ordermanager">
+        <level value="INFO"/>
+    </logger>
+
+    <logger name="gov.nih.tbi">
+        <level value="INFO"/>
+    </logger>
+
+    <logger name="org.jasig.cas.client.util.CommonUtils">
+        <level value="ERROR"/>
+    </logger>
+
+    <root>
+        <level value="INFO"/>
+        <appender-ref ref="stdout"/>
+    </root>
+</log4j:configuration>

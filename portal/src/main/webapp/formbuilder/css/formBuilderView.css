@@ -1,0 +1,323 @@
+/* ----- generic site classes ----------------------------------------- */
+/* main body look */
+	body {background-color: #FFFFFF; font-family: Arial, Helvetica, sans-serif; font-size: 8pt; color: #000000}
+/* title of the page */
+	.pageTitle {font-family:Arial; font-size:14pt; color:#006600; font-weight:bold;}
+/* title of the page */
+	.subPageTitle {font-family:Arial; font-size:12pt; color:#000000; font-weight:bold;}
+/* instructions for the page */
+        .pageInstructions {font-family:Arial; font-size:8pt; color:#006600; font-weight:bold; font-style:normal;}
+/* instructions for the page with background color*/
+	.pageInstructionwithcolors {font-family:Arial; font-size:8pt; color:#006600; font-weight:bold; font-style:normal; background-color:#CCCC99;}
+/* informative protocol reference text appearing above table */
+	.protocolReference {font-family:Arial; font-weight:bold; font-size:10pt;}
+/* welcome message text on top of page */
+	.textWelcome {font-family: Arial; font-size: 11pt; font-style:normal; line-height: normal; font-weight:bold; font-variant:normal; color:#006600}
+/* standard narrative non-tabular non-form text appearing in the page */
+	.standardText {font-family:Arial; font-size:8.5pt;}
+/* confirmation message after adding/editing/deleting items */
+	.confirmationText {font-family:Arial; font-size:9pt; color:#cc0000; font-style:normal;}
+/* confirmation message after adding/editing/deleting items */
+	.labelTextwithcolors {font-family:Arial; font-size:10pt; font-style:normal; background-color:#CCCC99;}
+/* confirmation message after adding/editing/deleting items */
+	.labelTextnocolors {font-family:Arial; font-size:10pt; font-style:normal;}
+.nineBold {font-family:Arial; font-size:9pt; font-weight:bold;}
+ /* very small black text */
+    .smallText {font-family:Arial; font-size:4pt; font-style:normal;}
+
+.horizNavLink {font-family:Arial; font-size:8pt; font-style:normal; color:white; text-decoration:none; padding:0px 25px 0px 25px}
+/* ----- data display classes ---------------------------------------- */
+/* regular column header row */
+	.tableRowHeader {background-color:#006600;}
+/* regular column header data */
+	.tableCellHeader {font-family:Arial; font-size:10pt; color:#FFFFFF; font-weight: bold;}
+/* regular column header link */
+	a.tableCellHeaderLink {font-family:Arial; font-size:10pt; color:#FFFFFF; font-weight: bold;}
+/* sorted column header data */
+	.tableCellHeaderSorted {font-family:Arial; font-size:10pt; color:#FFFFFF; background-color:#000000; font-weight: bold;}
+/* regular data row */
+	.tableRowEven {background-color:#ffffff;}
+/* striped data row */
+	.tableRowOdd {background-color:#CCCC99;}
+/* regular cell data */
+	.tableCell {font-family:Arial; font-size:9pt; /*line-height: 14pt;*/ }
+
+    .searchTable {background-color: #EBEBEB; border: 0; width: 300px; padding: 2px 2px 2px 2px;}
+
+    .protocolUserSelect {width: 170;}
+
+.tableCellHeaderBlack  {font-family:Arial; font-size:9pt; color:black; font-weight: bold;}
+/* ----- form classes ---------------------------------------------- */
+/* the text name/label appearing for each form item (e.g., First Name);
+this is NOT for the FORM item itself and should not be used for textboxes, etc */
+	.formItemLabel {font-family:Arial; font-size:8.5pt; color: #000000; white-space: nowrap;}
+/* when a form item has an error, use this for the text form item label instead to highlight it */
+	.formitemlabelerror {font-family:Arial; font-size:8pt; color:#CC0000; font-weight: bold;}
+/* form fields */
+	input {font: 8pt Arial,Helvetica,sans-serif;}
+	select {font: 8pt Arial,Helvetica,sans-serif;}
+	textarea {font: 8pt Arial,Helvetica,sans-serif;}
+	input.radio {height: 8pt; width: 8pt; margin-bottom: 1px; margin-right: 1px;}
+	input.checkbox {height: 10pt; width:10pt; margin-bottom:1px; margin-right: 1px;}
+	input.inputFormat {font-family:arial; font-size:10px;}
+	input.inputValue {font-family:arial; font-size:10px; text-align:right;}
+/* for helper text appearing next to a form item to provide data entry formatting help (e.g., (mm/dd/yyyy) ) */
+	.formItemHelp { font-family: Arial; font-size: 8.5pt; font-style: italic; }
+/* the main form error message and bullet points appearing at the top when a form as problems */
+	.mainFormErrorMessage {font-family:Arial; font-size:8.5pt; background-color:#E6E6C3; color:#CC0000;}
+/* the required "*" character appearing next to form labels */
+	.requiredIndicator {font-family:Arial; font-size:13pt; color:#CC0000; font-weight: bold;}
+/* error message in public site for login/logout feedback */
+	.loginMessage {font-family:Arial; font-size:9pt; font-weight: bold; color:#CC0000;}
+/* error message in format for javascritp validatoin */
+	.javascriptErrors {font-family:Arial; font-size:11pt; color:#CC0000;}
+
+
+.underlinerowtable tr {
+    border-bottom:1px solid black;
+}
+/* ----- navigation and link classes  ---------------------------------- */
+a {font-family: Arial; color:#000000; font-size: 10pt;}
+.navHeader {font-family: Arial, Helvetica, sans-serif; font-size: 12pt; font-style: normal; line-height: normal; font-weight: bold; font-variant: normal; color: #000000}
+.navHeaderLink {font-family: Arial, Helvetica, sans-serif; font-size: 12pt; font-style: normal; line-height: normal; font-weight: bold; font-variant: normal; color: #006600}
+.navHeaderLink:hover {color: #000000}
+.navSub {font-family: Arial, Helvetica, sans-serif; font-size: 10pt; font-style: normal; line-height: normal; font-weight: normal; font-variant: normal; color: #000000}
+.navSubLink {font-family: Arial, Helvetica, sans-serif; font-size: 10pt; font-style: normal; line-height: normal; font-weight: normal; font-variant: normal; color: #006600}
+.navSubLink:hover {color: #000000}
+.bannerbkg {background-color: #006600}
+.navbkg {background-color: #B6B77B}
+.bannerbkglt {background-color: #3C843C}
+.mainnav {background-color: #EBEBEB}
+.formheader {background-color: #000000}
+.formbkg {background-color: #FFFFFF}
+.cell_over {background-color: #006600}
+.navMain {font-family: Arial, Helvetica, sans-serif; font-size: 8pt; font-style: normal; font-weight: bold; font-variant: normal; color: #000000; text-decoration: none}
+.navMain:hover {font-family: Arial, Helvetica, sans-serif; font-size: 8pt; font-style: normal; font-weight: bold; font-variant: normal; color: #FFFFFF; text-decoration: none}
+.navSection {font-family: Arial, Helvetica, sans-serif; font-size: 9pt; font-style: normal; line-height: normal; font-weight: bold; font-variant: normal; color: #006600; text-decoration: none}
+.navLink {font-family: Arial, Helvetica, sans-serif; font-size: 8pt; font-style: normal; font-weight:normal ; font-variant: normal; color: #000000; text-decoration: none; padding:0px;}
+.navLinkAlt {font-family: Arial, Helvetica, sans-serif; font-size: 8pt; font-style: normal; font-weight: normal; font-variant: normal; color: #006600; text-decoration: none; padding:0px;}
+.navLink:hover {font-family: Arial, Helvetica, sans-serif; font-size: 8pt; font-style: normal; font-weight: bolder; color: #006600; text-decoration: none ;padding:0px;}
+.navLinkAlt:hover {font-family: Arial, Helvetica, sans-serif; font-size: 8pt; font-style: normal; font-weight: bolder; color: #000000; text-decoration: none;  padding:0px;}
+
+.newsHeader  {font-family:Arial; font-size:11pt; font-weight: bold; color:#006600;}
+.newsText  {font-family:Arial; font-size:9.5pt;}
+/* ----- TABS ----------------------------------------- */
+		/*               LEGEND
+		| .content    -- the content div             |
+		| #tabs       -- the div that holds all tabs |
+		| .tab        -- an inactive tab             |
+		| .tabActive  -- an active tab               |
+		| .tabHover  -- an inactive tab onMouseOver  |
+		|___________________________________________*/
+
+     .tabContent {
+         font-size: 10;
+         /* position: absolute; hidden by Ching Heng */
+         /* left: 210px; hidden by Ching Heng */
+         top: 189px;
+         font-family: Arial, Helvetica, sans-serif;
+         padding: 12px;
+         margin: 0 3px;
+         border: 1px solid #B6B77B;
+         /* width: 590px;  Hidded by Ching Heng, make the width change by table size */ 
+         border-top: 1px solid #B6B77B;
+         border-left: 1px solid #B6B77B;
+         z-index: 500;
+         background-color: #ffffff;
+     }
+     #content2,#content3,#content4,#content5,#content6,#content7,#content8{
+          z-index:1;visibility:hidden
+     }
+      #tabs {
+
+         /* position: absolute; */ /* hidden by Ching Heng */
+         top: 175px;
+        /*  left: 225px; */ /* hidden by Ching Heng */
+         height: auto;
+		width:100%;
+         font-size: 10pt;
+         font: Menu;
+         cursor: default !important;
+         font-weight: 700 !important;
+       /*  white-space:nowrap;*/
+         word-wrap:break-word;
+         z-index: 10000;
+         /*background-color:red;*/
+
+      }
+      .tab {
+         font-size: 11;
+         height:22px;
+         position: relative;
+        /* background:url(/ctdb/images/glowtab-left.gif) no-repeat left top;*/
+         /*border: 2px ridge #B6B77B;*/
+        /* padding:1px 9px 0px 9px;*/
+         background-color: #ffffff;
+         color:#000000;
+         z-index: 100;
+         /*border-bottom:0;*/
+         border-top-left-radius: 2em;
+         border-top-right-radius: 2em;
+         margin-left : 0px;
+         margin-right: 1px;
+          border-bottom: 1px solid #B6B77B;
+		float:left;
+ 		height: 25px;
+
+    }
+    .tabLeft {
+          /* background:url(/ctdb/images/glowtab-lefta.gif) no-repeat left top; */ /* changed by Ching Heng */
+          background:url(../images/glowtab-lefta.gif) no-repeat left top;
+          height:100%;
+          width:5px;
+          border-bottom: 1px solid #B6B77B;
+          padding:0px;
+          border:0px;
+          margin:0px;
+    }
+    .tabRight {
+          /* background:url(/ctdb/images/glowtaba.gif) no-repeat right top; */ /* changed by Ching Heng */
+          background:url(../images/glowtaba.gif) no-repeat right top;
+          height:100%;
+          border-bottom: 1px solid #B6B77B;
+          padding:4px;
+          border:0px;
+          margin:0px;
+    }
+
+      .tabActive {
+         /*background:url(/ctdb/images/glowtab-left.gif) no-repeat left top;*/ 
+         /*background-position:0% -82px;*/
+       /*  padding: 1px 9px 0px 9px;*/
+          height:25px;
+         color: #006600 !important;
+        /* background-color: #ffffff !important;*/
+         /*border: 2px ridge #006600;*/
+         /*border-top: 3px solid #006600;*/
+         z-index: 10000;
+         border-bottom:0;
+         margin-left : 1px;
+         margin-right: 1px;
+         border-bottom:0;
+      }
+      .tabActive .tabRight {
+              background-position:100% -82px;
+        }
+        .tabActive .tabLeft {
+              background-position:0% -82px;
+        }
+
+      .tabHover {
+         /*background:url(/ctdb/images/glowtab-lefta.gif) no-repeat left top;*/
+        /* background-position:0% -82px;*/
+         /*border: 1px solid #B6B77B;*/
+         /*padding:1px 1px 1px 1px;*/
+        /* background-color: #006600;*/
+         /*color:#ffffff;*/
+         z-index: 1200;
+         border-bottom: 0;
+      }
+
+      .tabHover .tabLeft {
+        background-position:0% -82px;
+      }
+       .tabHover .tabRight {
+              background-position:100% -82px;
+        }
+     .control {
+         position: absolute;
+         left: 204px;
+         z-index: 100;
+         visibility:hidden;
+     }
+
+/* the text name/label appearing for each form item (e.g., First Name);
+this is NOT for the FORM item itself and should not be used for textboxes, etc */
+	.tab.formItemLabel {font-family:Arial; font-size:8.5pt; color: #000000; white-space: nowrap;}
+
+
+
+     .staticContent {
+         font-size: 10;
+         position: relative;
+         font-family: Arial, Helvetica, sans-serif;
+         padding: 1px 12px 12px 12px;
+         margin: 0 3px;
+         border: 1px solid #B6B77B;
+         border-top: 1px solid #B6B77B;
+         border-left: 1px solid #B6B77B;
+         z-index: 500;
+         background-color: #ffffff;
+     }
+
+.collectHomeLink {
+    font-family:Arial; font-size:10pt; color:#635E5E; font-weight: bold; text-decoration:none;
+}
+.collectHomeLink:hover {
+    font-family:Arial; font-size:10pt; color:#9C7575; font-weight: bold; text-decoration:none;
+}
+
+.collectHomeTitle {
+    font-family:Arial; font-size:12pt; color:#635E5E;
+   }
+
+.collectHomeText {
+    font-family:Arial; font-size:8.5pt; color:#635E5E;
+    }
+
+
+/* tree menu styles */
+.mout {
+    font-family: Arial;
+     font-size: 8pt;
+     font-style: normal;
+     font-weight: normal;
+     color: #000000;
+     text-decoration: none;
+ }
+
+
+.mover {
+    font-family: Arial;
+     font-size: 8pt;
+     font-style: italic;
+     font-weight: normal;
+     color: #000000;
+     text-decoration: none;
+ }
+
+
+.locationParentChoice {font-family: Arial, Helvetica, sans-serif; font-size: 9pt; font-style: normal; cursor:pointer; border-top:2px ridge;}
+.locationParentChoiceHover{ font-family: Arial, Helvetica, sans-serif; font-size: 9pt; font-style: normal; cursor:pointer; background-color:blue; color:white;}
+
+.redtext {
+ font-family: Arial;
+     font-size: 14pt;
+     font-weight: bold;
+     color: #CCcccc;
+ }
+
+.helpTitle {
+ font-family: Arial;
+     font-size: 12pt;
+     font-weight: bold;
+     color: black;
+ }
+.helpText {font-family:Arial; font-size:10pt; color: #000000; }
+
+
+
+
+#topbar{
+position:absolute;
+border: 1px solid black;
+padding: 2px;
+background-color: lightyellow;
+width: 620px;
+visibility: hidden;
+z-index: 1000;
+}
+
+.labelAttribute {font-family:Arial; font-size:10pt; font-style:normal;}
+.textLabelAttribute {font-family:Arial; font-size:10pt; font-style:normal;}
+

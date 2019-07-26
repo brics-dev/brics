@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<queries>
+	<query>
+		<name> create 
+		</name>
+		<sql> INSERT INTO organization (name, full_name, description, end_point_reference, creator_id, date_created) VALUES (?,?,?,?,?,NOW()) 
+		</sql>
+	</query>
+	<query>
+		<name> findById 
+		</name>
+		<sql> SELECT * FROM organization WHERE org_id=? 
+		</sql>
+	</query>
+	<query>
+		<name> update 
+		</name>
+		<sql> UPDATE organization SET name=?, full_name=?, description=?, end_point_reference=?, updater_id=?, date_updated=now() WHERE org_id=? 
+		</sql>
+	</query>
+</queries>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jaxrs="http://cxf.apache.org/jaxrs" xmlns:context="http://www.springframework.org/schema/context" xsi:schemaLocation=" http://www.springframework.org/schema/beans  http://www.springframework.org/schema/beans/spring-beans-3.1.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd">
+	<import resource="classpath:META-INF/cxf/cxf.xml" />
+	<context:annotation-config />
+	<context:component-scan base-package="gov.nih.tbi" />
+
+	<bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:mail.properties</value>
+				<value>file:///opt/apache-tomcat/brics/datasource.properties</value>
+				<value>file:///${property.dir}/datasource.properties</value>
+			</list>
+		</property>
+		<property name="ignoreResourceNotFound" value="true"/>
+		<property name="ignoreUnresolvablePlaceholders" value="false" />
+	</bean>
+	<bean id="applicationProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+		<property name="locations">
+			<list>
+				<value>file:///opt/apache-tomcat/brics/modules.properties</value>
+				<value>file:///${property.dir}/modules.properties</value>
+			</list>
+		</property>
+		<property name="ignoreResourceNotFound" value="true" />
+	</bean>
+
+	<bean id="accountManager" class="gov.nih.tbi.account.service.complex.AccountManagerImpl" scope="singleton" />
+
+	<bean id="rdfGenConstants" class="gov.nih.tbi.RdfGenConstants" scope="singleton" />
+
+	<bean id="modulesConstants" class="gov.nih.tbi.ModulesConstants" scope="singleton">
+		<property name="wsSet" value="true" />
+	</bean>
+
+	<import resource="context-webservice.xml" />
+	<import resource="context-dao.xml" />
+	<import resource="context-database.xml" />
+
+	<!-- IMPORT SERVICE DEFINITIONS -->
+	<import resource="context-services.xml" />
+
+	<!-- <import resource="security.xml" /> -->
+	<!-- <import resource="context-security.xml/> -->
+
+	<!-- <bean id="DictionaryAPISearchManager" class="gov.nih.tbi.dictionary.service.impl.DictionaryAPISearchManagerImpl" scope="singleton" /> -->
+	
+</beans>

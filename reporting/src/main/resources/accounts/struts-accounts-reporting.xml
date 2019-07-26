@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+        "http://struts.apache.org/dtds/struts-2.5.dtd">
+<struts>
+	<package name="accountsreporting" extends="default" namespace="/viewaccountsreports">
+	
+		<global-allowed-methods>execute,input,back,cancel,browse,edit,create,view,search,list,submit</global-allowed-methods>
+		
+		<action name="accountsReportingListAction" class="gov.nih.tbi.reporting.AccountsReportingListAction">
+			<result name="list"> /jsp/accountsreport/listAccounts.jsp</result>
+			<result name="search"> /jsp/accountsreport/accountsSearchResults.jsp</result>
+			<result name="howToReporting"> /jsp/accountsreport/howToReportingPage.jsp</result>
+			<allowed-methods>getAccountsTableList,howToReporting,loginCheck,exportHTML,exportCSV,exportXLS,exportPDF</allowed-methods>
+		</action>
+	</package>
+</struts>

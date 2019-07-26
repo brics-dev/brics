@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC "-//Apache Struts//XWork Validator 1.0.2//EN" "/WEB-INF/xwork-validator-1.0.2.dtd">
+<validators>
+	<field name="email">
+		<field-validator type="requiredstring" short-circuit="true">
+			<param name="trim"> true </param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="email" short-circuit="true">
+			<message key="errors.emailformat" />
+		</field-validator>
+		<field-validator type="emailmatch" short-circuit="true">
+			<message key="errors.emailmatch" />
+		</field-validator>
+		<field-validator type="activeaccount" short-circuit="true">
+			<message key="errors.activeaccount" />
+		</field-validator>
+	</field>
+</validators>

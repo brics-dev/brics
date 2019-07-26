@@ -1,0 +1,19 @@
+<project>
+       <target name="sass.compile">
+       	<property name="sass.dir" value="." />
+        <property name="css.dir" value="../../instances/nti" />
+
+        <apply executable="C:\Ruby23\bin\sass.bat" dest="${css.dir}" verbose="true" force="true" failonerror="true">
+          <arg value="--unix-newline" />
+          <arg value="--compass" />
+          <srcfile />
+          <targetfile />
+          <fileset dir="${sass.dir}" includes="**/*.scss,**/*.sass" excludes="**/_*" />
+          <firstmatchmapper>
+            <globmapper from="*.sass" to="*.css" />
+            <globmapper from="*.scss" to="*.css" />
+          </firstmatchmapper>
+        </apply>
+        <!-- <eclipse.refreshLocal resource="xa/public" depth="infinite"/> --> 
+    </target>
+</project>

@@ -1,0 +1,40 @@
+{
+  "ecmaVersion": 5,
+  "plugins": {
+    "guess-types": {
+      
+    },
+    "outline": {
+      
+    },
+    "complete_strings": {
+      
+    },
+    "doc_comment": {
+      
+    },
+    "eslint": {
+      "globals" : {
+      	"window": true
+      }
+    },
+    "qunit": {
+      
+    },
+    "browser-extension": {
+      
+    },
+    "jquery-ui1-12": {
+      
+    },
+    "jquery-extension": {
+      
+    }
+  },
+  "libs": [
+    "ecma5",
+    "browser",
+    "underscore",
+    "jquery"
+  ]
+}

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<!--	Root node   -->
+	<xs:element name="dataStructureExport">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="dataStructure"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="dataStructure">
+		<xs:complexType>
+			<xs:sequence>
+				<!--new-->
+				<xs:element name="modifiedDate" type="xs:string" minOccurs="0"/>
+				<!--new-->
+				<xs:element name="modifiedUserId" type="xs:string" minOccurs="0"/>
+				<!--new-->
+				<xs:element name="id" type="xs:string" minOccurs="0"/>
+				<xs:element name="shortName" type="xs:string"/>
+				<!--new-->
+				<xs:element name="version" type="xs:string" minOccurs="0"/>
+				<xs:element name="title" type="xs:string"/>
+				<xs:element name="description" type="xs:string"/>
+				<!--new-->
+				<xs:element name="status" type="xs:string" minOccurs="0"/>
+				<!--new-->
+				<xs:element name="publicationDate" type="xs:string" minOccurs="0"/>
+				<xs:element name="organization" type="xs:string"/>
+				<xs:element name="fileType" type="xs:string"/>
+				<xs:element name="standardization" type="xs:string"/>
+				<xs:element name="required" type="xs:boolean"/>
+				<xs:element name="isCopyrighted" type="xs:boolean"/>
+				<!-- added by Ching-Heng -->
+				<xs:element name="isCAT" type="xs:boolean" minOccurs="0"/>
+				<xs:element name="catOid" type="xs:string" minOccurs="0"/>
+				<xs:element name="measurementType" type="xs:string" minOccurs="0"/>
+				<xs:element ref="repeatableGroups" maxOccurs="unbounded"/>
+				<xs:element ref="diseaseList" maxOccurs="unbounded"/>				
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="repeatableGroups">
+		<xs:complexType>
+			<xs:sequence>
+				<!--new-->
+				<xs:element name="id" type="xs:string" minOccurs="0"/>
+				<xs:element name="name" type="xs:string"/>
+				<xs:element name="type" type="xs:string"/>
+				<xs:element name="threshold" type="xs:integer"/>
+				<!-- old <xs:element name="position" type="xs:integer"/> -->
+				<!--new-->
+				<xs:element name="position" type="xs:integer" minOccurs="0"/>
+				<!-- old <xs:element ref="mapElements" maxOccurs="unbounded"/> -->
+				<!--new-->
+				<xs:element ref="mapElements" minOccurs="0" maxOccurs="unbounded"/>
+				<!--error  <xs:element name="position" type="xs:integer" minOccurs="0"/>  -->
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="mapElements">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="requiredType" type="xs:string" minOccurs="0"/>
+				<!--new-->
+				<xs:element ref="subdomain" minOccurs="0"/>
+				<!--new-->
+				<xs:element name="id" type="xs:string" minOccurs="0"/>
+				<xs:element name="repeatableGroup" type="xs:string"/>
+				<xs:element ref="dataElement"/>
+				<xs:element name="position" type="xs:integer"/>
+				<xs:element name="requiredTypeId" type="xs:string"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="dataElement">
+		<xs:complexType>
+			<xs:sequence>
+				<!--new-->
+				<xs:element ref="subdomain" minOccurs="0"/>
+				<!--new-->
+				<xs:element name="id" type="xs:string" minOccurs="0"/>
+				<xs:element name="name" type="xs:string"/>
+				<!--new-->
+				<xs:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="diseaseList">
+		<xs:complexType>
+			<xs:sequence>
+				<!--new-->
+				<xs:element name="id" type="xs:string" minOccurs="0"/>
+				<xs:element ref="disease" maxOccurs="1"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="disease">
+		<xs:complexType>
+			<xs:sequence>
+				<!--new-->
+				<xs:element name="id" type="xs:string" minOccurs="0"/>
+				<xs:element name="name" type="xs:string"/>
+				<!--new-->
+				<xs:element name="isActive" type="xs:string" minOccurs="0"/>
+				<xs:element name="isMajor" type="xs:string" minOccurs="0"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="subdomain">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="id" type="xs:string" minOccurs="0"/>
+				<xs:element name="name" type="xs:string" minOccurs="0"/>
+				<xs:element name="isActive" type="xs:string" minOccurs="0"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

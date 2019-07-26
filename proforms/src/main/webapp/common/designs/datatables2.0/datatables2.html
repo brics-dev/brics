@@ -1,0 +1,637 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>datatables 2.0</title>
+
+<script src="http://localhost:8080/ibis/common/js/jquery-1.7.2.js" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" href='http://localhost:8080/ibis/formbuilder/css/bootstrap/bootstrap.css' />
+<link rel="stylesheet" type="text/css" href="http://localhost:8080/ibis/common/c-pdbp/css/style.css" />
+<link rel="shortcut icon" type="image/x-icon" href="http://localhost:8080/ibis/common/c-pdbp/images/favicon.ico" />
+
+<script src="http://localhost:8080/ibis/common/js/jquery-ui-1.10.3.custom.js" type="text/javascript"></script>
+<script src="http://localhost:8080/ibis/common/js/jquery.scrollTo.min.js" type="text/javascript"></script>
+<script src="http://localhost:8080/ibis/common/js/HashTable.js" type="text/javascript"></script>
+
+<script src="http://localhost:8080/ibis/common/js/jquery.formalize.js" type="text/javascript"></script>
+<script src="http://localhost:8080/ibis/common/common.js" type="text/javascript"></script>
+<script src="http://localhost:8080/ibis/common/js/jquery.ui.accordion.activationExtension.js" type="text/javascript"></script>
+<script src="http://localhost:8080/ibis/common/js/jquery.dataTables.js" type="text/javascript"></script>
+<script src="http://localhost:8080/ibis/common/js/jquery.cookie.js" type="text/javascript"></script>
+<script src="http://localhost:8080/ibis/common/js/underscore-min.js" type="text/javascript"></script>
+<script src='http://localhost:8080/ibis/formbuilder/js/lib/backbone.js'></script>
+<script src='http://localhost:8080/ibis/formbuilder/js/lib/Backbone.ModelBinder.js'></script>
+<script src='http://localhost:8080/ibis/formbuilder/js/lib/Backbone.CollectionBinder.js'></script>
+
+<script src="http://localhost:8080/ibis/common/js/jquery.ibisMessaging-0.1.full.js" type="text/javascript"></script>
+<script src="http://localhost:8080/ibis/common/js/ibisCommon.js" type="text/javascript"></script>
+
+<script src="http://localhost:8080/ibis/common/js/ibisMessageResource.js" type="text/javascript"></script>
+<script src="http://localhost:8080/ibis/common/js/templateInteraction.js" type="text/javascript"></script>
+
+<link rel="stylesheet" type="text/css" href="http://localhost:8080/ibis/common/designs/style_guide/jquery.expandSections.css" />
+<script src="http://localhost:8080/ibis/common/designs/style_guide/jquery.expandSections.full.js" type="text/javascript"></script>
+
+<!-- Useful classes from formbuilder -->
+<script src='http://localhost:8080/ibis/formbuilder/js/lib/handlebars.js'></script>
+<script src="http://localhost:8080/ibis/formbuilder/js/core/util/underscoreMods.js" type="text/javascript"></script>
+<script src="http://localhost:8080/ibis/formbuilder/js/core/models/BaseModel.js" type="text/javascript"></script>
+<script src="http://localhost:8080/ibis/formbuilder/js/core/util/EventBus.js" type="text/javascript"></script>
+<script src="http://localhost:8080/ibis/formbuilder/js/core/util/TemplateManager.js" type="text/javascript"></script>
+<script src="http://localhost:8080/ibis/formbuilder/js/core/views/BaseView.js" type="text/javascript"></script>
+
+<!-- All new datatables code here -->
+<script src="http://localhost:8080/ibis/common/designs/datatables2.0/DataTableLanguages.js" type="text/javascript"></script>
+<script src="http://localhost:8080/ibis/common/designs/datatables2.0/Row.js" type="text/javascript"></script>
+<script src="http://localhost:8080/ibis/common/designs/datatables2.0/TableCol.js" type="text/javascript"></script>
+<script src="http://localhost:8080/ibis/common/designs/datatables2.0/Rows.js" type="text/javascript"></script>
+<script src="http://localhost:8080/ibis/common/designs/datatables2.0/TableCols.js" type="text/javascript"></script>
+<script src="http://localhost:8080/ibis/common/designs/datatables2.0/DataTable.js" type="text/javascript"></script>
+<script src="http://localhost:8080/ibis/common/designs/datatables2.0/DataTables.js" type="text/javascript"></script>
+<script src="http://localhost:8080/ibis/common/designs/datatables2.0/DataTableView.js" type="text/javascript"></script>
+<script src="http://localhost:8080/ibis/common/designs/datatables2.0/DataTableViews.js" type="text/javascript"></script>
+<script src="http://localhost:8080/ibis/common/designs/datatables2.0/IBISDataTables.js" type="text/javascript"></script>
+<script type="text/javascript">
+
+
+
+
+
+
+</script>
+
+
+
+</head>
+<body>
+
+
+<div class="dataTableContainer dataTableJSON">
+	<ul>
+		<li>
+				<button id="btnEditP" onclick="performEditForm()" title="Click to make changes">
+					Edit
+				</button>
+		</li>
+		<li>
+				<button id="btnViewP" onclick="performViewForm()" title="Click to view the form">
+					View
+				</button>
+		</li>
+		<li>
+				<button id="btnSaveAsP" onclick="performSaveAs()" title="Click to save as a new form">
+					Save As A New Form
+				</button>
+		</li>
+		<li>
+				<button id="btnViewAuditP" onclick="launchViewAudit()" title="Click to view changes made to form">
+					View Audit
+				</button>
+		</li>
+		<li>
+				<button id="btnDeleteActivate" onclick="activate()" title="Click to activate">
+					Activate
+				</button>
+		</li>
+		<li>
+				<input type="button" id="exportFormButton1" class="exportFormButton" value="Export" />
+		</li>
+		<li>
+				<button id="btnDeleteP" class="enabledOnMany" onclick="performDelete()" title="Click to delete">
+					Delete
+				</button>
+		</li>
+	</ul>
+	<table>
+		<script type="text/json">
+			{
+				"aaData" : [
+				         	["<input type=\"checkbox\" value=\"11,1\"/>",11,"AREA_OF_INJURY (A)","Area of Injury","Checkbox"],
+				        	["<input type=\"checkbox\" value=\"10,1\"/>",10,"DANGER_LEVEL (A)","Danger Level","Visual Scale"],
+				        	["<input type=\"checkbox\" value=\"5,1\"/>",5,"FILE (A)","file","File"],
+				        	["<input type=\"checkbox\" value=\"2,1\"/>",2,"FIRSTNAME (A)","First Name","Textbox"],
+				        	["<input type=\"checkbox\" value=\"4,1\"/>",4,"IMAGE (A)","image","Image Map"],
+				        	["<input type=\"checkbox\" value=\"13,1\"/>",13,"INCIDENT_DESCRIPTION (A)","Incident Description","Textarea"],
+				        	["<input type=\"checkbox\" value=\"3,1\"/>",3,"LASTNAME (A)","Last Name","Textbox"],
+				        	["<input type=\"checkbox\" value=\"9,1\"/>",9,"MUILTSELECT (A)","muiltselect","Multi-Select"],
+				        	["<input type=\"checkbox\" value=\"8,1\"/>",8,"SITE_NAME (A)","Site Name","Textbox"],
+				        	["<input type=\"checkbox\" value=\"1,1\"/>",1,"SPECIES (A)","What is the species of the animal?","Textbox"],
+				        	["<input type=\"checkbox\" value=\"12,1\"/>",12,"VICTIM_SUE (A)","Will the victim sue?","Radio"],
+				        	["<input type=\"checkbox\" value=\"14,1\"/>",14,"WHERE_HURT (A)","Where does it hurt?","Image Map"],
+							["<input type=\"checkbox\" value=\"15,1\"/>",14,"WHERE_HURTS (A)","Where does it hurt, yo?","Image Map"],
+							["<input type=\"checkbox\" value=\"16,1\"/>",14,"WHERE_HURTSS (A)","Whos yo daddy?","Textbox"],
+							["<input type=\"checkbox\" value=\"17,1\"/>",14,"WHAT_DO (A)","What does he do?","Textbox"],
+							["<input type=\"checkbox\" value=\"18,1\"/>",14,"COP_IDIOT (A)","I'm a cop you idiot?","Textarea"],
+							["<input type=\"checkbox\" value=\"19,1\"/>",14,"WHO_YOU (A)","Who are you? <input type=\"radio\" name=\"one\">one</input><input type=\"radio\" name=\"one\">two</input>","Image Map"]
+				        ],
+				"aoColumns" : [
+				 			  {"sTitle":""},
+							  {"sTitle":"number"},
+							  {"sTitle":"Variable"},
+							  {"sTitle":"name"},
+							  {"sTitle":"type"}
+							]
+				
+			}
+		</script>
+	
+	</table>
+</div>
+
+<br><br>
+
+<div class="dataTableContainer" id="patientFormsContent" style="display: block">
+	<ul>
+		<li>
+				<button id="btnEditP" onclick="performEditForm()" title="Click to make changes.">
+					Edit
+				</button>
+		</li>
+		<li>
+				<button id="btnViewP" onclick="performViewForm()" title="Click to view the form">
+					View
+				</button>
+		</li>
+		<li>
+				<button id="btnSaveAsP" onclick="performSaveAs()" title="Click to save as a new form">
+					Save As A New Form
+				</button>
+		</li>
+		<li>
+				<button id="btnViewAuditP" onclick="launchViewAudit()" title="Click to view changes made to form">
+					View Audit
+				</button>
+		</li>
+		<li>
+				<button id="btnDeleteActivate" onclick="activate()" title="Click to activate">
+					Activate
+				</button>
+		</li>
+		<li>
+				<input type="button" id="exportFormButton1" class="exportFormButton" value="Export" />
+		</li>
+		<li>
+				<button id="btnDeleteP" class="enabledOnMany" onclick="performDelete()" title="Click to delete." class="enabledOnMany">
+					Delete
+				</button>	
+		</li>
+	</ul>
+	<table id="protocolforms" class="table" width="100%" border="0" cellspacing="0" cellpadding="2">
+<tr class="tableRowHeader"><th class="tableCellHeader"></th>
+<th class="tableCellHeader">Form Name</th>
+<th class="tableCellHeader">Number of Questions</th>
+<th class="tableCellHeader">Form Group</th>
+<th class="tableCellHeader">Status</th>
+<th class="tableCellHeader">Administered</th>
+<th class="tableCellHeader">Form Last Updated</th>
+</tr>
+<tr class="tableRowOdd">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="198"  />
+<input name="numQuestions_198" type="hidden" value="3"  />
+<input name="statsQuestions_198" type="hidden" value="1"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=198 ');">test 2</a></td>
+<td  class="tableCell" align="left" valign="top">3</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Inactive</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2014-07-02 12:29</td>
+</tr>
+<tr class="tableRowEven">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="199"  />
+<input name="numQuestions_199" type="hidden" value="1"  />
+<input name="statsQuestions_199" type="hidden" value="1"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=199 ');">test form 3</a></td>
+<td  class="tableCell" align="left" valign="top">1</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Inactive</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2014-06-20 11:34</td>
+</tr>
+<tr class="tableRowOdd">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="190"  />
+<input name="numQuestions_190" type="hidden" value="4"  />
+<input name="statsQuestions_190" type="hidden" value="1"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=190 ');">Layout 2</a></td>
+<td  class="tableCell" align="left" valign="top">4</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Inactive</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2014-06-18 16:01</td>
+</tr>
+<tr class="tableRowEven">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="189"  />
+<input name="numQuestions_189" type="hidden" value="4"  />
+<input name="statsQuestions_189" type="hidden" value="1"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=189 ');">Layout Test</a></td>
+<td  class="tableCell" align="left" valign="top">4</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Inactive</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2014-06-18 09:53</td>
+</tr>
+<tr class="tableRowOdd">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="187"  />
+<input name="numQuestions_187" type="hidden" value="6"  />
+<input name="statsQuestions_187" type="hidden" value="1"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=187 ');">Test Form 10</a></td>
+<td  class="tableCell" align="left" valign="top">6</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Inactive</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2014-06-16 10:38</td>
+</tr>
+<tr class="tableRowEven">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="155"  />
+<input name="numQuestions_155" type="hidden" value="4"  />
+<input name="statsQuestions_155" type="hidden" value="3"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=155 ');">mirth</a></td>
+<td  class="tableCell" align="left" valign="top">4</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Active</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2014-06-11 10:21</td>
+</tr>
+<tr class="tableRowOdd">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="156"  />
+<input name="numQuestions_156" type="hidden" value="4"  />
+<input name="statsQuestions_156" type="hidden" value="3"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=156 ');">ibis1328</a></td>
+<td  class="tableCell" align="left" valign="top">4</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Active</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2014-06-11 10:21</td>
+</tr>
+<tr class="tableRowEven">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="177"  />
+<input name="numQuestions_177" type="hidden" value="0"  />
+<input name="statsQuestions_177" type="hidden" value="1"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=177 ');">Demo form</a></td>
+<td  class="tableCell" align="left" valign="top">0</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Inactive</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2014-06-10 16:04</td>
+</tr>
+<tr class="tableRowOdd">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="166"  />
+<input name="numQuestions_166" type="hidden" value="0"  />
+<input name="statsQuestions_166" type="hidden" value="1"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=166 ');">testpriorandconcomitant</a></td>
+<td  class="tableCell" align="left" valign="top">0</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Inactive</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2014-05-30 15:15</td>
+</tr>
+<tr class="tableRowEven">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="149"  />
+<input name="numQuestions_149" type="hidden" value="3"  />
+<input name="statsQuestions_149" type="hidden" value="4"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=149 ');">ryan</a></td>
+<td  class="tableCell" align="left" valign="top">3</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">In Progress</td>
+<td  class="tableCell" align="left" valign="top">Yes</td>
+<td  class="tableCell" align="left" valign="top">2013-12-23 17:21</td>
+</tr>
+<tr class="tableRowOdd">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="148"  />
+<input name="numQuestions_148" type="hidden" value="2"  />
+<input name="statsQuestions_148" type="hidden" value="1"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=148 ');">nishtest3</a></td>
+<td  class="tableCell" align="left" valign="top">2</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Inactive</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2013-11-25 14:48</td>
+</tr>
+<tr class="tableRowEven">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="157"  />
+<input name="numQuestions_157" type="hidden" value="1"  />
+<input name="statsQuestions_157" type="hidden" value="1"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=157 ');">LONG Numeric</a></td>
+<td  class="tableCell" align="left" valign="top">1</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Inactive</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2013-09-13 13:50</td>
+</tr>
+<tr class="tableRowOdd">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="158"  />
+<input name="numQuestions_158" type="hidden" value="109"  />
+<input name="statsQuestions_158" type="hidden" value="1"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=158 ');">Medical History</a></td>
+<td  class="tableCell" align="left" valign="top">109</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Inactive</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2013-07-30 14:29</td>
+</tr>
+<tr class="tableRowEven">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="150"  />
+<input name="numQuestions_150" type="hidden" value="42"  />
+<input name="statsQuestions_150" type="hidden" value="1"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=150 ');">repeattest</a></td>
+<td  class="tableCell" align="left" valign="top">42</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Inactive</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2013-06-06 13:47</td>
+</tr>
+<tr class="tableRowOdd">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="151"  />
+<input name="numQuestions_151" type="hidden" value="45"  />
+<input name="statsQuestions_151" type="hidden" value="1"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=151 ');">repeattest_copy</a></td>
+<td  class="tableCell" align="left" valign="top">45</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Inactive</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2013-06-05 15:05</td>
+</tr>
+<tr class="tableRowEven">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="125"  />
+<input name="numQuestions_125" type="hidden" value="41"  />
+<input name="statsQuestions_125" type="hidden" value="4"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=125 ');">crazynasty</a></td>
+<td  class="tableCell" align="left" valign="top">41</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">In Progress</td>
+<td  class="tableCell" align="left" valign="top">Yes</td>
+<td  class="tableCell" align="left" valign="top">2013-06-03 16:45</td>
+</tr>
+<tr class="tableRowOdd">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="134"  />
+<input name="numQuestions_134" type="hidden" value="9"  />
+<input name="statsQuestions_134" type="hidden" value="1"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=134 ');">nish 3</a></td>
+<td  class="tableCell" align="left" valign="top">9</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Inactive</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2013-05-23 09:53</td>
+</tr>
+<tr class="tableRowEven">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="132"  />
+<input name="numQuestions_132" type="hidden" value="3"  />
+<input name="statsQuestions_132" type="hidden" value="1"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=132 ');">nish 2</a></td>
+<td  class="tableCell" align="left" valign="top">3</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Inactive</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2013-05-14 18:10</td>
+</tr>
+<tr class="tableRowOdd">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="133"  />
+<input name="numQuestions_133" type="hidden" value="40"  />
+<input name="statsQuestions_133" type="hidden" value="3"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=133 ');">largerepeat</a></td>
+<td  class="tableCell" align="left" valign="top">40</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Active</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2013-05-14 14:26</td>
+</tr>
+<tr class="tableRowEven">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="131"  />
+<input name="numQuestions_131" type="hidden" value="3"  />
+<input name="statsQuestions_131" type="hidden" value="1"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=131 ');">nish form</a></td>
+<td  class="tableCell" align="left" valign="top">3</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Inactive</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2013-05-13 11:10</td>
+</tr>
+<tr class="tableRowOdd">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="129"  />
+<input name="numQuestions_129" type="hidden" value="2"  />
+<input name="statsQuestions_129" type="hidden" value="1"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=129 ');">repeatable test 6</a></td>
+<td  class="tableCell" align="left" valign="top">2</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Inactive</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2013-05-03 08:38</td>
+</tr>
+<tr class="tableRowEven">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="99"  />
+<input name="numQuestions_99" type="hidden" value="14"  />
+<input name="statsQuestions_99" type="hidden" value="1"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=99 ');">gge</a></td>
+<td  class="tableCell" align="left" valign="top">14</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Inactive</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2013-04-06 13:02</td>
+</tr>
+<tr class="tableRowOdd">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="128"  />
+<input name="numQuestions_128" type="hidden" value="2"  />
+<input name="statsQuestions_128" type="hidden" value="3"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=128 ');">bigimage</a></td>
+<td  class="tableCell" align="left" valign="top">2</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Active</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2013-03-25 13:15</td>
+</tr>
+<tr class="tableRowEven">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="121"  />
+<input name="numQuestions_121" type="hidden" value="2"  />
+<input name="statsQuestions_121" type="hidden" value="1"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=121 ');">美國</a></td>
+<td  class="tableCell" align="left" valign="top">2</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Inactive</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2013-03-12 16:03</td>
+</tr>
+<tr class="tableRowOdd">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="119"  />
+<input name="numQuestions_119" type="hidden" value="1"  />
+<input name="statsQuestions_119" type="hidden" value="1"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=119 ');">中文</a></td>
+<td  class="tableCell" align="left" valign="top">1</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Inactive</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2013-03-12 15:13</td>
+</tr>
+<tr class="tableRowEven">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="118"  />
+<input name="numQuestions_118" type="hidden" value="15"  />
+<input name="statsQuestions_118" type="hidden" value="3"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=118 ');">repeatCalc1</a></td>
+<td  class="tableCell" align="left" valign="top">15</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Active</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2013-03-12 13:49</td>
+</tr>
+<tr class="tableRowOdd">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="1"  />
+<input name="numQuestions_1" type="hidden" value="4"  />
+<input name="statsQuestions_1" type="hidden" value="3"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=1 ');">da form</a></td>
+<td  class="tableCell" align="left" valign="top">4</td>
+<td  class="tableCell" align="left" valign="top">group 1</td>
+<td  class="tableCell" align="left" valign="top">Active</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2013-02-22 10:55</td>
+</tr>
+<tr class="tableRowEven">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="107"  />
+<input name="numQuestions_107" type="hidden" value="2"  />
+<input name="statsQuestions_107" type="hidden" value="3"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=107 ');">microormicro</a></td>
+<td  class="tableCell" align="left" valign="top">2</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Active</td>
+<td  class="tableCell" align="left" valign="top">Yes</td>
+<td  class="tableCell" align="left" valign="top">2013-01-25 12:19</td>
+</tr>
+<tr class="tableRowOdd">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="106"  />
+<input name="numQuestions_106" type="hidden" value="11"  />
+<input name="statsQuestions_106" type="hidden" value="3"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=106 ');">multirepeat</a></td>
+<td  class="tableCell" align="left" valign="top">11</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Active</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2013-01-22 15:23</td>
+</tr>
+<tr class="tableRowEven">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="104"  />
+<input name="numQuestions_104" type="hidden" value="3"  />
+<input name="statsQuestions_104" type="hidden" value="3"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=104 ');">resolve_discrepancy</a></td>
+<td  class="tableCell" align="left" valign="top">3</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Active</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2013-01-22 14:34</td>
+</tr>
+<tr class="tableRowOdd">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="105"  />
+<input name="numQuestions_105" type="hidden" value="3"  />
+<input name="statsQuestions_105" type="hidden" value="3"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=105 ');">nondouble</a></td>
+<td  class="tableCell" align="left" valign="top">3</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Active</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2013-01-14 17:34</td>
+</tr>
+<tr class="tableRowEven">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="103"  />
+<input name="numQuestions_103" type="hidden" value="6"  />
+<input name="statsQuestions_103" type="hidden" value="3"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=103 ');">entries</a></td>
+<td  class="tableCell" align="left" valign="top">6</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Active</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2013-01-14 14:19</td>
+</tr>
+<tr class="tableRowOdd">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="93"  />
+<input name="numQuestions_93" type="hidden" value="2"  />
+<input name="statsQuestions_93" type="hidden" value="3"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=93 ');">test date form</a></td>
+<td  class="tableCell" align="left" valign="top">2</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Active</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2013-01-13 20:23</td>
+</tr>
+<tr class="tableRowEven">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="84"  />
+<input name="numQuestions_84" type="hidden" value="9"  />
+<input name="statsQuestions_84" type="hidden" value="3"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=84 ');">fda</a></td>
+<td  class="tableCell" align="left" valign="top">9</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Active</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2012-12-17 13:14</td>
+</tr>
+<tr class="tableRowOdd">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="38"  />
+<input name="numQuestions_38" type="hidden" value="1"  />
+<input name="statsQuestions_38" type="hidden" value="1"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=38 ');">debug</a></td>
+<td  class="tableCell" align="left" valign="top">1</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Inactive</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2012-12-12 14:18</td>
+</tr>
+<tr class="tableRowEven">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="4"  />
+<input name="numQuestions_4" type="hidden" value="0"  />
+<input name="statsQuestions_4" type="hidden" value="1"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=4 ');">test order form</a></td>
+<td  class="tableCell" align="left" valign="top">0</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Inactive</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2012-12-06 16:47</td>
+</tr>
+<tr class="tableRowOdd">
+<td  class="tableCell" align="left" valign="top"><input  type="checkbox" name="formIdCheckbox" id="3"  />
+<input name="numQuestions_3" type="hidden" value="0"  />
+<input name="statsQuestions_3" type="hidden" value="1"  />
+</td>
+<td  class="tableCell" align="left" valign="top"><a href="Javascript:popupWindowWithMenu('http://localhost:8080/ibis/form/viewFormDetail.action?source=popup&id=3 ');">form name</a></td>
+<td  class="tableCell" align="left" valign="top">0</td>
+<td  class="tableCell" align="left" valign="top"></td>
+<td  class="tableCell" align="left" valign="top">Inactive</td>
+<td  class="tableCell" align="left" valign="top">No</td>
+<td  class="tableCell" align="left" valign="top">2012-11-08 14:12</td>
+</tr>
+</table>
+</div>
+
+
+
+</body>
+</html>

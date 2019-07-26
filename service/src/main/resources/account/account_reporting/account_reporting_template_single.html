@@ -1,0 +1,33 @@
+<html>
+	<head>
+		<title>Monthly Accounts Report</title>
+	</head>
+	<body>
+	<p>${SYSTEM_LOGO}</p>
+	
+	<p>&nbsp;</p>
+		<table border="1">
+		<caption>${ORG_NAME} Account Report ${DATE_RANGE}</caption>
+			<tr>
+				<th>Account Type</th>
+				<th>${ACCOUNT_REQUEST_TYPE}</th>
+			</tr>
+			<tr>
+				<td align="center">DSR</td>
+				<td align="center">${DSR_SINGLE}</td>
+			</tr>
+			<tr>
+				<td align="center">DAR</td>
+				<td align="center">${DAR_SINGLE}</td>
+			</tr>
+			<tr>
+				<td align="center">DSR + DAR</td>
+				<td align="center">${DSR_DAR_SINGLE}</td>
+			</tr>			
+			<tr>
+				<td align="center">OTHER</td>
+				<td align="center">${OTHER_SINGLE}</td>
+			</tr>
+		</table>	
+	</body>
+</html>

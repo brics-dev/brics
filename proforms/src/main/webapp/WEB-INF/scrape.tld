@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+
+
+
+
+<!DOCTYPE taglib PUBLIC "-//Sun Microsystems, Inc.//DTD JSP Tag Library 1.1//EN" "http://java.sun.com/j2ee/dtds/web-jsptaglibrary_1_1.dtd">
+<taglib>
+  <tlibversion>1.0</tlibversion>
+  <jspversion>1.1</jspversion>
+  <shortname>scrape</shortname>
+  <uri>http://jakarta.apache.org/taglibs/scrape-1.0</uri>
+  <info>The scrape tag library can scrape or extract content from web
+     documents and display the content in your JSP. For example, 
+     you could scrape stock quotes from other web sites 
+     and display them in your pages.After your JSP scrapes a document for the first time, 
+     the results of the scrape are cached for subsequent JSP requests. 
+     These results are returned unless the JSP determines that 
+     the document must be rescraped. Rescraping is determined by the following 
+     logic:The status of the scrape tags and attributes in the JSP is examined. Any
+        modifications to the tags or attributes trigger a rescrape. If the tags 
+        have not been modified, the JSP proceeds to step 2.The minimum time for rescraping, specified by the time attribute of 
+        the page tag, is examined. The default time is 10 minutes. 
+        If this time has not passed since the last scrape, cached results are 
+        returned.  If this time has passed, the JSP proceeds to step 3.The expired header of the scraped document is examined. If the
+        expiration date/time has not passed, cached results are returned. If the
+	expiration date/time is not specified or the document has expired, the
+	JSP proceeds to step 4.The headers for the scraped document are requested and examined. If the 
+        document has not been modified since the last scrape, cached results 
+        are returned. If the document has been modified, it is rescraped and 
+        the new results are returned.</info>
+  <tag>
+    <name>page</name>
+    <tagclass>org.apache.taglibs.scrape.PageTag</tagclass>
+    <bodycontent>JSP</bodycontent>
+    <attribute>
+      <name>url</name>
+      <required>no</required>
+      <rtexprvalue>no</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>time</name>
+      <required>no</required>
+      <rtexprvalue>no</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>useProxy</name>
+      <required>no</required>
+      <rtexprvalue>no</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>proxyServer</name>
+      <required>no</required>
+      <rtexprvalue>no</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>proxyPort</name>
+      <required>no</required>
+      <rtexprvalue>no</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>proxyName</name>
+      <required>no</required>
+      <rtexprvalue>no</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>proxyPass</name>
+      <required>no</required>
+      <rtexprvalue>no</rtexprvalue>
+    </attribute>
+  </tag>
+  <tag>
+    <name>url</name>
+    <tagclass>org.apache.taglibs.scrape.UrlTag</tagclass>
+    <bodycontent>JSP</bodycontent>
+  </tag>
+  <tag>
+    <name>scrape</name>
+    <tagclass>org.apache.taglibs.scrape.ScrapeTag</tagclass>
+    <bodycontent>JSP</bodycontent>
+    <attribute>
+      <name>id</name>
+      <required>yes</required>
+      <rtexprvalue>no</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>begin</name>
+      <required>yes</required>
+      <rtexprvalue>no</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>end</name>
+      <required>yes</required>
+      <rtexprvalue>no</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>strip</name>
+      <required>no</required>
+      <rtexprvalue>no</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>anchors</name>
+      <required>no</required>
+      <rtexprvalue>no</rtexprvalue>
+    </attribute>
+  </tag>
+  <tag>
+    <name>result</name>
+    <tagclass>org.apache.taglibs.scrape.ResultTag</tagclass>
+    <bodycontent>Empty</bodycontent>
+    <attribute>
+      <name>scrape</name>
+      <required>yes</required>
+      <rtexprvalue>no</rtexprvalue>
+    </attribute>
+  </tag>
+</taglib>
+
+
+       
+
+

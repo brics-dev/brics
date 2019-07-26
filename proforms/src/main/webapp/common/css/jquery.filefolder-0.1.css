@@ -1,0 +1,86 @@
+@CHARSET "ISO-8859-1";
+
+.fileFolder-rootDiv ul {
+	list-style: none;
+	padding-left: 5px;
+}
+
+.fileFolder-rootDiv li {
+	list-style: none;
+	padding-left: 5px;
+}
+
+.fileFolder-rootDiv li {
+	margin-bottom: 3px;
+	padding-left: 13px;
+}
+
+.fileFolder-buttonBar {
+	margin-bottom: 10px;
+}
+
+.fileFolder-buttonBar input[type="button"] {
+	margin-left: 5px;
+}
+
+.fileFolder-open {
+	background: url(filefolder/triangle_down.png) no-repeat left 5px;
+}
+
+.fileFolder-closed {
+	background: url(filefolder/triangle_right.png) no-repeat left 5px;
+}
+
+.fileFolder-selected > span {
+	background-color: #eeeeff;
+}
+
+.fileFolder-folder, .fileFolder-file {
+	cursor: pointer;
+}
+
+.fileFolder-folder span {
+	background-image: url("filefolder/folder.png");
+	background-repeat: no-repeat;
+	background-position: left center;
+	padding-left: 20px;
+}
+
+.fileFolder-file span {
+	background-image: url("filefolder/file.png");
+	background-repeat: no-repeat;
+	background-position: left center;
+	padding-left: 20px;
+}
+
+.ui-sortable-helper {
+	display: block;
+}
+
+.fileFolder-inputRow {
+	vertical-align: top;
+	padding-bottom: 10px;
+}
+
+.fileFolder-inputLabel {
+	float: left;
+	width: 100px;
+}
+
+.fileFolder-input {
+	float: left;
+}
+
+.fileFolder-input input, .fileFolder-input textarea {
+	width: 400px;
+}
+
+.fileFolder-buttonContainer {
+	text-align: center;
+}
+
+.fileFolder-buttonContainer input[type="button"], input[type="submit"] {
+	margin-left: 5px;
+}
+
+

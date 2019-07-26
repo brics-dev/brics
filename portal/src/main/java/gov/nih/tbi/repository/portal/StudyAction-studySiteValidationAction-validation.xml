@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC "-//Apache Struts//XWork Validator 1.0.2//EN" "/WEB-INF/xwork-validator-1.0.2.dtd">
+<validators>
+	<field name="siteEntry.siteName">
+		<field-validator type="requiredstring">
+			<param name="trim">true</param>
+			<message key="errors.required" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 100 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="siteEntry.address.address1">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 255 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="siteEntry.address.address2">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 255 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+	<field name="siteEntry.address.city">
+		<field-validator type="stringlength">
+			<param name="maxLength"> 255 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+ 	<field name="siteEntry.address.state">
+		<field-validator type="fieldexpression">
+			<param name="expression"><![CDATA[!(siteEntry.address.country.id == 1 && siteEntry.address.state.id == null)]]></param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>  
+	<field name="siteEntry.phoneNumber">
+		<field-validator type="phonenumber">
+			<param name="trim">true</param>
+			<message key="errors.phoneNumber" />
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength"> 30 
+			</param>
+			<param name="trim"> true 
+			</param>
+			<message key="errors.length" />
+		</field-validator>
+	</field>
+</validators>

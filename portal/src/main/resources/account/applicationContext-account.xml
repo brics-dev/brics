@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context" default-lazy-init="true" xmlns="http://www.springframework.org/schema/beans" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+	<bean id="entityMapDao" class="gov.nih.tbi.account.dao.hibernate.EntityMapDaoImpl">
+	</bean>
+	<bean id="permissionMapDao" class="gov.nih.tbi.account.dao.hibernate.PermissionMapDaoImpl">
+	</bean>
+	<bean id="accountDao" class="gov.nih.tbi.account.dao.hibernate.AccountDaoImpl">
+	</bean>
+	<bean id="sessionLogDao" class="gov.nih.tbi.account.dao.hibernate.SessionLogDaoImpl">
+	</bean>
+	<bean id="permissionGroupDao" class="gov.nih.tbi.account.dao.hibernate.PermissionGroupDaoImpl">
+	</bean>
+	<bean id="permissionGroupMemberDao" class="gov.nih.tbi.account.dao.hibernate.PermissionGroupMemberDaoImpl">
+	</bean>
+	<bean id="stateDao" class="gov.nih.tbi.account.dao.hibernate.StateDaoImpl">
+	</bean>
+	<bean id="countryDao" class="gov.nih.tbi.account.dao.hibernate.CountryDaoImpl">
+	</bean>
+</beans>
