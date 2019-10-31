@@ -13,7 +13,7 @@
 
 	<properties>
 		<jersey.version>2.27</jersey.version>
-		<jackson.version>2.9.7</jackson.version>
+		<jackson.version>2.10.0</jackson.version>
 		<apache.logging.version>2.11.2</apache.logging.version>
 	</properties>
 
