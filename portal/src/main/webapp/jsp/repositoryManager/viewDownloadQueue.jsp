@@ -1,6 +1,5 @@
 <%@include file="/common/taglibs.jsp"%>
 <title>Download Queue</title>
-
 <!-- begin .border-wrapper -->
 <div class="border-wrapper wide">
 	<jsp:include page="../navigation/dataRepositoryNavigation.jsp" />
@@ -14,235 +13,60 @@
 		<div class="clear-float">
 
 			<h2>Download Data</h2>
-			<p>Users may select datasets to download by placing them in their Download Queue (see below). Then, using The Download Tool, users may download selected datasets from the repository to their own systems. The tool, which runs locally as a Java Web Start application on a user's computer, requires the Java runtime environment to be installed.</p>
+			<p>The Download Tool provides the capability to export packages (single or multiple datasets) from the system.  Users may download selected packages from the repository to their own system using either 
+			(1) the existing WebStart application, which requires Java runtime environment (version 7-8 only) or (2) the beta JavasScript, browser based version of the tool. <b>Note:</b> Any Java version higher than 8
+			is not compatible with the Web Start application.</p>
 		
-						
-			<h3>Steps to populate Download Queue</h3>
-			<ol>	
-				<li>Click on "Manage Studies"</li> 
-				<li>Click on View Studies</li>
-				<li>Select the Study from which you wish to download a dataset by clicking on the Study Title.</li>
-				<li>Click on the + next to Data Set Submissions.</li>  
-				<li>Select the dataset you wish to download by clicking on its name.</li>
-				<li>A pop-up window will open with information regarding the dataset.</li> 
-				<li>Click "Add to Download Queue."</li> 
-			</ol>	
-			
-			
-			<h3>Steps to Run the Download Tool:</h3>
-	
-			<ol>
-				<li>Launch Download Tool</li>
-				<li>Select Download Location
-				<ul>
-						<li>Click the Browser Button </li>
-						<li>Navigate to the location on your computer of the working directory where you want the file to be downloaded.
-							Select the folder, and then click Open</li>
-					</ul>
-				</li>
-				<li>Select the files you want to download by clicking the check box next to the file name</li>
-				<li>Click Start Download
+			<div style="width: 39%; margin: 10px 5%; float: left">
+				<div class="button" style="clear: both; float: none; width: 30%; margin: 20px 35%">
+					<input type="button"
+						onclick="parent.location.href='downloadQueueAction!viewWebstartDownloadTool.action'"
+						value="Web Start Application" />
+				</div>
+				<p>
+					Existing application that requires installation and a user having Java runtime environment (versions 7-8) on their machine. Java Web Start allows Java applications to be transferred over the internet and started without a browser.
+				</p>
+				<p>
+					<h3>Version Overview:</h3>
 					<ul>
-						<li><strong>Note:</strong> Screen will update as file(s) are being downloaded. If Download is
-							successful, the Status will be designated as Completed</li>
+						<li>Allows for multiple package downloads</li>
+						<li>Allows for system defined folder structure(s) for dataset organization</li>
+						<li>Requires Java Runtime Environment</li>
+						<li>Note: If you do not have Java Runtime Environment (version 8) installed, you can use the OpenJDK version.  Please reach out to a member of your Operations Support Team for instructions on how to perform this.
 					</ul>
-				</li>
-				<li>This allows immediate access to data you have submitted to the Data Repository</li>
-			</ol>
-			<br>
-			<p style="border:3px; border-style:solid; border-color:black; padding: 1em;"><b>Warning: Files older than 30 days will automatically get deleted for security and performance reason. It is recommended that you save your queries in the Query Tool and ensure data-sets are frequently downloaded.</b></p>
-			
-			
-			<div class="action-button" style="float:none; display:inline-block;"><ndar:actionLink action="baseAction!launch.action" value="Launch Download Tool" paramName="webstart"
-						paramValue="downloadTool" /></div>
+				</p>
+			</div>
+			<div style="width: 39%; margin: 10px 5%; float: left">
+				
+				<div style="clear: both; margin: 20px; text-align: center;">
+					<span style="font-weight: bold; color: red; font-size: 1.5em; margin-right: 5px;">Beta Version</span>
+					<div class="button" style="clear: both; float: none;">
+						<input type="button"
+							onclick="parent.location.href='downloadQueueAction!viewJsDownloadTool.action'"
+							value="JavaScript Application" />
+					</div>
+				</div>
+				<p>
+					Beta version of the application that allows downloads to be performed directly from your web browser. At this time, the beta version is meant for smaller data packages and packages without attachments.
+				</p>
+				<p>
+					<h3>Version Overview:</h3>
+					<ul>
+						<li>No software installation is required</li>
+						<li>Allows downloading a single package at a time</li>
+						<li>Does not create a system defined folder structure(s) for dataset organization</li>
+						<li>User should define the default download location within the browser settings.  If not defined, depending on your browser, files may be downloaded to a default "Download" folder on your machine or default to your Desktop.</li>
+					</ul>
+				</p>
+			</div>
 		</div>
 	</div>
+	
 </div>
-	<!-- end of .border-wrapper -->
 
 	<script type="text/javascript">
 	setNavigation({"bodyClass":"primary", "navigationLinkID":"dataRepositoryModuleLink", "subnavigationLinkID":"downloadToolLink", "tertiaryLinkID":"downloadQueueLink"});
 
-	
-	// Load a search at the start
-	$('document').ready(function() {
-	});
-	
-	//Contains functions for a study search and defines studyPagination Object
-	
-	//study Search Object
-	//This is a global object containing the properties needed for search
-	var pagination = new Object();
-	pagination.page = 1;
-	pagination.pageSize = 10;
-	pagination.sort = "dataset";
-	pagination.ascending = false;
-	pagination.namespace = "";
-	pagination.selectedElementIds = new Array();
-	
-	//Additional properties ownerValue and filterValue are also required for search and are obtained
-	//through form elements on the page.
-	
-	//This value submits a search. It takes no arguments, but uses global javascript variables on this page
-	//as well as reading reading values from the elements on the page
-	//These variables are set at the top of this block and changed by various javascript calls.
-	//Several other functions call this function after altering one of these variables to perform a search
-	function search() {
-	
-		var action = this.pagination.namespace + "downloadQueueAction!search.ajax";
-		
-		// Ajax call your search
-		$.fancybox.showActivity();
-		$.ajax(action , {
-			"type": 	"POST",
-			"data": 	{"page" : this.pagination.page,
-						"pageSize" : this.pagination.pageSize,
-						"sort" : this.pagination.sort,
-						"ascending" : this.pagination.ascending},
-			"success": 	function(data) {
-							$("#resultsId").html(data);
-				            $("#resultsId").find("script").each(function(i) {
-				                eval($(this).text());
-				            });
-				            $.fancybox.hideActivity();
-						},
-			"error":	function(data) {
-							$.fancybox.hideActivity();
-						}
-		});
-	}
-	
-	//This function casues the result to jump to a page given by the page text field
-	//This text field is defined in elementList.jsp
-	//This function also checks to make sure the given page input is valid
-	function checkPageField(maxPage) {
-		var desiredPage = document.getElementById("paginationJump").value;
-		maxPage = Math.ceil(maxPage);
-		if (!isNaN(desiredPage)) {
-			if (desiredPage <= maxPage && desiredPage > 0 && (Math.ceil(desiredPage) / desiredPage == 1)) {
-				pagination.page = desiredPage;
-				search();
-			}
-			else {
-				document.getElementById("paginationJump").value = pagination.page;
-			}
-			
-		}
-		else {
-			document.getElementById("paginationJump").value = pagination.page;
-		}
-	}
-	
-	//Sets the global pagination values back to their default values
-	function resetPagination() {
-		pagination.page = 1;
-		pagination.pageSize = 10;
-	}
-	
-	function resetSort() {
-		pagination.sort = "title";
-		pagination.ascending = false;
-	}
-	
-	//Function called when user clicks a table head to sort a column.
-	function setSort(sortIn) {
-		resetPagination();
-		if (sortIn == pagination.sort) {
-			pagination.ascending = !pagination.ascending;
-		}
-		else {
-			pagination.sort = sortIn;
-		}
-		search();
-	};
-	
-	function masterCheckboxClicked(box) {
- 		var checkboxes = $("input[name=checkedItem]");
- 		if (box.checked)
- 		{
- 			$.each(checkboxes, function() {
- 				if (!this.checked)
- 				{
- 					this.checked = true;
- 					checkedBoxes(this);
- 				}
- 			});
- 		}
- 		else
- 		{
- 			$.each(checkboxes, function() {
- 				if (this.checked)
- 				{
- 					this.checked = false;
- 					checkedBoxes(this);
- 				}
- 			});
- 		}
- 	}
-	
-	// Tracks checked elements over multiple pages of results
-	// Only relevent when displaying mapped results in the editDS lightbox
- 	function checkedBoxes(box) {
-	
- 		if (box.checked)
- 		{
- 			pagination.selectedElementIds.push(box.value);
- 		}
- 		else
- 		{
- 			// when a box is unchecked, the master checkbox needs to be unchecked
- 			$("#masterCheckbox")[0].checked = false;
-			
- 			for(var i=0; i<pagination.selectedElementIds.length; i++)
- 			{
- 				if (pagination.selectedElementIds[i] == box.value)
- 				{
- 					pagination.selectedElementIds.splice(i, 1);
- 					i--;
- 				}
- 			}
- 		}
- 	}
-	
- 	function getCheckedElementIds() 
- 	{
- 	    var returnList = "";
-	    
- 		for (i in pagination.selectedElementIds) 
- 		{
- 			returnList += pagination.selectedElementIds[i] + ",";
- 		}
-		
- 		return returnList;
- 	}
- 	
- 	function deleteSelected() 
- 	{
-		var checkedIds = getCheckedElementIds();
-		
- 	 	// If there are no Ids to add, then simply return
- 	 	// The lightbox will still be closed
- 	 	if (checkedIds == "") 
- 	 	{
- 	 		return;
- 	 	}
- 		
-		var action = this.pagination.namespace + "downloadQueueAction!delete.ajax";
-		
-		// Ajax call your search
-		$.fancybox.showActivity();
-		
- 	 	$.ajax(action , {
-			"type": 	"POST",
-			"data": 	{"selectedIds" : this.getCheckedElementIds()},
-			"success": 	function(data) {
-							search(); 
-						},
-			"error":	function(data) {
-							$.fancybox.hideActivity();
-						}
- 	 	});
- 	}
-</script>
+	</script>
 </body>
 </html>

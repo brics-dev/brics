@@ -159,7 +159,7 @@ public class IntervalAction extends BaseAction {
 				this.setSelectedForms(eformListToJSONString(eformsInterval));
 				
 				// Mark the existing pre-pop data elements as selected.
-				List<PrepopDataElement> selectedPrePopDEs = protoMan.getPrepopDEsForInterval(visitTypeId, false);
+				List<PrepopDataElement> selectedPrePopDEs = protoMan.getPrepopDEsForInterval(visitTypeId, true);
 				
 				for ( PrepopDataElement pde : selectedPrePopDEs ) {
 					for ( int i = 0; i < prePopDeArray.length(); i++ ) {
@@ -451,17 +451,34 @@ public class IntervalAction extends BaseAction {
 					visitType.setIntervalEFormList(new ArrayList<BasicEform>());
 				}
 				
-				if ( this.getId() < 0 ) {   // Add
+				if ( this.getId() < 0 ) {
+					// Add
 					visitType.setCreatedBy(user.getId());
 					protoMan.createVisitType(visitType, p.getId());
 					addActionMessage(getText(StrutsConstants.SUCCESS_ADD_KEY, 
 							new String[]{"\"" + visitType.getName() + "\" " + getText("protocol.visitType.title.display").toLowerCase(userLocale)}));
 				}
-				else {          // Edit       
+				else { 
+					// Edit
 					visitType.setId(this.getId());
-					protoMan.updateVisitType(visitType, p.getId());
-					addActionMessage(getText(StrutsConstants.SUCCESS_EDIT_KEY, 
-							new String[]{"\"" + visitType.getName() + "\" " + getText("protocol.visitType.title.display").toLowerCase(userLocale)}));
+					//first check to see if any of the eforms to be unassociated have any collections
+					List<String> eformsToBeDeletedWithCollections = protoMan.getEformsToBeDeletedWithActiveCollections(visitType);
+					if(eformsToBeDeletedWithCollections.size() > 0) {
+						StringBuffer errMessage = new StringBuffer(getText("errors.visittype.collection"));
+						for(int i=0;i<eformsToBeDeletedWithCollections.size();i++) {
+							String eFormShortName = eformsToBeDeletedWithCollections.get(i);
+							errMessage.append(eFormShortName);
+							if(i != eformsToBeDeletedWithCollections.size() - 1) {
+								errMessage.append(",");
+							}
+						}
+						addActionError(errMessage.toString());
+					}else {
+						
+						protoMan.updateVisitType(visitType, p.getId());
+						addActionMessage(getText(StrutsConstants.SUCCESS_EDIT_KEY, 
+								new String[]{"\"" + visitType.getName() + "\" " + getText("protocol.visitType.title.display").toLowerCase(userLocale)}));
+					}
 				}
 				
 	            session.put(IntervalAction.INTERVALACTION_MESSAGES_KEY, this.getActionMessages());

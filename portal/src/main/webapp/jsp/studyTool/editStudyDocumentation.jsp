@@ -33,7 +33,6 @@
 		
 		<s:hidden id="validationActionName" name="validationActionName" />
 		<div id="documentationDetailsDialog" style="display:none"></div>
-		dsa
 		<!-- start edit study documentation -->
 		
 		<div id="documentTableAndButtons">

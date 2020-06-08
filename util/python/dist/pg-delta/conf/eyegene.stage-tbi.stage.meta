@@ -1,0 +1,16 @@
+[DB-SRC]
+host=fitbir-db-stage.cit.nih.gov
+database=tbi_stage
+schema=tbi_metastg
+user=tbi_metastg
+label=TBI-SRC
+
+[DB-TRG]
+host=eyegene-db-stage.cit.nih.gov
+database=eyegene_stage
+schema=eyegene_metastg
+user=eyegene_metastg
+label=EYEGENE-TRG
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\pgDelta\eyegenestage-tbistage-meta

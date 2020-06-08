@@ -1,0 +1,7 @@
+[DB-TRG]
+host=localhost
+database=dictdb
+schema=dictsch
+user=dictuser
+label=TARGET
+

@@ -19,17 +19,17 @@ public class RDFVirtuosoTest extends TestCase// extends BaseHibernateTestCase
     static Logger logger = Logger.getLogger(RDFVirtuosoTest.class);
 
     // Stage
-    private static String db_url = "jdbc:virtuoso://REPLACED:1111";
-    private static String db_user = "REPLACED";
-    private static String db_pass = "REPLACED";
-    private static String db_graph = "REPLACED";
+    private static String db_url = "jdbc:virtuoso://fitbir-rdfstore-stage.cit.nih.gov:1111";
+    private static String db_user = "dba";
+    private static String db_pass = "dba";
+    private static String db_graph = "http://ninds.nih.gov:8080/allTriples.ttl";
     // private static String db_schema = "http://brics/schema/";
 
     // Dev
-    // private static String db_url = "jdbc:virtuoso://REPLACED:1111";
-    // private static String db_user = "REPLACED";
-    // private static String db_pass = "REPLACED";
-    // private static String db_graph = "http://REPLACED:8080/allTriples.ttl";
+    // private static String db_url = "jdbc:virtuoso://brics-exhibit-dev.cit.nih.gov:1111";
+    // private static String db_user = "dba";
+    // private static String db_pass = "dba123!!";
+    // private static String db_graph = "http://ninds.nih.gov:8080/allTriples.ttl";
     // private static String db_schema = "http://brics/schema/";
 
     private VirtGraph graph = null;

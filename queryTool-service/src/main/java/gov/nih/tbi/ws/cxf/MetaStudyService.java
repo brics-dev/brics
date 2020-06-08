@@ -6,6 +6,8 @@ import gov.nih.tbi.commons.model.EntityType;
 import gov.nih.tbi.commons.model.PermissionType;
 import gov.nih.tbi.commons.util.ValUtil;
 import gov.nih.tbi.constants.ApplicationConstants;
+import gov.nih.tbi.constants.QueryToolConstants;
+import gov.nih.tbi.exceptions.FilterEvaluatorException;
 import gov.nih.tbi.metastudy.model.hibernate.MetaStudy;
 import gov.nih.tbi.pojo.CodeMapping;
 import gov.nih.tbi.pojo.FormResult;
@@ -28,12 +30,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBException;
@@ -119,8 +122,8 @@ public class MetaStudyService extends QueryBaseRestService {
 	public Response linkMetaStudySavedQuery(@FormParam("sendQueryFilters") String sendQueryFilters,
 			@FormParam("queryName") String queryName, @FormParam("queryDescription") String queryDescription,
 			@FormParam("sendData") String sendData, @FormParam("dataName") String dataName,
-			@FormParam("dataDescription") String dataDescription, @FormParam("metaStudyId") long metaStudyId)
-			throws UnauthorizedException, UnsupportedEncodingException {
+			@FormParam("dataDescription") String dataDescription, @FormParam("metaStudyId") long metaStudyId,
+			@FormParam("filterExpression") String booleanExpression,@FormParam("outputCode") String outputCode) {
 
 		getAuthenticatedAccount();
 
@@ -135,33 +138,28 @@ public class MetaStudyService extends QueryBaseRestService {
 				}
 			} else {
 
-				try {
-					if (!validateSavedQueryName(queryName)) {
-						// error case: the name failed uniqueness checks
-						Response errResponse = Response.status(Response.Status.BAD_REQUEST)
-								.type(MediaType.APPLICATION_JSON)
-								.entity("The query name is not unique.  Please choose a different query name").build();
-						throw new WebApplicationException(errResponse);
-					}
-					try {
-						newSavedQuery = new SavedQuery();
-						String userName = permissionModel.getUserName();
-						// set date for created saved query
-						newSavedQuery.setLastUpdated(new Date());
-						newSavedQuery.setName(queryName);
-						newSavedQuery.setDescription(queryDescription);
-						newSavedQuery = savedQueryManager.saveSavedQuery(dataCart, newSavedQuery,
-								createPermissionMap(userName));
-					}
+				if (!validateSavedQueryName(queryName)) {
+					// error case: the name failed uniqueness checks
 
-					catch (Exception ioe) {
-						logger.error("There was an error while creating the XML file.", ioe);
-						// TODO: handle error
-					}
-					savedQueryManager.linkSavedQueryMetaStudy(metaStudyId, newSavedQuery);
-				} catch (Exception e) {
-					// TODO: handle error
+					Response errResponse = Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)
+							.entity("The query name is not unique.  Please choose a different query name").build();
+
+					// A message must be included as a separate argument otherwise the unhandled exception doesn't get
+					// printed to System.ERROR
+					throw new BadRequestException("The query name is not unique", errResponse);
 				}
+
+				newSavedQuery = new SavedQuery();
+				String userName = permissionModel.getUserName();
+				// set date for created saved query
+				newSavedQuery.setDateCreated(new Date());
+				newSavedQuery.setLastUpdated(new Date());
+				newSavedQuery.setName(queryName);
+				newSavedQuery.setDescription(queryDescription);
+				newSavedQuery.setOutputCode(outputCode);
+				newSavedQuery =
+						savedQueryManager.saveSavedQuery(dataCart, newSavedQuery, createPermissionMap(userName));
+				savedQueryManager.linkSavedQueryMetaStudy(metaStudyId, newSavedQuery);
 			}
 		}
 
@@ -176,11 +174,17 @@ public class MetaStudyService extends QueryBaseRestService {
 			final String description = dataDescription;
 			final Assertion casAssertion = QueryRestProviderUtils.getAssertionFromSecurityContext();
 			final InstancedDataCache cache = dataCart.getInstancedDataCache();
+			final boolean showAgeRange = (QueryToolConstants.PDBP_ORG_NAME.equals(constants.getOrgName()))
+					&& !permissionModel.isQueryAdmin() && !permissionModel.isSysAdmin();
 
 			Thread downloadThread = new Thread(new Runnable() {
 				public void run() {
-					downloadManager.downloadToMetaStudy(dataFileName, instancedDataTable, clonedForms, codeMapping,
-							userAccount, msId, description, casAssertion, cache);
+					try {
+						downloadManager.downloadToMetaStudy(dataFileName, instancedDataTable, clonedForms, codeMapping,
+								userAccount, msId, description, casAssertion, cache, booleanExpression, showAgeRange);
+					} catch (FilterEvaluatorException e) {
+						throw new InternalServerErrorException("Error occured when evaluating the filters", e);
+					}
 				}
 			});
 
@@ -191,8 +195,7 @@ public class MetaStudyService extends QueryBaseRestService {
 		return Response.ok().build();
 	}
 
-	private List<EntityMap> createPermissionMap(String username)
-			throws UnsupportedEncodingException, UnauthorizedException {
+	private List<EntityMap> createPermissionMap(String username) {
 		getAuthenticatedAccount();
 		List<EntityMap> entityList = new ArrayList<EntityMap>();
 		List<String> usernames = new ArrayList<String>(1);
@@ -221,7 +224,7 @@ public class MetaStudyService extends QueryBaseRestService {
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	private boolean validateSavedQueryName(String name) throws IOException, JAXBException {
+	private boolean validateSavedQueryName(String name) {
 		// Verify that the query name exists.
 		if (ValUtil.isBlank(name)) {
 			return false;
@@ -234,8 +237,7 @@ public class MetaStudyService extends QueryBaseRestService {
 		return true;
 	}
 
-	private boolean isSavedQueryNameUniquePerMetaStudy(String queryName, Long metaStudyId)
-			throws UnsupportedEncodingException {
+	private boolean isSavedQueryNameUniquePerMetaStudy(String queryName, Long metaStudyId) {
 
 		if (!savedQueryManager.isQuerySavedNameUniquePerMetaStudy(queryName, metaStudyId)) {
 			return false;

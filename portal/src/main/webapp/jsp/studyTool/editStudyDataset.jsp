@@ -97,15 +97,16 @@
 		var id = apiRow.id();
 		var status = apiRow.data().status;
 		var isRequest = apiRow.data().requestedStatus === "true";
+		var $table = $("#datasetTable");
 		
-		var selectedOptionsLength = $("#datasetTable").idtApi("getSelected").length;
-		if(selectedOptionsLength == 1) {
+		var selectedOptionsLength = $table.idtApi("getSelected").length;
+		if(selectedOptionsLength != 0) {
 			api.rows().every(function(rowIndex, tableLoopCounter, rowLoopCounter) {
 				var data = this.data();
 				var currentStatus = data.status;
 				var currentIsRequest = data.requestedStatus === "true";
 				if(!(isRequest && currentIsRequest) && (status != currentStatus || isRequest != currentIsRequest)) {
-					$("#datasetTable").idtApi("disableRow", this);
+					$table.idtApi("disableRow", this);
 				}
 			});
 			
@@ -159,7 +160,7 @@
 				var currentStatus = data.status;
 				var currentIsRequest = data.requestedStatus === "true";
 				if(currentIsRequest || currentStatus == "Private" || currentStatus == "Shared") {
-					$("#datasetTable").idtApi("enableRow", this);
+					$table.idtApi("enableRow", this);
 				}
 			});
 			

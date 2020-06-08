@@ -1,9 +1,5 @@
 package gov.nih.tbi.store;
 
-import gov.nih.tbi.constants.ApplicationConstants;
-import gov.nih.tbi.constants.QueryToolConstants;
-import gov.nih.tbi.pojo.VirtuosoGraph;
-
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -11,7 +7,6 @@ import java.net.URL;
 import java.sql.SQLException;
 import java.util.Properties;
 
-import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 
 import org.apache.log4j.LogManager;
@@ -21,10 +16,18 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import com.hp.hpl.jena.ontology.OntModel;
-import com.hp.hpl.jena.query.*;
+import com.hp.hpl.jena.query.Query;
+import com.hp.hpl.jena.query.QueryFactory;
+import com.hp.hpl.jena.query.ResultSet;
+import com.hp.hpl.jena.query.ResultSetFormatter;
+import com.hp.hpl.jena.query.Syntax;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 
+import gov.nih.tbi.constants.ApplicationConstants;
+import gov.nih.tbi.constants.QueryToolConstants;
+import gov.nih.tbi.pojo.QueryResult;
+import gov.nih.tbi.pojo.VirtuosoGraph;
 import virtuoso.jena.driver.VirtuosoQueryExecution;
 import virtuoso.jena.driver.VirtuosoQueryExecutionFactory;
 import virtuoso.jena.driver.VirtuosoUpdateFactory;
@@ -40,35 +43,28 @@ import virtuoso.jena.driver.VirtuosoUpdateRequest;
 public class QueryVirtuosoStore implements MetadataStore, Serializable {
 
 	private static final long serialVersionUID = -5729315377459567235L;
-	private VirtuosoGraph graph = null;
-
 	private String graphURI = "";
 	private String schema = "";
 	private String ruleSet = "";
 	private static final Logger log = LogManager.getLogger(QueryVirtuosoStore.class.getName());
+	private static final String GRAPH_URI = "http://ninds.nih.gov:8080/allTriples.ttl";
 
 	@Autowired
 	ApplicationConstants constants;
 
-	public QueryVirtuosoStore() {
-
-		super();
-	}
-
 	@Autowired
-	public QueryVirtuosoStore(@Qualifier(QueryToolConstants.RDF_CONNECTION) DataSource rdfConnection)
-			throws SQLException {
+	@Qualifier(QueryToolConstants.RDF_CONNECTION)
+	private DataSource rdfConnection;
 
+	public QueryVirtuosoStore() {
 		super();
-		graph = new VirtuosoGraph("http://ninds.nih.gov:8080/allTriples.ttl", rdfConnection);
-
-
-		graph.setReadFromAllGraphs(true);
 	}
 
-	@PostConstruct
-	public void postConstruct() {
+	protected VirtuosoGraph initGraph() {
+		VirtuosoGraph graph = new VirtuosoGraph(GRAPH_URI, rdfConnection);
+		graph.setReadFromAllGraphs(true);
 		graph.setFetchSize(constants.getVirtuosoFetchSize());
+		return graph;
 	}
 
 	public String query(String queryString) {
@@ -82,29 +78,37 @@ public class QueryVirtuosoStore implements MetadataStore, Serializable {
 	}
 
 	public Model queryDescribe(Query query) {
+		VirtuosoGraph graph = initGraph();
 		Model model = null;
+		VirtuosoQueryExecution qexec = VirtuosoQueryExecutionFactory.create(query, graph);
 
-		if (query.isDescribeType()) {
-			if (log.isDebugEnabled() == true) {
-				log.debug(query.toString());
+		try {
+
+			if (query.isDescribeType()) {
+				if (log.isDebugEnabled() == true) {
+					log.debug(query.toString());
+				}
+
+				model = qexec.execDescribe();
 			}
-
-			VirtuosoQueryExecution qexec = VirtuosoQueryExecutionFactory.create(query, graph);
-			model = qexec.execDescribe();
+		} finally {
+			qexec.close();
+			graph.close();
 		}
 
 		return model;
 	}
 
 	/**
-	 * Perform input query and return output as RDF/XML or JSON (warning, just for SELECT queries)
+	 * Perform input query and return output as RDF/XML or JSON (warning, just for
+	 * SELECT queries)
 	 * 
 	 * @return java.lang.String
 	 * @param queryString java.lang.String
-	 * @param format java.lang.String
+	 * @param format      java.lang.String
 	 */
 	public String query(String queryString, String format) {
-
+		VirtuosoGraph graph = initGraph();
 		String response = "";
 
 		VirtuosoQueryExecution qexec = null;
@@ -120,9 +124,10 @@ public class QueryVirtuosoStore implements MetadataStore, Serializable {
 				queryString = "DEFINE sql:describe-mode \"CBDL\"\n" + queryString;
 
 			/*
-			 * if (queryString.indexOf("regex")>0) { queryString = queryString.replace("regex","bif:contains");
-			 * queryString = queryString.replace(" '", " \"'"); queryString = queryString.replace("',", "'\",");
-			 * queryString = queryString.replace(", 'i'", ""); }
+			 * if (queryString.indexOf("regex")>0) { queryString =
+			 * queryString.replace("regex","bif:contains"); queryString =
+			 * queryString.replace(" '", " \"'"); queryString = queryString.replace("',",
+			 * "'\","); queryString = queryString.replace(", 'i'", ""); }
 			 */
 
 			// log.log(Level.INFO, "VirtuosoStore.query: "+queryString);
@@ -156,14 +161,14 @@ public class QueryVirtuosoStore implements MetadataStore, Serializable {
 	}
 
 	/**
-	 * Processes the raw query string. The scopes, defined in MetadataStore, are: - INSTANCES (if just to query instance
-	 * data) - SCHEMAS (if just to query schemas and ontologies) - REASONING (instance plus schemas plus the reasoning
+	 * Processes the raw query string. The scopes, defined in MetadataStore, are: -
+	 * INSTANCES (if just to query instance data) - SCHEMAS (if just to query
+	 * schemas and ontologies) - REASONING (instance plus schemas plus the reasoning
 	 * provided by the store)
 	 */
 	public Query processSelectQuery(Query query) {
 
-		// TODO: make this dynamic
-		query.addGraphURI("http://ninds.nih.gov:8080/allTriples.ttl");
+		query.addGraphURI(GRAPH_URI);
 
 		if (log.isDebugEnabled() == true) {
 			log.debug(query.toString());
@@ -173,11 +178,12 @@ public class QueryVirtuosoStore implements MetadataStore, Serializable {
 	}
 
 	/**
-	 * Perform input SPARQL SELECT query and return result as ResultSet The scopes, defined in MetadataStore, are: -
-	 * INSTANCES (if just to query instance data) - SCHEMAS (if just to query schemas and ontologies) - REASONING
-	 * (instance plus schemas plus the reasoning provided by the store)
+	 * Perform input SPARQL SELECT query and return result as ResultSet The scopes,
+	 * defined in MetadataStore, are: - INSTANCES (if just to query instance data) -
+	 * SCHEMAS (if just to query schemas and ontologies) - REASONING (instance plus
+	 * schemas plus the reasoning provided by the store)
 	 */
-	public ResultSet querySelect(String queryString, int scope) {
+	public QueryResult querySelect(String queryString, int scope) {
 		if (queryString.startsWith("PREFIX") == false) {
 			queryString = QueryToolConstants.PREFIXES + queryString;
 		}
@@ -191,32 +197,41 @@ public class QueryVirtuosoStore implements MetadataStore, Serializable {
 		return querySelect(query, scope);
 	}
 
-	public ResultSet querySelect(Query query, int scope) {
+	public QueryResult querySelect(Query query, int scope) {
+		VirtuosoGraph graph = initGraph();
 		ResultSet results = null;
+		QueryResult queryResult = null;
+		VirtuosoQueryExecution qexec = null;
 
 		try {
 			log.debug("Querying Virtuoso...");
-			VirtuosoQueryExecution qexec = null;
+
 			query = processSelectQuery(query);
+
+			qexec = VirtuosoQueryExecutionFactory.create(query, graph);
 
 			long startTime = System.currentTimeMillis();
 
-			qexec = VirtuosoQueryExecutionFactory.create(query, graph);
 			results = qexec.execSelect();
-
+			queryResult = new QueryResult(results);
 			long endTime = System.currentTimeMillis();
 
 			if (log.isDebugEnabled() == true) {
 				log.debug("Total time: " + (endTime - startTime) + "ms");
 			}
 		} finally {
-			// graph.close();
+			if (qexec != null) {
+				qexec.close();
+			}
+
+			graph.close();
 		}
 
-		return results;
+		return queryResult;
 	}
 
 	public boolean queryAsk(Query query) {
+		VirtuosoGraph graph = initGraph();
 		boolean askResult;
 		VirtuosoQueryExecution qexec = null;
 
@@ -227,7 +242,7 @@ public class QueryVirtuosoStore implements MetadataStore, Serializable {
 			askResult = qexec.execAsk();
 		} finally {
 			qexec.close();
-			// graph.close();
+			graph.close();
 		}
 
 		return askResult;
@@ -245,14 +260,14 @@ public class QueryVirtuosoStore implements MetadataStore, Serializable {
 	}
 
 	/**
-	 * Store the input metadata. TODO: If it is a class, property,... store into the schema graph instead of in the
-	 * instance one
+	 * Store the input metadata. TODO: If it is a class, property,... store into the
+	 * schema graph instead of in the instance one
 	 * 
 	 * @return java.lang.String
 	 * @param metadata java.io.InputStream
 	 */
 	public String store(InputStream metadata, String contentType) {
-
+		VirtuosoGraph graph = initGraph();
 		String response = "";
 
 		try {
@@ -279,7 +294,7 @@ public class QueryVirtuosoStore implements MetadataStore, Serializable {
 				response = e.toString();
 			}
 		} finally {
-			// graph.close();
+			graph.close();
 		}
 
 		return response;
@@ -292,7 +307,7 @@ public class QueryVirtuosoStore implements MetadataStore, Serializable {
 	 * @param metadataURL java.net.URL
 	 */
 	public String store(URL metadataURL) {
-
+		VirtuosoGraph graph = initGraph();
 		String response = "";
 
 		try {
@@ -313,47 +328,58 @@ public class QueryVirtuosoStore implements MetadataStore, Serializable {
 				response = e.toString();
 			}
 		} finally {
-			// graph.close();
+			graph.close();
 		}
 
 		return response;
 	}
 
 	/**
-	 * Remove all available metadata for the input URI, i.e. the Concise Bounded Description for the URI resource
+	 * Remove all available metadata for the input URI, i.e. the Concise Bounded
+	 * Description for the URI resource
 	 */
 	public void remove(java.net.URI uri) {
+		VirtuosoGraph graph = initGraph();
+		VirtuosoQueryExecution qexec = null;
 
 		try {
 			Query query = QueryFactory.create("DESCRIBE <" + uri + ">");
 			query.addGraphURI(graphURI);
 			String queryString = "DEFINE sql:describe-mode \"CBD\"\n" + query.toString();
-			VirtuosoQueryExecution qexec = VirtuosoQueryExecutionFactory.create(queryString, graph);
+			qexec = VirtuosoQueryExecutionFactory.create(queryString, graph);
 			Model remove = qexec.execDescribe();
 
 			graph.getTransactionHandler().begin();
 			graph.getBulkUpdateHandler().delete(remove.getGraph());
 			graph.getTransactionHandler().commit();
 		} finally {
-			// graph.close();
+			if (qexec != null) {
+				qexec.close();
+			}
+
+			graph.close();
 		}
 	}
 
 	public void update(String ur) {
-		VirtuosoUpdateRequest vurRequest = VirtuosoUpdateFactory.create(ur, graph);
-		vurRequest.exec();
-		// graph.close();
+		VirtuosoGraph graph = initGraph();
+		try {
+			VirtuosoUpdateRequest vurRequest = VirtuosoUpdateFactory.create(ur, graph);
+			vurRequest.exec();
+		} finally {
+			graph.close();
+		}
 	}
 
 	/**
-	 * Remove the input metadata from the store. TODO: Remove triples also from schema graph, check if it is class,
-	 * property,...?
+	 * Remove the input metadata from the store. TODO: Remove triples also from
+	 * schema graph, check if it is class, property,...?
 	 * 
 	 * @return java.lang.String
 	 * @param metadata java.io.InputStream
 	 */
 	public void remove(InputStream metadata, String contentType) {
-
+		VirtuosoGraph graph = initGraph();
 		try {
 			String metadataFormat = "RDF/XML"; // Default
 
@@ -369,22 +395,24 @@ public class QueryVirtuosoStore implements MetadataStore, Serializable {
 			graph.getBulkUpdateHandler().delete(remove.getGraph());
 			graph.getTransactionHandler().commit();
 		} finally {
-			// graph.close();
+			graph.close();
 		}
 	}
 
 	public void storeModel(OntModel model) {
-		graph.getTransactionHandler().begin();
-		graph.getBulkUpdateHandler().add(model.getGraph());
-
-		graph.getTransactionHandler().commit();
-
-		// graph.close();
-		model.close();
+		VirtuosoGraph graph = initGraph();
+		try {
+			graph.getTransactionHandler().begin();
+			graph.getBulkUpdateHandler().add(model.getGraph());
+			graph.getTransactionHandler().commit();
+		} finally {
+			model.close();
+			graph.close();
+		}
 	}
 
 	public void init(String db_url, String db_user, String db_pass) {
-
+		VirtuosoGraph graph = initGraph();
 		graph = new VirtuosoGraph("http://ninds.nih.gov:8080/allTriples.ttl", db_url, db_user, db_pass);
 
 		graph.setReadFromAllGraphs(true);
@@ -392,9 +420,10 @@ public class QueryVirtuosoStore implements MetadataStore, Serializable {
 
 	public void init(String db_url, String db_user, String db_pass, String db_graph, String db_schema)
 			throws SQLException {
-
+		VirtuosoGraph graph = initGraph();
 		graphURI = db_graph;
-		// If schema for reasoning explicitly stated in web.xml, otherwise build from db_graph
+		// If schema for reasoning explicitly stated in web.xml, otherwise build from
+		// db_graph
 		if (db_schema != null)
 			schema = db_schema;
 		else
@@ -402,8 +431,10 @@ public class QueryVirtuosoStore implements MetadataStore, Serializable {
 		ruleSet = schema + "rules/";
 		graph = new VirtuosoGraph(db_graph, db_url, db_user, db_pass);
 		// Add or recalculate inference for the graph
-		// NOTE: to grant the "rhizomer" Virtuoso user rights to execute the rdfs_rule_set, execute
-		// the following command from Virtuoso iSQL: grant execute on rdfs_rule_set to "rhizomer"
+		// NOTE: to grant the "rhizomer" Virtuoso user rights to execute the
+		// rdfs_rule_set, execute
+		// the following command from Virtuoso iSQL: grant execute on rdfs_rule_set to
+		// "rhizomer"
 		String sqlStatement = "DB.DBA.RDFS_RULE_SET('" + ruleSet + "', '" + schema + "')";
 		graph.getConnection().prepareCall(sqlStatement).execute();
 		// sqlStatement = "set result_timeout = 0";
@@ -424,10 +455,5 @@ public class QueryVirtuosoStore implements MetadataStore, Serializable {
 			init(props.getProperty("db_url"), props.getProperty("db_user"), props.getProperty("db_pass"),
 					props.getProperty("db_graph"), props.getProperty("db_schema"));
 		}
-	}
-
-	protected void finalize() throws Throwable {
-
-		// graph.close();
 	}
 }

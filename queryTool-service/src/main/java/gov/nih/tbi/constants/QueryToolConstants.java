@@ -2,6 +2,7 @@ package gov.nih.tbi.constants;
 
 import gov.nih.tbi.pojo.BeanField;
 import gov.nih.tbi.pojo.FormResult;
+import gov.nih.tbi.pojo.PermissibleValue;
 import gov.nih.tbi.pojo.StudyResult;
 
 import java.text.DateFormat;
@@ -46,6 +47,10 @@ public class QueryToolConstants {
 	/**************************************************************/
 	public static final Node FORM_PROPERTY_TITLE =
 			NodeFactory.createURI("http://ninds.nih.gov/dictionary/ibis/1.0/FormStructure/title");
+	public static final Node FORM_SHORT_NAME_PROPERTY =
+			NodeFactory.createURI("http://ninds.nih.gov/dictionary/ibis/1.0/FormStructure/shortName");
+	public static final Var FORM_NAME_VAR = Var.alloc("fsName");
+	public static final Var URI_VAR = Var.alloc("uri");
 	public static final Var RG_VAR = Var.alloc("rg");
 	public static final Var ROW_VAR = Var.alloc("row");
 	public static final Var GUID_VAR = Var.alloc("guid");
@@ -61,6 +66,8 @@ public class QueryToolConstants {
 	public static final Var PREFIXED_ID_VAR = Var.alloc("prefixedId");
 	public static final String BIOSAMPLE_VAR_NAME = "biosampleId";
 	public static final Var BIOSAMPLE_VAR = Var.alloc(BIOSAMPLE_VAR_NAME);
+	public static final Node RG_CLASS_NODE =
+			NodeFactory.createURI("http://ninds.nih.gov/repository/fitbir/1.0/RepeatableGroup");
 	public static final Node DATA_ELEMENT_CLASS = NodeFactory.createURI(DICTIONARY_URI + "Element");
 	public static final Node ROW_STUDY =
 			NodeFactory.createURI("http://ninds.nih.gov/repository/fitbir/1.0/Dataset/studyTitle");
@@ -70,12 +77,26 @@ public class QueryToolConstants {
 			NodeFactory.createURI("http://ninds.nih.gov/repository/fitbir/1.0/Dataset/prefixedId");
 	public static final Node HAS_INSTANCED_REPEATABLE_GROUP =
 			NodeFactory.createURI("http://ninds.nih.gov/dictionary/ibis/1.0/FormStructure/hasRepeatableGroupInstance");
+	public static final Node HAS_DATA_ELEMENT =
+			NodeFactory.createURI("http://ninds.nih.gov/repository/fitbir/1.0/RepeatableGroup/hasDataElement");
+	public static final Node HAS_REQUIRED_TYPE =
+			NodeFactory.createURI("http://ninds.nih.gov/repository/fitbir/1.0/RepeatableGroup/hasRequiredType");
 	public static final Node REPEATABLE_GROUP_PROP_NAME_N =
 			NodeFactory.createURI("http://ninds.nih.gov/repository/fitbir/1.0/RepeatableGroup/name");
 	public static final Node ROW_SUBMISSION =
 			NodeFactory.createURI("http://ninds.nih.gov/repository/fitbir/1.0/Dataset/submissionRecordJoinId");
 	public static final Node ROW_DATASET =
 			NodeFactory.createURI("http://ninds.nih.gov/repository/fitbir/1.0/Dataset/datasetId");
+	public static final Node HAS_REPEATABLE_GROUP =
+			NodeFactory.createURI("http://ninds.nih.gov/dictionary/ibis/1.0/FormStructure/hasRepeatableGroup");
+	public static final Node RG_NAME_PROPERTY =
+			NodeFactory.createURI("http://ninds.nih.gov/repository/fitbir/1.0/RepeatableGroup/name");
+	public static final Node RG_POSITION_PROPERTY =
+			NodeFactory.createURI("http://ninds.nih.gov/repository/fitbir/1.0/RepeatableGroup/position");
+	public static final Node RG_TYPE_PROPERTY =
+			NodeFactory.createURI("http://ninds.nih.gov/repository/fitbir/1.0/RepeatableGroup/type");
+	public static final Node RG_THRESHOLD_PROPERTY =
+			NodeFactory.createURI("http://ninds.nih.gov/repository/fitbir/1.0/RepeatableGroup/threshold");
 	public static final Var DATASET_ID_VAR = Var.alloc("dsId");
 	public static final Var DATASET_IDS_VAR = Var.alloc("dsIds");
 	public static final Var STUDY_PREFIXED_ID_VAR = Var.alloc("studyPrefixedId");
@@ -91,6 +112,13 @@ public class QueryToolConstants {
 	public static final Var INSTANCED_REPEATABLE_GROUP_VARIABLE = Var.alloc("instancedRepeatableGroup");
 	public static final Var DATA_ELEMENT_VARIABLE = Var.alloc("dataElement");
 	public static final Var DATA_ELEMENT_NAME_VARIABLE = Var.alloc("dataElementName");
+	public static final Var RG_NAME_VARIABLE = Var.alloc("rgName");
+	public static final Var RG_POSITION_VARIABLE = Var.alloc("rgPosition");
+	public static final Var RG_TYPE_VARIABLE = Var.alloc("rgType");
+	public static final Var RG_THRESHOLD_VARIABLE = Var.alloc("rgThreshold");
+	public static final Var DE_POSITION_VARIABLE = Var.alloc("dePosition");
+	public static final Var REQUIRED_TYPE_N_VARIABLE = Var.alloc("requiredTypeN");
+	public static final Var REQUIRED_TYPE_VARIABLE = Var.alloc("requiredType");
 	public static final Var COUNT_VARIABLE = Var.alloc("count");
 	public static final Var VALUE_VARIABLE = Var.alloc("value");
 	public static final Var ROW_VARIABLE = Var.alloc("row");
@@ -122,6 +150,7 @@ public class QueryToolConstants {
 	public final static String FORM_PREFIX = "form_";
 	public final static String SUBCLASSOF = "rdfs:subClassOf";
 	public final static String MISC_FIELDS[] = {"Study", "Dataset", "Submission"};
+	public final static List<BeanField> PV_FIELDS = new ArrayList<BeanField>();
 	public final static List<BeanField> FORM_FIELDS = new ArrayList<BeanField>();
 	public final static List<BeanField> ELEMENT_FIELDS = new ArrayList<BeanField>();
 	public final static List<BeanField> STUDY_FIELDS = new ArrayList<BeanField>();
@@ -134,10 +163,8 @@ public class QueryToolConstants {
 			"http://www.w3.org/2000/01/rdf-schema#label^http://ninds.nih.gov/dictionary/ibis/1.0/FormStructure/title^http://ninds.nih.gov/dictionary/ibis/1.0/FormStructure/shortName^http://ninds.nih.gov/dictionary/ibis/1.0/FormStructure/description";
 	public static final String STRING_TYPE = "xsd:string";
 	public static final String NUMERIC_TYPE = "xsd:decimal";
-	public static final String GUID_TYPE = "GUID";
 	public static final String OPTIONAL_START = "OPTIONAL { ";
 	public static final String END_BRACKET = " }";
-	public static final String NUMERIC_DE_TYPE = "Numeric Values";
 	public static final boolean IS_INSTANCED_COLUMN_LIMITED = true;
 	public static final String RG_EXACTLY = "EXACTLY";
 	public static final String RG_LESSTHAN = "LESSTHAN";
@@ -152,7 +179,6 @@ public class QueryToolConstants {
 	public static final String STUDY_COLUMN_VAR = "?study";
 	public static final String DOUBLE_QUOTE = "\"";
 	public static final String DATASET_COLUMN_VAR = "?prefixedId";
-	public static final String BIOSAMPLE_TYPE = "Biosample";
 	public static final String BIOSAMPLE_CELL_PREFIX = "tbiosample";
 	public static final Node VISIT_TYPE_URI =
 			NodeFactory.createURI("http://ninds.nih.gov/dictionary/ibis/1.0/Element/DataElement/VisitTypPDBP");
@@ -186,12 +212,19 @@ public class QueryToolConstants {
 	public static final String RDF_CONNECTION = "rdfConnection";
 
 	public static final String FACETED_DE_URI = "http://ninds.nih.gov/repository/fitbir/1.0/Study/facetedDE";
+	public static final Node FACETED_DE_N =
+			NodeFactory.createURI("http://ninds.nih.gov/repository/fitbir/1.0/Study/facetedDE");
 
 	public static final String[] deFacetConfig =
 			{"Data Elements", "<http://ninds.nih.gov/repository/fitbir/1.0/Study/facetedDE>",
 					"<http://ninds.nih.gov/dictionary/ibis/1.0/FormStructure>"};
 
 	static {
+		PV_FIELDS.add(new BeanField("uri", "http://ninds.nih.gov/dictionary/ibis/1.0/Element", String.class, false));
+		PV_FIELDS.add(new BeanField("valueLiteral",
+				"http://ninds.nih.gov/dictionary/ibis/1.0/Element/permissibleValues#value", String.class, false));
+		PV_FIELDS.add(new BeanField("valueDescription",
+				"http://ninds.nih.gov/dictionary/ibis/1.0/Element/permissibleValues#description", String.class, false));
 
 		FORM_FIELDS.add(new BeanField("uri", "dictionary:FormStructure", String.class, false));
 		FORM_FIELDS.add(new BeanField("id", "fs:formStructureId", Long.class, false));
@@ -215,7 +248,8 @@ public class QueryToolConstants {
 		ELEMENT_FIELDS.add(new BeanField("type", "element:elementType", String.class, false));
 		ELEMENT_FIELDS.add(new BeanField("maximumValue", "element:maximumValue", Double.class, false));
 		ELEMENT_FIELDS.add(new BeanField("minimumValue", "element:minimumValue", Double.class, false));
-		ELEMENT_FIELDS.add(new BeanField("permissibleValues", "element:permissibleValue", String.class, true));
+		ELEMENT_FIELDS
+				.add(new BeanField("permissibleValues", "element:permissibleValues", PermissibleValue.class, true));
 		ELEMENT_FIELDS.add(new BeanField("position", "element:position", Integer.class, false));
 
 		/** Study Fields **/
@@ -225,6 +259,8 @@ public class QueryToolConstants {
 		STUDY_FIELDS.add(new BeanField("pi", "study:principalInvestigator", String.class, false));
 		STUDY_FIELDS.add(new BeanField("status", "study:status", String.class, false));
 		STUDY_FIELDS.add(new BeanField("forms", "study:facetedForm", FormResult.class, true));
+		STUDY_FIELDS.add(new BeanField("abstractText", "study:abstract", String.class, false));
+		STUDY_FIELDS.add(new BeanField("prefixedId", "study:prefixedId", String.class, false));
 
 		/** RDF PREFIXES **/
 		StringBuffer prefixSb = new StringBuffer();
@@ -247,12 +283,42 @@ public class QueryToolConstants {
 
 	public static final String NAME_READABLE = "variable name";
 	public static final String TITLE_READABLE = "title";
+	public static final String ELEMENT_TYPE_READABLE = "element type";
+	public static final String VERSION_READABLE = "version";
+	public static final String DEFINITION_READABLE = "definition";
 	public static final String SHORT_DESCRIPTION_READABLE = "short description";
+	public static final String DATA_TYPE_READABLE = "data type";
+	public static final String MAX_CHAR_QUANTITY_READBLE = "maximum character quantity";
+	public static final String INPUT_RESTRICTION_READABLE = "input restriction";
+	public static final String MINIMUM_VALUE_READABLE = "minimum value";
+	public static final String MAXIMUM_VALUE_READABLE = "maximum value";
 	public static final String PERMISSIBLE_VALUES_READABLE = "permissible values";
 	public static final String PERMISSIBLE_VALUES_DESCRIPTION_READABLE = "permissible value descriptions";
 	public static final String PERMISSIBLE_VALUES_OUTPUT_CODES_READABLE = "permissible value output codes";
+	public static final String ITEM_RESPONSE_OID_READABLE = "item response oid";
+	public static final String ELEMENT_OID_READABLE = "element oid";
+	public static final String UNIT_OF_MEASURE_READABLE = "unit of measure";
+	public static final String GUIDELINES_READABLE = "guidelines";
+	public static final String NOTES_READABLE = "notes";
+	public static final String PREFERRED_QUESTION_TEXT_READABLE = "preferred question text";
+	public static final String KEYWORDS_READABLE = "keywords";
+	public static final String REFERENCES_READABLE = "references";
+	public static final String POPULATION_ALL_READABLE = "population.all";
+	public static final String HISTORICAL_NOTES_READABLE = "historical notes";
+	public static final String LABELS_READABLE = "labels";
+	public static final String SEE_ALSO_READABLE = "see also";
+	public static final String SUBMITTING_ORG_NAME_READABLE = "submitting organization name";
+	public static final String SUBMITTING_CONTACT_NAME_READABLE = "submitting contact name";
+	public static final String SUBMITTING_CONTACT_INFO_READABLE = "submitting contact information";
+	public static final String EFFECTIVE_DATE_READABLE = "effective date";
+	public static final String UNTIL_DATE_READABLE = "until date";
+	public static final String STEWARD_ORG_NAME_READABLE = "steward organization name";
+	public static final String STEWARD_CONTACT_NAME_READABLE = "steward contact name";
+	public static final String STEWARD_CONTACT_INFO_READABLE = "steward contact information";
 
-	public static final String QT_PV_MAPPING_FILE = "pv_mapping";
+
+
+	public static final String QT_PV_MAPPING_FILE = "data_element_details";
 	public static final String META_STUDY_FILE_PATH = "metaStudy/";
 
 	public static final String SFTP_NAME = "sftp";
@@ -260,5 +326,12 @@ public class QueryToolConstants {
 	public static final String NO = "no";
 	public static final String FILE_SEPARATER = "/";
 	public static final String HIGHLIGHTED_FLAG = "%highlightdis%";
-
+	public static final String MDS_UPDRS_X_FLAG = "%colorDis%";
+	public static final Var MDS_UPDRS_X_VAR = Var.alloc("mdsUpdrsX");
+	public static final Var SEE_ALSO_VAR = Var.alloc("seeAlso");
+	public static final Var FS_ID_VAR = Var.alloc("fsId");
+	public static final Var FS_URI_VAR = Var.alloc("fsUri");
+	public static final Var DE_TITLE_VARIABLE = Var.alloc("deTitle");
+	public static final String FS_LINK_FORMAT = "%s/dictionary/dataStructureAction!view.action?dataStructureName=%s";
+	public static final String DE_LINK_FROMAT = "%s/dictionary/dataElementAction!view.action?dataElementName=%s";
 }

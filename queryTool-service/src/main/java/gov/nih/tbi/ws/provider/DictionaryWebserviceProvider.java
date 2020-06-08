@@ -1,12 +1,15 @@
 package gov.nih.tbi.ws.provider;
 
 import gov.nih.tbi.dictionary.model.DictionaryRestServiceModel.DEValueRangeMap;
+import gov.nih.tbi.dictionary.model.DictionaryRestServiceModel.DataElementList;
 import gov.nih.tbi.dictionary.model.DictionaryRestServiceModel.SchemaList;
 import gov.nih.tbi.dictionary.model.hibernate.Schema;
 import gov.nih.tbi.dictionary.model.hibernate.ValueRange;
 import gov.nih.tbi.pojo.DataElement;
+import gov.nih.tbi.pojo.DownloadPVMappingRow;
 import gov.nih.tbi.pojo.FormResult;
 import gov.nih.tbi.pojo.RepeatableGroup;
+import gov.nih.tbi.util.QueryRestProviderUtils;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -16,6 +19,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.HashSet;
 import java.util.List;
@@ -219,5 +223,72 @@ public class DictionaryWebserviceProvider extends RestAuthenticationProvider {
 		}
 
 		return null;
+	}
+	
+	public DataElementList getDataElementList(Set<String> deNameSet, String path) {
+		DataOutputStream writer = null;
+		HttpURLConnection connection = null;
+		InputStream input = null;
+
+		StringBuilder paramBuilder = new StringBuilder();
+
+		for (String deName : deNameSet) {
+			paramBuilder.append("deNames=").append(deName).append("&");
+		}
+
+		byte[] postData = paramBuilder.substring(0, paramBuilder.length() - 1).getBytes(Charset.forName("UTF-8"));
+
+		try {
+			URL url = new URL(path);
+
+			if (url.getProtocol().equals("https") == true) {
+				connection = (HttpsURLConnection) url.openConnection();
+			} else {
+				connection = (HttpURLConnection) url.openConnection();
+			}
+
+			connection.setDoOutput(true);
+			connection.setRequestMethod("POST");
+			connection.addRequestProperty("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
+			connection.addRequestProperty("charset", "utf-8");
+			connection.connect();
+
+			writer = new DataOutputStream(connection.getOutputStream());
+			writer.write(postData);
+
+			JAXBContext jc = JAXBContext.newInstance(DataElementList.class);
+
+			if (connection.getResponseCode() != 200) {
+				throw new HttpException(
+						"Response code: " + connection.getResponseCode() + "\nContent: " + connection.getContent());
+			} else {
+				input = connection.getInputStream();
+				DataElementList deList = (DataElementList) jc.createUnmarshaller().unmarshal(input);
+				return deList;
+			}
+
+		} catch (IOException | JAXBException | HttpException e) {
+			log.error("Exception occured when getting DataElementValueRangeMap " + e.getMessage());
+			e.printStackTrace();
+		} finally {
+			if (writer != null) {
+				try {
+					writer.close();
+				} catch (IOException e) {
+				}
+			}
+			if (input != null) {
+				try {
+					input.close();
+				} catch (IOException e) {
+				}
+			}
+			if (connection != null) {
+				connection.disconnect();
+			}
+		}
+		
+		return null;
+		
 	}
 }

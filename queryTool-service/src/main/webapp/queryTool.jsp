@@ -12,7 +12,9 @@
 		<link type="text/css" href="css/jquery.ibisMessaging-0.1.css" rel="stylesheet" />
 		<link type="text/css" href="instances/pdbp/jquery-ui.theme.min.css" rel="stylesheet" />
 		
-		<link type="text/css" href="css/font-awesome-4.6.3/css/font-awesome.min.css" rel="stylesheet" />
+		<!-- <link type="text/css" href="css/font-awesome-4.6.3/css/font-awesome.min.css" rel="stylesheet" /> -->		
+
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css" />
 		<link type="text/css" href="css/qt-glyphicons.css" rel="stylesheet" />
 		<link type="text/css" href="css/brics-qt-glyphicons.css" rel="stylesheet" />
 		<!-- <link type="text/css" href="css/qt-structure.css" rel="stylesheet" />
@@ -101,8 +103,8 @@
 
 		<!-- All library imports -->
 
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" crossorigin="anonymous"></script>
-		<script type="text/javascript" src="js/lib/jquery-ui.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js" crossorigin="anonymous"></script>
+		<script type="text/javascript" src="js/lib/jquery-ui-1.12.1.min.js"></script>
 		<script type="text/javascript" src="js/lib/jquery.scrollTo.js"></script>
 		
 		<script type="text/javascript" src="js/lib/jquery.ibisMessaging-0.1.full.js"></script>
@@ -110,7 +112,6 @@
 		
 		<!-- development only!!! -->
 		<!-- <script type="text/javascript" src="js/lib/development/backbone.js"></script> -->
-
 		<script type="text/javascript" src="js/lib/array_find_polyfill.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/promise-polyfill@8/dist/polyfill.min.js"></script>
 		<script type="text/javascript" src="js/lib/d3.v4.js"></script>
@@ -152,6 +153,7 @@
 				<script type="text/javascript" src="js/util/tabOneFilters/SqIncludedTilesFilter.js"></script>
 				<script type="text/javascript" src="js/util/sessionHandler.js"></script>
 				<script type="text/javascript" src="js/util/Util.js"></script>
+				<script type="text/javascript" src="js/util/FilterExpressionUtil.js"></script>
 				<script type="text/javascript" src="js/util/SavedQueryLoadUtil.js"></script>
 				<script type="text/javascript" src="js/util/r.js"></script>
 				
@@ -181,8 +183,6 @@
 				<script type="text/javascript" src="js/dataTable/models/DataTable.js"></script>
 				<script type="text/javascript" src="js/dataTable/models/Row.js"></script>
 				<script type="text/javascript" src="js/dataTable/models/Pager.js"></script>
-				<script type="text/javascript" src="js/dataTable/models/LengthMenu.js"></script>
-				<script type="text/javascript" src="js/dataTable/models/LengthMenuOption.js"></script>
 				
 				<script type="text/javascript" src="js/models/Session.js"></script>
 		
@@ -197,6 +197,7 @@
 				<script type="text/javascript" src="js/collections/DataCartForms.js"></script>
 				
 				<script type="text/javascript" src="js/collections/QueryFilters.js"></script>
+				<script type="text/javascript" src="js/collections/QueryChildFilters.js"></script>
 				<script type="text/javascript" src="js/collections/Permissions.js"></script>
 				<script type="text/javascript" src="js/collections/Users.js"></script>
 				
@@ -206,7 +207,6 @@
 				<script type="text/javascript" src="js/dataTable/collections/RowCells.js"></script>
 				<script type="text/javascript" src="js/dataTable/collections/Rows.js"></script>
 				<script type="text/javascript" src="js/dataTable/collections/Hamburgers.js"></script>
-				<script type="text/javascript" src="js/dataTable/collections/LengthMenuOptions.js"></script>
 				
 		
 			<!-- Views -->
@@ -234,12 +234,14 @@
 				<script type="text/javascript" src="js/views/DataCartButtonView.js"></script>
 				<script type="text/javascript" src="js/views/PageView.js"></script>
 				<script type="text/javascript" src="js/views/RefineDataFormView.js"></script>
+				<script type="text/javascript" src="js/views/FilterLogicBoxView.js"></script>
 				<script type="text/javascript" src="js/views/RefineDataCartView.js"></script>
 				
 				<script type="text/javascript" src="js/views/GenericQueryFilterView.js"></script>
 				<script type="text/javascript" src="js/views/FilterFreeFormView.js"></script>
 				<script type="text/javascript" src="js/views/FilterFreeFormLargeView.js"></script>
 				<script type="text/javascript" src="js/views/FilterNumericRangeView.js"></script>
+				<script type="text/javascript" src="js/views/FilterAgeYrsView.js"></script>
 				<script type="text/javascript" src="js/views/FilterNumericUnboundedView.js"></script>
 				<script type="text/javascript" src="js/views/FilterEnumeratedListView.js"></script>
 				<script type="text/javascript" src="js/views/FilterOtherSpecifyView.js"></script>
@@ -256,7 +258,6 @@
 				<script type="text/javascript" src="js/dataTable/views/HamburgerView.js"></script>
 				<script type="text/javascript" src="js/dataTable/views/HamburgerActionContainerView.js"></script>
 				<script type="text/javascript" src="js/dataTable/views/PagerView.js"></script>
-				<script type="text/javascript" src="js/dataTable/views/LengthMenuView.js"></script>
 				<script type="text/javascript" src="js/dataTable/views/DataTableView.js"></script>
 				<script type="text/javascript" src="js/dataTable/views/ResultsView.js"></script>
 				<script type="text/javascript" src="js/dataTable/views/FrozenResultsView.js"></script>
@@ -285,15 +286,18 @@
 		<jsp:include page='/templates/main/dataCartButton.jsp' />
 		<jsp:include page='/templates/main/saveQueryDialog.jsp' />
 		<jsp:include page='/templates/tab2/criteriaPane/refineDataForm.jsp' />
+		<jsp:include page='/templates/tab2/criteriaPane/filterLogicBox.jsp' />
 		<jsp:include page='/templates/tab2/criteriaPane/refineDataCart.jsp' />
 		<jsp:include page='/templates/tab1/selectionFilterPill.jsp' />
 		<jsp:include page='/templates/tab1/filterDataResultPane.jsp' />
 		<jsp:include page='/templates/tab2/criteriaPane/filterFreeForm.jsp' />
+		<jsp:include page='/templates/tab2/criteriaPane/filterGenericContainer.jsp' />
 		<jsp:include page='/templates/tab2/criteriaPane/filterFreeFormLarge.jsp' />
 		<jsp:include page='/templates/tab2/resultsPane/resultsPanelMain.jsp' />
 		<jsp:include page='/templates/tab2/criteriaPane/filterNumericRange.jsp' />
 		<jsp:include page='/templates/tab2/criteriaPane/filterNumericUnbounded.jsp' />
 		<jsp:include page='/templates/tab2/criteriaPane/filterEnumeratedList.jsp' />
+		<jsp:include page='/templates/tab2/criteriaPane/multiRaceCheckBox.jsp' />
 		<jsp:include page='/templates/tab2/criteriaPane/filterOtherSpecify.jsp' />
 		<jsp:include page='/templates/tab2/criteriaPane/filterOtherSpecifyOption.jsp' />
 		<jsp:include page='/templates/tab2/criteriaPane/filterEnumeratedItem.jsp' />
@@ -303,7 +307,6 @@
 		<jsp:include page='/templates/tab1/dataElementFilterDataResultPane.jsp' />
 		<jsp:include page='/templates/tab1/selectionPane/dataElementSelectionList.jsp' />
 		<jsp:include page='/templates/tab1/selectDeDialogTemplate.jsp' />
-		<jsp:include page='/templates/tab1/details.jsp' />
 		<jsp:include page='/templates/tab2/criteriaPane/dataCartRemoveDialog.jsp' />
 		<jsp:include page='/templates/tab2/resultsPane/selectCriteria.jsp' />
 		<jsp:include page='/templates/tab1/selectionPane/savedQuerySelectionList.jsp' />
@@ -315,7 +318,6 @@
 		<jsp:include page='/templates/tab2/resultsPane/rboxProto.jsp' />
 		<jsp:include page='/templates/main/reloadSessionDialog.jsp' />	
 		<jsp:include page='/templates/dataTable/dataTableTemplate.jsp' />
-		<jsp:include page='/templates/dataTable/lengthMenuTemplate.jsp' />
 		<jsp:include page='/templates/dataTable/image.jsp' />
 		<jsp:include page='/templates/dataTable/fileDownloadTemplate.jsp' />
 		<jsp:include page='/templates/tab2/resultsPane/metaStudyValidationDialog.jsp' />
@@ -366,9 +368,8 @@
 		</c:if> 
 		
 		<div style="margin-left: 132px">
-			<p>Version:<span id="deploymentVersionContainer"></span></br>
-			Repository ID:<span id="repositoryIDContainer"></span></br>
-			Last Deployed:<span id="lastDeployedContainer"></span></p></br>
+			<p>Version: <span id="deploymentVersionContainer"></span></br>
+			Repository ID: <span id="repositoryIDContainer"></span></p></br>
 		</div>
 		</footer>
 	</body>

@@ -1,0 +1,8 @@
+[DB-TRG]
+host=nti-db-prod
+database=nti_data
+schema=proforms_app_prod
+user=proforms_app_prod
+label=TARGET
+
+

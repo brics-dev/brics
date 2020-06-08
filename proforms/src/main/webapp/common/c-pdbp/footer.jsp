@@ -32,11 +32,8 @@
 						       <div class="usa"><a href="http://www.usa.gov">USA.gov : Government Made Easy</a></div>
 						    </div>
 
-							<div class="contact build-notes" style="clear: both;margin: -28px -21px 33px 0;">
-								<p class="left">Build Version:<s:property value="%{buildID}" /></br>
-								Repository ID: <s:property value="%{deploymentID}" /></br>
-								Last Deployed: <s:property value="%{lastDeployed}" /></p>
-							</div>
+							<!-- Include release info section -->
+							<jsp:include page="/common/release-info.jsp" />
 						</div>
 					</div>
 				</div>

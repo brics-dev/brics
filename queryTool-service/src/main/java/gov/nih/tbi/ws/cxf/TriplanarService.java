@@ -84,7 +84,7 @@ public class TriplanarService extends QueryBaseRestService {
 			}
 		} catch (Exception e) {
 			log.error("Error occurred while starting or checking on triplanar generation status.", e);
-			throw new InternalServerErrorException(e.getMessage());
+			throw new InternalServerErrorException(e);
 		}
 
 		return respObj.toString();

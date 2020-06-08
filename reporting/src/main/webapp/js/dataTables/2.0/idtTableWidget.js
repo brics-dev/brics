@@ -272,6 +272,9 @@ $.fn.dataTable.Api.register('clearPipeline()', function() {
 							if(that.options.filterData) {
 								$.extend(d,that.options.filterData);
 							}
+							if (that.options.requestData) {
+							    $.extend(d, that.options.requestData);
+							}
 
 						}
 					});
@@ -292,6 +295,9 @@ $.fn.dataTable.Api.register('clearPipeline()', function() {
 							d.obj = that.options.idtData;
 							if(that.options.filterData) {
 								$.extend(d,that.options.filterData);
+							}
+							if (that.options.requestData) {
+							    $.extend(d, that.options.requestData);
 							}
 						}
 					};

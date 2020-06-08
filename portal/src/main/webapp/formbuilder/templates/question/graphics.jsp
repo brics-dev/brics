@@ -22,6 +22,16 @@
 					&nbsp;
 					<img class='qgraphics qFraphic_4' width='100' height='100' border='0' 
 						src='' style="display:none">
+					&nbsp;
+					<a class='qgraphics qFraphic_0' href='' style="display:none"></a>
+					&nbsp;
+					<a class='qgraphics qFraphic_1' href='' style="display:none"></a>
+					&nbsp;
+					<a class='qgraphics qFraphic_2' href='' style="display:none"></a>
+					&nbsp;
+					<a class='qgraphics qFraphic_3' href='' style="display:none"></a>
+					&nbsp;
+					<a class='qgraphics qFraphic_4' href='' style="display:none"></a>
 				</td>
 			</tr>
 		</table>

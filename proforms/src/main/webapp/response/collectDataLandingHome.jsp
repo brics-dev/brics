@@ -10,6 +10,7 @@
 	Locale l = request.getLocale();
 	int subjectDisplayType = protocol.getPatientDisplayType();
 	String SUBJECT_DISPLAY_LABEL = protocol.getPatientDisplayLabel();
+	Boolean protocolclosed = (Boolean)session.getAttribute(CtdbConstants.PROTOCOL_CLOSED_SESSION_KEY);
 %>
 
 <body onLoad="setSelected('<%=request.getAttribute("searchFormType")%>')">
@@ -119,14 +120,14 @@ $(document).ready(function() {
 		             },
         		<%}%>
         	
-	        	<%if (subjectDisplayType  == CtdbConstants.PATIENT_DISPLAY_ID) {%>
+	        	
 		        	{
 		        		name: 'nihRecordNo',
 		                title: '<%=rs.getValue("subject.table.subjectID",l)%>',
 		                parameter: 'patientRecordNumber',
 		                data: 'nihRecordNo'
 		        	},
-				<%}%>
+
 	        	
 		        	{
 		        		name: 'pvIntervalName',
@@ -231,7 +232,23 @@ $(document).ready(function() {
     		}
     		</security:hasProtocolPrivilege>
     		
-    	]
+    	],
+    	initComplete:function(settings) {
+    		var oTable = $("#pvDataList").idtApi("getTableApi");
+    		var protocolclosed = <%=protocolclosed.booleanValue()%>;
+    		
+    		oTable.on('select', function(e, dt, type, indexes) {
+            	if(protocolclosed){
+            		oTable.buttons(['.patStartDataCollectionBySubjectBtn']).disable();
+            	}
+    		})
+    		
+    		oTable.on('deselect', function(e, dt, type, indexes) {
+            	if(protocolclosed){
+            		oTable.buttons(['.patStartDataCollectionBySubjectBtn']).disable();
+            	}
+    		})
+    	}
         
 	});
 	
@@ -324,7 +341,16 @@ $(document).ready(function() {
    					openPopup(url, "", WindowArgs+ "width=500,height=400,menubar=yes,status=yes,location=yes,toolbar=yes,scrollbars=yes,resizable=yes,");
    				}
     		}
-    	]
+    	],
+    	initComplete:function(settings) {
+    		var oTable = $("#dataFormList").idtApi("getTableApi");
+    		oTable.on('select', function(e, dt, type, indexes) {
+    			var protocolclosed = <%=protocolclosed.booleanValue()%>;
+            	if(protocolclosed){
+            		oTable.buttons(['.startDataCollectionByFormSubjectBtn']).disable();
+            	}
+    		})
+    	}
 	});
 	});
 	

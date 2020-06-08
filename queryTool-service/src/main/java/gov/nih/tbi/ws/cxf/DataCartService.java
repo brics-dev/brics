@@ -1,21 +1,5 @@
 package gov.nih.tbi.ws.cxf;
 
-import gov.nih.tbi.commons.util.ValUtil;
-import gov.nih.tbi.constants.ApplicationConstants;
-import gov.nih.tbi.constants.QueryToolConstants;
-import gov.nih.tbi.dictionary.model.hibernate.Schema;
-import gov.nih.tbi.exceptions.DataCartException;
-import gov.nih.tbi.pojo.DataElement;
-import gov.nih.tbi.pojo.DataTableColumnWithUri;
-import gov.nih.tbi.pojo.FormResult;
-import gov.nih.tbi.pojo.StudyResult;
-import gov.nih.tbi.service.DataCartManager;
-import gov.nih.tbi.service.model.DataCart;
-import gov.nih.tbi.service.model.MetaDataCache;
-import gov.nih.tbi.service.model.PermissionModel;
-import gov.nih.tbi.util.DataCartUtil;
-import gov.nih.tbi.util.InstancedDataUtil;
-
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +8,7 @@ import java.util.Set;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -43,6 +28,25 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
 
+import gov.nih.tbi.commons.model.DataType;
+import gov.nih.tbi.commons.util.ValUtil;
+import gov.nih.tbi.constants.ApplicationConstants;
+import gov.nih.tbi.constants.QueryToolConstants;
+import gov.nih.tbi.dictionary.model.hibernate.Schema;
+import gov.nih.tbi.exceptions.FilterEvaluatorException;
+import gov.nih.tbi.exceptions.FilterParseException;
+import gov.nih.tbi.pojo.DataElement;
+import gov.nih.tbi.pojo.DataTableColumnWithUri;
+import gov.nih.tbi.pojo.FormResult;
+import gov.nih.tbi.pojo.RepeatableGroup;
+import gov.nih.tbi.pojo.StudyResult;
+import gov.nih.tbi.service.DataCartManager;
+import gov.nih.tbi.service.model.DataCart;
+import gov.nih.tbi.service.model.MetaDataCache;
+import gov.nih.tbi.service.model.PermissionModel;
+import gov.nih.tbi.util.DataCartUtil;
+import gov.nih.tbi.util.InstanceSpecificQueryModifier;
+
 @Path("/dataCart/")
 public class DataCartService extends QueryBaseRestService {
 
@@ -60,6 +64,12 @@ public class DataCartService extends QueryBaseRestService {
 	@Autowired
 	ApplicationConstants constants;
 
+	@Autowired
+	InstanceSpecificQueryModifier instanceSpecificQueryModifier;
+
+	@Autowired
+	MetaDataCache metaDataCache;
+
 	/**
 	 * POST method to be called when adding a form to the data cart. Example Url:
 	 * http://hostname:8080/query/service/dataCart/addToCart
@@ -73,24 +83,17 @@ public class DataCartService extends QueryBaseRestService {
 	@POST
 	@Path("form/add")
 	@Produces(MediaType.TEXT_XML)
-	public Response addToCart(@FormParam("formUri") String formUri, @FormParam("studyUri") String studyUri)
-			throws UnauthorizedException, UnsupportedEncodingException {
+	public Response addToCart(@FormParam("formUri") String formUri, @FormParam("studyUri") String studyUri) {
 		getAuthenticatedAccount();
 		if (formUri == null || studyUri == null) {
-			String msg = "Invalid parameters passed in addToCart.";
-			log.error(msg);
-			Response errResponse = Response.status(Status.BAD_REQUEST).entity(msg).build();
-			throw new BadRequestException(errResponse);
+			throw new BadRequestException("Invalid parameters passed in addToCart.");
 		}
 
-		FormResult formToAdd = MetaDataCache.getFormResult(formUri);
-		StudyResult studyToAdd = MetaDataCache.getStudyResult(studyUri);
+		FormResult formToAdd = metaDataCache.getFormResult(formUri);
+		StudyResult studyToAdd = metaDataCache.getStudyResult(studyUri);
 
 		if (formToAdd == null || studyToAdd == null) {
-			String msg = "No corresponding formResult and studyResult found in the cache.";
-			log.error(msg);
-			Response errResponse = Response.status(Status.NOT_FOUND).entity(msg).build();
-			throw new NotFoundException(errResponse);
+			throw new NotFoundException("No corresponding formResult and studyResult found in the cache.");
 		}
 
 		dataCartManager.addToCart(dataCart, formToAdd, studyToAdd);
@@ -112,30 +115,71 @@ public class DataCartService extends QueryBaseRestService {
 	@POST
 	@Path("form/remove")
 	@Produces(MediaType.TEXT_XML)
-	public Response removeFromCart(@FormParam("formUri") String formUri, @FormParam("studyUri") String studyUri)
-			throws UnauthorizedException, UnsupportedEncodingException {
+	public Response removeFromCart(@FormParam("formUri") String formUri, @FormParam("studyUri") String studyUri) {
 		getAuthenticatedAccount();
 		if (formUri == null || studyUri == null) {
 			String msg = "Invalid parameters passed in removeFromCart: either formUri: " + formUri + " or studyUri: "
 					+ studyUri + " is null";
-			log.error(msg);
-			Response errResponse = Response.status(Status.BAD_REQUEST).entity(msg).build();
-			throw new BadRequestException(errResponse);
+			throw new BadRequestException(msg);
 		}
 
-		FormResult formToRemove = MetaDataCache.getFormResult(formUri);
-		StudyResult studyToRemove = MetaDataCache.getStudyResult(studyUri);
+		FormResult formToRemove = metaDataCache.getFormResult(formUri);
+		StudyResult studyToRemove = metaDataCache.getStudyResult(studyUri);
 
 		if (formToRemove == null || studyToRemove == null) {
 			String msg = "No corresponding formResult or studyResult found in the cache.";
-			log.error(msg);
-			Response errResponse = Response.status(Status.NOT_FOUND).entity(msg).build();
-			throw new NotFoundException(errResponse);
+			throw new NotFoundException(msg);
 		}
 
 		dataCartManager.removeFromCart(dataCart, formToRemove, studyToRemove);
 
 		log.info("Removed from cart - form: " + formToRemove.getShortName() + ", study: " + studyToRemove.getTitle());
+		return respondEmptyOk();
+	}
+
+	@POST
+	@Path("study/removeAll")
+	@Produces(MediaType.TEXT_XML)
+	public Response studyRemoveAll(@FormParam("studyUri") String studyUri) {
+		getAuthenticatedAccount();
+		if (studyUri == null) {
+			String msg = "Invalid parameters passed in removeFromCart: studyUri: " + studyUri + " is null";
+			throw new BadRequestException(msg);
+		}
+
+		StudyResult studyToRemove = metaDataCache.getStudyResult(studyUri);
+
+		if (studyToRemove == null) {
+			String msg = "No corresponding formResult or studyResult found in the cache.";
+			throw new NotFoundException(msg);
+		}
+
+		dataCartManager.removeStudyFromCart(dataCart, studyToRemove);
+
+		log.info("Removed from cart - study: " + studyToRemove.getTitle());
+		return respondEmptyOk();
+	}
+
+	@POST
+	@Path("form/removeAll")
+	@Produces(MediaType.TEXT_XML)
+	public Response formRemoveAll(@FormParam("formUri") String formUri) {
+		getAuthenticatedAccount();
+		if (formUri == null) {
+			String msg = "Invalid parameters passed in removeFromCart: formUri: " + formUri + " is null";
+			throw new BadRequestException(msg);
+		}
+
+		FormResult formToRemove = metaDataCache.getFormResult(formUri);
+
+		if (formToRemove == null) {
+			String msg = "No corresponding formResult or formResult found in the cache.";
+			throw new NotFoundException(msg);
+		}
+
+		dataCartManager.removeFormFromCart(dataCart, formToRemove);
+
+		log.info("Removed from cart - form: " + formToRemove.getShortName());
 		return respondEmptyOk();
 	}
 
@@ -148,7 +192,7 @@ public class DataCartService extends QueryBaseRestService {
 	 */
 	@POST
 	@Path("clear")
-	public Response clearDataCart() throws UnauthorizedException, UnsupportedEncodingException {
+	public Response clearDataCart() {
 		getAuthenticatedAccount();
 		dataCart.reset();
 		log.info("Data cart cleared.");
@@ -160,15 +204,14 @@ public class DataCartService extends QueryBaseRestService {
 	@GET
 	@Path("form/permission")
 	@Produces(MediaType.TEXT_XML)
-	public boolean checkFormPermission(@QueryParam("formUri") String formUri)
-			throws UnauthorizedException, UnsupportedEncodingException {
+	public boolean checkFormPermission(@QueryParam("formUri") String formUri) {
 		getAuthenticatedAccount();
 		if (ValUtil.isBlank(formUri)) {
 			log.error("Invalid parameters passed in checkFormPermission.");
 			return false;
 		}
 
-		FormResult form = MetaDataCache.getFormResult(formUri);
+		FormResult form = metaDataCache.getFormResult(formUri);
 		if (form == null) {
 			log.error("No corresponding form found in the cache for " + formUri);
 			return false;
@@ -176,7 +219,7 @@ public class DataCartService extends QueryBaseRestService {
 
 		long formId = form.getId();
 		return (permissionModel.getFormResultPermissions() != null
-				&& permissionModel.getFormResultPermissions().containsKey(formId));
+				&& permissionModel.getFormResultPermissions().containsKey(Long.valueOf(formId).toString()));
 	}
 
 	@GET
@@ -221,66 +264,120 @@ public class DataCartService extends QueryBaseRestService {
 	 * @throws UnsupportedEncodingException
 	 * @throws UnauthorizedException
 	 */
-	@GET
+	@POST
 	@Path("runQuery")
 	@Produces(MediaType.APPLICATION_JSON)
-	public String runQuery(@QueryParam("formUris") List<String> formUris, @QueryParam("offset") int offset,
-			@QueryParam("limit") int limit, @QueryParam("sortColName") String sortColName,
-			@QueryParam("sortOrder") String sortOrder) throws UnauthorizedException, UnsupportedEncodingException {
+	public Response runQuery(@FormParam("formUris") List<String> formUris, @FormParam("offset") int offset,
+			@FormParam("limit") int limit, @FormParam("sortColName") String sortColName,
+			@FormParam("sortOrder") String sortOrder, @FormParam("filters") String filters,
+			@FormParam("filterExpression") String filterExpression, @FormParam("doApplyFilter") Boolean doApplyFilter) {
 
 		getAuthenticatedAccount();
+
 		JsonObject resultJson = new JsonObject();
 
 		if (formUris == null || formUris.isEmpty()) {
-			log.error("No form selected when calling runQuery.");
-			resultJson.addProperty("error", "true");  // TODO
-			return resultJson.toString();
+			throw new BadRequestException("Cannot run query without formUris!");
 		}
 
-		log.info("Run query for " + formUris.size() + " form(s).");
+		if (doApplyFilter == null) {
+			throw new BadRequestException("Missing doApplyFilter");
+		}
 
-		// we don't want to remove filters for joined query
-		if (formUris.size() < 2) {
+		synchronized (dataCart) {
+			log.info("Run query for " + formUris.size() + " form(s).");
+
 			dataCart.removeAllFilters();
-		}
 
-		dataCart.clearSelectedForms();
-		dataCart.setSelectedFormUris(formUris);
+			dataCart.clearSelectedForms();
+			dataCart.setSelectedFormUris(formUris);
 
-		List<FormResult> selectedForms = dataCartManager.loadSelectedFormDataElements(dataCart);
+			List<FormResult> selectedForms = dataCartManager.loadSelectedFormDataElements(dataCart);
+			dataCartManager.selectAllDataEements(dataCart);
+
+			try {
+				addFiltersToCart(filters);
+			} catch (JsonSyntaxException e) {
+				throw new BadRequestException("Invalid parameters passed in addToCart", e);
+			} catch (FilterParseException e) {
+				throw new BadRequestException("Invalid JSON data.  Probably missing some required properties.", e);
+			}
+
+			// insert info for whether or not the form has a guid column
+			if (dataCart.getSelectedForms().size() > 1) {
+				boolean showGuidDialog = false;
+				JsonArray formInfo = new JsonArray();
+
+				for (FormResult form : dataCart.getSelectedForms()) {
+					JsonObject formJson = new JsonObject();
+					formJson.addProperty("name", form.getShortName());
+					boolean hasGuidColumn = false;
+					for (RepeatableGroup rg : form.getRepeatableGroups()) {
+						for (DataElement de : rg.getDataElements()) {
+							if (DataType.GUID == de.getType()) {
+								hasGuidColumn = true;
+								break;
+							}
+						}
+					}
+
+					if (!hasGuidColumn) {
+						showGuidDialog = true;
+					}
+
+					formJson.addProperty("hasGuidColumn", hasGuidColumn);
+					formInfo.add(formJson);
+				}
 
 
-		if (selectedForms.size() > 1) {
-			// When joining forms and if any form doesn't have GUID element, returns error
-			if (!InstancedDataUtil.formsHaveGuid(selectedForms)) {
-				resultJson.addProperty("allHaveGuid", "false");
-				return resultJson.toString();
+				if (showGuidDialog) {
+					resultJson.add("formInfo", formInfo);
+					return Response.ok(resultJson.toString()).build();
+				}
+			}
+
+			if (selectedForms.isEmpty()) {
+				return Response.status(Status.NO_CONTENT).build();
+			}
+
+			// if we are currently in PDBP
+			if (QueryToolConstants.PDBP_ORG_NAME.equals(constants.getOrgName())) {
+				boolean hasHighlightedGuid =
+						dataCartManager.hasHighlightedGuid(selectedForms, permissionModel.getUserName());
+				resultJson.addProperty("hasHighlightedGuid", hasHighlightedGuid);
+			}
+
+			dataCartManager.rebuildCodeMapping(dataCart, selectedForms);
+
+			try {
+				dataCartManager.generateInstancedDataTable(dataCart, offset, limit, sortColName, sortOrder,
+						permissionModel.getUserName(), doApplyFilter, filterExpression);
+			} catch (FilterEvaluatorException e) {
+				throw new InternalServerErrorException(e);
+			}
+
+			instanceSpecificQueryModifier.modifyDataCart(dataCart);
+
+			resultJson.addProperty("header", dataCartManager.getTableHeaderJson(dataCart));
+			resultJson.addProperty("data", getTableDataJson());
+
+			// insert info for whether or not the form has a guid column
+			if (dataCart.getSelectedForms().size() > 1) {
+				JsonArray formInfo = new JsonArray();
+
+				for (FormResult form : dataCart.getSelectedForms()) {
+					JsonObject formJson = new JsonObject();
+					formJson.addProperty("name", form.getShortName());
+					formJson.addProperty("hasGuidData", form.isHasGuidData());
+					formInfo.add(formJson);
+				}
+
+				resultJson.add("formInfo", formInfo);
 			}
 		}
 
-
-		// if we are currently in PDBP
-		if (QueryToolConstants.PDBP_ORG_NAME.equals(constants.getOrgName())) {
-			boolean hasHighlightedGuid =
-					dataCartManager.hasHighlightedGuid(selectedForms, permissionModel.getUserName());
-			resultJson.addProperty("hasHighlightedGuid", hasHighlightedGuid);
-		}
-
-		dataCartManager.rebuildCodeMapping(dataCart, selectedForms);
-		dataCartManager.generateInstancedDataTable(dataCart, offset, limit, sortColName, sortOrder,
-				permissionModel.getUserName(), false);
-
-		if (selectedForms.size() > 1 && !dataCartManager.hasMatchingGuid(dataCart)) {
-			resultJson.addProperty("hasMatchingGuid", "false");
-			return resultJson.toString();
-		}
-
-		resultJson.addProperty("header", dataCartManager.getTableHeaderJson(dataCart));
-		resultJson.addProperty("data", getTableDataJson());
-
-		return resultJson.toString();
+		return Response.ok(resultJson.toString()).build();
 	}
-
 
 	private String getTableDataJson() {
 		return dataCartManager.getTableDataJson(dataCart);
@@ -301,9 +398,10 @@ public class DataCartService extends QueryBaseRestService {
 	@GET
 	@Path("dataWithPagination")
 	@Produces(MediaType.APPLICATION_JSON)
-	public String getDataWithPagination(@QueryParam("offset") int offset, @QueryParam("limit") int limit,
-			@QueryParam("sortColName") String sortColName, @QueryParam("sortOrder") String sortOrder)
-			throws UnauthorizedException, UnsupportedEncodingException {
+	public Response getDataWithPagination(@QueryParam("offset") int offset, @QueryParam("limit") int limit,
+			@QueryParam("sortColName") String sortColName, @QueryParam("sortOrder") String sortOrder,
+			@QueryParam("booleanExpression") String booleanExpression) {
+
 		getAuthenticatedAccount();
 
 		String displayOption = null;
@@ -311,11 +409,18 @@ public class DataCartService extends QueryBaseRestService {
 			displayOption = dataCart.getInstancedDataTable().getDisplayOption();
 		}
 
-		dataCartManager.rebuildDataTableData(dataCart, offset, limit, sortColName, sortOrder,
-				permissionModel.getUserName());
+		instanceSpecificQueryModifier.modifyDataCart(dataCart);
+
+		try {
+			dataCartManager.rebuildDataTableData(dataCart, offset, limit, sortColName, sortOrder,
+					permissionModel.getUserName(), booleanExpression);
+		} catch (FilterEvaluatorException e) {
+			throw new InternalServerErrorException("Error occured while evaluating the filters", e);
+		}
+
 		dataCart.setDisplayOption(displayOption);
 
-		return getTableDataJson();
+		return Response.ok(getTableDataJson()).build();
 	}
 
 	/**
@@ -330,8 +435,7 @@ public class DataCartService extends QueryBaseRestService {
 	@GET
 	@Path("changeDisplayOption")
 	@Produces(MediaType.APPLICATION_JSON)
-	public String changeDisplayOption(@QueryParam("displayOption") String displayOption)
-			throws UnauthorizedException, UnsupportedEncodingException {
+	public String changeDisplayOption(@QueryParam("displayOption") String displayOption) {
 		getAuthenticatedAccount();
 		log.info("Switching data table display option to " + displayOption);
 
@@ -358,7 +462,7 @@ public class DataCartService extends QueryBaseRestService {
 	@Path("expandRepeatableGroup")
 	@Produces(MediaType.APPLICATION_JSON)
 	public String expandRepeatableGroup(@QueryParam("rowUri") String rowUri, @QueryParam("rgFormUri") String rgFormUri,
-			@QueryParam("rgName") String rgName) throws UnauthorizedException, UnsupportedEncodingException {
+			@QueryParam("rgName") String rgName) {
 		getAuthenticatedAccount();
 		log.info("Expanding repeatable group: " + rgName);
 
@@ -379,32 +483,11 @@ public class DataCartService extends QueryBaseRestService {
 	@Path("collapseRepeatableGroup")
 	@Produces(MediaType.APPLICATION_JSON)
 	public String collapseRepeatableGroup(@QueryParam("rowUri") String rowUri,
-			@QueryParam("rgFormUri") String rgFormUri, @QueryParam("rgName") String rgName)
-			throws UnauthorizedException, UnsupportedEncodingException {
+			@QueryParam("rgFormUri") String rgFormUri, @QueryParam("rgName") String rgName) {
 		getAuthenticatedAccount();
 		dataCartManager.collapseRepeatableGroup(dataCart, rowUri, rgFormUri, rgName);
 		return getTableDataJson();
 	}
-
-	/**
-	 * Example Url:
-	 * http://hostname:8080/query/service/dataCart/refreshRepeatableGroup?rowUri=...&rgFormUri=...&rgName=...
-	 * 
-	 * @param displayOption
-	 * @return json string of the serialized InstancedDataTable
-	 * @throws UnsupportedEncodingException
-	 * @throws UnauthorizedException
-	 */
-	@GET
-	@Path("refreshRepeatableGroup")
-	@Produces(MediaType.APPLICATION_JSON)
-	public String refreshRepeatableGroup(@QueryParam("rowUri") String rowUri, @QueryParam("rgFormUri") String rgFormUri,
-			@QueryParam("rgName") String rgName) throws UnauthorizedException, UnsupportedEncodingException {
-		getAuthenticatedAccount();
-		dataCartManager.refreshRepeatableGroup(dataCart, rowUri, rgFormUri, rgName, permissionModel.getUserName());
-		return getTableDataJson();
-	}
-
 
 	/**
 	 * Example Url: http://hostname:8080/query/service/dataCart/selectedFormDetails
@@ -416,10 +499,14 @@ public class DataCartService extends QueryBaseRestService {
 	@GET
 	@Path("selectedFormDetails")
 	@Produces(MediaType.APPLICATION_JSON)
-	public String getSelectedFormDetails() throws UnauthorizedException, UnsupportedEncodingException {
+	public String getSelectedFormDetails() {
 		getAuthenticatedAccount();
-		log.info("Retrieving data element details for all selected forms ...");
-		return dataCartManager.getSelectedFormDetailsJson(dataCart);
+
+		synchronized (dataCart) {
+			log.info("Retrieving data element details for all selected forms ... - " + dataCart.getSelectedFormUris());
+			dataCartManager.loadSelectedFormDataElements(dataCart);
+			return dataCartManager.getSelectedFormDetailsJson(dataCart);
+		}
 	}
 
 
@@ -438,40 +525,30 @@ public class DataCartService extends QueryBaseRestService {
 	@Path("deFilterDetails")
 	@Produces(MediaType.APPLICATION_JSON)
 	public String getDeFilterDetails(@QueryParam("formUri") String formUri, @QueryParam("rgName") String rgName,
-			@QueryParam("deName") String deName) throws UnauthorizedException, UnsupportedEncodingException {
+			@QueryParam("deName") String deName) {
 		getAuthenticatedAccount();
 		log.info("Loading the filter details for element: " + formUri + " " + rgName + " " + deName);
 
-		try {
-			DataElement de = DataCartUtil.getDataElement(dataCart, formUri, rgName, deName);
-			if (de != null) {
-				return de.toJsonDetails().toString();
-			}
-
-		} catch (DataCartException e) {
-			log.error("Exception occured when getting filter details " + e.getMessage());
+		DataElement de = DataCartUtil.getDataElement(dataCart, formUri, rgName, deName);
+		if (de != null) {
+			return de.toJsonDetails().toString();
 		}
 
 		return "Error getting filter details.";
 	}
 
-	private void addFiltersToCart(String filters) {
+	private void addFiltersToCart(String filters) throws FilterParseException {
 		// remove all filters so we can add them back
 		dataCart.removeAllFilters();
 
 		JsonParser parser = new JsonParser();
-		try {
-			// list of filter json objects
-			JsonArray input = (JsonArray) parser.parse(filters);
+		// list of filter json objects
+		JsonArray input = (JsonArray) parser.parse(filters);
 
-			for (int i = 0; i < input.size(); i++) {
-				JsonObject filterJson = (JsonObject) input.get(i);
-				DataCartUtil.addFilterFromJson(dataCart, filterJson);
-			}
-		} catch (JsonSyntaxException e) {
-			throw e;
-		} catch (DataCartException e) {
-			throw e;
+		for (int i = 0; i < input.size(); i++) {
+			JsonObject filterJson = (JsonObject) input.get(i);
+
+			DataCartUtil.addFilterFromJson(dataCart, filterJson);
 		}
 	}
 
@@ -482,6 +559,7 @@ public class DataCartService extends QueryBaseRestService {
 	 * Note: sortColName needs to be in the format as: "formNameAndVersion,rgName,deName"
 	 * 
 	 * @return JSON string of the data table.
+	 * @throws FilterParseException
 	 * @throws UnsupportedEncodingException
 	 * @throws UnauthorizedException
 	 */
@@ -489,9 +567,10 @@ public class DataCartService extends QueryBaseRestService {
 	@Path("applyFiltersWithoutResults")
 	public Response applyFilterWithoutResults(@FormParam("filters") String filters, @FormParam("offset") int offset,
 			@FormParam("limit") int limit, @FormParam("sortColName") String sortColName,
-			@FormParam("sortOrder") String sortOrder) throws UnauthorizedException, UnsupportedEncodingException {
+			@FormParam("sortOrder") String sortOrder) throws FilterParseException {
 		getAuthenticatedAccount();
 		addFiltersToCart(filters);
+
 		return respondEmptyOk();
 	}
 
@@ -508,19 +587,19 @@ public class DataCartService extends QueryBaseRestService {
 	@POST
 	@Path("applyFilters")
 	@Produces(MediaType.APPLICATION_JSON)
-	public String applyFilters(@FormParam("filters") String filters, @FormParam("offset") int offset,
+	public Response applyFilters(@FormParam("filters") String filters, @FormParam("offset") int offset,
 			@FormParam("limit") int limit, @FormParam("sortColName") String sortColName,
-			@FormParam("sortOrder") String sortOrder) throws UnauthorizedException, UnsupportedEncodingException {
+			@FormParam("sortOrder") String sortOrder, @FormParam("filterExpression") String filterExpression) {
+
 		getAuthenticatedAccount();
+
 		// remove all filters so we can add them back
 		try {
 			addFiltersToCart(filters);
 		} catch (JsonSyntaxException e) {
-			log.error("Invalid parameters passed in addToCart.", e);
-			return "bad json format";
-		} catch (DataCartException e) {
-			log.error("Exception occured when adding filter ", e);
-			return "Exception occured when adding filter " + e.getMessage();
+			throw new BadRequestException("Invalid parameters passed in addToCart", e);
+		} catch (FilterParseException e) {
+			throw new BadRequestException("Invalid JSON data.  Probably missing some required properties.", e);
 		}
 
 		String displayOption = null;
@@ -528,27 +607,29 @@ public class DataCartService extends QueryBaseRestService {
 			displayOption = dataCart.getInstancedDataTable().getDisplayOption();
 		}
 
-		dataCartManager.generateInstancedDataTable(dataCart, offset, limit, sortColName, sortOrder,
-				permissionModel.getUserName(), true);
+		try {
+			dataCartManager.generateInstancedDataTable(dataCart, offset, limit, sortColName, sortOrder,
+					permissionModel.getUserName(), true, filterExpression);
+		} catch (FilterEvaluatorException e) {
+			throw new InternalServerErrorException("Error occured while evaluating the filters", e);
+		}
+
+		instanceSpecificQueryModifier.modifyDataCart(dataCart);
+
 		dataCart.setDisplayOption(displayOption);
 
-		return getTableDataJson();
+		return Response.ok(getTableDataJson()).build();
 	}
 
 	@POST
 	@Path("element/deselect")
 	public Response deselectDataElement(@FormParam("formUri") String formUri, @FormParam("rgName") String rgName,
-			@FormParam("deName") String deName) throws UnauthorizedException, UnsupportedEncodingException {
+			@FormParam("deName") String deName) {
 		getAuthenticatedAccount();
-		log.info("deselecting the data element: " + formUri + " " + rgName + " " + deName);
+		log.debug("deselecting the data element: " + formUri + " " + rgName + " " + deName);
 
-		try {
-			DataElement de = DataCartUtil.getDataElement(dataCart, formUri, rgName, deName);
-			de.setSelected(false);
-
-		} catch (DataCartException e) {
-			log.error("Exception occured when deselecting data element " + e.getMessage());
-		}
+		DataElement de = DataCartUtil.getDataElement(dataCart, formUri, rgName, deName);
+		de.setSelected(false);
 
 		return respondEmptyOk();
 	}
@@ -556,21 +637,15 @@ public class DataCartService extends QueryBaseRestService {
 	@POST
 	@Path("element/select")
 	public Response selectDataElement(@FormParam("formUri") String formUri, @FormParam("rgName") String rgName,
-			@FormParam("deName") String deName) throws UnauthorizedException, UnsupportedEncodingException {
+			@FormParam("deName") String deName) {
 		getAuthenticatedAccount();
 
 		if (log.isDebugEnabled()) {
 			log.debug("selecting the data element: " + formUri + " " + rgName + " " + deName);
 		}
 
-		try {
-			DataElement de = DataCartUtil.getDataElement(dataCart, formUri, rgName, deName);
-			de.setSelected(true);
-
-		} catch (DataCartException e) {
-			e.printStackTrace();
-			log.error("Exception occured when selecting data element " + e.getMessage());
-		}
+		DataElement de = DataCartUtil.getDataElement(dataCart, formUri, rgName, deName);
+		de.setSelected(true);
 
 		return respondEmptyOk();
 	}
@@ -578,9 +653,12 @@ public class DataCartService extends QueryBaseRestService {
 	@GET
 	@Path("reRunQuery")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response reRunQuery() throws UnauthorizedException, UnsupportedEncodingException {
+	public Response reRunQuery() {
 		getAuthenticatedAccount();
+
 		JsonObject resultJson = new JsonObject();
+
+		instanceSpecificQueryModifier.modifyDataCart(dataCart);
 
 		resultJson.addProperty("header", dataCartManager.getTableHeaderJson(dataCart));
 		resultJson.addProperty("data", getTableDataJson());
@@ -626,30 +704,35 @@ public class DataCartService extends QueryBaseRestService {
 		return deDetailPage;
 	}
 
-	// @GET
-	// @Path("executeRScript")
-	// public byte[] executeRScript() throws CSVGenerationException {
-	//
-	// InstancedDataTable instancedDataTable = dataCart.getInstancedDataTable();
-	// // byte[] dataBytes = CSVGenerator.generateCSV(instancedDataTable);
-	//
-	// // Use for flattened csv format
-	// byte[] dataBytes = CSVGenerator.generateFlattenedCSV(instancedDataTable);
-	//
-	// return dataBytes;
-	// /*
-	// * //Populate jaxb request object with script and data Strings RboxRequest request = new RboxRequest();
-	// * request.setScript(scriptString); request.setDataBytes(new String(dataBytes));
-	// *
-	// * System.out.println("inside service call with script: " + scriptString + " and data: " + new
-	// * String(dataBytes));
-	// *
-	// * //Execute client post request and retrieve jaxb response object from server WebClient client =
-	// * WebClient.create("http://localhost:8082/rbox/v1/script/process"); RboxResponse response =
-	// * client.post(request, RboxResponse.class);
-	// *
-	// * return Response.ok(response).build(); // InstancedDataTable dataTable = dataCartManager.get //
-	// * dataCartManager.generateInstancedDataTable(dataCart, 0, 20, "", "asc", permissionModel.getUserName());
-	// */
-	// }
+
+	/**
+	 * 
+	 */
+	@GET
+	@Path("setSelectedForms")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response setSelectedForms(@QueryParam("formUris") List<String> formUris)
+			throws UnauthorizedException, UnsupportedEncodingException {
+
+		getAuthenticatedAccount();
+		JsonObject resultJson = new JsonObject();
+
+		if (formUris == null) {
+			log.error("No form selected when calling runQuery.");
+			resultJson.addProperty("error", "true");  // TODO
+			throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity(resultJson)
+					.type(MediaType.APPLICATION_JSON).build());
+		}
+
+		synchronized (dataCart) {
+			dataCart.clearSelectedForms();
+			if (!formUris.isEmpty()) {
+				dataCart.setSelectedFormUris(formUris);
+			}
+			resultJson.addProperty("complete", "true");
+			log.info("Done selecting forms: " + formUris);
+			return Response.ok(resultJson.toString(), MediaType.APPLICATION_JSON).build();
+		}
+	}
+
 }

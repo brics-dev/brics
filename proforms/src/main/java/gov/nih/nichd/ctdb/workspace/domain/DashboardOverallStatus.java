@@ -10,7 +10,7 @@ public class DashboardOverallStatus {
 	
 	private String assessmentType;
 	private String completeVal;
-	private String inCompleteVal;
+	private String lockedVal;
 	private String inProgressVal;
 	private String deviationsVal;
 	
@@ -49,18 +49,12 @@ public class DashboardOverallStatus {
 		this.completeVal = completeVal;
 	}
 
-	/**
-	 * @return the inCompleteVal
-	 */
-	public String getInCompleteVal() {
-		return inCompleteVal;
+	public String getLockedVal() {
+		return lockedVal;
 	}
 
-	/**
-	 * @param inCompleteVal the inCompleteVal to set
-	 */
-	public void setInCompleteVal(String inCompleteVal) {
-		this.inCompleteVal = inCompleteVal;
+	public void setLockedVal(String lockedVal) {
+		this.lockedVal = lockedVal;
 	}
 
 	/**

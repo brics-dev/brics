@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC "-//Apache Struts//XWork Validator 1.0.2//EN" "/WEB-INF/xwork-validator-1.0.2.dtd">
+<validators>
+	<field name="uploadDescription">
+		<field-validator type="required" short-circuit="true">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
+	</field>
+	
+	<field name="upload">
+		<field-validator type="required">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.fileUpload" />
+		</field-validator>
+	</field>
+	
+	<field name="uploadFileName">
+		<field-validator type="uniqueaccountupload">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.fileUnique" />
+		</field-validator>
+		<field-validator type="accountfileextension">
+			<param name="allowedExtensions">pdf|csv|gif|jpg|msg|png|txt|xml|docx|jpeg|pptx|tiff|xlsx</param>
+			<message key="errors.accountFileExtension" />
+		</field-validator>
+	</field>
+</validators>

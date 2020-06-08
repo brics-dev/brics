@@ -1,0 +1,6 @@
+[DB-TRG]
+host=cistar-db-prod.ninds.nih.gov
+database=cistar_prod
+schema=tbi_meta
+user=tbi_meta
+label=TARGET

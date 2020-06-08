@@ -161,6 +161,10 @@ table.dataTable tr.odd.row_selected {
 	float: left;
 	height: 100%;
 }
+#footer .branding a {
+	display: block;
+	padding: 20px;
+}
 #footer .hhs {
 	background: url("../images/logo-hhs.png") no-repeat;
 	width: 64px;
@@ -172,6 +176,12 @@ table.dataTable tr.odd.row_selected {
 #footer .usa {
 	background: url("../images/logo-usa.png") no-repeat;
 	width: 120px;
+}
+
+.build-notes {
+	float: left;
+	clear: both;
+	margin: 10px -20px 20px 0;
 }
 
 #primary-nav li .missingPermission {

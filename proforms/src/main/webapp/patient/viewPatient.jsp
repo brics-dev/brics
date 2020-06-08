@@ -21,6 +21,7 @@
 <%
 	DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 	Locale l = request.getLocale();
+	Boolean protocolclosed = (Boolean)session.getAttribute(CtdbConstants.PROTOCOL_CLOSED_SESSION_KEY);
 %>
 
 <html>
@@ -47,6 +48,14 @@
 var basePath = "<s:property value='#webRoot'/>";
 
 $(document).ready(function() {
+	var protocolclosed = <%=protocolclosed.booleanValue()%>;
+	if(protocolclosed){
+		$("#btnEditPatient").attr("disabled",true);
+		$("#btnEditPatientStudy").attr("disabled",true);
+		$("#btnEditPatientVisits").attr("disabled",true);
+		$("#btnEditAttachments").attr("disabled",true);
+	}
+	
 	$("#btnEditPatient").click(function(event) {
 		var url = basePath + '/patient/showEditPatient.action?patientId=' + $("#patientId").val() + "&sectionDisplay=default";
 		redirectWithReferrer(url);
@@ -108,11 +117,7 @@ $(document).ready(function() {
 				<label for="recordNumber"><s:text name="patient.recordnumber.display" /> </label>
 				<span id="subjIdSpan"><s:property value="patientForm.subjectId" /></span>
 			</div>
-			<!-- <div class="formrow_2"></div>
-			<div class="formrow_2">
-				<label for="biorepositoryId"><s:text name="patient.biorepositoryid.display" /> </label>
-				<span><s:property value="patientForm.biorepositoryId" /> </span>
-			</div> -->
+
 			<div class="formrow_2"></div>
 			<div class="formrow_2">
 				<label for="recruited">Recruit</label>

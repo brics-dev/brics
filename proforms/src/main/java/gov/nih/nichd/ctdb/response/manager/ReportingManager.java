@@ -5,14 +5,18 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import gov.nih.nichd.ctdb.common.CtdbException;
 import gov.nih.nichd.ctdb.common.CtdbManager;
 import gov.nih.nichd.ctdb.patient.domain.Patient;
 import gov.nih.nichd.ctdb.protocol.domain.Interval;
 import gov.nih.nichd.ctdb.response.dao.ReportingManagerDao;
+import gov.nih.nichd.ctdb.response.domain.AdverseEvent;
 import gov.nih.nichd.ctdb.response.domain.ScheduleReport;
 import gov.nih.nichd.ctdb.response.domain.ScheduleReportFilter;
 import gov.nih.nichd.ctdb.response.domain.SubmissionSummaryReport;
+import gov.nih.nichd.ctdb.response.domain.ViewAuditorComment;
 import gov.nih.nichd.ctdb.response.form.FormVisitTypeStatusSubjectMatrix;
 import gov.nih.nichd.ctdb.response.form.ReportingForm;
 
@@ -133,6 +137,41 @@ public class ReportingManager extends CtdbManager {
 			this.close(conn);
 		}
 	}
+	
+	
+
+	/**
+	 * Method to get the study report from DAO
+	 * 
+	 * @return
+	 * @throws CtdbException
+	 */
+	public List<ReportingForm> getDetailedStudyReport() throws CtdbException {
+		Connection conn = null;
+		try {
+			conn = CtdbManager.getConnection(CtdbManager.AUTOCOMMIT_FALSE);
+			return ReportingManagerDao.getInstance(conn).getDetailedStudyReport();
+		} finally {
+			this.close(conn);
+		}
+	}
+	
+	
+	/**
+	 * Method to get the study report from DAO
+	 * 
+	 * @return
+	 * @throws CtdbException
+	 */
+	public List<ReportingForm> getDetailedStudyReportExport() throws CtdbException {
+		Connection conn = null;
+		try {
+			conn = CtdbManager.getConnection(CtdbManager.AUTOCOMMIT_FALSE);
+			return ReportingManagerDao.getInstance(conn).getDetailedStudyReportExport();
+		} finally {
+			this.close(conn);
+		}
+	}
 
 	/**
 	 * Method to get the study report from DAO
@@ -146,6 +185,45 @@ public class ReportingManager extends CtdbManager {
 		try {
 			conn = CtdbManager.getConnection(CtdbManager.AUTOCOMMIT_FALSE);
 			return ReportingManagerDao.getInstance(conn).getStudyReportForAStudy(protocolId);
+		} finally {
+			this.close(conn);
+		}
+	}
+	
+	
+	
+	/**
+	 * Method to get the study report from DAO
+	 * 
+	 * @return
+	 * @throws CtdbException
+	 */
+	public List<ReportingForm> getDetailedStudyReportForAStudy(long protocolId) throws CtdbException {
+		Connection conn = null;
+
+		try {
+			conn = CtdbManager.getConnection(CtdbManager.AUTOCOMMIT_FALSE);
+			return ReportingManagerDao.getInstance(conn).getDetailedStudyReportForAStudy(protocolId);
+		} finally {
+			this.close(conn);
+		}
+	}
+	
+	
+	
+	
+	/**
+	 * Method to get the study report from DAO
+	 * 
+	 * @return
+	 * @throws CtdbException
+	 */
+	public List<ReportingForm> getDetailedStudyReportForAStudyExport(long protocolId) throws CtdbException {
+		Connection conn = null;
+
+		try {
+			conn = CtdbManager.getConnection(CtdbManager.AUTOCOMMIT_FALSE);
+			return ReportingManagerDao.getInstance(conn).getDetailedStudyReportForAStudyExport(protocolId);
 		} finally {
 			this.close(conn);
 		}
@@ -253,5 +331,55 @@ public class ReportingManager extends CtdbManager {
 		}
 
 		return reportList;
+	}
+	
+	public List<AdverseEvent> getAEListBySelectedStudy(HttpServletRequest request, Integer protocolId) throws CtdbException {
+		Connection conn = null;
+		try
+
+		{
+			conn = CtdbManager.getConnection();
+			return ReportingManagerDao.getInstance(conn).getAEListBySelectedStudy(request, protocolId);
+		} finally
+
+		{
+			this.close(conn);
+		}
+	}
+
+    public List<ViewAuditorComment> getVQListBySelectedStudy(Integer protocolId) throws CtdbException{
+    		Connection conn = null;
+    		try
+    	
+    		{
+    			conn = CtdbManager.getConnection();
+    			return ReportingManagerDao.getInstance(conn).getVQListBySelectedStudy(protocolId);
+    		} finally
+    	
+    		{
+    			this.close(conn);
+    		}
+    }
+    
+    /** Auditor Comments on View Auditor Comments Details Table.
+     */
+	public List<ViewAuditorComment> getAuditorCommentList(HttpServletRequest request, int protocolId)
+											throws CtdbException {
+	       Connection conn = null;
+	        try {
+	            conn = CtdbManager.getConnection();
+	            conn.setAutoCommit(false);
+	            ReportingManagerDao dao = ReportingManagerDao.getInstance(conn);
+	            List<ViewAuditorComment> editArchives = dao.getAuditorCommentList(request,protocolId);
+	            conn.commit();
+	            return editArchives;
+	       }catch (Exception e) {
+	    	   this.rollback(conn);
+	            e.printStackTrace();
+	            throw new CtdbException("Please see stack trace");
+	        } finally {
+	        	this.rollback(conn);
+	            this.close(conn);
+	        }
 	}
 }

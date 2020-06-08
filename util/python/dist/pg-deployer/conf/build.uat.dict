@@ -1,0 +1,7 @@
+[DB-TRG]
+host=ibis-db-uat.cit.nih.gov
+database=dictionary_uat
+schema=dictionaryuat
+user=dictionaryuat
+label=TARGET
+

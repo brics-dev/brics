@@ -3,6 +3,7 @@ package gov.nih.tbi.repository.ws;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.FileNameMap;
 import java.net.URLConnection;
 import java.nio.file.Files;
 
@@ -64,6 +65,7 @@ public class PublicStudyService extends AbstractRestService{
 			throw new ForbiddenException(errRes);
 		}
 		return Response.ok().entity(repositoryManager.getPublicSiteSearchBasicStudies()).build();
+		
 	}
 
 	@GET   	
@@ -189,7 +191,6 @@ public class PublicStudyService extends AbstractRestService{
 	
 	@GET
 	@Path("{studyId}/primary_investigator/image")
-	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	public Response getStudyPrimaryInvestigatorImage(@PathParam("studyId") Long studyId) throws WebApplicationException {
 		//need a check to make sure that you can only get this if the feature is turned on
 		//this allows us to control access since fitbir is the only instance with publicly search-able studies
@@ -214,7 +215,10 @@ public class PublicStudyService extends AbstractRestService{
 				UserFile userPictureFile = pi.getPictureFile();
 				if (userPictureFile != null) {
 					byte[] fileBytes = repositoryManager.getFileByteArray(userPictureFile);
-					ResponseBuilder response = Response.ok(fileBytes);
+					// Get the file's mime/media type.
+					FileNameMap fileNameMap = URLConnection.getFileNameMap();
+					String mediaType = fileNameMap.getContentTypeFor(userPictureFile.getName());
+					ResponseBuilder response = Response.ok(fileBytes, mediaType);
 					response.header("Content-Disposition", "inline; filename=" + userPictureFile.getName());
 					return response.build();
 				}
@@ -240,7 +244,6 @@ public class PublicStudyService extends AbstractRestService{
 	
 	@GET
 	@Path("researcher/{studyId}/{rmId}/image")
-	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	public Response getResearcherImage(
 			@PathParam("studyId") Long studyId, 
 			@PathParam("rmId") Long researcherId) {
@@ -268,7 +271,10 @@ public class PublicStudyService extends AbstractRestService{
 				UserFile userPictureFile = pi.getPictureFile();
 				if (userPictureFile != null) {
 					byte[] fileBytes = repositoryManager.getFileByteArray(userPictureFile);
-					ResponseBuilder response = Response.ok(fileBytes);
+					// Get the file's mime/media type.
+					FileNameMap fileNameMap = URLConnection.getFileNameMap();
+					String mediaType = fileNameMap.getContentTypeFor(userPictureFile.getName());
+					ResponseBuilder response = Response.ok(fileBytes, mediaType);
 					response.header("Content-Disposition", "inline; filename=" + userPictureFile.getName());
 					return response.build();
 				}
@@ -338,7 +344,6 @@ public class PublicStudyService extends AbstractRestService{
 	
 	@GET
 	@Path("{studyId}/graphic")
-	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	public Response getStudyGraphic(@PathParam("studyId") String studyId) {
 		
 		//need a check to make sure that you can only get this if the feature is turned on
@@ -364,7 +369,10 @@ public class PublicStudyService extends AbstractRestService{
 				UserFile userPictureFile = study.getGraphicFile();
 				if (userPictureFile != null) {
 					byte[] fileBytes = repositoryManager.getFileByteArray(userPictureFile);
-					ResponseBuilder response = Response.ok(fileBytes);
+					// Get the file's mime/media type.
+					FileNameMap fileNameMap = URLConnection.getFileNameMap();
+					String mediaType = fileNameMap.getContentTypeFor(userPictureFile.getName());
+					ResponseBuilder response = Response.ok(fileBytes, mediaType);
 					response.header("Content-Disposition", "inline; filename=" + userPictureFile.getName());
 					return response.build();
 				}

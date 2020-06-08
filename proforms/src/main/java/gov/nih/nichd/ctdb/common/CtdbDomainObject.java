@@ -20,27 +20,34 @@ import gov.nih.nichd.ctdb.security.domain.User;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 public abstract class CtdbDomainObject implements DomainObject {
-	/**
-	 * 
-	 */
 	@XmlTransient
 	private static final long serialVersionUID = -272259079338522621L;
+
 	private int id = Integer.MIN_VALUE;
+
 	@XmlTransient
-	private int createdBy = Integer.MIN_VALUE;
+	protected int createdBy = Integer.MIN_VALUE;
+
 	@XmlTransient
-	private Date createdDate;
+	protected Date createdDate;
+
 	@XmlTransient
 	private String createdByUsername;
+
 	@XmlTransient
-	private int updatedBy = Integer.MIN_VALUE;
+	protected int updatedBy = Integer.MIN_VALUE;
+
 	@XmlTransient
-	private Date updatedDate;
+	protected Date updatedDate;
+
 	@XmlTransient
 	private String updatedByUsername;
+
 	@XmlTransient
-	private boolean active;
+	protected boolean active;
+
 	private Version version;
+
 	@XmlTransient
 	private CtdbLookup objectClass;
 

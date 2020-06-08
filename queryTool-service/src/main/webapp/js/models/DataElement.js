@@ -86,6 +86,10 @@ QT.DataElement = BaseModel.extend({
 		return this.get("isHighlightedTiles" + tabName);
 	},
 	
+	getSelectionListVisibleVariable : function(tabName) {
+		return "isVisibleSelectionList" + tabName;
+	},
+	
 	setSelectionListVisible : function(tabName, value) {
 		this.set("isVisibleSelectionList" + tabName, value);
 	},

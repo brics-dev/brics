@@ -36,7 +36,8 @@
 <%-- <script src="https://code.jquery.com/jquery-migrate-1.4.1.min.js"></script> --%>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-migrate/1.4.1/jquery-migrate.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
-<script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=default,Array.prototype.includes"></script>
+<script type="text/javascript" src='<s:url value="/js/polyfill.array.prototype.includes.js"/>'></script>
+<!-- <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=default,Array.prototype.includes"></script> -->
 
 
 <%-- min file contains all the files located in /js/common-source-files/ --%>

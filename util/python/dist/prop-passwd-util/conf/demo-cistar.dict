@@ -1,0 +1,7 @@
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\propPasswdUtil\demo-cistar-dict
+passFile=D:\DATA\secur\.pgpass
+
+[DEPLOY]
+trgRoot=D:\DEV\workspace\conf\demo\cistar-dict
+srcRoot=D:\DEV\BRIX\local\prop\demo\cistar-dict

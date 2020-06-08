@@ -109,10 +109,9 @@
 						</div>
 				
 
-						<div class="contact build-notes" style="margin: -5px 0 0 20px;">
-								<p class="left">Build Version:<s:property value="%{buildID}" /></br>
-								Repository ID: <s:property value="%{deploymentID}" /></br>
-								Last Deployed: <s:property value="%{lastDeployed}" /></p>
+						<!-- Include release info section -->
+						<div style="margin: -5px 0 0 20px;" >
+							<jsp:include page="/common/release-info.jsp" />
 						</div>
 					</div>
 				</div>

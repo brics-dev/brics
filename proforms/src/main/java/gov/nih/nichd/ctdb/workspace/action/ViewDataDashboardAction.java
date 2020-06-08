@@ -394,6 +394,50 @@ public class ViewDataDashboardAction extends BaseAction {
     	return "viewData";
 	}
 
+	public String getGuidsForSelectedSites() {
+
+		try {
+			String selectedSiteIds = request.getParameter("selectedSiteIds");
+			JSONArray siteIdsJsonArr = new JSONArray(selectedSiteIds);
+			JSONArray guidsJsonArray = new JSONArray();
+
+			if (selectedSiteIds != null && siteIdsJsonArr.length() > 0) {
+				Integer[] siteIds = new Integer[siteIdsJsonArr.length()];
+				for (int i = 0; i < siteIdsJsonArr.length(); i++) {
+					siteIds[i] = siteIdsJsonArr.getInt(i);
+				}
+
+				List<Patient> patList = new ArrayList<Patient>();
+
+				Protocol protocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
+				if (protocol != null) {
+					PatientManager patMan = new PatientManager();
+					patList = patMan.getPatientListByProtocolAndSites(protocol.getId(), siteIds);
+					for (Patient p : patList) {
+						JSONObject guidJsonObj = new JSONObject();
+						guidJsonObj.put("id", p.getId());
+						guidJsonObj.put("guid", p.getGuid());
+						guidsJsonArray.put(guidJsonObj);
+					}
+				} else {
+					errRespMsg = "No Protocol";
+					return ERROR;
+				}
+
+				jsonData = guidsJsonArray.toString();
+			}
+		} catch (CtdbException ce) {
+			logger.error(ce.getMessage(), ce);
+			errRespMsg = "Error in getting GUIDs for the selected sites in View Data chart";
+			return ERROR;
+		} catch (JSONException je) {
+			logger.error(je.getMessage(), je);
+			errRespMsg = "Error in getting GUIDs for the selected sites in View Data chart";
+			return ERROR;
+		}
+		return "viewData";
+	}
+
 	public String getJsonData() {
 		return jsonData;
 	}

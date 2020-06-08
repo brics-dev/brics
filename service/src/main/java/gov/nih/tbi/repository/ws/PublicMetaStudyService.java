@@ -17,6 +17,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.io.File;
+import java.net.FileNameMap;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.util.Iterator;
 import java.util.List;
@@ -96,7 +98,6 @@ public class PublicMetaStudyService extends AbstractRestService{
 	
 	@GET
 	@Path("{metaStudyId}/primary_investigator/image")
-	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	public Response getMetastudyPrimaryInvestigatorImage(@PathParam("metaStudyId") Long metaStudyId) throws WebApplicationException {
 		
 		//need a check to make sure that you can only get this if the feature is turned on
@@ -129,7 +130,10 @@ public class PublicMetaStudyService extends AbstractRestService{
 				UserFile imageUserFile = image.getPictureFile();
 				if (imageUserFile != null) {
 					byte[] fileBytes = metaStudyManager.getFileByteArray(imageUserFile);
-					ResponseBuilder response = Response.ok(fileBytes);
+					// Get the file's mime/media type.
+					FileNameMap fileNameMap = URLConnection.getFileNameMap();
+					String mediaType = fileNameMap.getContentTypeFor(imageUserFile.getName());
+					ResponseBuilder response = Response.ok(fileBytes, mediaType);
 					response.header("Content-Disposition", "inline; filename=" + imageUserFile.getName());
 					return response.build();
 				}

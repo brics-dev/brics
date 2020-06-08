@@ -1,5 +1,22 @@
 package gov.nih.tbi.commons.service;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.httpclient.HttpException;
+import org.apache.http.impl.cookie.DateParseException;
+import org.json.JSONArray;
+
 import gov.nih.tbi.account.model.hibernate.Account;
 import gov.nih.tbi.account.ws.exception.UserAccessDeniedException;
 import gov.nih.tbi.commons.model.DataElementStatus;
@@ -22,6 +39,7 @@ import gov.nih.tbi.dictionary.model.hibernate.Keyword;
 import gov.nih.tbi.dictionary.model.hibernate.MapElement;
 import gov.nih.tbi.dictionary.model.hibernate.RepeatableGroup;
 import gov.nih.tbi.dictionary.model.hibernate.Schema;
+import gov.nih.tbi.dictionary.model.hibernate.StructuralFormStructure;
 import gov.nih.tbi.dictionary.model.hibernate.SubDomain;
 import gov.nih.tbi.dictionary.model.hibernate.Subgroup;
 import gov.nih.tbi.dictionary.model.hibernate.ValidationPlugin;
@@ -29,23 +47,6 @@ import gov.nih.tbi.dictionary.model.hibernate.ValueRange;
 import gov.nih.tbi.dictionary.model.hibernate.formstructure.export.FormStructureExport;
 import gov.nih.tbi.dictionary.model.rdf.SemanticFormStructure;
 import gov.nih.tbi.repository.model.hibernate.UserFile;
-import gov.nih.tbi.dictionary.model.hibernate.StructuralFormStructure;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Collection;
-
-import org.apache.commons.httpclient.HttpException;
-import org.apache.http.impl.cookie.DateParseException;
 
 
 
@@ -864,5 +865,7 @@ public interface DictionaryToolManager extends BaseManager {
 	
 	public String getDEShortNameByNameIgnoreCases(String deName);
 
+	public JSONArray getBatteryItemsJsonArray(String batteryAapiUrl, String apiUrl, String formOID, String asciiEncoded);
 	
+	public List<String> getQuestionOIDListForBattery(String batteryAapiUrl, String apiUrl, String formOID, String asciiEncoded);
 }

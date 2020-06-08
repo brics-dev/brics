@@ -49,8 +49,12 @@ function dataElementSearch() {
 		hostStyle = "fitbir-style";
 	}else if(hostName.indexOf('eyegene') > -1 ) {
 		hostStyle = "eyegene-style";
+	}else if(hostName.indexOf('nei') > -1 ) {
+		hostStyle = "eyegene-style";
 	}else if(hostName.indexOf('cnrm') > -1 ) {
 		hostStyle = "cnrm-style";
+	}else if(hostName.indexOf('gsdr') > -1 ) {
+		hostStyle = "gsdr-style";
 	}else if(hostName.indexOf('ninds') > -1 ) {
 		hostStyle = "ninds-style";
 	}else if(hostName.indexOf('cistar') > -1 ) {

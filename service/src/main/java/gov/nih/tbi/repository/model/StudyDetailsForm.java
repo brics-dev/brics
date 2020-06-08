@@ -2,6 +2,7 @@ package gov.nih.tbi.repository.model;
 
 import gov.nih.tbi.commons.model.RecruitmentStatus;
 import gov.nih.tbi.repository.model.hibernate.StudyType;
+import gov.nih.tbi.repository.model.hibernate.UserFile;
 import gov.nih.tbi.commons.service.StaticReferenceManager;
 import gov.nih.tbi.dictionary.model.StaticField;
 import gov.nih.tbi.repository.dao.StudyDao;
@@ -58,7 +59,7 @@ public class StudyDetailsForm {
 	private File upload;
 	private String uploadFileName;
 	
-	private File graphicFile;
+	private UserFile graphicFile;
 	private String graphicFileName;
 	// Alzped
 	private Set<StudyTherapeuticAgent> therapeuticAgentSet;
@@ -422,11 +423,11 @@ public class StudyDetailsForm {
 		this.modelNameSet = modelNameSet;
 	}
 
-	public File getGraphicFile() {
+	public UserFile getGraphicFile() {
 		return graphicFile;
 	}
 
-	public void setGraphicFile(File graphicFile) {
+	public void setGraphicFile(UserFile graphicFile) {
 		this.graphicFile = graphicFile;
 	}
 

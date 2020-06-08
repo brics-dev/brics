@@ -1,0 +1,6 @@
+[DB-TRG]
+host=nti-db-stage
+database=nti_stage
+schema=nti_metastg
+user=nti_metastg
+label=TARGET

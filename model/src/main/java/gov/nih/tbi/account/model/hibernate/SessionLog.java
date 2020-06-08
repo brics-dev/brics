@@ -35,7 +35,6 @@ public class SessionLog implements Serializable {
 	/**
 	 * Ticket Granting Ticket from CAS
 	 */
-	@Id
 	@Column(name = "TGT")
 	private String tgt;
 	

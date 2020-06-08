@@ -1,5 +1,9 @@
 package gov.nih.tbi;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 public class PortalConstants {
 	
 	public final static int DUC_FILE=11;
@@ -144,6 +148,11 @@ public class PortalConstants {
 	public static final String ACTION_ACCOUNT_RENEWAL_LIST= "accountRenewalList";
 	public static final String ACTION_ACCOUNT_REQUEST_LIST= "accountRequestList";
 	public static final String ACTION_ACCOUNT_REPORTING_LIST= "accountReportingList";
+	public static final String ACTION_FORM_LABEL_DIALOG= "formLabelDialog";
+	public static final String ACTION_DUC= "duc";
+	public static final String ACTION_VIEW_WEBSTART_DT = "viewWebstartDt";
+	public static final String ACTION_VIEW_JS_DT = "viewJsDt";
+	
 	
 	/******************** Account ***********************************/
 	public static final String ONE = "1";
@@ -204,6 +213,7 @@ public class PortalConstants {
 	public static final String ACTION_IMPORT_FORM_STRUCTURE = "importFormStructure";
 	public static final String ACTION_IMPORT_EFORM = "importEform";
 	public static final String ACTION_IMPORT_DATA_ELEMENT_SCHEMA = "importDataElementSchema";
+	public static final String ACTION_IMPORT_BTRIS_MAPPING = "importBtrisMapping";
 	public static final String ACTION_DELETE_DATA_ELEMENT = "delete";
 	public static final String ACTION_CLASSIFICATION = "classification";
 	public static final String ACTION_DOMAIN = "domain";
@@ -243,12 +253,15 @@ public class PortalConstants {
 	public static final String ACTION_FINAL_APPROVAL_LIGHBOX = "finalApprovalLightbox";
 	public static final String ACCOUNT_CONTACT_USER_DIALOGUE = "contactUserDialogue";
 	public static final String ACCOUNT_RENEW_PRIVILEGES_DIALOGUE = "renewPrivilegesDialogue";
+	public static final String ACTION_ESIGN = "esign";
 
 
 	/******************** GUID ***********************************/
 
 	public static final String ACTION_LANDING = "landing";
 	public static final String ACTION_LAUNCH = "launch";
+	public static final String SHOW_GUIDS_ACROSS_ENTITIES = "showAll";
+	public static final String HIDE_DUPLICATE_ENTRIES = "hide";
 
 	/******************** Value Range *******************************/
 
@@ -347,6 +360,7 @@ public class PortalConstants {
 	public static final String NAMESPACE_ACCOUNT_ADMIN = "accountAdmin";
 	public static final String NAMESPACE_STUDYADMIN = "studyAdmin";
 	public static final String NAMESPACE_STUDY = "study";
+	public static final String NAMESPACE_DICTIONARY = "dictionary";
 	public static final String NAMESPACE_DICTIONARYADMIN = "dictionaryAdmin";
 	public static final String NAMESPACE_PUBLICDICTIONARY = "publicData";
 	public static final String NAMESPACE_GUID_ADMIN = "guidAdmin";
@@ -415,9 +429,26 @@ public class PortalConstants {
 	public static final String JPG= "jpg";
 	public static final String JPEG= "jpeg";
 	public static final String PNG= "png";
+	public static final String PDF = "pdf";
+	public static final List<String> QUESTION_DOCUMENT_TYPES =
+			Collections.unmodifiableList(Arrays.asList("jpg", "gif", "jpeg", "png", "pdf", "doc", "docx","avi", "mov", "mpg","mp4","mpeg"));
+	public static final List<String> QUESTION_FILE_TYPES =
+			Collections.unmodifiableList(Arrays.asList("pdf", "doc", "docx","avi", "mov", "mpg","mp4","mpeg"));
 	public static final String  UNSUPPORTED_FILE_EXTENSION = "unsupported_file_extension";
+	public static final String  UNSUPPORTED_FILE_SIZE = "unsupported_file_size";
+	public static final int  PERMISSIBLE_UPLOAD_FILESIZE =500;//in MB
+	public static final String PERMISSIBLE_UPLOAD_FILETYPES = "JPG,GIF,JPEG,PNG,PDF,DOC,DOCX,AVI,MOV,MPG,MP4,MPEG";
 	
 	public static final String ACCOUNT_ESIGNATURE_DUC_CUTOFFDATE = "2015-11-14";
+	
+	public static final String EFORM_SAVE = "save";
+	public static final String EFORM_CONTINUE = "continue";
+	
+	public static final String PROMIS_OID_PREFIX = "de_";
+	public static final String PROMIS_EFORM_EMPTY_OIDS_FS_MSG = "This eForm can not be saved since one or more required OIDs are empty in the form structure";
+	public static final String PROMIS_EFORM_EMPTY_OIDS_EF_MSG = "This eForm can not be saved since one or more required OIDs are empty in the eForm";
+	public static final String PROMIS_EFORM_EMPTY_OIDS_FS_EF_MSG = "This eForm can not be saved since one or more required OIDs are empty in the form structure and eForm";
+	
 	
 	/******************** DOI *****************************************/
 	public static final String DOI_RESOLVER_BASE_URL = "https://doi.org/";
@@ -448,4 +479,9 @@ public class PortalConstants {
 	public static final String MAIL_RESOURCE_REQUESTED = "requested";
 	
 	public static final String EXPIRATION_CHANGE_COMMENT_FORMAT = "%s expiration date was changed from %s to %s";
+	
+	public static final String MAIL_RESOURCE_DOC_UPLOAD = "docUpload";
+	public static final String MAIL_ADMIN_RESOURCE_REQUESTED = "createAccReqMailAdmin";
+	public static final String VIEW_USER_DETAILS_URL = "portal/accountAdmin/viewUserAccount!viewUserAccount.action?accountId=";
+	
 }

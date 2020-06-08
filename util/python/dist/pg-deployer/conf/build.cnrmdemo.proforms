@@ -1,0 +1,6 @@
+[DB-TRG]
+host=Proforms-demo-db.cit.nih.gov
+database=cnrm_data
+schema=proforms_app_demo
+user=proforms_app_demo
+label=TARGET

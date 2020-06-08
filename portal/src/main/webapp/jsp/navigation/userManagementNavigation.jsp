@@ -12,6 +12,7 @@
 				<s:if test="currentAccount.accountStatus.name != 'Requested' && currentAccount.accountStatus.name != 'Pending'">
 					<li class="long-text" id='requestPrivilegesLink'><a href="/portal/accounts/privilegesAction!view.action">Request Additional Privileges</a></li>
 				</s:if>
+				<li class="long-text" id='renewalRequestLink'><a href="/portal/accounts/renewalRequestAction!view.action">Request Account Renewal</a></li>
 			</ul>
 		</li>
 	

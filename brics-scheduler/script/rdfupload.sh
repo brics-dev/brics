@@ -24,10 +24,10 @@ args=("$@")
 
 
 input_format="ttl"
-data_file_path="REPLACED"
-export_logs_path="REPLACED"
-data_file=$(ls -t REPLACED/all* | head -1)
-graph_uri="REPLACED"
+data_file_path="/opt/apache-tomcat/rdf-exports/"
+export_logs_path="/opt/apache-tomcat/rdf-export-logs/"
+data_file=$(ls -t /opt/apache-tomcat/rdf-exports/all* | head -1)
+graph_uri="http://ninds.nih.gov:8080/allTriples.ttl"
 
 
 
@@ -69,7 +69,7 @@ graph_uri="REPLACED"
 
 		isql_cmd="/usr/local/virtuoso-opensource/bin/isql 1111 dba"
 
-		isql_pwd="REPLACED"  # default admin password, may neeed to change
+		isql_pwd=""
 
 		
 
@@ -155,7 +155,7 @@ EOF
 		# Clear Administrative Cache
 
 		rm clearQTcache
-		wget -q --no-check-certificate --post-data="irrelevant data" REPLACED
+		wget -q --no-check-certificate --post-data="irrelevant data" https://pdbp-demo.cit.nih.gov/query/clearQTcache
 
 		# Status message
 

@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -23,15 +22,14 @@ import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlID;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-
 import gov.nih.tbi.commons.model.QuestionType;
 import gov.nih.tbi.commons.model.WebServiceStringToLongAdapter;
+import gov.nih.tbi.dictionary.model.hibernate.BtrisMapping;
 
 @Entity
 @Table(name = "QUESTION")
@@ -117,6 +115,11 @@ public class Question implements Serializable{
 	@JoinColumn(name = "QUESTION_ID", nullable = true)
 	private Set<QuestionAnswerOption> questionAnswerOption = new LinkedHashSet<QuestionAnswerOption>(); //needs validation
 	
+	@XmlElement(name = "BtrisMapping")
+	@OneToOne(orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@JoinColumn(name = "BTRIS_MAPPING_ID", nullable = true)
+	private BtrisMapping btrisMapping = null;
+
 	public Question(){
 	}
 	
@@ -156,6 +159,8 @@ public class Question implements Serializable{
 		   copyQuestionDocument.addAll(question.getQuestionDocument());
 		}
 		this.setQuestionDocument(copyQuestionDocument);
+
+		this.setBtrisMapping(question.getBtrisMapping());
 	}
 	
 	public Question(Long questionId){
@@ -324,6 +329,14 @@ public class Question implements Serializable{
 	
 	public void addQuestionAnswerOption(QuestionAnswerOption questionAnswerOption){
 		this.questionAnswerOption.add(questionAnswerOption);
+	}
+
+	public BtrisMapping getBtrisMapping() {
+		return btrisMapping;
+	}
+
+	public void setBtrisMapping(BtrisMapping btrisMapping) {
+		this.btrisMapping = btrisMapping;
 	}
 
 	@Override

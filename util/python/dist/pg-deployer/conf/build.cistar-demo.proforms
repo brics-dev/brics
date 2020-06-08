@@ -1,0 +1,7 @@
+[DB-TRG]
+host=cistarpf-db-demo.ninds.nih.gov
+database=cistar_data
+schema=cistar_data
+user=proforms_app_demo
+label=TARGET
+

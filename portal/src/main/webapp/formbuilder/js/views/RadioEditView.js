@@ -81,6 +81,7 @@ var RadioEditView = QuestionEditView.extend({
 		this.registerCommons(this, QuestionSkipRuleDecorator);
 		this.registerCommons(this, QuestionGraphicDecorator);/*added by Cing Heng*/
 		this.registerCommons(this, QuestionEmailDecorator);/*added by Cing Heng*/
+		this.registerCommons(this, QuestionBtrisMappingDecorator);
 	},
 	render : function(model) {
 		this.model = model;

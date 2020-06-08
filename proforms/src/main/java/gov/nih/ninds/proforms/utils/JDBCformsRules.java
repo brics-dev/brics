@@ -16,10 +16,10 @@ public class JDBCformsRules {
 	
 	public static void main(String[] args) {
 		
-		String url = "jdbc:postgresql://REPLACED:5432/pdbp_data";
+		String url = "jdbc:postgresql://db:5432/pdbp_data";
 		Properties props = new Properties();
-		props.setProperty("user","REPLACED");
-		props.setProperty("password","REPLACED");
+		props.setProperty("user","abcd");
+		props.setProperty("password","abcd");
 		Connection conn =null;
 		PreparedStatement preparedStatement1 = null;
 		PreparedStatement preparedStatement2 = null;

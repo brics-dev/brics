@@ -10,6 +10,7 @@ import gov.nih.tbi.query.model.hibernate.SavedQuery;
 
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,19 +46,18 @@ public class SavedQueryUtil {
 
 		return output;
 	}
-	
-	public static synchronized JsonObject toJsonViewWithPerms(SavedQuery sq, List<EntityMap> permissions) throws Exception {
+
+	public static synchronized JsonObject toJsonViewWithPerms(SavedQuery sq, List<EntityMap> permissions) {
 		JsonObject output = savedQueryToJsonView(sq);
 		output.add("linkedUsers", permissionsToJsonArray(permissions));
 		return output;
 	}
 
-	public static synchronized JsonObject savedQueryToJsonView(SavedQuery sq) throws Exception {
+	public static synchronized JsonObject savedQueryToJsonView(SavedQuery sq) {
 
 		Gson gson = new Gson();
 		return gson.fromJson(sq.getQueryData(), JsonObject.class);
 	}
-
 
 	/**
 	 * This method parses xml data of SavedQuery and converts it
@@ -76,11 +76,12 @@ public class SavedQueryUtil {
 		output.addProperty("name", sq.getName());
 		output.addProperty("description", sq.getDescription());
 		output.addProperty("lastUpdated", BRICSTimeDateUtil.dateToDateTimeString(sq.getLastUpdated()));
+		output.addProperty("dateCreated", BRICSTimeDateUtil.dateToDateTimeString(sq.getDateCreated()));
 
 		// initialize the base properties
 		JsonArray forms = new JsonArray();
 		JsonArray studies = new JsonArray();
-		
+
 		Pattern uriWithVersionPatten = Pattern.compile("(.*)_v(\\d+[.]\\d+)");
 		Pattern rgUriWithVersionPatten = Pattern.compile("(.*)_v(\\d+[.]\\d+)(%20.*)");
 
@@ -104,7 +105,8 @@ public class SavedQueryUtil {
 			}
 		}
 
-		// Some newer SavedQuery may not have studiesInCart tag, we will then get studies from forms associated
+		// Some newer SavedQuery may not have studiesInCart tag, we will then get
+		// studies from forms associated
 		Map<String, JsonObject> studiesJson = null;
 		if (studies.size() == 0) {
 			studiesJson = new HashMap<String, JsonObject>();
@@ -124,14 +126,14 @@ public class SavedQueryUtil {
 					JsonObject form = new JsonObject();
 					Element formElement = (Element) formValues.item(j);
 					form.addProperty("name", getTextFromNamedTag(formElement, "title"));
-					
+
 					String formUri = getTextFromNamedTag(formElement, "uri");
 					Matcher matcher = uriWithVersionPatten.matcher(formUri);
 					if (matcher.find()) {
 						formUri = matcher.group(1);
 					}
 					form.addProperty("uri", formUri);
-					
+
 					form.addProperty("id", formElement.getAttribute("id"));
 
 					// -- STUDIES --
@@ -176,7 +178,7 @@ public class SavedQueryUtil {
 							JsonObject group = new JsonObject();
 							Element rg = (Element) repeatableGroups.item(k);
 							group.addProperty("name", getTextFromNamedTag(rg, "name"));
-							
+
 							String rgUri = getTextFromNamedTag(rg, "uri");
 							Matcher rgMatcher = rgUriWithVersionPatten.matcher(rgUri);
 							if (rgMatcher.find()) {
@@ -224,14 +226,14 @@ public class SavedQueryUtil {
 						NodeList filterTags = filterElement.getElementsByTagName("filter");
 						for (int k = 0; k < filterTags.getLength(); k++) {
 							JsonObject filter = new JsonObject();
-							
+
 							String filterFormUri = getTextFromNamedTag(formElement, "uri");
 							Matcher filterFormMatcher = uriWithVersionPatten.matcher(filterFormUri);
 							if (filterFormMatcher.find()) {
 								filterFormUri = filterFormMatcher.group(1);
 							}
 							filter.addProperty("formUri", filterFormUri);
-							
+
 							Element filterTag = (Element) filterTags.item(k);
 							// de subelement, there's only one
 							NodeList filterDes = filterTag.getElementsByTagName("element");
@@ -240,7 +242,7 @@ public class SavedQueryUtil {
 
 							NodeList filterRgs = filterTag.getElementsByTagName("group");
 							Element filterRg = (Element) filterRgs.item(0);
-							
+
 							String rgUri = getTextFromNamedTag(filterRg, "uri");
 							Matcher rgMatcher = rgUriWithVersionPatten.matcher(rgUri);
 							if (rgMatcher.find()) {
@@ -260,12 +262,13 @@ public class SavedQueryUtil {
 							JsonArray permissibleValueArray = new JsonArray();
 							NodeList permissibleValues = filterTag.getElementsByTagName("permissibleValues");
 							if (permissibleValues.getLength() > 0) {
-								
-								// Get the last permissibleValues since element tag also contains permissibleValues
-								Element permissibleValuesContainerTag =
-										(Element) permissibleValues.item(permissibleValues.getLength() - 1);
-								NodeList permissibleValueList =
-										permissibleValuesContainerTag.getElementsByTagName("permissibleValue");
+
+								// Get the last permissibleValues since element tag also contains
+								// permissibleValues
+								Element permissibleValuesContainerTag = (Element) permissibleValues
+										.item(permissibleValues.getLength() - 1);
+								NodeList permissibleValueList = permissibleValuesContainerTag
+										.getElementsByTagName("permissibleValue");
 								for (int m = 0; m < permissibleValueList.getLength(); m++) {
 									Element permissibleValueTag = (Element) permissibleValueList.item(m);
 									permissibleValueArray.add(new JsonPrimitive(permissibleValueTag.getTextContent()));
@@ -294,7 +297,7 @@ public class SavedQueryUtil {
 
 			for (int i = 0; i < formUriList.getLength(); i++) {
 				Element formUriTag = (Element) formUriList.item(i);
-				
+
 				String formUri = formUriTag.getTextContent();
 				Matcher matcher = uriWithVersionPatten.matcher(formUri);
 				if (matcher.find()) {
@@ -337,8 +340,9 @@ public class SavedQueryUtil {
 	}
 
 	/**
-	 * Converts the given SavedQuery POJO to a simplified version of the Backbone SavedQuery model. The generated JSON
-	 * object will only contain the "id" and "name" attributes of the SavedQuery model.
+	 * Converts the given SavedQuery POJO to a simplified version of the Backbone
+	 * SavedQuery model. The generated JSON object will only contain the "id" and
+	 * "name" attributes of the SavedQuery model.
 	 * 
 	 * @param sq - The SavedQuery POJO to convert.
 	 * @return JSON for a simplified SavedQuery Backbone model.
@@ -353,15 +357,17 @@ public class SavedQueryUtil {
 	}
 
 	/**
-	 * Converts the given SavedQuery POJO and EntityMap list into a JSON object that can be passed into the SavedQuery
-	 * Backbone model constructor. The XML of the query object saved with in the SavedQuery POJO will be ignored for
-	 * this conversion.
+	 * Converts the given SavedQuery POJO and EntityMap list into a JSON object that
+	 * can be passed into the SavedQuery Backbone model constructor. The XML of the
+	 * query object saved with in the SavedQuery POJO will be ignored for this
+	 * conversion.
 	 * 
 	 * @param sq - The SavedQuery POJO to convert.
 	 * @param permissions - A list of EntityMap POJOs to convert.
-	 * @return JSON for a JavaScript object that should conform to the Backbone model described in the
-	 *         src/main/webapp/js/models/SavedQuery.js file. Please note that the "lastUpdated" object member will be
-	 *         converted to a date string in the ISO8601 format.
+	 * @return JSON for a JavaScript object that should conform to the Backbone
+	 *         model described in the src/main/webapp/js/models/SavedQuery.js file.
+	 *         Please note that the "lastUpdated" object member will be converted to
+	 *         a date string in the ISO8601 format.
 	 */
 	public static synchronized JsonObject savedQueryToBackBoneModel(SavedQuery sq, List<EntityMap> permissions) {
 		JsonObject out = savedQueryToJsonNoPermissions(sq);
@@ -373,12 +379,14 @@ public class SavedQueryUtil {
 	}
 
 	/**
-	 * Converts the given SavedQuery object to an a JSON object that can be used to create a SavedQuery Backbone model.
-	 * The returned JSON object will not contain the user permissions for the Backbone model. Note the "lastUpdated"
-	 * attribute will be represented in ISO8601 format.
+	 * Converts the given SavedQuery object to an a JSON object that can be used to
+	 * create a SavedQuery Backbone model. The returned JSON object will not contain
+	 * the user permissions for the Backbone model. Note the "lastUpdated" attribute
+	 * will be represented in ISO8601 format.
 	 * 
 	 * @param sq - The SavedQuery object whose data will be used in the conversion.
-	 * @return A JSON object with only the non-permission attributes of the SavedQuery Backbone model.
+	 * @return A JSON object with only the non-permission attributes of the
+	 *         SavedQuery Backbone model.
 	 */
 	private static JsonObject savedQueryToJsonNoPermissions(SavedQuery sq) {
 		JsonObject output = new JsonObject();
@@ -388,16 +396,17 @@ public class SavedQueryUtil {
 		output.addProperty("description", sq.getDescription());
 		output.addProperty("copyFlag", sq.getCopyFlag());
 		output.addProperty("lastUpdated", (BRICSTimeDateUtil.dateToDateTimeString(sq.getLastUpdated())));
-
+		output.addProperty("dateCreated", (BRICSTimeDateUtil.dateToDateTimeString(sq.getDateCreated())));
 		return output;
 	}
 
 	/**
-	 * Converts the given list of EntityMap POJOs to a JSON array for the "linkedUsers" attribute of the SavedQuery
-	 * Backbone model.
+	 * Converts the given list of EntityMap POJOs to a JSON array for the
+	 * "linkedUsers" attribute of the SavedQuery Backbone model.
 	 * 
 	 * @param permissions - A list of EntityMap object to convert.
-	 * @return A JSON array that conforms to the "linkedUsers" Backbone collection for the SavedQuery Backbone model.
+	 * @return A JSON array that conforms to the "linkedUsers" Backbone collection
+	 *         for the SavedQuery Backbone model.
 	 */
 	private static JsonArray permissionsToJsonArray(List<EntityMap> permissions) {
 		JsonArray linkedUsers = new JsonArray();
@@ -429,14 +438,17 @@ public class SavedQueryUtil {
 	}
 
 	/**
-	 * Converts a JSON object to a SavedQuery POJO. Please note that the generated POJO will not have the have the saved
-	 * QT query set. The given JSON object must conform to the SavedQuery Backbone model used in the Query Tool
+	 * Converts a JSON object to a SavedQuery POJO. Please note that the generated
+	 * POJO will not have the have the saved QT query set. The given JSON object
+	 * must conform to the SavedQuery Backbone model used in the Query Tool
 	 * interface.
 	 * 
 	 * @param jo - A JSON object based on the SavedQuery Backbone model.
-	 * @return A SavedQuery POJO with the data from the given JSON object. Only the saved query meta data will be set in
-	 *         the returned POJO. The QT query data will not be set by this method.
-	 * @throws IllegalStateException When there is an error accessing data from the JSON array.
+	 * @return A SavedQuery POJO with the data from the given JSON object. Only the
+	 *         saved query meta data will be set in the returned POJO. The QT query
+	 *         data will not be set by this method.
+	 * @throws IllegalStateException When there is an error accessing data from the
+	 *                               JSON array.
 	 */
 	public static synchronized SavedQuery jsonToSavedQueryWithNoQuery(JsonObject jo) throws IllegalStateException {
 		SavedQuery sq = new SavedQuery();
@@ -444,16 +456,29 @@ public class SavedQueryUtil {
 		sq.setName(jo.getAsJsonPrimitive("name").getAsString());
 		sq.setDescription(jo.getAsJsonPrimitive("description").getAsString());
 		sq.setCopyFlag(Boolean.valueOf(jo.getAsJsonPrimitive("copyFlag").getAsBoolean()));
-
+		sq.setOutputCode(jo.getAsJsonPrimitive("outputCode").getAsString());
 		// Set the ID of the saved query, if able.
 		long sqId = jo.getAsJsonPrimitive("id").getAsLong();
 
 		if (sqId > 0) {
 			sq.setId(Long.valueOf(sqId));
 		}
-
+		
+		// Get created date
+		String createdDateStr = jo.getAsJsonPrimitive("dateCreated").getAsString();
 		// Get last updated date
 		String dateStr = jo.getAsJsonPrimitive("lastUpdated").getAsString();
+
+		if (!createdDateStr.isEmpty()) {
+			sq.setDateCreated(BRICSTimeDateUtil.stringToDate(createdDateStr));
+		} else {
+			//here we are assuming all new saved queries have an empty last update and empty date created
+			if (dateStr.isEmpty()) {
+				sq.setDateCreated(new Date());
+			}
+		}
+		
+		
 
 		if (!dateStr.isEmpty()) {
 			sq.setLastUpdated(BRICSTimeDateUtil.stringToDate(dateStr));
@@ -463,14 +488,19 @@ public class SavedQueryUtil {
 	}
 
 	/**
-	 * Converts the given JSON array of user permissions to entity maps. The JSON array must conform to the
-	 * "linkedUsers" Backbone collection found in the SavedQuery Backbone model.
+	 * Converts the given JSON array of user permissions to entity maps. The JSON
+	 * array must conform to the "linkedUsers" Backbone collection found in the
+	 * SavedQuery Backbone model.
 	 * 
 	 * @param linkedUsers - The JSON array of user permissions to be converted.
-	 * @param accountMap - A map of Account objects which matches the amount of users referenced in the "linkedUsers"
-	 *        JSON array. The key for this map will be the usernames of each associated Account POJO.
-	 * @return A list of EntityMap POJOs that mirrors the user permissions in the given JSON array.
-	 * @throws IllegalStateException When there is an error accessing data from the JSON array.
+	 * @param accountMap  - A map of Account objects which matches the amount of
+	 *                    users referenced in the "linkedUsers" JSON array. The key
+	 *                    for this map will be the usernames of each associated
+	 *                    Account POJO.
+	 * @return A list of EntityMap POJOs that mirrors the user permissions in the
+	 *         given JSON array.
+	 * @throws IllegalStateException When there is an error accessing data from the
+	 *                               JSON array.
 	 */
 	public static synchronized List<EntityMap> jsonToEntityMapList(JsonArray linkedUsers,
 			Map<String, Account> accountMap) throws IllegalStateException {

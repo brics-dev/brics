@@ -1,0 +1,15 @@
+[DB-SRC]
+host=fitbir-db-uat.cit.nih.gov
+database=tbi_uat
+schema=tbi_reposuat
+user=tbi_reposuat
+
+[DB-TRG]
+host=localhost
+database=repodb
+schema=reposch
+user=repouser
+
+[FILE-SYS]
+logDir=D:\\DEV\\appdata\\log\\pgCloner\\uat-local-repo
+;dumpDir=D:\\DEV\\appdata\\dump\\pgCloner\\uat-local-repo

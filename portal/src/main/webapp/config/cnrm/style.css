@@ -28,10 +28,8 @@
 body {
   font: 62.5% Arial, Verdana, Helvetica, sans-serif; }
 
-a {
-  outline: none; }
-  a img {
-    border: 0; }
+a img {
+  border: 0; }
 
 img {
   max-width: 100%;
@@ -469,7 +467,7 @@ a {
     .primary #main-content.brics-modules ul li {
       margin-bottom: .5em; }
   .primary #main-content h2 {
-    margin: 0px;
+    margin: 3px 0;
     padding: 0px;
     font: 18px Arial Bold, Arial, sans-serif; }
 .primary .wide #main-content {
@@ -566,13 +564,17 @@ a {
   font: 16px / 28px Arial; }
 
 #main-content ol, #main-content ul {
-  margin: 0 3em 1em 3em; }
+  margin: 0 3em 1em 1.3em; }
 
 #center-content ol, #center-content ul {
   margin: 0 3em 1em 3em; }
 
-#main-content ol li, #main-content ul li {
-  margin: .25em 0; }
+#main-content ol li {
+  margin: 0 0 1em 0;
+  font: 12px / 1.3 Arial; }
+#main-content ul li {
+  margin: 0 0 0.4em 0;
+  font: 12px / 1.3 Arial; }
 
 #center-content ol li, #center-content ul li {
   margin: .25em 0; }
@@ -2061,7 +2063,8 @@ nav ul:after {
   width: 70%;
   margin-left: 5%;
   font-weight: normal;
-  margin-bottom: 5px; }
+  margin-bottom: 5px;
+  overflow-wrap: break-word; }
 
 viewQuery_formHeader {
   height: 20px;
@@ -2839,6 +2842,16 @@ a {
 .form-field, .form-output, .upload-field, .sub-field {
   color: #362f2d; }
 
+.form-align {
+  -webkit-box-align: end;
+  -webkit-align-items: flex-end;
+  -ms-flex-align: end;
+  align-items: flex-end;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex; }
+
 .form-field.long {
   width: 710px; }
 
@@ -2900,7 +2913,14 @@ form span.required {
   /* W3C */
   border: 2px solid;
   border-color: #808080;
-  color: #fff; }
+  color: #fff;
+  /*
+  Because MM doesn't want a secondary button style in GUID
+  
+  &.secondary {
+  	@include gradient($btn-color3, $btn-color2, $btn-color3);
+  }
+  */ }
   .guidClient input[type="button"]:hover, .guidClient input[type="button"]:focus, button:hover, button:focus {
     background: #b00836;
     border-color: #A8A8A8; }
@@ -2911,21 +2931,6 @@ form span.required {
     .guidClient input[type="button"].disabled:hover, .guidClient input[type="button"].disabled:focus, button.disabled:hover, button.disabled:focus {
       background: #A8A8A8;
       color: #fff; }
-  .guidClient input[type="button"].secondary, button.secondary {
-    background: #e72a5e;
-    /* Old browsers */
-    background: -moz-linear-gradient(top, #e72a5e 0%, #e72a5e 80%);
-    /* FF3.6+ */
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #e72a5e), color-stop(80%, #e72a5e));
-    /* Chrome,Safari4+ */
-    background: -webkit-linear-gradient(top, #e72a5e 0%, #e72a5e 80%);
-    /* Chrome10+,Safari5.1+ */
-    background: -o-linear-gradient(top, #e72a5e 0%, #e72a5e 80%);
-    /* Opera 11.10+ */
-    background: -ms-linear-gradient(top, #e72a5e 0%, #e72a5e 80%);
-    /* IE10+ */
-    background: linear-gradient(to bottom, #e72a5e 0%, #e72a5e 80%);
-    /* W3C */ }
 
 .inline-right-button {
   display: inline-block;
@@ -5518,13 +5523,19 @@ span.icon img {
 #logo {
   margin: 17px 0 0 1px;
   background-color: transparent;
-  height: 73px;
-  width: 214px; }
+  /*height: 73px;
+  width: 214px;*/
+  height: 83px;
+  width: 268px; }
 
 #login-button {
   margin: 37px 20px 0 0; }
 
 #header .content {
   height: 100px; }
+
+#header .content {
+  /*    background: url(images/layout/bkg-header.png) no-repeat 200px 0; */
+  background-color: #fff; }
 
 /*# sourceMappingURL=style.css.map */

@@ -26,178 +26,166 @@ import com.hp.hpl.jena.update.UpdateRequest;
 import com.hp.hpl.jena.vocabulary.RDFS;
 
 @Repository
-public class KeywordSparqlDaoImpl extends GenericSparqlDaoImpl<Keyword> implements KeywordSparqlDao
-{
+public class KeywordSparqlDaoImpl extends GenericSparqlDaoImpl<Keyword> implements KeywordSparqlDao {
 
-    /**
-     * Returns a keyword object by the given name. This keyword object contains a name, uri, and count. Returns null if
-     * keyword does not exist
-     * 
-     * @param name
-     * @return
-     */
-    public Keyword getByName(String name)
-    {
+	/**
+	 * Returns a keyword object by the given name. This keyword object contains a name, uri, and count. Returns null if
+	 * keyword does not exist
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public Keyword getByName(String name) {
 
-        Query query = QueryConstructionUtil.getKeywordQuery();
-        ElementGroup body = (ElementGroup) query.getQueryPattern();
-        ElementTriplesBlock block = (ElementTriplesBlock) body.getElements().get(0);
+		Query query = QueryConstructionUtil.getKeywordQuery();
+		ElementGroup body = (ElementGroup) query.getQueryPattern();
+		ElementTriplesBlock block = (ElementTriplesBlock) body.getElements().get(0);
 
-        if (block == null)
-        {
-            block = new ElementTriplesBlock();
-            body.addElement(block);
-        }
+		if (block == null) {
+			block = new ElementTriplesBlock();
+			body.addElement(block);
+		}
 
-        block.addTriple(Triple.create(RDFConstants.KEYWORD_VARIABLE, RDFS.label.asNode(), NodeFactory.createLiteral(name)));
+		block.addTriple(
+				Triple.create(RDFConstants.KEYWORD_VARIABLE, RDFS.label.asNode(), NodeFactory.createLiteral(name)));
 
-        ResultSet results = querySelect(query);
-        if (results.hasNext())
-        {
-            return parseRow(results.next());
-        }
+		ResultSet results = querySelect(query);
+		if (results.hasNext()) {
+			return parseRow(results.next());
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    public Keyword parseRow(QuerySolution row)
-    {
-        String uri = rdfNodeToString(row.get(RDFConstants.KEYWORD_VARIABLE.toString()));
-        String keywordName = rdfNodeToString(row.get(RDFConstants.VALUE_VARIABLE.toString()));
-        String countString = rdfNodeToString(row.get(RDFConstants.COUNT_VARIABLE.toString()));
-        if (keywordName == null || countString == null)
-        {
-            throw new NullPointerException("Keyword or keyword count is null.");
-        }
+	public Keyword parseRow(QuerySolution row) {
+		String uri = rdfNodeToString(row.get(RDFConstants.KEYWORD_VARIABLE.toString()));
+		String keywordName = rdfNodeToString(row.get(RDFConstants.VALUE_VARIABLE.toString()));
+		String countString = rdfNodeToString(row.get(RDFConstants.COUNT_VARIABLE.toString()));
+		if (keywordName == null || countString == null) {
+			throw new NullPointerException("Keyword or keyword count is null.");
+		}
 
-        Long count = Long.valueOf(countString);
+		Long count = Long.valueOf(countString);
 
-        Keyword keyword = new Keyword();
-        keyword.setUri(uri);
-        keyword.setKeyword(keywordName);
-        keyword.setCount(count);
-        
-        return keyword;
-    }
+		Keyword keyword = new Keyword();
+		keyword.setUri(uri);
+		keyword.setKeyword(keywordName);
+		keyword.setCount(count);
 
-    /**
-     * Returns a list of keywords that contain the given string. Search is case insensitive.
-     * 
-     * @param searchKey
-     * @return
-     */
-    public List<Keyword> search(String searchKey)
-    {
+		return keyword;
+	}
 
-        Query query = QueryConstructionUtil.getKeywordQuery();
-        ElementGroup body = (ElementGroup) query.getQueryPattern();
-        body.addElementFilter(QueryConstructionUtil.regexFilter(RDFConstants.KEYWORD_VARIABLE, searchKey));
-        
-        ResultSet results = querySelect(query);
-        
-        List<Keyword> keywords = new ArrayList<Keyword> ();
-        
-        while (results.hasNext())
-        {
-            keywords.add(parseRow(results.next()));
-        }
+	/**
+	 * Returns a list of keywords that contain the given string. Search is case insensitive.
+	 * 
+	 * @param searchKey
+	 * @return
+	 */
+	public List<Keyword> search(String searchKey) {
 
-        return keywords;
-    }
+		Query query = QueryConstructionUtil.getKeywordQuery();
+		ElementGroup body = (ElementGroup) query.getQueryPattern();
 
-    @Override
-    public List<Keyword> getAll()
-    {
+		if (searchKey != null && !searchKey.isEmpty()) {
+			searchKey = searchKey.trim();
+			body.addElementFilter(QueryConstructionUtil.regexFilter(RDFConstants.KEYWORD_VARIABLE, searchKey));
+		}
 
-        Query query = QueryConstructionUtil.getKeywordQuery();
-        ResultSet results = querySelect(query);
+		ResultSet results = querySelect(query);
 
-        List<Keyword> keywords = new ArrayList<Keyword>();
+		List<Keyword> keywords = new ArrayList<Keyword>();
 
-        while (results.hasNext())
-        {
-            Keyword keyword = parseRow(results.next());
-            keywords.add(keyword);
-        }
+		while (results.hasNext()) {
+			keywords.add(parseRow(results.next()));
+		}
 
-        return keywords;
-    }
+		return keywords;
+	}
 
-    @Override
-    public Keyword get(String uri)
-    {
+	@Override
+	public List<Keyword> getAll() {
 
-        Query query = QueryConstructionUtil.getKeywordQuery();
-        ElementGroup body = (ElementGroup) query.getQueryPattern();
-        ElementTriplesBlock block = (ElementTriplesBlock) body.getElements().get(0);
+		Query query = QueryConstructionUtil.getKeywordQuery();
+		ResultSet results = querySelect(query);
 
-        if (block == null)
-        {
-            block = new ElementTriplesBlock();
-            body.addElement(block);
-        }
+		List<Keyword> keywords = new ArrayList<Keyword>();
 
-        block.addTriple(Triple.create(RDFConstants.KEYWORD_VARIABLE, RDFS.isDefinedBy.asNode(),
-                NodeFactory.createLiteral(uri)));
+		while (results.hasNext()) {
+			Keyword keyword = parseRow(results.next());
+			keywords.add(keyword);
+		}
 
-        ResultSet results = querySelect(query);
-        if (results.hasNext())
-        {
-            return parseRow(results.next());
-        }
+		return keywords;
+	}
 
-        return null;
-    }
-    
-    public boolean exists(Keyword keyword)
-    {
+	@Override
+	public Keyword get(String uri) {
 
-        if (keyword == null)
-        {
-            throw new NullPointerException("Why are you checking if a null data element exists?!");
-        }
+		Query query = QueryConstructionUtil.getKeywordQuery();
+		ElementGroup body = (ElementGroup) query.getQueryPattern();
+		ElementTriplesBlock block = (ElementTriplesBlock) body.getElements().get(0);
 
-        if (keyword.getUri() == null) //no uri means that this is a new keyword, thus does not exist in db
-        {
-            return false;
-        }
+		if (block == null) {
+			block = new ElementTriplesBlock();
+			body.addElement(block);
+		}
 
-        Query existsQuery = QueryFactory.make();
-        existsQuery.setQueryAskType();
+		block.addTriple(Triple.create(RDFConstants.KEYWORD_VARIABLE, RDFS.isDefinedBy.asNode(),
+				NodeFactory.createLiteral(uri)));
 
-        ElementTriplesBlock block = new ElementTriplesBlock();
-        ElementGroup body = new ElementGroup();
-        body.addElement(block);
-        existsQuery.setQueryPattern(body);
+		ResultSet results = querySelect(query);
+		if (results.hasNext()) {
+			return parseRow(results.next());
+		}
 
-        block.addTriple(Triple.create(RDFConstants.KEYWORD_VARIABLE, RDFS.isDefinedBy.asNode(), NodeFactory.createURI(keyword.getUri())));
+		return null;
+	}
 
-        return virtuosoStore.queryAsk(existsQuery);
-    }
+	public boolean exists(Keyword keyword) {
 
-    @Override
-    public Keyword save(Keyword keyword)
-    {
-        if (exists(keyword))
-        {
-            delete(keyword);
-        }
-        
-        UpdateDataInsert updateInsert = new UpdateDataInsert(QueryConstructionUtil.generateKeywordTriples(keyword));
-        UpdateRequest request = UpdateFactory.create();
-        request.add(updateInsert);
-        virtuosoStore.update(request);
-        return keyword;
-    }
+		if (keyword == null) {
+			throw new NullPointerException("Why are you checking if a null data element exists?!");
+		}
 
-    private void delete(Keyword keyword)
-    {
+		if (keyword.getUri() == null) // no uri means that this is a new keyword, thus does not exist in db
+		{
+			return false;
+		}
 
-        String uri = keyword.getUri();
+		Query existsQuery = QueryFactory.make();
+		existsQuery.setQueryAskType();
 
-        String sparqlUpdate = "WITH <http://ninds.nih.gov:8080/allTriples.ttl> DELETE { <" + uri
-                + "> ?p ?o } WHERE { <" + uri + "> ?p ?o }";
+		ElementTriplesBlock block = new ElementTriplesBlock();
+		ElementGroup body = new ElementGroup();
+		body.addElement(block);
+		existsQuery.setQueryPattern(body);
 
-        update(sparqlUpdate);
-    }
+		block.addTriple(Triple.create(RDFConstants.KEYWORD_VARIABLE, RDFS.isDefinedBy.asNode(),
+				NodeFactory.createURI(keyword.getUri())));
+
+		return virtuosoStore.queryAsk(existsQuery);
+	}
+
+	@Override
+	public Keyword save(Keyword keyword) {
+		if (exists(keyword)) {
+			delete(keyword);
+		}
+
+		UpdateDataInsert updateInsert = new UpdateDataInsert(QueryConstructionUtil.generateKeywordTriples(keyword));
+		UpdateRequest request = UpdateFactory.create();
+		request.add(updateInsert);
+		virtuosoStore.update(request);
+		return keyword;
+	}
+
+	private void delete(Keyword keyword) {
+
+		String uri = keyword.getUri();
+
+		String sparqlUpdate = "WITH <http://ninds.nih.gov:8080/allTriples.ttl> DELETE { <" + uri + "> ?p ?o } WHERE { <"
+				+ uri + "> ?p ?o }";
+
+		update(sparqlUpdate);
+	}
 }

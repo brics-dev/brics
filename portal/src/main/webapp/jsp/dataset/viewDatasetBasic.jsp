@@ -1,17 +1,45 @@
 <%@include file="/common/taglibs.jsp"%>
+<c:set var="hostname" value="${pageContext.request.serverName}" />
 <s:if test="%{method == 'viewLightbox'}">
 	<div id="main-content">
 		<h3>Dataset Information</h3>
 </s:if>
 
-<div class="addDQButtonShow">
-	<div class="right">
-		<!-- Francis TODO: remove inline style -->
-		<div id="addToQueueButtonWrapper" class="button" style="float: right">
-			<input id="addToQueueButton" type="button" onclick="addToDownloadQueue()" value="Add to Download Queue" />
+<c:choose>
+	<c:when test="${fn:contains(hostname, 'pdbp' )}">
+		<sec:authorize access="hasAnyRole('ROLE_ADMIN', 'ROLE_REPOSITORY_ADMIN')">
+		<div class="addDQButtonShow">
+			<div class="right">
+				<!-- Francis TODO: remove inline style -->
+				<div id="addToQueueButtonWrapper" class="button" style="float: right">
+					<input id="addToQueueButton" type="button" onclick="addToDownloadQueue()" value="Add to Download Queue" />
+				</div>
+			</div>
 		</div>
-	</div>
-</div>
+		</sec:authorize>
+		<sec:authorize access="!hasAnyRole('ROLE_ADMIN', 'ROLE_REPOSITORY_ADMIN')">
+		<div class="addDQButtonShow">
+			<div class="right">
+				<!-- Francis TODO: remove inline style -->
+				<div id="addToQueueButtonWrapper" class="disabled" style="float: right">
+					<input id="addToQueueButton" disabled="disabled" type="button" value="Add to Download Queue" />
+				</div>
+			</div>
+		</div>
+		</sec:authorize>
+	</c:when>
+	<c:otherwise>
+		<div class="addDQButtonShow">
+			<div class="right">
+				<!-- Francis TODO: remove inline style -->
+				<div id="addToQueueButtonWrapper" class="button" style="float: right">
+					<input id="addToQueueButton" type="button" onclick="addToDownloadQueue()" value="Add to Download Queue" />
+				</div>
+			</div>
+		</div>
+	</c:otherwise>
+</c:choose>
+
 
 <div class="addDQButtonDisabled">
 	<div class="right">
@@ -87,14 +115,14 @@
 <div class="form-output">
 	<div class="label">Submitted Form Structures:</div>
 	<div id="submittedFSTableContainer" class="idtTableContainer form-output" style="width: 30%;">
-		<table class="display-data " id="submittedFSTable"></table>
+		<table class="display-data" id="submittedFSTable"></table>
 	</div>
 </div>
 
 <div class="form-output">
 	<div class="label">Status:</div>
 	<div class="readonly-text">
-		<s:property value="currentDataset.datasetStatus.name" />
+		<s:property value="currentDataset.getDatasetStatusWithRequestStatus" />
 	</div>
 </div>
 
@@ -108,6 +136,15 @@
 	</div>
 </div>
 
+<c:if test="${fn:length(eventLogList) != 0}">
+	<br>
+	<div>
+		<h3>Dataset Administrative Status Change History</h3>						
+		<div id="eventTableContainer" class="idtTableContainer" style="width: 99%;">
+			<table id="eventTable" class="table table-striped table-bordered"></table>
+		</div>
+	</div>
+</c:if>
 
 
 <s:if test="%{method == 'viewLightbox'}">
@@ -115,6 +152,11 @@
 </s:if>
 
 <script type="text/javascript">
+
+	var url = "<s:url value='/study/datasetAction!getEventLogListOutput.ajax' />";
+	<s:if test="inAdmin">
+		var url = "<s:url value='/studyAdmin/datasetAction!getEventLogListOutput.ajax' />";
+	</s:if>
 	
 		$( document ).ready(function() {
 			<s:if test="(!inDownloadQueue && isReady && isDownloadable)">
@@ -136,7 +178,8 @@
 					{
 						data: "userFileName",
 						title: "Data",
-						name: "userFileName"
+						name: "userFileName",
+						render: IdtActions.ellipsis(50)
 					},
 					{
 						data: "isQueryable",
@@ -173,6 +216,47 @@
 		              },
 	              </s:iterator>
 		      ]	
+			});
+			
+			$("#eventTable").idtTable({
+				idtUrl: url,
+				autoWidth: false,
+				dom : 'frtip',
+				pageLength: 10,
+				"columns": [
+					{
+						"data": "createTime",
+						"title": "Date",
+						"name": "createTime",
+						"parameter": "createTime",
+						"render": IdtActions.formatDate()
+					},
+					{
+						"data": "user",
+						"title": "User",
+						"name": "user",
+						"parameter": "user.fullName"
+					},
+					{
+						"data": "actionTaken",
+						"title": "Action Taken",
+						"name": "actionTaken",
+						"parameter": "actionTaken"
+					},
+					{
+						"data": "comment",
+						"title": "Reason Given",
+						"name": "comment",
+						"parameter": "comment",
+						"render": IdtActions.ellipsis(100)
+					},
+					{
+						"data": "docNameLink",
+						"title": "Attachments",
+						"name": "docNameLink",
+						"parameter": "docNameLink"
+					}
+				]
 			});
 			
 		});

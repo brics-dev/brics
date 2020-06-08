@@ -3,6 +3,7 @@
     <xsl:variable name="displayQids" select="/form/@displayQids"/>
     <xsl:variable name="displaytop" select="/form/TOC/@display"/>
     <xsl:variable name="formFontSize" select="/form/htmlAttributes/@formFontSize"/>
+    <xsl:variable name="hasBtrisMappingQuestion" select="/form/@hasBtrisMappingQuestion"/>
     <xsl:param name="webroot"/>
     <xsl:param name="imageroot"/>
     <xsl:param name="cssstylesheet"/>
@@ -31,6 +32,18 @@
                     <xsl:value-of select="formHeader"  disable-output-escaping="yes"/>
                 </td>
             </tr>
+            <tr align="left"><!-- BTRIS Get All Button -->
+	          <td>
+		           <xsl:choose>
+	                     <xsl:when test="$hasBtrisMappingQuestion = 'true'">
+	                     	<input type="button" id="getAllBtrisData" value="Get All BTRIS Data" class="allBtrisDataBtn" 
+	  									title="Get All BTRIS Data for All Mapped Questions"
+	  									onclick="openMappedBtrisQuestionsDlg();" 
+	  									style="float: right; display: none;"/>
+	   					</xsl:when>
+	   			    </xsl:choose>
+	          </td>
+	        </tr>
             <xsl:apply-templates select="TOC"/>
 
             <!--

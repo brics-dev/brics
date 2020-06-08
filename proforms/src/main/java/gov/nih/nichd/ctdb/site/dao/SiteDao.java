@@ -404,4 +404,60 @@ public class SiteDao extends CtdbDao {
 
 		return siteMap;
 	}
+	
+	public String getSiteNameByPatientIdProtocolId(long protocolId,int patientId) throws CtdbException {
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		String strSiteName = "";
+
+		try {
+			String query = "select * from site where siteid = (select siteid from patientprotocol where protocolid = ? and  patientid = ?)";
+			
+			stmt = this.conn.prepareStatement(query);
+			stmt.setLong(1, protocolId);
+			stmt.setInt(2, patientId);
+			rs = stmt.executeQuery();
+			
+			while (rs.next()) {
+				strSiteName=(rs.getString("name"));
+			}
+		} catch (SQLException e) {
+			throw new CtdbException("Failure getting site data.", e);
+		} finally {
+			close(rs);
+			close(stmt);
+		} 
+		
+		return strSiteName;
+	}
+
+	public List<Integer> getSiteIdFromProtocolusrrole(int protocolId, int roleId, int userId) throws CtdbException {
+
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		List<Integer> siteIds = new ArrayList<Integer>();
+
+		try {
+			String query = "select * from protocolusrrole where protocolid = ? and roleid = ? and usrid = ?";
+			
+			stmt = this.conn.prepareStatement(query);
+			stmt.setLong(1, protocolId);
+			stmt.setInt(2, roleId);
+			stmt.setInt(3, userId);
+			rs = stmt.executeQuery();
+			
+  			while (rs.next() && (rs.getInt("siteid") != 0)) {
+ 				siteIds.add(rs.getInt("siteid"));
+  			}
+  			
+  		} catch (SQLException e) {
+			throw new CtdbException("Failure getting site data.", e);
+		} finally {
+			close(rs);
+			close(stmt);
+		} 
+		
+		return siteIds;
+	}
+	
 }

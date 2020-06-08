@@ -1,12 +1,14 @@
 .sticky-wrapper {
 	display: table-row;
+	position: absolute;
+    right: 0;
 }
 #selfReport_actionButtons {
 	text-align: right;
 }
 
 #selfReport_actionButtons input {
-	width: 110px;
+	width: 100px;
 	height: 25px;
 	background: #F2F2F2;
 	text-align: left;

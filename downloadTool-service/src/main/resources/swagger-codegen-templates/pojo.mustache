@@ -1,0 +1,71 @@
+/**
+ * {{#description}}{{.}}{{/description}}{{^description}}{{classname}}{{/description}}
+ */{{#description}}
+@ApiModel(description = "{{{description}}}"){{/description}}
+{{#useBeanValidation}}@Validated{{/useBeanValidation}}
+{{>generatedAnnotation}}{{#discriminator}}{{>typeInfoAnnotation}}{{/discriminator}}{{>xmlAnnotation}}
+{{#jackson}}@JsonInclude(JsonInclude.Include.NON_NULL){{/jackson}}
+public class {{classname}} {{#parent}}extends {{{parent}}}{{/parent}} {{#serializableModel}}implements Serializable{{/serializableModel}} {
+{{#serializableModel}}
+  private static final long serialVersionUID = 1L;
+
+{{/serializableModel}}
+  {{#vars}}
+    {{#isEnum}}
+    {{^isContainer}}
+{{>enumClass}}
+    {{/isContainer}}
+    {{/isEnum}}
+    {{#items.isEnum}}
+      {{#items}}
+      {{^isContainer}}
+{{>enumClass}}
+      {{/isContainer}}
+      {{/items}}
+    {{/items.isEnum}}
+  {{#jackson}}
+  @JsonProperty("{{baseName}}"){{#withXml}}
+  @JacksonXmlProperty({{#isXmlAttribute}}isAttribute = true, {{/isXmlAttribute}}{{#xmlNamespace}}namespace="{{xmlNamespace}}", {{/xmlNamespace}}localName = "{{#xmlName}}{{xmlName}}{{/xmlName}}{{^xmlName}}{{baseName}}{{/xmlName}}"){{/withXml}}
+  {{/jackson}}
+  {{#gson}}
+  @SerializedName("{{baseName}}")
+  {{/gson}}
+  {{#isContainer}}
+  {{#useBeanValidation}}@Valid{{/useBeanValidation}}
+  private {{{datatypeWithEnum}}} {{name}}{{#required}} = {{{defaultValue}}}{{/required}}{{^required}} = null{{/required}};
+  {{/isContainer}}
+  {{^isContainer}}
+  private {{{datatypeWithEnum}}} {{name}} = {{{defaultValue}}};
+  {{/isContainer}}
+
+  {{/vars}}
+  {{#vars}}
+  /**
+  {{#description}}
+   * {{{description}}}
+  {{/description}}
+  {{^description}}
+   * Get {{name}}
+  {{/description}}
+  {{#minimum}}
+   * minimum: {{minimum}}
+  {{/minimum}}
+  {{#maximum}}
+   * maximum: {{maximum}}
+  {{/maximum}}
+   * @return {{name}}
+  **/
+ {{#vendorExtensions.extraAnnotation}}
+  {{{vendorExtensions.extraAnnotation}}}
+  {{/vendorExtensions.extraAnnotation}}
+  @ApiModelProperty({{#example}}example = "{{{example}}}", {{/example}}{{#required}}required = {{required}}, {{/required}}{{#isReadOnly}}readOnly = {{{isReadOnly}}}, {{/isReadOnly}}value = "{{{description}}}")
+{{#useBeanValidation}}{{>beanValidation}}{{/useBeanValidation}}  public {{{datatypeWithEnum}}} {{#isBoolean}}is{{/isBoolean}}{{getter}}() {
+    return {{name}};
+  }
+
+  public void {{setter}}({{{datatypeWithEnum}}} {{name}}) {
+    this.{{name}} = {{name}};
+  }
+
+  {{/vars}}
+}

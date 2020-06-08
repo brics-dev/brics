@@ -1,0 +1,9 @@
+[DB-TRG]
+host=localhost
+database=metadb
+schema=metaschema
+user=metauser
+
+[FILE-SYS]
+queueDir=/var/lib/brics/src/pg-rev/meta
+logDir=/var/lib/brics/log/pgDeployer/build-meta

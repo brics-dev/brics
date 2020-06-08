@@ -1,0 +1,7 @@
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\propPasswdUtil\uat-tbi-cas
+passFile=D:\DATA\secur\.pgpass
+
+[DEPLOY]
+trgRoot=D:\DEV\workspace\conf\uat\tbi-cas
+srcRoot=D:\DEV\BRIX\local\prop\uat\tbi-cas

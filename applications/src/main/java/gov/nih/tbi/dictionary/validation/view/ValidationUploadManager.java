@@ -7,11 +7,26 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.security.Key;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.List;
 
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.spec.SecretKeySpec;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
 import gov.nih.tbi.commons.AppConfig;
@@ -22,6 +37,7 @@ import org.apache.log4j.Logger;
 import gov.nih.tbi.ApplicationsConstants;
 import gov.nih.tbi.commons.EulaAgreementWrapper;
 import gov.nih.tbi.repository.UploadManager;
+import gov.nih.tbi.repository.model.hibernate.Study;
 import gov.nih.tbi.repository.service.io.SftpClientManager;
 
 /**
@@ -62,12 +78,15 @@ public class ValidationUploadManager extends ValidationClient
     private static final int SFTP_USER_INDEX = 12;
     private static final int SFTP_PASSWD_INDEX = 13;
     private static final int PORTAL_ROOT_INDEX = 14;
+    private static final int PERFORM_EXTRA_VALIDATION_INDEX = 15;
 
-    private static final int ARGS_NUM = 15;
+    private static final int ARGS_NUM = 16;
 
     // Tab indicies
     private static final int VALIDATION_TAB = 0;
     private static final int UPLOAD_TAB = 1;
+    
+    private static final String KEY_WORD = "Xp2s5v8x/A?D(G+KbPeShVmYq3t6w9z$B&E)H@McQfTjWnZr4u7x!A%D*F-JaNdR";
 
     private static String bricsUrl;
     private static String ddtUrl;
@@ -85,6 +104,11 @@ public class ValidationUploadManager extends ValidationClient
     private static String sftpUser;
     private static String sftpPasswd;
     private static String portalRoot;
+    
+    private static String performExtraValidation;
+    
+	private static SecretKeySpec SECRET_KEY;
+    private static byte[] KEY;
 
     private JTabbedPane tabPanel;
 
@@ -103,6 +127,7 @@ public class ValidationUploadManager extends ValidationClient
                     JOptionPane.ERROR_MESSAGE);
             System.exit(0);
         }
+    	
 
         bricsUrl = args[BRICS_ARGUMENT_INDEX];
         ddtUrl = args[DICTIONARY_ARGUMENT_INDEX];
@@ -113,13 +138,15 @@ public class ValidationUploadManager extends ValidationClient
         password = args[PASSWORD_HASH_ARGUMENT_INDEX];
         orgEmail = args[ORG_EMAIL_ARGUMENT_INDEX];
 
-        sftpName = args[SFTP_NAME_INDEX];
-        sftpBasedir = args[SFTP_BASEDIR_INDEX];
-        sftpPort = args[SFTP_PORT_INDEX];
-        sftpUrl = args[SFTP_URL_INDEX];
-        sftpUser = args[SFTP_USER_INDEX];
-        sftpPasswd = args[SFTP_PASSWD_INDEX];
+        sftpName = decryptSftpProperty(args[SFTP_NAME_INDEX],KEY_WORD);
+        sftpBasedir = decryptSftpProperty(args[SFTP_BASEDIR_INDEX],KEY_WORD);
+        sftpPort = decryptSftpProperty(args[SFTP_PORT_INDEX],KEY_WORD);
+        sftpUrl = decryptSftpProperty(args[SFTP_URL_INDEX],KEY_WORD);
+        sftpUser = decryptSftpProperty(args[SFTP_USER_INDEX], KEY_WORD);
+        sftpPasswd = decryptSftpProperty(args[SFTP_PASSWD_INDEX], KEY_WORD);
         portalRoot = args[PORTAL_ROOT_INDEX];
+        
+        performExtraValidation = args[PERFORM_EXTRA_VALIDATION_INDEX];
 
         try {
 
@@ -128,6 +155,7 @@ public class ValidationUploadManager extends ValidationClient
 
             config.setProperty("BRICS_URL", bricsUrl, confSecurKey);
             config.setProperty("DDT_URL", ddtUrl, confSecurKey);
+            config.setProperty("SERVER_LOC", serverLocation, confSecurKey);
             config.setProperty("VERSION", version, confSecurKey);
             config.setProperty("USERNAME", username, confSecurKey);
             config.setProperty("PASSWD", password, confSecurKey);
@@ -141,6 +169,8 @@ public class ValidationUploadManager extends ValidationClient
             config.setProperty("SFTP_PASSWORD", sftpPasswd, confSecurKey);
             config.setProperty("PORTAL_ROOT", portalRoot, confSecurKey);
 
+            config.setProperty("PERFORM_EXTRA_VALIDATION", performExtraValidation, confSecurKey);
+            
             config.commit(confSecurKey);
 
         } catch (DataIsolationException isolExc) {
@@ -223,7 +253,6 @@ public class ValidationUploadManager extends ValidationClient
 
             tabPanel.insertTab(ApplicationsConstants.APPLICATION_TITLE, 
                     null, uploader.createUploadPanel(), ApplicationsConstants.APPLICATION_TITLE, UPLOAD_TAB);
-            uploader.setSelectedStudy(props.getProperty(UploadManager.LAST_STUDY, ""));
         }
 
         getContentPane().add(tabPanel);
@@ -287,7 +316,7 @@ public class ValidationUploadManager extends ValidationClient
      * @param name the name of the first file in the submission,
      * passed in by the Validation controller
      */
-    public void populateSubmissionTicket(File file, String name)
+    public void populateSubmissionTicket(File file, List<JTextField> fields, Study selectedStudy)
     {
 
         if(tabPanel.getTabCount() > 1)
@@ -295,8 +324,53 @@ public class ValidationUploadManager extends ValidationClient
             
             String fileStr = file.getAbsolutePath();
             uploader.setFilePath(fileStr);
-            uploader.setDataName(name);
+            uploader.setStudyField(selectedStudy.getTitle());
+            uploader.setSelectedStudy(selectedStudy);
+            uploader.setDataName("");
+            for(JTextField f : fields)
+            {
+            	if(uploader.getDatasetName().equals("")) {
+            		uploader.setDataName(f.getText());
+            	}
+            	else {
+            		uploader.setDataName(uploader.getDatasetName() + "\n" + f.getText());
+            	}
+            }
             tabPanel.setSelectedIndex(UPLOAD_TAB);
         }
+    }
+    
+    public static void setKey(String propKey) {
+    	MessageDigest msgdig = null;
+    	try {
+    		KEY = propKey.getBytes("UTF-8");
+    		msgdig = MessageDigest.getInstance("SHA-1");
+    		KEY = msgdig.digest(KEY);
+    		KEY = Arrays.copyOf(KEY, 16);
+    		SECRET_KEY = new SecretKeySpec(KEY,"AES");
+    	} catch(NoSuchAlgorithmException e){
+    		e.printStackTrace();
+    	} catch(UnsupportedEncodingException e) {
+    		e.printStackTrace();
+    	}
+    }
+    
+    protected static SecretKeySpec getKey() {
+    	return SECRET_KEY;
+    }
+    
+    public static String decryptSftpProperty(String property, String keyWord) {
+    	try
+        {
+            setKey(keyWord);
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            cipher.init(Cipher.DECRYPT_MODE, SECRET_KEY);
+            return new String(cipher.doFinal(Base64.getDecoder().decode(property)));
+        } 
+        catch (Exception e) 
+        {
+            System.out.println("Error while decrypting property: ".concat(property).concat(e.toString()));
+        }
+        return null;
     }
 }

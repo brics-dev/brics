@@ -1,0 +1,6 @@
+[DB-TRG]
+host=gsdr-db-demo.ninds.nih.gov
+database=gsdr_demo
+schema=gsdr_metademo
+user=gsdr_metademo
+label=TARGET

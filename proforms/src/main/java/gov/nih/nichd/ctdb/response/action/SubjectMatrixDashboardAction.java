@@ -73,6 +73,8 @@ public class SubjectMatrixDashboardAction extends ReportingAction {
 			Long patientId = (long) -1;
 			//List<String> guidOrMrnListToJsp = new ArrayList<String>();
 			JSONArray jsonArrayOfGuid = new JSONArray();
+			String selectedGuid = selectedGuidInAction;
+
 			for (Patient pat : guidList) {
 
 				patientId = (long) pat.getId();
@@ -87,11 +89,13 @@ public class SubjectMatrixDashboardAction extends ReportingAction {
 				if(p.getPatientDisplayType()==CtdbConstants.PATIENT_DISPLAY_MRN){
 					if(pat.getMrn()!=null) {
 						jsonArrayOfGuid.put(pat.getMrn());
-						
+						if (selectedGuidInAction.equalsIgnoreCase(pat.getMrn())) {
+							selectedGuid = pat.getGuid();
+						}
 					}
 					patientId = (long) pat.getId();
 				}
-				
+
 				if(p.getPatientDisplayType()==CtdbConstants.PATIENT_DISPLAY_ID){
 					patientId = (long) pat.getId();
 					
@@ -99,15 +103,17 @@ public class SubjectMatrixDashboardAction extends ReportingAction {
 					PatientProtocol patientProtocol = patientMan.getPatientProtocalByPatientAndProtocol(patientId, (long) p.getId());
 					if(patientProtocol.getSubjectId()!=null) {
 						jsonArrayOfGuid.put(patientProtocol.getSubjectId());
+						if (selectedGuidInAction.equalsIgnoreCase(patientProtocol.getSubjectId())) {
+							selectedGuid = pat.getGuid();
+						}
 					}
-					
 				}
 
 			}
-			
+
 			List<FormVisitTypeStatusSubjectMatrix> subjectMatrix = repMgr
 					.getSubjectMatrixForFormVsVisitTypeWithCollectionStatusFilteredableByGuid(Long.valueOf(p.getId()),
-							selectedGuidInAction);
+							selectedGuid);
 
 			// Build multi dimensional jsonArray-->jsonArrayOfSubjectMatrix
 			JSONArray jsonArrayOfSubjectMatrix = new JSONArray();

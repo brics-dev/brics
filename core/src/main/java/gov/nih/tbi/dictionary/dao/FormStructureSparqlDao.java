@@ -6,6 +6,7 @@ import gov.nih.tbi.commons.model.StatusType;
 import gov.nih.tbi.commons.util.PaginationData;
 import gov.nih.tbi.dictionary.model.FormStructureFacet;
 import gov.nih.tbi.dictionary.model.NameAndVersion;
+import gov.nih.tbi.dictionary.model.hibernate.FormLabel;
 import gov.nih.tbi.dictionary.model.rdf.SemanticFormStructure;
 
 import java.util.List;
@@ -68,4 +69,9 @@ public interface FormStructureSparqlDao extends GenericSparqlDao<SemanticFormStr
     public List<SemanticFormStructure> getByStatuses(Set<StatusType> statuses);
 
     public List<SemanticFormStructure> getLatestByNames(List<String> names);
+    
+    public void removeFormLabel(Long formLabelId);
+    
+    public void updateFormLabel(FormLabel formLabel, String newLabel);
+    
 }

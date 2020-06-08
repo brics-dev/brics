@@ -1,0 +1,15 @@
+[DB-SRC]
+host=brics-build.cit.nih.gov
+database=metadb
+schema=metaschema
+user=metauser
+
+[DB-TRG]
+host=localhost
+database=metadb
+schema=metasch
+user=metauser
+
+[FILE-SYS]
+logDir=D:\\DEV\\appdata\\log\\pgCloner\\build-local-meta
+dumpDir=D:\\DEV\\appdata\\dump\\pgCloner\\build-local-meta

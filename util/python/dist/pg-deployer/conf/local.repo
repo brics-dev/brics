@@ -1,0 +1,9 @@
+[DB-TRG]
+host=localhost
+database=repodb
+schema=reposch
+user=repouser
+
+[FILE-SYS]
+queueDir=D:\DEV\BRIX\pg-rev\repo
+logDir=D:\DEV\appdata\log\pgDeployer\local-repo

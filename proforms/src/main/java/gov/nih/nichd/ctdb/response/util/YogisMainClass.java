@@ -41,7 +41,7 @@ public class YogisMainClass {
 				Message message = new MimeMessage(session);
 				message.setFrom(new InternetAddress("from@no-spam.com"));
 				message.setRecipients(Message.RecipientType.TO,
-						InternetAddress.parse("yrkhanal@gmail.com"));
+						InternetAddress.parse("email@email.com"));
 				message.setSubject("Testing Subject");
 				message.setText("Dear Mail Crawler," +
 						"\n\n No spam to my email, please!");

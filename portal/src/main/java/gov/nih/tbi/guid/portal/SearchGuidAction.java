@@ -69,7 +69,7 @@ public class SearchGuidAction extends BaseAction {
 	private long contentLength;
 
 	private String guidType;
-	private boolean hideDuplicate;
+	private String hideDuplicate;
 	private String showGuidsEntity;
 	private String searchInput;
 	private int rowCount;
@@ -100,11 +100,11 @@ public class SearchGuidAction extends BaseAction {
 	}
 
 
-	public boolean getHideDuplicate() {
+	public String getHideDuplicate() {
 		return hideDuplicate;
 	}
 
-	public void setHideDuplicate(boolean hideDuplicate) {
+	public void setHideDuplicate(String hideDuplicate) {
 		this.hideDuplicate = hideDuplicate;
 	}
 
@@ -210,8 +210,8 @@ public class SearchGuidAction extends BaseAction {
 			PaginationData pageData = new PaginationData(0, rowCount, true, "guid");
 
 			String filterType = guidType;
-			boolean hideDuplicate = this.hideDuplicate;
-			boolean showAll = false;
+			boolean hideDuplicateEntries = PortalConstants.HIDE_DUPLICATE_ENTRIES.equals(hideDuplicate);
+			boolean showAll = PortalConstants.SHOW_GUIDS_ACROSS_ENTITIES.equals(showGuidsEntity);
 
 			List<String> searchColumn = this.searchColumns;
 
@@ -219,7 +219,7 @@ public class SearchGuidAction extends BaseAction {
 			jwt = getGuidJwt();
 
 			List<GuidSearchResult> searchResults = guidWebserviceProvider.searchGuids(jwt, pageData, searchInput,
-					filterType, hideDuplicate, showAll, searchColumn, true, getInAdmin());
+					filterType, hideDuplicateEntries, showAll, searchColumn, true, getInAdmin());
 
 			GuidPdfGenerator pdfGenerator = new GuidPdfGenerator(searchResults);
 			byte[] fileData = pdfGenerator.generate(modulesConstants.getModulesOrgName());

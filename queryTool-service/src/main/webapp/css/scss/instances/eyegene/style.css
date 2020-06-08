@@ -10,6 +10,7 @@
 /*  Main Colors (change these first, or add color names with hex values)
 ** THESE COLORS (+ the grays) SHOULD DEFINE ALL OTHER COLORS IN THE SITE ** 
 */
+/* changed cool-gray from #4a545b to 00336f */
 /* Semantic Color Variables (change these next - these should be defined by Main Colors) */
 /*****
     Other Color Variables (do NOT change these - these should always be defined by main or semantic variables) */
@@ -28,7 +29,7 @@
 
 nav#navigation {
   height: 33px;
-  background-color: #4a545b;
+  background-color: #00336f;
   margin-bottom: 20px; }
 
 #instanceHeaderOne {
@@ -80,6 +81,8 @@ nav#navigation {
   padding-top: 0px; }
 
 @CHARSET "ISO-8859-1";
+/* Color Variables for structure and global colors */
+/* collapse colors */
 /* page main */
 body {
   min-width: 960px; }
@@ -87,6 +90,13 @@ body {
 #queryTool {
   padding: 0px;
   border: none; }
+
+.ui-dialog .ui-dialog-buttonpane button {
+  padding: .4em 1em; }
+
+.ui-button-icon-only {
+  text-indent: -9999px;
+  white-space: nowrap; }
 
 /**
  * Used for positioning help.  show if needed for dev
@@ -116,8 +126,8 @@ placeholder {
 
 .buttonPrimary, .ui-dialog .ui-button.buttonPrimary.ui-state-default {
   color: white !important;
-  background-color: #4a3c23;
-  border: 1px solid #4a3c23;
+  background-color: #00336f;
+  border: 1px solid #00336f;
   display: inline-block;
   height: 30px;
   line-height: 30px;
@@ -126,9 +136,9 @@ placeholder {
   padding: 0 6px 0 6px; }
 
 .buttonSecondary, .ui-dialog .ui-button.buttonSecondary.ui-state-default {
-  color: #6b5732 !important;
+  color: #0055B8 !important;
   background-color: white;
-  border: 2px solid #6b5732;
+  border: 2px solid #0055B8;
   display: inline-block;
   height: 28px;
   line-height: 30px;
@@ -143,7 +153,7 @@ placeholder {
 .buttonWithIcon {
   color: #362f2d;
   background-color: white;
-  border: 1px solid #6b5732;
+  border: 1px solid #0055B8;
   display: inline-block;
   height: 22px;
   padding-right: 6px;
@@ -154,7 +164,7 @@ placeholder {
   cursor: pointer; }
 
 .buttonWithIcon .icon {
-  background-color: #4a3c23;
+  background-color: #00336f;
   width: 23px;
   color: white !important;
   margin-right: 6px;
@@ -165,7 +175,7 @@ placeholder {
   float: left; }
 
 .buttonWithIcon .icon.right {
-  background-color: #4a3c23;
+  background-color: #00336f;
   width: 23px;
   color: white !important;
   margin-right: 0px;
@@ -320,7 +330,7 @@ a.disabled {
   width: 5%; }
 
 .filterPaneHandleContents {
-  color: #6b5732; }
+  color: #0055B8; }
 
 .filterPaneHandleTurn {
   -webkit-transform: rotate(-90deg);
@@ -378,9 +388,9 @@ a.disabled {
   padding: 0;
   padding-left: 5%;
   white-space: nowrap;
-  border: 1px solid #6b5732;
+  border: 1px solid #0055B8;
   color: #fff;
-  background: #6b5732;
+  background: #0055B8;
   height: 30px;
   line-height: 30px; }
 
@@ -425,7 +435,7 @@ a.disabled {
 
 .adminButtonsContainer {
   float: right;
-  border-right: 1px dashed #6b5732;
+  border-right: 1px dashed #0055B8;
   margin-right: 10px; }
   .adminButtonsContainer div {
     float: right; }
@@ -439,16 +449,16 @@ a.disabled {
   float: right;
   margin-right: 15px;
   line-height: 24px;
-  color: #6b5732; }
+  color: #0055B8; }
 
 .selectDe_searchLocations {
   float: left;
   position: relative;
   height: 18px;
   line-height: 18px;
-  border: 1px solid #6b5732;
+  border: 1px solid #0055B8;
   padding: 6px 12px;
-  color: #6b5732;
+  color: #0055B8;
   list-style: outside none;
   width: 176px; }
 
@@ -471,7 +481,7 @@ a.disabled {
   top: 2px;
   left: -13px;
   background: #FFFFFF;
-  border: 1px solid #6b5732;
+  border: 1px solid #0055B8;
   z-index: 999;
   border-top: none; }
 
@@ -549,7 +559,7 @@ a.disabled {
   color: white; }
 
 .selectionListCheckboxContainer input:checked {
-  background: #6b5732;
+  background: #0055B8;
   color: white; }
 
 .selectionListTitleContainer {
@@ -557,25 +567,25 @@ a.disabled {
   width: 83%; }
 
 .currentlyFilteringContainer {
-  border: 1px solid #6b5732; }
+  border: 1px solid #0055B8; }
 
 .currentlyFiltering {
   margin-top: 14px;
-  color: #6b5732; }
+  color: #0055B8; }
 
 .filterTextContainer {
   margin-top: 0px;
-  color: #6b5732; }
+  color: #0055B8; }
 
 .selectionList {
   overflow-y: scroll;
-  border: 1px solid #6b5732; }
+  border: 1px solid #0055B8; }
 
 /* I'm being specific here because I have to overwrite jqueryUI's defaults */
 .selectionListHeader {
   color: #FFFFFF;
   line-height: 30px;
-  background-color: #6b5732; }
+  background-color: #0055B8; }
 
 #mainContent .tab-pane .selectionListContainer .selectionListHeader a {
   color: white; }
@@ -617,7 +627,7 @@ a.disabled {
   margin-top: 3px; }
 
 .resultPaneCount {
-  color: #6b5732;
+  color: #0055B8;
   line-height: 30px;
   float: left;
   margin-left: 10px; }
@@ -641,17 +651,16 @@ a.disabled {
   margin-left: 15px; }
 
 .resultPaneContent {
-  border: 1px solid #6b5732;
+  border: 1px solid #0055B8;
   overflow: auto;
   position: relative;
-  margin-top: 24px;
   background-color: #f1f2f3; }
 
 .resultPaneSelect {
   display: none; }
 
 .ui-tabs .ui-tabs-panel.selectionListPanel {
-  border: 1px solid #6b5732;
+  border: 1px solid #0055B8;
   border-top: none;
   margin-left: -1px;
   margin-right: -1px;
@@ -693,31 +702,31 @@ a.disabled {
   top: -1px;
   right: -1px;
   font-size: 16px;
-  color: #6b5732;
+  color: #0055B8;
   line-height: 33px;
   background: white;
-  border: 1px solid #6b5732;
+  border: 1px solid #0055B8;
   text-align: center; }
 
 .filterDataTile .filterDataSubTile a.subTile_cartIcon {
   width: 24px;
   height: 24px;
   font-size: 16px;
-  color: #6b5732;
+  color: #0055B8;
   line-height: 24px;
   background: white;
-  border: 1px solid #6b5732;
+  border: 1px solid #0055B8;
   text-align: center;
   float: right;
   margin-top: -1px;
   margin-right: -1px; }
 
 .filterDataTile .tile_cartIcon.selected {
-  background-color: #6b5732;
+  background-color: #0055B8;
   color: white; }
 
 .filterDataTile .filterDataSubTile a.subTile_cartIcon.selected {
-  background-color: #6b5732;
+  background-color: #0055B8;
   color: white; }
 
 .filterDataTile .tile_cartIcon.unavailable {
@@ -796,7 +805,12 @@ a.disabled {
   float: left;
   margin-top: 15px;
   margin-left: 15px;
-  width: 53%; }
+  width: 43%; }
+
+.selectionDeSearchReset {
+  margin-top: 15px;
+  margin-left: 15px;
+  float: right; }
 
 /* refine data tab */
 .resultsTabLink {
@@ -806,7 +820,7 @@ a.disabled {
 /* left side */
 .refineDataDataCartHeader {
   height: 35px;
-  color: #6b5732; }
+  color: #0055B8; }
 
 .filterDataTabsContainer {
   width: 100%;
@@ -826,9 +840,9 @@ a.disabled {
   word-wrap: break-word; }
 
 #stepTwoTab #refineDataCartContainer .dataCartForm .form_cartIcon_remove {
-  background-color: #6b5732;
+  background-color: #0055B8;
   color: white;
-  border: 1px solid #6b5732;
+  border: 1px solid #0055B8;
   position: absolute;
   top: -1px;
   right: -1px;
@@ -850,28 +864,37 @@ a.disabled {
   right: -1px;
   height: 24px;
   width: 24px;
-  border: 1px solid #6b5732;
-  color: #6b5732;
-  background: white;
+  border: 1px solid #333;
+  color: #333;
+  background: #A8A8A8;
   font-size: 16px;
   text-align: center;
-  line-height: 24px; }
+  line-height: 24px;
+  font-weight: bold; }
 
 .moveDataCartToQueue {
   float: right; }
 
-#stepTwoTab .filterPane .toggleFilterPane {
+#stepTwoTab .filterPane .toggleFilterPane,
+#stepTwoTab .filterPane .toggleCartPane {
   position: absolute;
   top: -1px;
   right: -1px;
   height: 24px;
   width: 24px;
-  border: 1px solid #6b5732;
-  color: #6b5732;
-  background: white;
+  border: 1px solid #333;
+  color: #333;
+  background: #A8A8A8;
   font-size: 16px;
   text-align: center;
-  line-height: 24px; }
+  line-height: 24px;
+  font-weight: bold; }
+
+#stepTwoTab .filterPane .toggleLogicBox {
+  border: 1px solid #333;
+  color: #333;
+  background: #A8A8A8;
+  font-weight: bold; }
 
 .dataCartActiveFormsHeader {
   margin-left: 5px;
@@ -891,6 +914,7 @@ a.disabled {
   height: 100%;
   border-left: 1px solid #b2b9bf;
   border-right: 1px solid #b2b9bf;
+  border-bottom: 1px solid #b2b9bf;
   overflow-y: auto; }
 
 .dataCartActiveFormsButtonsContainer {
@@ -919,10 +943,13 @@ a.disabled {
 
 #filterPaneContentContainer {
   padding: 10px;
-  border-top: 1px solid #6b5732; }
+  border-top: 1px solid #0055B8;
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto; }
 
 #stepTwoTab .filterPane {
-  border: 1px solid #6b5732; }
+  border: 1px solid #0055B8; }
 
 .filterClose {
   position: absolute;
@@ -930,8 +957,8 @@ a.disabled {
   right: -1px;
   height: 24px;
   width: 24px;
-  border: 1px solid #4a545b;
-  color: #4a545b;
+  border: 1px solid #00336f;
+  color: #00336f;
   background: #A8A8A8;
   font-size: 16px;
   text-align: center;
@@ -942,7 +969,7 @@ a.disabled {
   line-height: 22px;
   text-align: center;
   margin-left: 5px;
-  margin-right: 5px;
+  margin-right: 20px;
   padding-left: 0px;
   padding-right: 5px; }
 
@@ -950,10 +977,30 @@ a.disabled {
   float: right;
   line-height: 22px;
   text-align: center;
+  margin-right: 20px;
+  margin-left: 5px;
+  padding-left: 0px;
+  padding-right: 5px; }
+
+.filterLogicButton {
+  float: right;
+  line-height: 22px;
+  text-align: center;
   margin-right: 5px;
   margin-left: 5px;
   padding-left: 0px;
   padding-right: 5px; }
+
+#filterLogicRunQuery {
+  margin-right: 0; }
+
+#filterLogicBoxInput {
+  width: 100%;
+  max-width: 100%;
+  height: 50px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box; }
 
 .dataCartRemoveHeader {
   padding: 10px;
@@ -972,7 +1019,7 @@ a.disabled {
   font-size: 15px; }
 
 .dataCartRemoveItem {
-  border: 1px solid #6b5732;
+  border: 1px solid #0055B8;
   margin-bottom: 10px;
   padding: 20px; }
 
@@ -982,13 +1029,13 @@ a.disabled {
 
 #refineData_dataCartLabel {
   float: left;
-  color: #6b5732;
+  color: #0055B8;
   font-size: 15px;
   font-weight: bold; }
 
 #filterPaneHeaderTitle {
   float: left;
-  color: #6b5732;
+  color: #0055B8;
   font-size: 15px;
   font-weight: bold; }
 
@@ -1006,23 +1053,60 @@ a.disabled {
 .filterBodyContainer.closed .filterBody {
   display: none; }
 
+.filterLogicContainer .filterLogicRow:not(:first-child) {
+  border-top: 1px solid #808080;
+  margin-top: 10px;
+  padding-top: 5px; }
+
 .queryFilter {
   border: 1px solid #b2b9bf;
   margin-top: 5px;
   position: relative;
   background: #f1f2f3; }
 
+.filterCombLogicContainer {
+  text-align: center; }
+
+.filterLogicAfterContainer {
+  text-align: right; }
+
+.filterLogicContainer select {
+  vertical-align: top;
+  margin-right: 10%; }
+
+.filterLogicRow {
+  margin-top: 3px; }
+
+.filterInputContainer {
+  float: left;
+  margin-left: 2%; }
+
+.filterLogicSelect {
+  float: left; }
+
 .filterNumericRangeSlider {
   width: 80%;
-  margin-left: auto;
-  margin-right: auto;
+  float: right;
+  margin-right: 1em;
+  /* corrects for the handle's width */
   background: #b2b9bf; }
+
+.filterNumericRangeMinTextBox, .filterNumericRangeMaxTextBox {
+  width: 2em; }
+
+.filterDateMinTextBox, .filterDateMaxTextBox {
+  width: 6em; }
+
+.filterNumericRangeInputContainer {
+  float: left;
+  width: 80%;
+  margin-left: 2%; }
 
 #filtersList {
   overflow: auto; }
 
 #filtersList .filterHeader .filterToggle {
-  border: 1px solid #b2b9bf;
+  border: 1px solid #333;
   font-size: 16px;
   font-weight: bold;
   height: 24px;
@@ -1032,11 +1116,11 @@ a.disabled {
   right: -1px;
   bottom: -1px;
   text-align: center;
-  background: #FFFFFF;
-  color: #b2b9bf; }
+  background: #A8A8A8;
+  color: #333; }
 
 .ui-slider-range {
-  background: #6b5732; }
+  background: #0055B8; }
 
 .ui-slider-handle {
   border-radius: 7px; }
@@ -1056,7 +1140,7 @@ a.disabled {
   float: left; }
 
 .nav li.buttonWithIcon {
-  border: 1px solid #6b5732;
+  border: 1px solid #0055B8;
   float: right;
   width: 100%; }
 
@@ -1082,15 +1166,15 @@ a.disabled {
   border-bottom: none; }
 
 .nav.disabled > li:hover {
-  border: 1px solid #6b5732; }
+  border: 1px solid #0055B8; }
 
 .nav ul li {
   background: white;
   float: none;
   min-height: 22px;
   line-height: 22px;
-  border-left: 1px solid #6b5732;
-  border-right: 1px solid #6b5732;
+  border-left: 1px solid #0055B8;
+  border-right: 1px solid #0055B8;
   width: 100%;
   display: block;
   z-index: 99; }
@@ -1099,7 +1183,7 @@ a.disabled {
   border-top: none; }
 
 .nav ul li:last-child {
-  border-bottom: 1px solid #6b5732; }
+  border-bottom: 1px solid #0055B8; }
 
 #displayOptions > li {
   margin-right: 0px; }
@@ -1127,23 +1211,60 @@ a.disabled {
 #resultsSelectCriteria {
   margin-left: -1px;
   margin-right: -1px;
-  border-left: 1px solid #6b5732;
-  border-right: 1px solid #6b5732;
-  border-bottom: 1px solid #6b5732;
+  border-left: 1px solid #0055B8;
+  border-right: 1px solid #0055B8;
+  border-bottom: 1px solid #0055B8;
   padding-right: 0px;
   overflow: auto; }
 
 #resultsDatatable {
   margin-left: -1px;
   margin-right: -1px;
-  border-left: 1px solid #6b5732;
-  border-right: 1px solid #6b5732;
-  border-bottom: 1px solid #6b5732; }
+  border-left: 1px solid #0055B8;
+  border-right: 1px solid #0055B8;
+  border-bottom: 1px solid #0055B8; }
 
 .selectCriteriaFormName {
   padding-left: 10px;
-  color: #6b5732;
-  font-weight: bold; }
+  color: #0055B8;
+  font-weight: bold;
+  line-height: 28px;
+  float: left; }
+
+.selectCriteriaShowHideText {
+  line-height: 28px;
+  float: right; }
+
+.formExpandCollapse {
+  width: 28px;
+  height: 28px;
+  font-size: 15px;
+  float: left;
+  line-height: 28px;
+  color: #6b7277; }
+
+.selectCriteriaGroupContainer {
+  clear: both; }
+
+.checkbox {
+  width: 16px;
+  height: 16px; }
+
+.addRemoveAllButton {
+  line-height: 28px;
+  height: 28px;
+  float: right;
+  width: 28px;
+  margin-right: 12px; }
+
+.checkboxChecked {
+  background: url(../../images/checkbox_checked.png) no-repeat right center; }
+
+.checkboxUnchecked {
+  background: url(../../images/checkbox_unchecked.png) no-repeat right center; }
+
+.checkboxIndeterminate {
+  background: url(../../images/checkbox_indeterminate.png) no-repeat right center; }
 
 .selectCriteriaGroup {
   border-top: 1px solid #362f2d; }
@@ -1164,23 +1285,43 @@ a.disabled {
   display: none; }
 
 .selectCriteriaDeNameContainer {
-  width: 58%;
+  width: 60%;
   float: left;
-  padding-left: 2%; }
+  padding-left: 2%;
+  padding-right: 8%; }
 
 .selectCriteriaDeCheckboxContainer {
   width: 20%;
   float: left;
-  text-align: center; }
+  text-align: right;
+  box-sizing: border-box;
+  padding-right: 10px; }
 
-.selectCriteriaFilterContainer {
-  width: 20%;
+.selectCriteriaDeCheckbox {
+  display: none; }
+
+.selectCriteriaDeCheckbox + label:before {
+  font-family: 'Pe-icon-set-interface';
+  speak: none;
+  display: inline-block;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  content: "\e627";
+  font-size: 23px;
+  height: 23px; }
+
+.selectCriteriaDeCheckbox:checked + label:before {
+  content: "\e687";
+  color: #0055B8; }
+
+.selectCriteriaDeFilterContainer {
+  width: 10%;
   float: left; }
 
-.selectCriteriaGroupButtons {
-  padding-left: 2%; }
-
-.selectCriteriaGroupButtonsText {
+.selectCriteriaDeFilter {
   float: left; }
 
 .selectCriteriaGroupExpandCollapse {
@@ -1197,12 +1338,34 @@ a.disabled {
 .selectCriteriaDeContainer .selectCriteriaDe:nth-child(even) {
   background: #f2f9ff; }
 
-.selectCriteriaGroupButtons .buttonWithIcon {
-  float: left; }
+.selectCriteriaDeFilterContainer .selectCriteriaDeFilter {
+  font-weight: bold;
+  line-height: 22px;
+  width: 23px;
+  font-size: 21px;
+  /* sets up the fonticon for CSS control */
+  display: inline-block;
+  font-family: 'brics-qt';
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #A8A8A8; }
 
-.selectCriteriaDeFilter.filtering {
-  background: #6b5732;
-  color: white; }
+.selectCriteriaDeFilterContainer .selectCriteriaDeFilter:before {
+  content: "\e900"; }
+
+.selectCriteriaDeFilterContainer .selectCriteriaDeFilter.disabled {
+  opacity: .75; }
+
+.selectCriteriaDeFilter.filtering:before {
+  content: "\e900";
+  color: #0055B8; }
 
 .selectCriteriaGroupSelectionName {
   font-weight: bold; }
@@ -1214,7 +1377,7 @@ a.disabled {
 
 #queryResultsCount {
   float: right;
-  color: #6b5732; }
+  color: #0055B8; }
 
 /* Rbox */
 .form-actions {
@@ -1223,13 +1386,13 @@ a.disabled {
 #rboxCodeBlock {
   float: left;
   width: 100%;
-  border: 1px solid #4a3c23;
+  border: 1px solid #00336f;
   margin-top: 5px;
   margin-bottom: 5px; }
 
 #rboxResults {
   display: inline-block;
-  border: 1px solid #4a3c23;
+  border: 1px solid #00336f;
   display: inline-block;
   width: 100%;
   margin-top: 5px;
@@ -1265,9 +1428,6 @@ a.disabled {
 #metaStudyTable {
   height: auto;
   margin-bottom: 10px; }
-
-.lengthMenuContainer {
-  display: inline-block; }
 
 /* html forms */
 /* single-column form row */
@@ -1421,7 +1581,7 @@ table.std_table tr:nth-child(even) {
 
 /* dialogs */
 .lightbox-content-wrapper h3 {
-  color: #6b5732;
+  color: #0055B8;
   font: 16px/1.2 Arial Bold,Arial,sans-serif;
   margin: 4px 0;
   border-bottom: 1px solid #000; }
@@ -1453,7 +1613,7 @@ table.std_table tr:nth-child(even) {
   width: 25%; }
 
 .viewQuery_header {
-  background-color: #6b5732;
+  background-color: #0055B8;
   border-radius: 3px;
   clear: both;
   color: white;
@@ -1490,12 +1650,13 @@ table.std_table tr:nth-child(even) {
   font-weight: normal;
   margin-bottom: 5px;
   margin-left: 5%;
-  width: 70%; }
+  width: 70%;
+  overflow-wrap: break-word; }
 
 viewQuery_formHeader {
   background-color: white;
   border-color: #d6d6d6;
-  color: #6b5732;
+  color: #0055B8;
   height: 20px;
   line-height: 20px;
   margin-bottom: 20px; }
@@ -1555,7 +1716,7 @@ viewQuery_formHeader {
 
 .viewQuery_studyItemLink.viewQuery_active {
   background: #ffea8a none repeat scroll 0 0;
-  border: 1px solid #6b5732;
+  border: 1px solid #0055B8;
   color: #000; }
 
 .viewQuery_studyItemLink.viewQuery_active:hover {
@@ -1571,7 +1732,7 @@ viewQuery_formHeader {
 .viewQuery_formHeader {
   background: white none repeat scroll 0 0;
   border: 1px solid #d6d6d6;
-  color: #6b5732;
+  color: #0055B8;
   height: 20px;
   line-height: 20px;
   margin-bottom: 10px;
@@ -1662,6 +1823,11 @@ viewQuery_formHeader {
   width: 250px;
   color: red; }
 
+.group:after {
+  content: "";
+  display: table;
+  clear: both; }
+
 @CHARSET "ISO-8859-1";
 /* Mixins */
 /*
@@ -1681,6 +1847,12 @@ body {
   line-height: 1.42857143;
   color: #333333;
   background-color: #ffffff; }
+
+.floatLeft {
+  float: left; }
+
+.floatRight {
+  float: right; }
 
 .clearfix {
   clear: both; }
@@ -1781,25 +1953,25 @@ body {
     padding-top: 3px;
     cursor: pointer; }
 .login-form .button input, .login-form .button button {
-  background: #6b5732;
+  background: #0055B8;
   /* Old browsers */
-  background: -moz-linear-gradient(top, #6b5732 0%, #4a3c23 80%);
+  background: -moz-linear-gradient(top, #0055B8 0%, #00336f 80%);
   /* FF3.6+ */
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #6b5732), color-stop(80%, #4a3c23));
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #0055B8), color-stop(80%, #00336f));
   /* Chrome,Safari4+ */
-  background: -webkit-linear-gradient(top, #6b5732 0%, #4a3c23 80%);
+  background: -webkit-linear-gradient(top, #0055B8 0%, #00336f 80%);
   /* Chrome10+,Safari5.1+ */
-  background: -o-linear-gradient(top, #6b5732 0%, #4a3c23 80%);
+  background: -o-linear-gradient(top, #0055B8 0%, #00336f 80%);
   /* Opera 11.10+ */
-  background: -ms-linear-gradient(top, #6b5732 0%, #4a3c23 80%);
+  background: -ms-linear-gradient(top, #0055B8 0%, #00336f 80%);
   /* IE10+ */
-  background: linear-gradient(to bottom, #6b5732 0%, #4a3c23 80%);
+  background: linear-gradient(to bottom, #0055B8 0%, #00336f 80%);
   /* W3C */
   border: 2px solid;
   border-color: #808080;
   color: #fff; }
   .login-form .button input:hover, .login-form .button input:focus, .login-form .button button:hover, .login-form .button button:focus {
-    background: #4a3c23;
+    background: #00336f;
     border-color: #A8A8A8; }
 .login-form .button.disabled input, .login-form .button.disabled button {
   background: #A8A8A8;
@@ -1820,14 +1992,83 @@ body {
 
 /**** override jquery ui styles ****/
 .ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited {
-  color: #6b5732; }
+  color: #0055B8; }
 
 .ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active {
-  border: 1px solid #6b5732;
-  color: #6b5732; }
+  border: 1px solid #0055B8;
+  color: #0055B8; }
 
 .ui-tabs .ui-tabs-nav {
-  border-bottom: 1px solid #6b5732; }
+  border-bottom: 1px solid #0055B8; }
+
+/*******************   qt-toggle-switch ****************/
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 25px;
+  height: 15px; }
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0; }
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #808080;
+  -webkit-transition: .4s;
+  transition: .4s; }
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 15px;
+  width: 15px;
+  left: 0px;
+  bottom: 0px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s; }
+
+input:checked + .slider {
+  background-color: #797258; }
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #797258; }
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(15px);
+  -ms-transform: translateX(15px);
+  transform: translateX(15px); }
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px; }
+
+.slider.round:before {
+  border-radius: 50%; }
+
+/* Font icon processing */
+.containerFontIcon {
+  display: none;
+  top: 250px;
+  left: 65%;
+  position: absolute; }
+
+/******************* end qt toggle switch *******************/
+.hide {
+  display: none; }
+
+.show {
+  display: block; }
 
 /* The specific style rules used to suggest rendering */
 /* for the CSS table design example, starts here */
@@ -1873,7 +2114,7 @@ DIV.space-line {
 #innerdiv {
   display: flex;
   flex-direction: column;
-  height: 98%;
+  height: calc(100% - 3em);
   overflow: hidden; }
 
 .centerScroll {
@@ -1882,8 +2123,8 @@ DIV.space-line {
   width: 100%;
   /* height: 100%; */
   padding: 0 0 10px 0 !important;
-  overflow-y: auto;
-  overflow-x: auto;
+  overflow-y: hidden;
+  overflow-x: hidden;
   box-sizing: border-box; }
 
 .headerScroll {
@@ -1903,8 +2144,8 @@ DIV.space-line {
   word-wrap: break-word;
   overflow: hidden;
   box-sizing: border-box;
-  user-select: none;
-  -moz-user-select: none;
+  user-select: auto;
+  -moz-user-select: auto;
   position: absolute; }
 
 .tableCell {
@@ -1914,9 +2155,13 @@ DIV.space-line {
   overflow: hidden;
   padding: 2px !important;
   box-sizing: border-box;
-  user-select: none;
-  -moz-user-select: none;
-  position: absolute; }
+  user-select: auto;
+  -moz-user-select: auto;
+  position: absolute;
+  background-color: #f1f2f3; }
+
+.frozen {
+  z-index: 10; }
 
 /*.dataBody .table-row:nth-of-type(even) h5.colCell {background: #FFF}
 .dataBody .table-row:nth-of-type(odd) h5.colCell {background: #CCC}*/
@@ -1981,7 +2226,7 @@ H5.colhdr.orange {
   font-weight: bold; }
 
 H5.colhdr.hdrcolor {
-  background-color: #6b5732;
+  background-color: #0055B8;
   color: #fff;
   font-weight: bold;
   padding: 3px 0px; }
@@ -1998,6 +2243,7 @@ H5.colCell {
   text-align: left;
   /*width: inherit;*/
   overflow-x: hidden;
+  line-height: 1.8;
   /*white-space: initial;*/ }
 
 H5.colCell a {
@@ -2169,7 +2415,7 @@ The white stripes in the hamburger button
   background-repeat: no-repeat;
   background-position: 98% 50%;
   border: 1px solid #797258;
-  color: #4a3c23;
+  color: #00336f;
   margin-right: 0;
   padding: 0 10px;
   font-weight: bold;
@@ -2178,7 +2424,7 @@ The white stripes in the hamburger button
 
 .biosample:hover, .biosample:focus {
   color: #fff;
-  background: #4a3c23 url(../../images/plus-sign-white.png) no-repeat 98% 50%;
+  background: #00336f url(../../images/plus-sign-white.png) no-repeat 98% 50%;
   text-shadow: none; }
 
 .expandData {
@@ -2189,7 +2435,7 @@ The white stripes in the hamburger button
   background-repeat: no-repeat;
   background-position: 98% 50%;
   border: 1px solid #797258;
-  color: #4a3c23 !important;
+  color: #00336f !important;
   margin-right: 0;
   padding: 0 10px;
   font-weight: bold;
@@ -2198,7 +2444,7 @@ The white stripes in the hamburger button
 
 .expandData:hover, .expandData:focus {
   color: #fff;
-  background: #4a3c23 url(../../images/arrow-down.gif) no-repeat 98% 50%;
+  background: #00336f url(../../images/arrow-down.gif) no-repeat 98% 50%;
   text-shadow: none; }
 
 .expandDataEmpty {
@@ -2226,7 +2472,7 @@ The white stripes in the hamburger button
   background-repeat: no-repeat;
   background-position: 98% 50%;
   border: 1px solid #797258;
-  color: #4a3c23;
+  color: #00336f;
   margin-right: 0;
   padding: 0 10px;
   font-weight: bold;
@@ -2235,7 +2481,7 @@ The white stripes in the hamburger button
 
 .collapseData:hover, .collapseData:focus {
   color: #fff;
-  background: #4a3c23 url(../../images/arrow-up.gif) no-repeat 98% 50%;
+  background: #00336f url(../../images/arrow-up.gif) no-repeat 98% 50%;
   text-shadow: none; }
 
 /***** Pagination ****/
@@ -2256,7 +2502,7 @@ ul.pagination li a {
   transition: background-color .3s; }
 
 ul.pagination li a.active {
-  background-color: #4a3c23;
+  background-color: #00336f;
   color: white; }
 
 ul.pagination li a:hover:not(.active) {
@@ -2304,16 +2550,16 @@ ul.pagination li a:hover:not(.active) {
 .blue select {
   color: #fff; }
 
-.lengthMenuDropdown {
-  margin-right: -12px;
-  float: left; }
-
 .ui-resizable-e {
   cursor: ew-resize !important; }
 
 .highlight-row {
   background-color: #f0ff9b !important;
   background: #f0ff9b !important; }
+
+.color-text {
+  color: #f00 !important;
+  color: #f00 !important; }
 
 /***** d3 table styles ********/
 .centerScroll {
@@ -2382,8 +2628,8 @@ ul.pagination li a:hover:not(.active) {
   overflow: hidden;
   padding: 2px !important;
   box-sizing: border-box;
-  user-select: none;
-  -moz-user-select: none;
+  user-select: auto;
+  -moz-user-select: auto;
   position: absolute; }
 
 .tableCell.even {
@@ -2391,6 +2637,27 @@ ul.pagination li a:hover:not(.active) {
 
 .deHeader .colValue {
   float: left; }
+
+/****** flex styles ****/
+.flex-space-between {
+  display: flex;
+  justify-content: space-between; }
+
+/*** table header styles ****/
+.formJoinDescription {
+  padding-top: 5px;
+  display: block;
+  float: left;
+  width: 70%; }
+
+#tableNotificationMessage {
+  flex-grow: 7;
+  display: none;
+  border: 1px solid #000;
+  padding: 3px;
+  margin: 3px;
+  background: #4a545b;
+  color: #fff; }
 
 /***
 

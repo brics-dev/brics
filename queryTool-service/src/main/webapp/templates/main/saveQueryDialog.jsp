@@ -13,8 +13,18 @@
 			
 			<div class="formrow_1">
 				<label for="queryDesc">Description:</label>
-				<textarea id="queryDesc" rows="2" cols="20" maxlength="100">{{description}}</textarea>
+				<textarea id="queryDesc" rows="2" cols="20" maxlength="300">{{description}}</textarea>
 			</div>
+
+		<div class="formrow_1">
+		<label>Created Date:</label>
+		<div name="dateCreated">{{dateCreated}}</div>
+		</div>
+
+		<div class="formrow_1">
+		<label>Last Updated Date:</label>
+		<div name="lastUpdated">{{lastUpdated}}</div>
+		</div>
 			
 			<div class="formrow_1">
 				<label for="userSelection">Group/User:</label>

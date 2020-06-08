@@ -1,9 +1,6 @@
 
 package gov.nih.brics.controller;
 
-import gov.nih.brics.job.AccountExpirationEmailJob;
-import gov.nih.brics.job.PasswordExpirationEmailJob;
-
 import javax.servlet.http.HttpSession;
 
 import org.apache.log4j.Logger;
@@ -14,6 +11,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+
+import gov.nih.brics.job.AccountExpirationEmailJob;
+import gov.nih.brics.job.DucExpirationEmailJob;
+import gov.nih.brics.job.PasswordExpirationEmailJob;
 
 @Controller
 @RequestMapping("emailJob")
@@ -31,6 +32,9 @@ public class EmailJobController
     @Autowired
     private PasswordExpirationEmailJob passwordExpirationEmailJob;
     
+    @Autowired
+    private DucExpirationEmailJob ducExpiratonEmailJob;
+
     @RequestMapping(method = RequestMethod.GET)
     public String getCreateForm(Model model)
     {
@@ -47,6 +51,7 @@ public class EmailJobController
             
             accountExpirationEmailJob.doJob();
             passwordExpirationEmailJob.doJob();
+            ducExpiratonEmailJob.doJob();
 
             /* session.setAttribute("future", val); */
             return "emailJob/jobStarted";

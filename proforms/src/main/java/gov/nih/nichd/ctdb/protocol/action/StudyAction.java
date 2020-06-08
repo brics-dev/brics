@@ -126,6 +126,10 @@ public class StudyAction extends BaseAction {
 			}
 			
 			study = protoMan.getProtocol(protocolId);
+			/*Randomization*/
+			boolean hasRandomization = protoMan.checkIfProtoHasRandomization(protocolId); 
+			study.setHasRandomizationg(hasRandomization);
+			
 			session.put(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY, study);
 			ProtocolAssembler.domainToForm(study, protoForm);
 			protoForm.setAllowPii(SysPropUtil.getProperty(CtdbConstants.CAN_USE_PII_KEY).equals("0"));
@@ -311,7 +315,23 @@ public class StudyAction extends BaseAction {
 	}
 	
 	public String createProtocol() {
-		buildLeftNav(LeftNavController.LEFTNAV_STUDY_DETAILS, new int[]{3, 8, 11, 15, 16, 17, 18, 19, 20, 34, 36, 46});
+
+		buildLeftNav(LeftNavController.LEFTNAV_STUDY_DETAILS, new int[]{
+			LeftNavController.LEFTNAV_SUBJECTS_MANAGE,
+			LeftNavController.LEFTNAV_COLLECT,
+			LeftNavController.LEFTNAV_STUDY_HOME,
+			LeftNavController.LEFTNAV_STUDY_DETAILS,
+			LeftNavController.LEFTNAV_STUDY_ROLES,
+			LeftNavController.LEFTNAV_STUDY_INTERVAL,
+			LeftNavController.LEFTNAV_STUDY_DOCUMENTS,
+			LeftNavController.LEFTNAV_STUDY_CONTACTS,
+			LeftNavController.LEFTNAV_STUDY_EBINDER,
+			LeftNavController.LEFTNAV_STUDY_CREATEINTERVAL,
+			LeftNavController.LEFTNAV_STUDY_ORDER_INTERVAL,
+				LeftNavController.LEFTNAV_EFORMS_CONFIGURE,
+			LeftNavController.LEFTNAV_STUDY_CLOSE_OUT,
+			LeftNavController.LEFTNAV_STUDY_RANDOMIZATION				
+		});
 		protoForm.setAllowPii(SysPropUtil.getProperty(CtdbConstants.CAN_USE_PII_KEY).equals("0"));
 //		session.remove(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
 		if (protoForm.isAddedFromDashboard()) {
@@ -347,7 +367,7 @@ public class StudyAction extends BaseAction {
 	}
 	
 	public String saveProtocol() {
-		buildLeftNav(LeftNavController.LEFTNAV_STUDY_DETAILS, new int[]{3, 8, 11, 15, 17, 18, 19, 20, 34, 36, 46});
+		buildLeftNav(LeftNavController.LEFTNAV_STUDY_DETAILS, new int[]{3, 8, 11, 15, 17, 18, 19, 20, 34, 36, 46, 50, 53});
 		
 		SiteManager sMan = new SiteManager();
 		
@@ -480,7 +500,14 @@ public class StudyAction extends BaseAction {
 				session.put("new_protocol_id", protocol.getId());
 				protoForm.setId(protocol.getId()); 
 				addActionMessage(getText(StrutsConstants.SUCCESS_ADD_KEY, new String[]{"protocol \"" + protocol.getName() + "\""}));
-				session.put(StrutsConstants.SUCCESS_ADD_KEY, this.getActionMessages());	            
+				session.put(StrutsConstants.SUCCESS_ADD_KEY, this.getActionMessages());
+				// for newly created protocol, set session attribute to be false
+				SecuritySessionUtil securitySession = new SecuritySessionUtil(request);
+				securitySession.setProtocolClosedStatusInSession(request, false);
+				
+				/*Randomization*/
+				boolean hasRandomization = protoMan.checkIfProtoHasRandomization(protocol.getId()); 
+				protocol.setHasRandomizationg(hasRandomization);
 			}
 			else {
 				protoMan.updateProtocol(protocol);
@@ -491,6 +518,8 @@ public class StudyAction extends BaseAction {
 			this.setStudyId(String.valueOf(protocol.getId()));
 			// refresh the Overview drop down
 			SecuritySessionUtil.refreshUserProtocols(user, request);
+			
+			
 			session.put(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY, protocol);
 			buildLeftNav(LeftNavController.LEFTNAV_STUDY_DETAILS);
 		}
@@ -1015,7 +1044,7 @@ public class StudyAction extends BaseAction {
 		boolean hasBlankSubjectIds = false;
 		
 		PatientManager pm = new PatientManager();
-		List<Patient> patients = pm.getMinPatientsByProtocolId(Long.valueOf(studyId));
+		List<Patient> patients = pm.getMinPatientsByProtocolIdSiteIds(Long.valueOf(studyId),null);
 		for (Patient patient : patients) {
 			if (patient.getSubjectId() == null || patient.getSubjectId().equals("")) {
 				hasBlankSubjectIds =  true;
@@ -1042,6 +1071,7 @@ public class StudyAction extends BaseAction {
 		String bricsStudyId = protoForm.getBricsStudyId();
 		String studyTypeName = protoForm.getStudyType();
 		Integer patientDisplayTypeId = protoForm.getPatientDisplayType();
+		String psrHeader = protoForm.getPsrHeader();
 
 		if (Utils.isBlank(bricsStudyId)) {
 			addFieldError(getText("study.data.repository.study"), getText(StrutsConstants.ERROR_FIELD_REQUIRED,
@@ -1086,6 +1116,7 @@ public class StudyAction extends BaseAction {
 			addFieldError(getText("protocol.add.institute.display"), getText(StrutsConstants.ERROR_MAX_LENGTH,
 					new String[]{getText("protocol.add.institute.display"), "150"}));
 		}
+
 		if (Boolean.valueOf(SysPropUtil.getProperty("display.protocol.clinicalPoint"))) {
 			List<ClinicalLocation> clinicLocToValidList = protoForm.getProtoClinicLocList();
 			if (clinicLocToValidList == null || clinicLocToValidList.size() == 0) {
@@ -1105,6 +1136,13 @@ public class StudyAction extends BaseAction {
 				addFieldError(getText("protocol.add.pointOfContact.display"),
 						getText(StrutsConstants.ERROR_FIELD_REQUIRED,
 								new String[] {getText("protocol.add.pointOfContact.display"), "is"}));
+			}
+			
+			int psrHeaderTextOnlylength = protoForm.getPsrHeader().replaceAll("<[^>]*>", "" ).replaceAll("\r\n", "").length();
+			
+			if (protoForm.getPsrHeader() !=null && psrHeaderTextOnlylength > CtdbConstants.PSRHEADER_MAX_LENGTH) {
+				addFieldError(getText("protocol.add.psrHeader.display"), getText(StrutsConstants.ERROR_MAX_LENGTH,
+						new String[] {getText("protocol.add.psrHeader.display"), String.valueOf(CtdbConstants.PSRHEADER_MAX_LENGTH)}));
 			}
 		}
 		return !hasFieldErrors();

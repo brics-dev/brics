@@ -13,11 +13,9 @@ import gov.nih.tbi.ws.provider.RestSavedQueryProvider;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-import javax.ws.rs.WebApplicationException;
-import javax.xml.bind.JAXBException;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,11 +41,9 @@ public class SavedQueryManagerImpl implements SavedQueryManager, Serializable {
 	/**
 	 * {@inheritDoc}
 	 */
-	public boolean isQueryNameUnique(String queryName) throws UnsupportedEncodingException, WebApplicationException {
-
-		RestSavedQueryProvider restSavedQueryProvider =
-				new RestSavedQueryProvider(constants.getModulesAccountURL(),
-						QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
+	public boolean isQueryNameUnique(String queryName) {
+		RestSavedQueryProvider restSavedQueryProvider = new RestSavedQueryProvider(constants.getModulesAccountURL(),
+				QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
 		return restSavedQueryProvider.isQueryNameUnique(queryName, constants.getSavedQueryNameUniqueWebServiceURL());
 	}
 
@@ -56,9 +52,11 @@ public class SavedQueryManagerImpl implements SavedQueryManager, Serializable {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public SavedQuery saveSavedQuery(DataCart dataCart, SavedQuery savedQuery, List<EntityMap> entityList)
-			throws JAXBException, UnsupportedEncodingException, WebApplicationException {
+	public SavedQuery saveSavedQuery(DataCart dataCart, SavedQuery savedQuery, List<EntityMap> entityList) {
 
+		// Set last updated to now.
+		savedQuery.setLastUpdated(new Date());
+		
 		log.info("Saving data cart to JSON...");
 
 		JsonObject dataCartJson = DataCartUtil.getDataCartToSavedQueryJson(dataCart, savedQuery);
@@ -67,9 +65,8 @@ public class SavedQueryManagerImpl implements SavedQueryManager, Serializable {
 		log.info("Calling web service to save the saved query meta data to the database...");
 
 		// Persists changes to the save query web service for storage.
-		RestSavedQueryProvider sqWsProvider =
-				new RestSavedQueryProvider(constants.getModulesAccountURL(),
-						QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
+		RestSavedQueryProvider sqWsProvider = new RestSavedQueryProvider(constants.getModulesAccountURL(),
+				QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
 
 		SavedQuery syncedSavedQuery =
 				sqWsProvider.saveSavedQuery(savedQuery, constants.getSavedQueryCreateSavedQueryWebServiceURL());
@@ -82,9 +79,8 @@ public class SavedQueryManagerImpl implements SavedQueryManager, Serializable {
 		}
 
 		// Persists permission changes to the account web service.
-		RestQueryAccountProvider accountProvider =
-				new RestQueryAccountProvider(constants.getModulesAccountURL(),
-						QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
+		RestQueryAccountProvider accountProvider = new RestQueryAccountProvider(constants.getModulesAccountURL(),
+				QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
 
 		List<EntityMap> syncedPermissions =
 				accountProvider.saveEntityList(entityList, constants.updateSavedQueryPermissionListWebServiceURL());
@@ -99,10 +95,9 @@ public class SavedQueryManagerImpl implements SavedQueryManager, Serializable {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void removeSavedQuery(Long savedQueryId) throws WebApplicationException, UnsupportedEncodingException {
-		RestSavedQueryProvider restSavedQueryProvider =
-				new RestSavedQueryProvider(constants.getModulesAccountURL(),
-						QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
+	public void removeSavedQuery(Long savedQueryId) {
+		RestSavedQueryProvider restSavedQueryProvider = new RestSavedQueryProvider(constants.getModulesAccountURL(),
+				QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
 
 		restSavedQueryProvider.removeSavedQuery(savedQueryId, constants.getSavedQueryRemoveSavedQueryWebServiceURL());
 	}
@@ -116,37 +111,21 @@ public class SavedQueryManagerImpl implements SavedQueryManager, Serializable {
 	public List<SavedQuery> getSavedQueries(String accountName) {
 
 		List<SavedQuery> savedQueries = null;
-		RestSavedQueryProvider restSavedQueryProvider =
-				new RestSavedQueryProvider(constants.getModulesAccountURL(),
-						QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
+		RestSavedQueryProvider restSavedQueryProvider = new RestSavedQueryProvider(constants.getModulesAccountURL(),
+				QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
 
-		try {
-			String url = constants.getUserSavedQueryListWebServiceURL();
-			savedQueries = restSavedQueryProvider.getSavedQueries(accountName, url);
-
-		} catch (UnsupportedEncodingException e) {
-			log.error("getSavedQueries throws exception: " + e.getMessage());
-			e.printStackTrace();
-		}
+		String url = constants.getUserSavedQueryListWebServiceURL();
+		savedQueries = restSavedQueryProvider.getSavedQueries(accountName, url);
 
 		return savedQueries;
 	}
 
 
 	public SavedQuery getSavedQueryById(Long queryId) {
-		RestSavedQueryProvider restSavedQueryProvider =
-				new RestSavedQueryProvider(constants.getModulesAccountURL(),
-						QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
+		RestSavedQueryProvider restSavedQueryProvider = new RestSavedQueryProvider(constants.getModulesAccountURL(),
+				QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
 
-		try {
-			return restSavedQueryProvider.getSavedQueryById(queryId, constants.getSavedQueryGetWebServiceURL());
-
-		} catch (UnsupportedEncodingException e) {
-			log.error("getSavedQueryById throws UnsupportedEncodingException for queryId " + queryId);
-			e.printStackTrace();
-		}
-
-		return null;
+		return restSavedQueryProvider.getSavedQueryById(queryId, constants.getSavedQueryGetWebServiceURL());
 	}
 
 
@@ -156,17 +135,10 @@ public class SavedQueryManagerImpl implements SavedQueryManager, Serializable {
 	 * @param qtDatacartManager
 	 */
 	public Map<Long, MetaStudy> getMetaStudies() {
-		RestSavedQueryProvider restSavedQueryProvider =
-				new RestSavedQueryProvider(constants.getModulesAccountURL(),
-						QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
+		RestSavedQueryProvider restSavedQueryProvider = new RestSavedQueryProvider(constants.getModulesAccountURL(),
+				QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
 
-		try {
-			return restSavedQueryProvider.getMetaStudies(constants.getUserMetaStudyListWebServiceURL());
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-
-		return null;
+		return restSavedQueryProvider.getMetaStudies(constants.getUserMetaStudyListWebServiceURL());
 	}
 
 	/**
@@ -175,9 +147,8 @@ public class SavedQueryManagerImpl implements SavedQueryManager, Serializable {
 	 * @param qtDatacartManager
 	 */
 	public void linkSavedQueryMetaStudy(long metaStudyId, SavedQuery clonedSavedQuery) {
-		RestSavedQueryProvider restSavedQueryProvider =
-				new RestSavedQueryProvider(constants.getModulesAccountURL(),
-						QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
+		RestSavedQueryProvider restSavedQueryProvider = new RestSavedQueryProvider(constants.getModulesAccountURL(),
+				QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
 
 		try {
 			restSavedQueryProvider.linkSavedQueryMetaStudy(metaStudyId, clonedSavedQuery.getId(),
@@ -186,38 +157,37 @@ public class SavedQueryManagerImpl implements SavedQueryManager, Serializable {
 			e.printStackTrace();
 		}
 	}
-	
-	@Override
-	public boolean isQueryFileNameUniquePerMetaStudy(String fileName, long metaStudyId ) throws UnsupportedEncodingException, WebApplicationException {
 
-		RestSavedQueryProvider restSavedQueryProvider =
-				new RestSavedQueryProvider(constants.getModulesAccountURL(),
-						QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
-		return restSavedQueryProvider.isFileNameUniquePerMetaStudy(fileName,metaStudyId, constants.getSavedQueryFileNameUniqueWebServiceURL());
+	@Override
+	public boolean isQueryFileNameUniquePerMetaStudy(String fileName, long metaStudyId) {
+
+		RestSavedQueryProvider restSavedQueryProvider = new RestSavedQueryProvider(constants.getModulesAccountURL(),
+				QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
+		return restSavedQueryProvider.isFileNameUniquePerMetaStudy(fileName, metaStudyId,
+				constants.getSavedQueryFileNameUniqueWebServiceURL());
 	}
 
 	@Override
-	public SavedQuery getSavedQueryByNameAndMetaStudy(String queryName, long metaStudyId) throws UnsupportedEncodingException {
-		
-		RestSavedQueryProvider restSavedQueryProvider =
-				new RestSavedQueryProvider(constants.getModulesAccountURL(),
-						QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
-		return restSavedQueryProvider.getSavedQueryByNameAndMetaStudy(queryName,metaStudyId, constants.getSavedQueryByNameAndMetaStudyPath());
+	public SavedQuery getSavedQueryByNameAndMetaStudy(String queryName, long metaStudyId) {
+
+		RestSavedQueryProvider restSavedQueryProvider = new RestSavedQueryProvider(constants.getModulesAccountURL(),
+				QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
+		return restSavedQueryProvider.getSavedQueryByNameAndMetaStudy(queryName, metaStudyId,
+				constants.getSavedQueryByNameAndMetaStudyPath());
 	}
 
 
 	@Override
-	public boolean isQuerySavedNameUniquePerMetaStudy(String queryName, long metaStudyId)
-			throws UnsupportedEncodingException {
-		
-		RestSavedQueryProvider restSavedQueryProvider =
-				new RestSavedQueryProvider(constants.getModulesAccountURL(),
-						QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
-		return restSavedQueryProvider.isSavedQueryUniquePerMetaStudy(queryName,metaStudyId, constants.getSavedQueryNameUniquePerMetaStudyPath());
+	public boolean isQuerySavedNameUniquePerMetaStudy(String queryName, long metaStudyId) {
+
+		RestSavedQueryProvider restSavedQueryProvider = new RestSavedQueryProvider(constants.getModulesAccountURL(),
+				QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
+		return restSavedQueryProvider.isSavedQueryUniquePerMetaStudy(queryName, metaStudyId,
+				constants.getSavedQueryNameUniquePerMetaStudyPath());
 	}
-	
+
 	@Override
-	public SavedQuery saveSavedQuery(DataCart dataCart, SavedQuery savedQuery) throws UnsupportedEncodingException, WebApplicationException {
+	public SavedQuery saveSavedQuery(DataCart dataCart, SavedQuery savedQuery) {
 
 		log.info("Saving data cart to JSON...");
 
@@ -227,14 +197,20 @@ public class SavedQueryManagerImpl implements SavedQueryManager, Serializable {
 		log.info("Calling web service to save the saved query meta data to the database...");
 
 		// Persists changes to the save query web service for storage.
-		RestSavedQueryProvider sqWsProvider =
-				new RestSavedQueryProvider(constants.getModulesAccountURL(),
-						QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
+		RestSavedQueryProvider sqWsProvider = new RestSavedQueryProvider(constants.getModulesAccountURL(),
+				QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
 
 		SavedQuery syncedSavedQuery =
 				sqWsProvider.saveSavedQuery(savedQuery, constants.getSavedQueryCreateSavedQueryWebServiceURL());
 
 		return syncedSavedQuery;
+	}
+
+	public boolean isQueryLinkedToMetaStudy(long savedQueryId) {
+
+		RestSavedQueryProvider restSavedQueryProvider = new RestSavedQueryProvider(constants.getModulesAccountURL(),
+				QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
+		return restSavedQueryProvider.isQueryLinkedToMetaStudy(savedQueryId, constants.getQueryLinkedToMetaStudyPath());
 	}
 	
 }

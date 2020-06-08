@@ -29,8 +29,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.Stack;
 
 import javax.swing.AbstractAction;
@@ -100,6 +102,9 @@ public class ValidationClient extends JFrame implements MouseWheelListener
     private static final int USERNAME_ARGUMENT_INDEX = 3;
     private static final int USER_HASH_ARGUMENT_INDEX = 4;
     private static final int PASSWORD_HASH_ARGUMENT_INDEX = 5;
+    
+    private static final int DIALOG_WIDTH = 420;
+    private static final int DIALOG_HEIGHT = 400;
 
     private ValidationController controller;
 
@@ -137,56 +142,91 @@ public class ValidationClient extends JFrame implements MouseWheelListener
     private JScrollBar outputScroll;
     private JScrollBar activeScroll;
     
-    private String validationTitle[] = new String[]{
+    private static final boolean IS_COMING_FROM_PROFORMS = false;
+    
+    private boolean performExtraValidation;
+    
+    private static final String VALIDATION_TITLE_ARRAY[] = new String[]{
+    		"Alcohol, Smoking, and Substance Use Involvement Screening Test (ASSIST v 3.0)",
     		"Alcohol Use Disorders Identification Test (AUDIT-C)",
     		"Alcohol Use Disorders Identification Test (AUDIT_FITBIR)",
     		"Balance Error Scoring System (BESS)",
+    		"Beck Anxiety Inventory (BAI)",
     		"Beck Depression Inventory II (BDI2)",
             "Brief Symptoms Inventory-18 (BSI-18)",
+            "Brief Visuospatial Memory Test - Revised (BVMT-R)",
             "Controlled Oral Word Association Test (COWAT)",
+            "Deployment Risk and Resilience Inventory (DRRI-2), V2 Combat",
+            "Disability Rating Scale (DRS)",
             "Dizziness Handicap Inventory (DHI)",
+            "Drug Abuse Screening Test (DAST-10)",
             "FIM Instrument",
             "Glasgow Coma Scale and Pupils (GCS)",
             "Glasgow Outcome Scale - Extended (GOS-E)",
+            "Grooved Pegboard test (GPT)",
             "Headache Impact Test (HIT-6)",
+            "Immediate Post-Concussion Assessment Testing (ImPACT)",
+            "Insomnia Severity Index (ISI)",
+            "King-Devick Concussion Screening Test",
+            "Mayo-Portland Adaptability Inventory-4 (MPAI-4)",
             "MDS UPDRS (MDSUPDRS)",
             "Montreal Cognitive Assessment (MoCA)",
             "Neurobehavioral Symptom Inventory II (NSI)",
             "Patient Health Questionnaire (PHQ9)",
+            //"Pediatric Glasgow Outcome Scale - Extended (GOS-E Peds)",
             "Pittsburgh Sleep Quality Index (PSQI)",
+           // "Post-Concussion Symptom Inventory - Parent (PCSI-P)",
             "PTSD Check List - Civilian Version (PCL-C)",
             "Rivermead Post-Concussion Symptoms Questionnaire (RPQ)",
-            "Sport Concussion Assessment Tool (SCAT-3)",
+            //"Sport Concussion Assessment Tool (SCAT-3)",
             "Satisfaction with Life Scale (SWLS)",
             "Short Form Health Survey (SF-12)",
             "Short Form Health Survey (SF-36) version 2",
-            "TRAIL Making Test (TMT)"};
-    private String validationShortName[] = new String[]{
+           // "Test of Memory Malingering (TOMM)",
+            "TRAIL Making Test (TMT)",
+            "Vestibular/Ocular Motor Screening (VOMS)"};
+
+    private static final String VALIDATION_SHORT_NAME_ARRAY[] = new String[]{
+    		"ASSIST_FITBIR",
     		"AUDITC",
     		"AUDIT_FITBIR",
     		"BESS",
+    		"BAI",
     		"BDI2",
     		"BSI18",
+    		"BVMTR",
     		"COWAT",
+    		"DRRI2COMBAT",
+    		"DRS_TBI_FITBIR",
     		"DHI",
+    		"DAST10",
     		"FIM_Instrument",
     		"GCS",
     		"GOSE_Standard",
+    		"GPT",
     		"HIT6",
+    		"ImPACT",
+    		"InsomniaSeverityIndex_FIT",
+    		"KingDevickTest",
+    		"MPAI4",
     		"MDS_UPDRS",
     		"MoCA",
     		"NSI1",
     		"PHQ9",
+    		//"GOSE_Peds",
     		"PSQI",
+    		//"PCSI_P",
     		"PCLC_Standard",
     		"Rivermead",
-    		"SCAT3",
+    		//"SCAT3",
     		"SWLS_CDISC_FITBIR",
     		"SF12",
     		"SF36v2",
-    		"TMT_Standard"};
+    		//"TOMM",
+    		"TMT_Standard",
+    		"VOMS"};
 
-private int validationNumber = validationTitle.length;
+private int validationNumber = VALIDATION_TITLE_ARRAY.length;
 protected HashMap<String, Boolean> extraValidation = 
                   new HashMap<String, Boolean>();
     
@@ -224,7 +264,11 @@ protected HashMap<String, Boolean> extraValidation =
     
     public static final Color VALID_COLOR = new Color(114, 247, 101);
     public static final Color ERROR_COLOR = new Color(255, 75, 75);
-
+    
+    
+    
+    public ValidationDialog dialogValidation;
+    
     
 
     protected static void checkJavaVersion()
@@ -350,7 +394,10 @@ protected HashMap<String, Boolean> extraValidation =
     public ValidationClient()
     {
 
-        super(ApplicationsConstants.APP_TITLE);
+        
+    	super(ApplicationsConstants.APP_TITLE);
+    	
+    	
 
         addMouseWheelListener(this);
         
@@ -382,9 +429,13 @@ protected HashMap<String, Boolean> extraValidation =
         String password = config.getProperty("PASSWD");
         String userHash = config.getProperty("HASH");
         
+        performExtraValidation = Boolean.valueOf(config.getProperty("PERFORM_EXTRA_VALIDATION")).booleanValue();
+        
        try
         {
-            this.controller = new ValidationController(this, bricsUrl, ddtUrl, username, password);
+            this.controller = new ValidationController(this, bricsUrl, ddtUrl, username, password,IS_COMING_FROM_PROFORMS);
+            dialogValidation =  new ValidationDialog(null);
+           
         }
         catch (Exception e)
         {
@@ -567,7 +618,8 @@ protected HashMap<String, Boolean> extraValidation =
     
     class ExtraValidationOffOnAction extends AbstractAction {
         public void actionPerformed(ActionEvent e) {
-        	 ValidationDialog dialogValidation =  new ValidationDialog(null);
+
+        	 dialogValidation.setVisible(true);
         	 // setLocation and setLocationRelativeTo calls are ignored.  dialogValidation always appears in upper left hand corner
         	 //dialogValidation.setLocation(Toolkit.getDefaultToolkit().getScreenSize().width/2 - dialogValidation.getBounds().width/2,
         			 //Toolkit.getDefaultToolkit().getScreenSize().height/2 - dialogValidation.getBounds().height/2);
@@ -584,7 +636,7 @@ protected HashMap<String, Boolean> extraValidation =
     
     private class ValidationDialog extends JDialog implements ActionListener {
     	boolean cancelFlag = false;
-    	private JCheckBox cBox[] = new JCheckBox[validationNumber];
+    	
     	 /**
          * OK button is used on most dialogs. Defining it in the base allows default actions if the user presses return and
          * the button is in focus.
@@ -593,13 +645,12 @@ protected HashMap<String, Boolean> extraValidation =
         protected JButton cancelButton;
         protected JButton allButton;
         protected JButton noneButton;
+        protected JCheckBox cBox[] = new JCheckBox[validationNumber];
         /** The default size that all buttons should be. */
         public final Dimension defaultButtonSize = new Dimension(90, 30);
     	public ValidationDialog(Frame parent) {
     		super(parent, true); // force the user to close before going back to the main frame
-    		
     		init();
-    		setVisible(true);
     	}
     	
     	/**
@@ -609,7 +660,7 @@ protected HashMap<String, Boolean> extraValidation =
         	int i;
             setForeground(Color.black);
 
-            setTitle("Turn validations on and off");
+            setTitle("Enable/Disable Form Extra Validation");
             getContentPane().setLayout(new BorderLayout());
 
             JPanel mainPanel;
@@ -637,8 +688,16 @@ protected HashMap<String, Boolean> extraValidation =
             gbc2.gridy = -1;
             
             for (i = 0; i < validationNumber; i++) {
-                cBox[i] = new JCheckBox(validationTitle[i]);
+                cBox[i] = new JCheckBox(VALIDATION_TITLE_ARRAY[i]);
                 cBox[i].setFont(fontArial12);
+                cBox[i].setName(VALIDATION_SHORT_NAME_ARRAY[i]); 
+
+	            if(performExtraValidation) {
+	            	cBox[i].setSelected(true);
+	            }else {
+	                cBox[i].setSelected(false);
+	            }
+
                 gbc2.gridx = 0;
                 gbc2.gridy++;
                 formPanel.add(cBox[i], gbc2);
@@ -653,12 +712,20 @@ protected HashMap<String, Boolean> extraValidation =
             
             getContentPane().add(mainPanel, BorderLayout.CENTER);
             getContentPane().add(buildButtons(), BorderLayout.SOUTH);
+            setSize(DIALOG_WIDTH,DIALOG_HEIGHT);
+            //open in center
+            setLocationRelativeTo(null);
             pack();
             setResizable(true);
-            setSize(420,300);
             setIconImage(createImageIcon(ApplicationsConstants.FRAME_ICON, "Frame GIF").getImage());
 
             System.gc();
+            
+            for (int k = 0; k < validationNumber; k++) {
+        	    extraValidation.put(VALIDATION_SHORT_NAME_ARRAY[k],
+        	    		cBox[k].isSelected());
+        	}
+            controller.setExtraValidation(extraValidation);
         }
         
         /**
@@ -741,13 +808,29 @@ protected HashMap<String, Boolean> extraValidation =
             if (command.equals("OK"))
             {
             	for (i = 0; i < validationNumber; i++) {
-            	    extraValidation.put(validationShortName[i],
+            	    extraValidation.put(VALIDATION_SHORT_NAME_ARRAY[i],
             	    		cBox[i].isSelected());
             	}
+            	cancelFlag = false;
                 dispose();
             }
             else if (command.equals("Cancel")) {
-                cancelFlag = true;
+            	//set the checkboxes to the previous state
+            	Set<String> snames = extraValidation.keySet();
+            	Iterator<String> iter = snames.iterator();
+            	while(iter.hasNext()) {
+            		String sname = iter.next();
+            		boolean isSelected = extraValidation.get(sname).booleanValue();
+            		for (int k  = 0; k < validationNumber; k++) {
+            			JCheckBox cb = cBox[k];
+            			if(cb.getName().equals(sname)) {
+            				cb.setSelected(isSelected);
+            				break;
+            			}
+            			
+            		}	
+            	}
+            	cancelFlag = true;
                 dispose();
             } 
             else if (command.equals("All")) {
@@ -1594,7 +1677,7 @@ protected HashMap<String, Boolean> extraValidation =
         return hideWarningsBox.isSelected();
     }
 
-    @Override
+	@Override
     public void mouseWheelMoved(MouseWheelEvent e)
     
     {

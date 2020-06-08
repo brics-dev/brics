@@ -13,10 +13,11 @@ public class SelfReportingLandingForm extends CtdbForm {
 	private Date visitDate;
 	private int formId;
 	private Integer administeredFormId;
-	private String formName;
+	private String shortName;
 	private Date lastUpdated;
 	private String status;
 	private String token;
+	private String formTitle;
 	
 	public int getPatientId() {
 		return patientId;
@@ -58,14 +59,22 @@ public class SelfReportingLandingForm extends CtdbForm {
 		this.administeredFormId = administeredFormId;
 	}
 
-	public String getFormName() {
-		return formName;
+	public String getShortName() {
+		return shortName;
 	}
 	
-	public void setFormName(String formName) {
-		this.formName = formName;
+	public void setShortName(String shortName) {
+		this.shortName = shortName;
 	}
 	
+	public String getFormTitle() {
+		return formTitle;
+	}
+
+	public void setFormTitle(String formTitle) {
+		this.formTitle = formTitle;
+	}
+
 	public Date getLastUpdated() {
 		return lastUpdated;
 	}

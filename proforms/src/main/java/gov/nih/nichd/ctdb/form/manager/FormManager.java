@@ -1125,6 +1125,34 @@ public class FormManager extends CtdbManager {
         }
     }
     
+    public boolean areAllAFormsTheSameEForm(int[] aformIds) throws CtdbException {
+    	Connection conn = null;
+    	
+    	try {
+            conn = CtdbManager.getConnection();
+            FormManagerDao dao = FormManagerDao.getInstance(conn);
+            
+            return dao.areAllAFormsTheSameEForm(aformIds);
+        }
+        finally {
+            this.close(conn);
+        }
+    }
+    
+    public boolean areAllAFormsLocked(int[] aformIds) throws CtdbException {
+    	Connection conn = null;
+    	
+    	try {
+            conn = CtdbManager.getConnection();
+            FormManagerDao dao = FormManagerDao.getInstance(conn);
+            
+            return dao.areAllAFormsLocked(aformIds);
+        }
+        finally {
+            this.close(conn);
+        }
+    }
+    
     /**
      * Method to get eform shortnmae for particular eformid and protocol
      * @param protocolId

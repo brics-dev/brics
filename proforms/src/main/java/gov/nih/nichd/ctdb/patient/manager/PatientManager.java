@@ -74,19 +74,13 @@ public class PatientManager extends CtdbManager {
             }
 
             // create patient
-            if (!dao.isGuidExists(patient)) {
-            	dao.createPatient(patient,protocolId);
-            }
-            else {
-            	Patient tempPatient = dao.getPatientByGuid(patient.getGuid());
-            	// this is the only thing that really changes in createPatient so this is all that should be overwritten
-            	patient.setId(tempPatient.getId());
-            }
-            
-            // assign patient to protocols
-            for ( PatientProtocol protocol : patient.getProtocols() ) {
-                dao.assignPatientToProtocol(patient, protocol);
-            }
+			if (!dao.isGuidExistsProtocol(patient, protocolId)) {
+				dao.createPatient(patient, protocolId);
+				// assign patient to protocols
+				for (PatientProtocol protocol : patient.getProtocols()) {
+					dao.assignPatientToProtocol(patient, protocol);
+				}
+			}
 
             conn.commit();   
         }
@@ -122,6 +116,19 @@ public class PatientManager extends CtdbManager {
         }
     }
     
+	public boolean isGuidExistsProtocol(Patient patient, int protocolId) throws CtdbException {
+		Connection conn = null;
+
+		try {
+			conn = CtdbManager.getConnection();
+			boolean isExists = PatientManagerDao.getInstance(conn).isGuidExistsProtocol(patient, protocolId);
+
+			return isExists;
+		} finally {
+			this.close(conn);
+		}
+	}
+
 
 	/**
      * Creates a Patient visit 
@@ -372,7 +379,7 @@ public class PatientManager extends CtdbManager {
      * @throws ObjectNotFoundException thrown if the patient does not exist in the system
      * @throws CtdbException           thrown if any other errors occur while processing
      */
-    public Patient getPatient(String patientId) throws ObjectNotFoundException, CtdbException {
+	public Patient getPatient(String patientId, long protocolId) throws ObjectNotFoundException, CtdbException {
         Connection conn = null;
 
         try {
@@ -381,7 +388,7 @@ public class PatientManager extends CtdbManager {
             AddressDao aDao = AddressDao.getInstance(conn);
             p.setHomeAddress(aDao.getAddress(p.getHomeAddress().getId()));
             AttachmentManager am = new AttachmentManager();
-            p.setAttachments(am.getAttachments(AttachmentManager.FILE_PATIENT, p.getId()));
+			p.setAttachments(am.getProtocolAttachments(AttachmentManager.FILE_PATIENT, p.getId(), protocolId));
             return p;
         }
         finally {
@@ -537,13 +544,14 @@ public class PatientManager extends CtdbManager {
         }
     }
     
-    public List<Patient> getMinPatientsByProtocolId(long protocolid) throws CtdbException {
+    
+    public List<Patient> getMinPatientsByProtocolIdSiteIds(long protocolid, List<Integer> siteIds) throws CtdbException {
     	Connection conn = null;
     	
     	try {
     		conn = CtdbManager.getConnection();
     		
-    		return PatientManagerDao.getInstance(conn).getMinimalPatients(protocolid);
+    		return PatientManagerDao.getInstance(conn).getMinimalPatientsBySiteIds(protocolid,siteIds);
     	}
     	finally {
     		this.close(conn);
@@ -603,6 +611,33 @@ public class PatientManager extends CtdbManager {
     
     /**
      * Method to get patient visits 
+     * @param siteIds 
+     * @param roleId 
+     * @param formId
+     * @return
+     * @throws ObjectNotFoundException
+     * @throws CtdbException
+     */
+    public List<PatientVisit> getPatientVisitsByUserSiteIds(PatientVisitResultControl pvrc,long protocolId, List<Integer> siteIds) throws ObjectNotFoundException, CtdbException {
+    	Connection conn = null;
+    	 try {
+             conn = CtdbManager.getConnection();
+             conn.setAutoCommit(false);
+             PatientManagerDao dao = PatientManagerDao.getInstance(conn);
+             List<PatientVisit> pvList = dao.getPatientVisitsUserSiteIds(pvrc,protocolId,siteIds);
+             return pvList;
+         } catch (Exception e) {
+             throw new CtdbException("Unable to get list of patient visits form for the ID: "
+                     + pvrc.getPatientId()
+                     + e.getMessage(),
+                     e);
+         } finally {
+             this.close(conn);
+         }
+     }
+    
+    /**
+     * Method to get patient visits 
      * @param formId
      * @return
      * @throws ObjectNotFoundException
@@ -614,6 +649,23 @@ public class PatientManager extends CtdbManager {
              conn = CtdbManager.getConnection();
              PatientManagerDao dao = PatientManagerDao.getInstance(conn);
              List<PatientVisit> pvList = dao.getMonthPatientVisits(pvrc);
+             return pvList;
+         } catch (Exception e) {
+             throw new CtdbException("Unable to get list of patient visits form for the ID: "
+                     + pvrc.getPatientId()
+                     + e.getMessage(),
+                     e);
+         } finally {
+             this.close(conn);
+         }
+     }
+    
+    public List<PatientVisit> getMonthPatientVisitsBySites(PatientVisitResultControl pvrc, List<Integer> siteIds) throws ObjectNotFoundException, CtdbException {
+    	Connection conn = null;
+    	 try {
+             conn = CtdbManager.getConnection();
+             PatientManagerDao dao = PatientManagerDao.getInstance(conn);
+             List<PatientVisit> pvList = dao.getMonthPatientVisitsBySites(pvrc, siteIds);
              return pvList;
          } catch (Exception e) {
              throw new CtdbException("Unable to get list of patient visits form for the ID: "
@@ -890,7 +942,7 @@ public class PatientManager extends CtdbManager {
         }
     }
 
-    /**
+   /**
      * Retrieves the next incremental subject number within a given protocol
      * @param protocol the protocol to search in
      * @return the next subject number value
@@ -1161,4 +1213,65 @@ public class PatientManager extends CtdbManager {
 
 		return patList;
 	}
+	
+	public List<Patient> getPatientListByProtocolAndSite(Integer protocolId, Integer siteId) throws ObjectNotFoundException, CtdbException {
+		Connection conn = null;
+		List<Patient> patList = new ArrayList<Patient>();
+		
+		try {
+			conn = CtdbManager.getConnection();
+			PatientManagerDao dao = PatientManagerDao.getInstance(conn);
+			patList.addAll(dao.getPatientListByProtocolAndSite(protocolId, siteId));
+		}
+		finally {
+			this.close(conn);
+		}
+		return patList;
+	}
+
+	public List<Patient> getPatientListByProtocolAndSites(Integer protocolId, Integer[] siteIds)
+			throws ObjectNotFoundException, CtdbException {
+		Connection conn = null;
+		List<Patient> patList = new ArrayList<Patient>();
+
+		try {
+			conn = CtdbManager.getConnection();
+			PatientManagerDao dao = PatientManagerDao.getInstance(conn);
+			patList.addAll(dao.getPatientListByProtocolAndSites(protocolId, siteIds));
+		} finally {
+			this.close(conn);
+		}
+
+		return patList;
+	}
+	
+	public List<Patient> getPatientListByProtocolIdAndSiteIds(Integer protocolId, List<Integer> siteIds) throws ObjectNotFoundException, CtdbException {
+		Connection conn = null;
+		List<Patient> patList = new ArrayList<Patient>();
+		
+		try {
+			conn = CtdbManager.getConnection();
+			PatientManagerDao dao = PatientManagerDao.getInstance(conn);
+			patList.addAll(dao.getPatientListByProtocolIdAndSiteIds(protocolId, siteIds));
+		}
+		finally {
+			this.close(conn);
+		}
+		return patList;
+	}
+	
+	public boolean checkIfAnyPatProtoHasRandomization(int protocolId) throws CtdbException {
+		Connection conn = null;
+		boolean hasRandomization = false;
+
+		try {
+			conn = CtdbManager.getConnection();
+			PatientManagerDao dao = PatientManagerDao.getInstance(conn);
+			hasRandomization = dao.checkIfAnyPatProtoHasRandomization(protocolId);
+		} finally {
+			this.close(conn);
+		}
+		return hasRandomization;
+	}
+
 }

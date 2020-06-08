@@ -28,8 +28,8 @@ public class CalcSkipJdbc {
 		// PF DB connection
 		String url_pf = "jdbc:postgresql://proforms-uat-db.cit.nih.gov:5432/pdbp_data";
 		Properties props_pf = new Properties();
-		props_pf.setProperty("user", "REPLACED");
-		props_pf.setProperty("password", "REPLACED");
+		props_pf.setProperty("user", "proforms_app_uat");
+		props_pf.setProperty("password", "abcd");
 		Connection conn = null;
 		PreparedStatement preparedStatement1 = null;
 		PreparedStatement preparedStatement2 = null;
@@ -105,8 +105,8 @@ public class CalcSkipJdbc {
 	public static void calcRule(String formName, String shortName, File file) {
 		String url_dd = "jdbc:postgresql://ibis-db-uat.cit.nih.gov:5432/dictionary_uat";
 		Properties props_dd = new Properties();
-		props_dd.setProperty("user", "REPLACED");
-		props_dd.setProperty("password", "REPLACED");
+		props_dd.setProperty("user", "dictionaryuat");
+		props_dd.setProperty("password", "abcd");
 		Connection conn = null;
 
 		PreparedStatement preparedStatement1 = null;
@@ -204,8 +204,8 @@ public class CalcSkipJdbc {
 
 		String url_dd = "jdbc:postgresql://ibis-db-uat.cit.nih.gov:5432/dictionary_uat";
 		Properties props_dd = new Properties();
-		props_dd.setProperty("user", "REPLACED");
-		props_dd.setProperty("password", "REPLACED");
+		props_dd.setProperty("user", "dictionaryuat");
+		props_dd.setProperty("password", "abcd");
 		Connection conn = null;
 
 		PreparedStatement preparedStatement = null;

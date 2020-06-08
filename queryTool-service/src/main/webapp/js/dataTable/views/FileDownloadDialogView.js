@@ -56,6 +56,13 @@ QTDT.FileDownloadDialogView = BaseView.extend({
 			},
 			dataType: "json",
 			success : function(data) {
+				if (typeof data.status !== "undefined") {
+		         	if(data.status = "401") {
+		         		//redirect
+		         		window.location.href = "/query/logout";
+		         		return;
+		         	}
+		         }
 				
 				//convert the file size to MB
 				var fileSize = data.fileSize/1000000;

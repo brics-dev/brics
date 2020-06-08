@@ -20,6 +20,8 @@ import gov.nih.tbi.account.dao.PermissionGroupDao;
 import gov.nih.tbi.account.model.hibernate.Account;
 import gov.nih.tbi.account.model.hibernate.AccountRole;
 import gov.nih.tbi.account.model.hibernate.PermissionGroupMember;
+import gov.nih.tbi.account.service.util.AccountServiceUtil;
+import gov.nih.tbi.commons.model.AccountStatus;
 import gov.nih.tbi.commons.model.PermissionGroupStatus;
 import gov.nih.tbi.commons.model.RoleStatus;
 import gov.nih.tbi.commons.model.RoleType;
@@ -220,7 +222,7 @@ public class AccountPrivilegesForm {
 				// Only set the expiration date if the account is active
 				role.setExpirationDate(expirationDate);
 
-				role.setRoleStatus(getNewRoleStatus(expirationDate));
+				role.setRoleStatus(AccountServiceUtil.getRoleStatusFromExpDate(expirationDate));
 
 				break;
 			}
@@ -231,28 +233,8 @@ public class AccountPrivilegesForm {
 			currentRole = new AccountRole();
 			currentRole.setRoleType(newRoleType);
 			currentRole.setExpirationDate(expirationDate);
-			currentRole.setRoleStatus(getNewRoleStatus(expirationDate));
+			currentRole.setRoleStatus(AccountServiceUtil.getRoleStatusFromExpDate(expirationDate));
 			accountRoleList.add(currentRole);
-		}
-	}
-
-	protected RoleStatus getNewRoleStatus(Date expirationDate) {
-
-		Date currentDate = new Date();
-		long currentTime = currentDate.getTime();
-		long expirationTime = expirationDate.getTime();
-
-		// expiration date is in the past. this shouldn't be possible, but the role should be expired now.
-		if (expirationTime < currentTime) {
-			return RoleStatus.EXPIRED;
-		} else { // not yet expired, now we need to find out if the role should be active or expiring soon
-			long diff = expirationTime - currentTime;
-			int days = Math.round(TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS));
-			if (days >= 0 && days <= ServiceConstants.EXPIRATION_SOON_DAYS) {
-				return RoleStatus.EXPIRING_SOON;
-			} else {
-				return RoleStatus.ACTIVE;
-			}
 		}
 	}
 
@@ -281,7 +263,14 @@ public class AccountPrivilegesForm {
 				if (existingRole.getRoleType() == role.getRoleType()) {
 					contains = true;
 					existingRole.setExpirationDate(role.getExpirationDate());
-					existingRole.setRoleStatus(role.getRoleStatus());
+					
+					// For renewal requested account roles in pending status, we don't want its status to be
+					// overwritten by the default role status calculated from the expiration date.
+					if (!(account.getAccountStatus() == AccountStatus.RENEWAL_REQUESTED
+							&& existingRole.getRoleStatus() == RoleStatus.PENDING
+							&& existingRole.getExpirationDate() != null)) {
+						existingRole.setRoleStatus(role.getRoleStatus());
+					}
 					break;
 				}
 			}

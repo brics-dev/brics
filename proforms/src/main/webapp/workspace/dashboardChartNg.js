@@ -56,6 +56,21 @@
 			});
 		};
 		
+		this.getGuidListForSite = function(selectedSiteId) {
+			
+			return $http({
+				method: 'GET',
+			    url: basePath+"/getDashboardFilterAction!getDashBoardGuidsListForSite.action",
+			    params: {"selectedSiteId": selectedSiteId} ,
+			    cache: false
+			}).then(function (response) {
+//			    console.log("getGuidList(): "+JSON.stringify(response.data));
+			    return response.data;
+			}, function(err){
+			    return "[]";
+			});
+		};
+		
 		this.getCollStatusList = function() {
 
 			return $http({
@@ -151,11 +166,13 @@
 				if ($scope.chartFilters.selectedStatusId != "") {
 					selectedStatusId = "";				
 				}
+				$scope.$broadcast("listenToLoadGuidsForSite", selectedSiteId);
 			} else {
 				$scope.$broadcast("listenToResetCollStatusToDefault");
 				if ($scope.chartFilters.selectedStatusId != "") {
 					selectedStatusId = "";				
 				}
+				$scope.$broadcast('listenToLoadGuidsForStudy');
 			} 
 			chartFiltersFactory.setChartFilters(currentStudyId, selectedSiteId, selectedGuidId, selectedStatusId);
     		$scope.$broadcast("listenToChartFilters", chartFiltersFactory.getChartFilters());
@@ -237,11 +254,11 @@
 				} else {
 					$scope.guids.guidOptions[0].guid = '------ No GUIDs Available ------';
 				}
+				$scope.guids.selectedOption = $scope.guids.guidOptions[0];
 			});
 		};
 
 		$scope.getGuids($scope.chartFilters);
-		$scope.guids.selectedOption = $scope.guids.guidOptions[0];
 		
 		$scope.changedSelectedGuid = function(selectedItem) {
 //			console.log("changedSelectedGuid.$scope.chartFilters: "+JSON.stringify($scope.chartFilters));
@@ -251,9 +268,43 @@
 			$scope.guids.selectedOption = selectedItem;	
 		};
 		
+		$scope.loadGuidsForSite = function(selectedSiteId){
+			ReportDashboardService.getGuidListForSite(selectedSiteId).then(function(data) {
+				var guidArr = JSON.parse(data);
+				$scope.resetguids = {
+						guidOptions : [{id:'', guid: ''}],
+						length : 0
+					};
+				$scope.guids = angular.copy($scope.resetguids);
+				$scope.guids.length = guidArr.length + 1;
+				$.merge($scope.guids.guidOptions, guidArr);
+				if($scope.guids.length > 1) {
+					$scope.guids.guidOptions[0].guid = 'Select or search a GUID in the list...';
+				} else {
+					$scope.guids.guidOptions[0].guid = '------ No GUIDs Available ------';
+				}
+				$scope.guids.selectedOption = $scope.guids.guidOptions[0];
+			});
+		};
+		
+		$scope.$on("listenToLoadGuidsForSite", function(event, selectedSiteId){
+			$scope.loadGuidsForSite(selectedSiteId);
+		});
+		
 		$scope.$on("listenToResetGuidToDefault", function(event){ 
 			$scope.changedSelectedGuid($scope.guids.guidOptions[0]);		
 		});
+		
+		$scope.$on("listenToLoadGuidsForStudy", function(event){
+			$scope.resetguids = {
+					guidOptions : [{id:'', guid: ''}],
+					length : 0
+				};
+			$scope.guids = angular.copy($scope.resetguids);
+			$scope.chartFilters = chartFiltersFactory.getChartFilters();
+			$scope.getGuids($scope.chartFilters);
+		});
+		
 	  }); //end DashboardGuidCtrl
 	
 	dashboardApp.controller('DashboardCollStatusCtrl',  function($scope, ReportDashboardService, $timeout, chartFiltersFactory) {
@@ -441,6 +492,14 @@
 		          stacking: 'normal',
 		        }
 		    },
+		    credits : {
+		         enabled: false
+		    },
+		    exporting: {
+		    	fallbackToExportServer: false,
+		    	libURL: basePath + "/common/js/hichart/exporting-7.1.0.js",
+		        url: exportServerUrl
+		    },
 		  	tooltip : {
 		  		 shared: true,
                  enabled: true,
@@ -490,9 +549,6 @@
 		  			 return tooltipHtml;
 		  		 },
 		         valueSuffix: ' subject visit data'
-		    },
-		    credits : {
-		         enabled: false
 		    }
 		}
 		
@@ -622,14 +678,19 @@
 
 		ReportDashboardService.getStudyInfo().then(function(data) { 
 			$scope.studyInfo = JSON.parse(data);
-			},
-			function(err){
-			    return "[]";
-			});
-		
-		
-	  }); //end DashboardSubjectCtrl
-	
-	
-	
+			
+			var mapToSort = $scope.studyInfo.studyMap;
+            $scope.studyInfo.sortedStudyMap = orderByKey(mapToSort);
+            function orderByKey(mapToSort){
+                let ordered = {};
+                Object.keys(mapToSort).sort().forEach(function(key) {
+                  ordered[key] = mapToSort[key];
+                });
 
+                return ordered;
+            }
+		},
+		function(err){
+		    return "[]";
+		});
+	  }); //end DashboardSubjectCtrl

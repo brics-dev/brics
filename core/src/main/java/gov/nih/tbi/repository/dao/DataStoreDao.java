@@ -60,4 +60,8 @@ public interface DataStoreDao
      * @return the jdbcTemplate for the repositoryConnection
      */
     public JdbcTemplate getJdbcTemplate();
+    
+    public void dropTables(String tableNames) throws SQLException;
+    
+    public void dropSequences(String sequences) throws SQLException;
 }

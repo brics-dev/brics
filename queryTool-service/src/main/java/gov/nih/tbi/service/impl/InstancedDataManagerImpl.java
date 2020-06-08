@@ -3,6 +3,7 @@ package gov.nih.tbi.service.impl;
 import gov.nih.tbi.commons.util.ValUtil;
 import gov.nih.tbi.constants.QueryToolConstants;
 import gov.nih.tbi.dao.InstancedDataDao;
+import gov.nih.tbi.exceptions.FilterEvaluatorException;
 import gov.nih.tbi.exceptions.InstancedDataException;
 import gov.nih.tbi.filter.DataElementFilter;
 import gov.nih.tbi.filter.Filter;
@@ -73,7 +74,7 @@ public class InstancedDataManagerImpl implements InstancedDataManager, Serializa
 	public void seedFormDataElements(FormResult form) {
 
 		if (ValUtil.isCollectionEmpty(form.getRepeatableGroups())) {
-
+			log.info("Loading seeding data element data for " + form.getShortName());
 			List<DataElement> dataElements = instancedDataDao.getDataElementsForRepeatableGroup(form);
 			instancedDataDao.addDataElementsToRepeatableGroups(form, dataElements);
 
@@ -90,7 +91,8 @@ public class InstancedDataManagerImpl implements InstancedDataManager, Serializa
 
 	public InstancedDataTable buildInstancedDataTable(List<FormResult> selectedForms, int offset, int limit,
 			DataTableColumn sortColumn, String sortOrder, InstancedDataCache instancedDataCache,
-			CodeMapping codeMapping, String userName, boolean forDownload, boolean doApplyFilter) {
+			CodeMapping codeMapping, String userName, boolean forDownload, boolean doApplyFilter,
+			String filterExpression) throws FilterEvaluatorException {
 
 		InstancedDataTable instancedDataTable = new InstancedDataTable();
 		long startTime = System.nanoTime();
@@ -103,7 +105,8 @@ public class InstancedDataManagerImpl implements InstancedDataManager, Serializa
 		instancedDataTable.setSortColumn(sortColumn);
 		instancedDataTable.setSortOrder(sortOrder);
 		instancedDataTable.setJoined(isJoined);
-
+		instancedDataTable.setFilterExpression(filterExpression);
+		instancedDataTable.setForms(selectedForms);
 
 		// if we're querying down to less data than the current selected page can show,
 		// reset to first page
@@ -115,16 +118,10 @@ public class InstancedDataManagerImpl implements InstancedDataManager, Serializa
 
 		if (limit > 0) {
 			buildDataTableData(selectedForms, instancedDataTable, instancedDataCache, codeMapping, accountNode,
-					forDownload, doApplyFilter);
+					forDownload, doApplyFilter, filterExpression);
 		}
 
-		if (isJoined) {
-			instancedDataTable.setRowCount(instancedDataCache.getJoinRowCount());
-		} else {
-			// TODO: update this to get the count from the cache once we implement filtering using the cache.
-			instancedDataTable.setRowCount(queryRowCount(selectedForms, accountNode, isJoined));
-		}
-
+		instancedDataTable.setRowCount(instancedDataCache.getCachedRowCount());
 
 		long endTime = System.nanoTime();
 		log.info("Time to load data table: " + ((endTime - startTime) / 1000000) + "ms");
@@ -156,7 +153,7 @@ public class InstancedDataManagerImpl implements InstancedDataManager, Serializa
 	// Run the query and load each record to populate InstancedDataTable cells.
 	public void buildDataTableData(List<FormResult> selectedForms, InstancedDataTable instancedDataTable,
 			InstancedDataCache instancedDataCache, CodeMapping codeMapping, Node accountNode, boolean forDownload,
-			boolean applyFilter) {
+			boolean applyFilter, String filterExpression) throws FilterEvaluatorException {
 
 		int deTotalCount = 0;
 		long startTime = System.nanoTime();
@@ -169,16 +166,20 @@ public class InstancedDataManagerImpl implements InstancedDataManager, Serializa
 			log.info(" Total DE  " + deTotalCount);
 		}
 
+		if (applyFilter) {
+			log.info("Filter Expression: " + filterExpression);
+		}
+
 		log.info(" Final Total Data Elements :: " + deTotalCount);
 
 		if (instancedDataCache == null || instancedDataCache.isEmpty()) {
 			instancedDataCache = buildInstancedRowCache(selectedForms, codeMapping, accountNode, forDownload);
 		}
 
-		if (!instancedDataTable.isJoined()) {
-			loadNonJoinedInstancedRecords(selectedForms, instancedDataTable, instancedDataCache, codeMapping,
-					accountNode);
+		loadInstancedRecord(selectedForms, instancedDataTable, instancedDataCache, codeMapping, accountNode,
+				applyFilter, filterExpression);
 
+		if (!instancedDataTable.isJoined()) {
 			Set<RepeatableGroupExpansionTracker> rgExpTrackers = instancedDataTable.getRgExpandTrackers();
 			if (rgExpTrackers != null && !rgExpTrackers.isEmpty()) {
 
@@ -195,52 +196,10 @@ public class InstancedDataManagerImpl implements InstancedDataManager, Serializa
 					}
 				}
 			}
-		} else {
-			loadJoinedInstancedRecord(selectedForms, instancedDataTable, instancedDataCache, codeMapping, accountNode,
-					applyFilter);
 		}
 
 		long endTime = System.nanoTime();
 		log.info("Time to build table: " + ((endTime - startTime) / 1000000) + "ms");
-	}
-
-	/**
-	 * Calculates the number of rows that the query will return. If a -1 is returned, an internal error just occurred.
-	 * 
-	 * @return The total amount of items the query returns.
-	 */
-	public int queryRowCount(List<FormResult> selectedForms, Node accountNode, boolean isJoined) {
-		// Check if the selected forms list is empty or if all of the data elements are
-		// hidden.
-		if (selectedForms.isEmpty() || areAllDataElementsHidden(selectedForms)
-				|| (selectedForms.size() > 1 && !InstancedDataUtil.formsHaveGuid(selectedForms))) {
-			return 0;
-		}
-
-		if (!isJoined) {
-			return instancedDataDao.getRowCount(selectedForms.get(0), accountNode);
-		} else {
-			return instancedDataDao.getRowCount(selectedForms, accountNode);
-		}
-	}
-
-	/**
-	 * Determines if all of the data elements in all selected forms are hidden or de-selected.
-	 * 
-	 * @return True if and only if all data elements in all of the selected forms are hidden.
-	 */
-	private boolean areAllDataElementsHidden(List<FormResult> selectedForms) {
-		for (FormResult form : selectedForms) {
-			for (RepeatableGroup group : form.getRepeatableGroups()) {
-				for (DataElement de : group.getDataElements()) {
-					if (de.isSelected()) {
-						return false;
-					}
-				}
-			}
-		}
-
-		return true;
 	}
 
 	public InstancedDataCache buildInstancedRowCache(List<FormResult> selectedForms, CodeMapping codeMapping,
@@ -271,45 +230,6 @@ public class InstancedDataManagerImpl implements InstancedDataManager, Serializa
 		return instancedDataCache;
 	}
 
-	private void loadNonJoinedInstancedRecords(List<FormResult> selectedForms, InstancedDataTable instancedDataTable,
-			InstancedDataCache instancedDataCache, CodeMapping codeMapping, Node accountNode) {
-
-		FormResult form = selectedForms.get(0);
-
-		Set<String> rowUris =
-				instancedDataDao.getRowUrisToLoad(form, instancedDataTable.getOffset(), instancedDataTable.getLimit(),
-						instancedDataTable.getSortColumn(), instancedDataTable.getSortOrder(), accountNode);
-		List<InstancedRecord> records = new ArrayList<InstancedRecord>();
-
-		InstancedDataFormCache currentCache = instancedDataCache.getByFormName(form.getShortNameAndVersion());
-
-		for (String rowUri : rowUris) {
-			InstancedRow row = currentCache.getByRowUri(rowUri);
-			InstancedRecord record = new InstancedRecord(row.getSubmissionId());
-			record.addSelectedRow(row);
-			if (record != null) {
-				records.add(record);
-			}
-		}
-
-		instancedDataTable.setInstancedRecords(records);
-
-		if (instancedDataTable.getLimit() < Integer.MAX_VALUE) {
-			// get a map of the repeatable group to the number of rows in the repeatable
-			// group
-			Map<CellPosition, Integer> repeatableGroupRowCountMap =
-					instancedDataDao.getRepeatableGroupRowCounts(form, rowUris);
-
-			insertRepeatableGroupRowCounts(instancedDataTable, form, repeatableGroupRowCountMap);
-
-			List<CellPosition> singleRowCells = findSingleRowCell(repeatableGroupRowCountMap);
-
-			if (!singleRowCells.isEmpty()) {
-				loadRepeatableGroups(selectedForms, instancedDataTable, form, singleRowCells, codeMapping, accountNode);
-			}
-		}
-	}
-
 	/**
 	 * Since filtering is done in memory instead of Virtuoso now, we will need to load repeatable group data piecewise
 	 * when filters are applied. This method will load data for data elements that have filters applied to them, but
@@ -320,7 +240,7 @@ public class InstancedDataManagerImpl implements InstancedDataManager, Serializa
 	 * @param accountNode
 	 */
 	private void loadDataForFilter(List<FormResult> selectedForms, InstancedDataCache instancedDataCache,
-			Node accountNode) { 
+			Node accountNode) {
 
 		for (FormResult form : selectedForms) {
 			InstancedDataFormCache formCache = instancedDataCache.getByFormName(form.getShortNameAndVersion());
@@ -330,7 +250,7 @@ public class InstancedDataManagerImpl implements InstancedDataManager, Serializa
 					DataElementFilter deFilter = (DataElementFilter) filter;
 
 					if (deFilter.getGroup().doesRepeat()) {
-						RepeatingCellColumn column = new RepeatingCellColumn(
+						RepeatingCellColumn column = (RepeatingCellColumn) deFilter.getForm().getColumnFromString(
 								deFilter.getForm().getShortNameAndVersion(), deFilter.getGroup().getName(),
 								deFilter.getElement().getName(), deFilter.getElement().getType());
 
@@ -338,26 +258,51 @@ public class InstancedDataManagerImpl implements InstancedDataManager, Serializa
 					}
 				}
 			}
-			
+
 			instancedDataDao.loadRgDataByColumns(form, columnsToLoad, formCache, accountNode);
 		}
 	}
 
-	private void loadJoinedInstancedRecord(List<FormResult> selectedForms, InstancedDataTable instancedDataTable,
-			InstancedDataCache instancedDataCache, CodeMapping codeMapping, Node accountNode, boolean doApplyFilter) {
+	private void loadInstancedRecord(List<FormResult> selectedForms, InstancedDataTable instancedDataTable,
+			InstancedDataCache instancedDataCache, CodeMapping codeMapping, Node accountNode, boolean doApplyFilter,
+			String filterExpression) throws FilterEvaluatorException {
 		long startTime = System.nanoTime();
 
+		boolean isJoined = InstancedDataUtil.isJoined(selectedForms);
 
-		if (!instancedDataCache.isJoined() || doApplyFilter) {
-			Joiner joiner = new Joiner(selectedForms, instancedDataCache);
-			instancedDataCache.setJoinResult(joiner.doJoin());
+		// we want to refresh the result cache if it is empty or if a filter has just
+		// been applied
+		if (doApplyFilter || !instancedDataCache.isResultCached()) {
+			if (!isJoined) {
+				InstancedDataFormCache formCache =
+						instancedDataCache.getByFormName(selectedForms.get(0).getShortNameAndVersion());
+
+				List<InstancedRecord> records = new ArrayList<InstancedRecord>();
+
+				if (formCache != null) {
+					if (formCache.getRowUriMap() != null) {
+						for (InstancedRow currentRow : formCache.getRowUriMap().values()) {
+							InstancedRecord record = new InstancedRecord(currentRow.getSubmissionId());
+							record.addSelectedRow(currentRow);
+							if (record != null) {
+								records.add(record);
+							}
+						}
+					}
+				}
+
+				instancedDataCache.setResultCache(records);
+			} else {
+				Joiner joiner = new Joiner(selectedForms, instancedDataCache);
+				instancedDataCache.setResultCache(joiner.doJoin());
+			}
 		}
 
 		log.info("doApplyFilter: " + doApplyFilter);
 
 		if (doApplyFilter) {
 			loadDataForFilter(selectedForms, instancedDataCache, accountNode);
-			InstancedDataCacheUtils.applyFilter(selectedForms, instancedDataCache);
+			InstancedDataCacheUtils.applyFilter(filterExpression, selectedForms, instancedDataCache);
 		}
 
 		// TODO: need to pass filter into this call at some point
@@ -365,7 +310,7 @@ public class InstancedDataManagerImpl implements InstancedDataManager, Serializa
 				instancedDataTable.getOffset(), instancedDataTable.getLimit(), instancedDataTable.getSortColumn(),
 				instancedDataTable.getSortOrder());
 
-		log.info("final join row count: " + instancedDataCache.getJoinRowCount());
+		log.info("final join row count: " + instancedDataCache.getCachedRowCount());
 
 		long endTime = System.nanoTime();
 		log.info("Time to do join: " + ((endTime - startTime) / 1000000) + "ms");
@@ -405,78 +350,6 @@ public class InstancedDataManagerImpl implements InstancedDataManager, Serializa
 		}
 	}
 
-	// private void loadJoinedInstancedRecord(List<FormResult> selectedForms, InstancedDataTable instancedDataTable,
-	// InstancedDataCache instancedDataCache, CodeMapping codeMapping, Node accountNode) {
-	// long startTime = System.nanoTime();
-	//
-	// List<InstancedRecord> instancedRecords = new ArrayList<InstancedRecord>();
-	//
-	// // get the result of the join with only row URIs needed to load
-	// ResultSet joinResult = instancedDataDao.getJoinedRowUrisToLoad(selectedForms, instancedDataTable.getOffset(),
-	// instancedDataTable.getLimit(), instancedDataTable.getSortColumn(), instancedDataTable.getSortOrder(),
-	// accountNode);
-	//
-	// SetMultimap<FormResult, String> formsToRowUris = HashMultimap.create();
-	//
-	// // go through the join result and create new records and their rows but only set
-	// // the row URI and GUID field
-	// while (joinResult.hasNext()) {
-	// QuerySolution row = joinResult.next();
-	//
-	// String guidUri = InstancedDataUtil.rdfNodeToString(row.get(QueryToolConstants.GUID_VAR.getName()));
-	// String guid = BRICSStringUtils.uriAfterLastSlash(guidUri);
-	// InstancedRecord newRecord = new InstancedRecord(guid);
-	// instancedRecords.add(newRecord);
-	//
-	// for (int i = 0; i < selectedForms.size(); i++) {
-	//
-	// FormResult form = selectedForms.get(i);
-	// InstancedDataFormCache formCache = instancedDataCache.getByFormName(form.getShortName());
-	// String rowUriVariable = QueryToolConstants.ROW_URI + i;
-	// String rowUri = InstancedDataUtil.rdfNodeToString(row.get(rowUriVariable));
-	//
-	// if (rowUri != null) {
-	// InstancedRow ir = formCache.getByRowUri(rowUri);
-	// ir.setFormShortName(form.getShortName());
-	// newRecord.addSelectedRow(ir);
-	// formsToRowUris.put(form, rowUri);
-	// } else {
-	// // if rowUri is null then that means we'll need to add instanced row entry with
-	// // null
-	// newRecord.addSelectedRow(null);
-	// }
-	// }
-	// }
-	//
-	// long endTime = System.nanoTime();
-	// log.info("Time to do join: " + ((endTime - startTime) / 1000000) + "ms");
-	//
-	// instancedDataTable.setInstancedRecords(instancedRecords);
-	//
-	// if (instancedDataTable.getLimit() != Integer.MAX_VALUE) {
-	// long rgStart = System.nanoTime();
-	// for (FormResult form : selectedForms) {
-	// Set<String> rowUris = formsToRowUris.get(form);
-	// if (rowUris != null && !rowUris.isEmpty()) {
-	// Map<CellPosition, Integer> repeatableGroupRowCountMap =
-	// instancedDataDao.getRepeatableGroupRowCounts(form, rowUris);
-	//
-	// insertRepeatableGroupRowCounts(instancedDataTable, form, repeatableGroupRowCountMap);
-	//
-	// List<CellPosition> singleRowCells = findSingleRowCell(repeatableGroupRowCountMap);
-	//
-	// if (!singleRowCells.isEmpty()) {
-	// loadRepeatableGroups(selectedForms, instancedDataTable, form, singleRowCells, codeMapping,
-	// accountNode);
-	// }
-	// }
-	// }
-	//
-	// long rgEnd = System.nanoTime();
-	// log.info("Time to load repeatable groups: " + ((rgEnd - rgStart) / 1000000) + "ms");
-	// }
-	// }
-
 	public void loadRepeatableGroupRows(InstancedDataTable instancedDataTable, FormResult form, String rowUri,
 			String rgName, CodeMapping codeMapping, String userName) {
 
@@ -498,7 +371,7 @@ public class InstancedDataManagerImpl implements InstancedDataManager, Serializa
 			throw new InstancedDataException("The specified rowUri is not in the current page!");
 		}
 
-		DataTableColumn column = new DataTableColumn(form.getShortNameAndVersion(), rgName, null);
+		DataTableColumn column = form.getColumnFromString(form.getShortNameAndVersion(), rgName, null);
 		CellValue cellValue = row.getCellValue(column);
 
 		// find the repeatable group object
@@ -542,7 +415,7 @@ public class InstancedDataManagerImpl implements InstancedDataManager, Serializa
 			throw new InstancedDataException("The specified rowUri is not in the current page!");
 		}
 
-		DataTableColumn column = new DataTableColumn(form.getShortNameAndVersion(), rgName, null);
+		DataTableColumn column = form.getColumnFromString(form.getShortNameAndVersion(), rgName, null);
 		CellValue cv = row.getCellValue(column);
 
 		if (cv instanceof RepeatingCellValue) {
@@ -568,7 +441,7 @@ public class InstancedDataManagerImpl implements InstancedDataManager, Serializa
 			throw new InstancedDataException("The specified rowUri is not in the current page!");
 		}
 
-		DataTableColumn column = new DataTableColumn(form.getShortNameAndVersion(), rgName, null);
+		DataTableColumn column = form.getColumnFromString(form.getShortNameAndVersion(), rgName, null);
 		CellValue cellValue = row.getCellValue(column);
 
 		if (cellValue instanceof RepeatingCellValue) {
@@ -767,11 +640,13 @@ public class InstancedDataManagerImpl implements InstancedDataManager, Serializa
 	 * Returns the instanced records for the form with all repeatable groups expanded.
 	 * 
 	 * @return
+	 * @throws FilterEvaluatorException
 	 * @throws IllegalServletArgumentException
 	 */
 	public InstancedDataTable buildInstancedDataTableForDownload(List<FormResult> formList, DataTableColumn sortColumn,
 			String sortOrder, InstancedDataCache instancedDataCache, CodeMapping codeMapping, String userName,
-			boolean isCartDownload, boolean isNormalCsv) {
+			boolean isCartDownload, boolean isNormalCsv, boolean doApplyFilter, String booleanExpression)
+			throws FilterEvaluatorException {
 
 		if (isCartDownload) {
 			for (FormResult form : formList) {
@@ -780,7 +655,7 @@ public class InstancedDataManagerImpl implements InstancedDataManager, Serializa
 		}
 
 		InstancedDataTable instancedDataTable = buildInstancedDataTable(formList, 0, Integer.MAX_VALUE, sortColumn,
-				sortOrder, instancedDataCache, codeMapping, userName, true, true);
+				sortOrder, instancedDataCache, codeMapping, userName, true, doApplyFilter, booleanExpression);
 
 		log.info("Loading repeatable group data...");
 		// load data from the repeating repeatable groups
@@ -862,9 +737,11 @@ public class InstancedDataManagerImpl implements InstancedDataManager, Serializa
 							RepeatableGroup rg = form.getGroupByName(column.getRepeatableGroup());
 
 							for (DataElement de : rg.getSelectedElements()) {
-								blankRow.insertCell(new RepeatingCellColumn(column.getForm(),
-										column.getRepeatableGroup(), de.getName(), de.getType()),
-										QueryToolConstants.EMPTY_STRING);
+								RepeatingCellColumn rgColumn =
+										(RepeatingCellColumn) form.getColumnFromString(column.getForm(),
+												column.getRepeatableGroup(), de.getName(), de.getType());
+
+								blankRow.insertCell(rgColumn, QueryToolConstants.EMPTY_STRING);
 							}
 
 							for (int i = 0; i < maxRgSize - rgSize; i++) {
@@ -883,14 +760,15 @@ public class InstancedDataManagerImpl implements InstancedDataManager, Serializa
 			ListMultimap<String, InstancedRepeatableGroupRow> rgDataMap, InstancedDataTable instancedDataTable) {
 
 		Map<String, InstancedRow> submissionIdToInstancedRowMap = new HashMap<String, InstancedRow>();
-		DataTableColumn rgColumn = new DataTableColumn(form.getShortNameAndVersion(), rg.getName(), null);
+		DataTableColumn rgColumn = form.getColumnFromString(form.getShortNameAndVersion(), rg.getName(), null);
 
 		for (InstancedRecord record : instancedDataTable.getInstancedRecords()) {
 			InstancedRow row = record.getSelectedRows().get(formIndex);
 			if (row != null) {
 				submissionIdToInstancedRowMap.put(row.getSubmissionId(), row);
 
-				// make sure we start with a clean slate for all the repeating cells. this is because partial data could
+				// make sure we start with a clean slate for all the repeating cells. this is
+				// because partial data could
 				// have gotten loaded when filters were applied to the repeating group.
 				CellValue cv = row.getCellValue(rgColumn);
 				if (cv.getIsRepeating()) {
@@ -899,7 +777,6 @@ public class InstancedDataManagerImpl implements InstancedDataManager, Serializa
 				}
 			}
 		}
-
 
 		for (Entry<String, InstancedRepeatableGroupRow> rgDataEntry : rgDataMap.entries()) {
 			String submissionId = rgDataEntry.getKey();
@@ -1004,27 +881,5 @@ public class InstancedDataManagerImpl implements InstancedDataManager, Serializa
 		columnsWithNoData.removeAll(columnsWithData);
 
 		return columnsWithNoData;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public Set<String> getAllBiosampleIdsInverse(FormResult biosampleForm, Set<String> unselectedRowUri,
-			Node accountNode) {
-		Set<String> biosampleIds =
-				instancedDataDao.getAllBiosampleIdsInverse(biosampleForm, unselectedRowUri, accountNode);
-
-		return biosampleIds;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public Set<String> getRowUrisByBiosampleIdInverse(FormResult biosampleForm, Set<String> unselectedRowUri,
-			Node accountNode) {
-		Set<String> rowUris =
-				instancedDataDao.getRowUrisByBiosampleIdInverse(biosampleForm, unselectedRowUri, accountNode);
-
-		return rowUris;
 	}
 }

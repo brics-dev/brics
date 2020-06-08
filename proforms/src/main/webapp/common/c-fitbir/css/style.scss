@@ -120,6 +120,11 @@ $tooltip-border: $light-tan;
 	vertical-align: top;
 }
 
+.build-notes {
+	float: left;
+	margin: -38px 11px -28px 20px;
+}
+
 /* Import Stylesheets */
 
 @import "../../css/formalize.css";

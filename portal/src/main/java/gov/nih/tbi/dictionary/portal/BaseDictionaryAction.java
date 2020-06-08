@@ -2,6 +2,8 @@ package gov.nih.tbi.dictionary.portal;
 
 import java.io.UnsupportedEncodingException;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import gov.nih.tbi.CoreConstants;
 import gov.nih.tbi.PortalConstants;
 import gov.nih.tbi.account.model.hibernate.Account;
@@ -18,8 +20,6 @@ import gov.nih.tbi.dictionary.model.SessionDataStructure;
 import gov.nih.tbi.dictionary.service.DictionaryServiceInterface;
 import gov.nih.tbi.portal.PortalUtils;
 import gov.nih.tbi.repository.model.SessionUploadFile;
-
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class BaseDictionaryAction extends BaseAction {
 
@@ -188,5 +188,9 @@ public class BaseDictionaryAction extends BaseAction {
 			sessionUploadFile = new SessionUploadFile();
 		}
 		return sessionUploadFile;
+	}
+
+	public String getModulesWithPII() {
+		return modulesConstants.getModulesWithPII();
 	}
 }

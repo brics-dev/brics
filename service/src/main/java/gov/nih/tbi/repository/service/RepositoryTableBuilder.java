@@ -19,11 +19,9 @@ public interface RepositoryTableBuilder extends Serializable {
 	 * Using the given form structure, create the repository tables and sequences required to store instanced data.
 	 * 
 	 * @param datastructure - The form structure in question.
-	 * @param errorToEmail - In the case of an error occurring, this is the email address we will be sending the error text to.
 	 * @param account - Account of the user in session invoking this method.
-	 * @return - true if successful, false otherwise.
 	 * @throws UserPermissionException 
 	 * @throws SQLException 
 	 */
-	public boolean createRepositoryStore(StructuralFormStructure datastructure, String errorToEmail, Account account) throws SQLException, UserPermissionException;
+	public void createRepositoryStore(StructuralFormStructure datastructure, Account account) throws SQLException, UserPermissionException;
 }

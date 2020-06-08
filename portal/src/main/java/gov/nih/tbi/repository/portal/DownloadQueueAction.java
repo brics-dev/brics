@@ -4,9 +4,19 @@ package gov.nih.tbi.repository.portal;
 import gov.nih.tbi.PortalConstants;
 import gov.nih.tbi.commons.service.RepositoryManager;
 import gov.nih.tbi.commons.util.PaginationData;
+import gov.nih.tbi.commons.ws.HashMethods;
+import gov.nih.tbi.guid.portal.GuidAction;
 
+import java.io.IOException;
 import java.io.Serializable;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.MediaType;
+
+import org.apache.cxf.jaxrs.client.WebClient;
+import org.apache.http.entity.ContentType;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -18,6 +28,8 @@ public class DownloadQueueAction extends BaseRepositoryAction implements Seriali
 {
 
     private static final long serialVersionUID = 5051826998207619124L;
+    
+    private static final Logger logger = Logger.getLogger(DownloadQueueAction.class);
 
     @Autowired
     RepositoryManager repositoryManager;
@@ -132,8 +144,21 @@ public class DownloadQueueAction extends BaseRepositoryAction implements Seriali
      * @return
      */
     public String view()
-    {
-
+    {    	
         return PortalConstants.ACTION_VIEW;
+    }
+    
+    public String viewWebstartDownloadTool()
+    {
+    	return PortalConstants.ACTION_VIEW_WEBSTART_DT;
+    }
+    
+    public String viewJsDownloadTool()
+    {
+    	return PortalConstants.ACTION_VIEW_JS_DT;
+    }
+    
+    public String getJwt() {
+    	return getMicroserviceJwt();
     }
 }

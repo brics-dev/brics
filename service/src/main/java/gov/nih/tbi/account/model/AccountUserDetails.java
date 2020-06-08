@@ -212,19 +212,6 @@ public class AccountUserDetails implements UserDetails {
 	 * This method is used by spring security to determine if the account should be allowed to log in.
 	 */
 	public boolean isEnabled() {
-
-		/*
-		 * if (account.getIsActive() == null || !account.getIsActive()) {
-		 * 
-		 * 
-		 * 
-		 * return false; }
-		 * 
-		 * if (!(AccountStatus.ACTIVE.equals(account.getAccountStatus()) ||
-		 * (AccountStatus.PENDING.equals(account.getAccountStatus())))) { return false; }
-		 */
-
-
 		if (AccountStatus.ACTIVE.equals(account.getAccountStatus()) && account.getIsActive() != null
 				&& account.getIsActive()) {
 			return true;
@@ -234,13 +221,11 @@ public class AccountUserDetails implements UserDetails {
 			return true;
 		} else if (AccountStatus.CHANGE_REQUESTED.equals(account.getAccountStatus())) {
 			return true;
+		} else if (AccountStatus.RENEWAL_REQUESTED.equals(account.getAccountStatus())) {
+			return true;
 		} else {
 			return false;
 		}
-
-
-
-		// return true;
 	}
 
 	@Override

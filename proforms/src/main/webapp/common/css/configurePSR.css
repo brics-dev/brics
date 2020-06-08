@@ -7,16 +7,22 @@
 }
 
 .configurePsr-table {
+	margin-top: 25px; 
+}
+
+.configurePsr-table, .configurePsr-pvtable {
     background: #fff;
     border-collapse: collapse;
     text-align: left;
-    width: 100%;
-    margin-top: 15px;    
+    width: 100%;      
 }
 
+
+
 .configurePsr-table thead {
-    background-color: #dedede;
+    background-color: #bdbdbd;
 }
+
 
 .configurePsr-table th {
     font-weight: 400;
@@ -35,7 +41,7 @@
 
 
 .configurePsr-table tr {
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #eaeaea;
 }
 
 .configurePsr-table td {
@@ -44,10 +50,45 @@
     padding: 6px 8px;
 }
 
-.configurePsr-table tbody tr:nth-child(2n) {
-    background-color: #f7f7f7;
+
+/* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+/*.active, .collapsible {
+  background-color: aliceblue !important;
+}*/
+
+.configStyle1 {
+	background-color: #ffffff !important;
+}
+
+.configStyle2 {
+	background-color: #efeded !important;
+}
+
+.collapsible a:hover {
+   text-decoration: none;
+   cursor: pointer;
+}
+
+/* Style the collapsible content. Note: hidden by default */
+.pvRow {
+  display: none;
+  overflow: hidden;
 }
 
 .bold {
   font-weight: bold;
 }
+
+.pvOptionText {
+	padding-left: 26px;
+}
+
+.pvHeading {
+	padding-left: 25px !important;
+}
+
+.pvList {
+	padding:0 !important;
+	
+}
+

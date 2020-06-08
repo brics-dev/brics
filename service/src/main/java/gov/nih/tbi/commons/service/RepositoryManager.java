@@ -5,11 +5,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.SocketException;
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,6 +65,7 @@ import gov.nih.tbi.repository.model.hibernate.StudyForm;
 import gov.nih.tbi.repository.model.hibernate.StudyKeyword;
 import gov.nih.tbi.repository.model.hibernate.SupportingDocumentation;
 import gov.nih.tbi.repository.model.hibernate.UserFile;
+import gov.nih.tbi.repository.model.hibernate.VisualizationAccessData;
 import gov.nih.tbi.repository.model.hibernate.VisualizationAccessRecord;
 import gov.nih.tbi.repository.service.exception.DataLoaderException;
 import gov.nih.tbi.repository.xml.exception.XmlValidationException;
@@ -229,10 +232,9 @@ public interface RepositoryManager {
 	 * 
 	 * @param datastructure - the data structure to create the tables and metadata for
 	 * @throws SQLException
-	 * @return boolean success
 	 * @throws UserPermissionException
 	 */
-	public boolean createTableFromDataStructure(StructuralFormStructure datastructure, String errorToEmail,
+	public void createTableFromDataStructure(StructuralFormStructure datastructure,
 			Account account) throws SQLException, UserPermissionException;
 
 	/**
@@ -518,6 +520,14 @@ public interface RepositoryManager {
 	 * @return
 	 */
 	public List<BasicStudySearch> getPublicSiteSearchBasicStudies();
+	
+	/**
+	 * This gets a map of studies for the public site view the aggregate data is specific to the public site, so it
+	 * gets a different method. The key for this map is the study id
+	 * 
+	 * @return
+	 */
+	public Map<Long,BasicStudySearch> getPublicSiteSearchBasicStudiesMap();
 
 	/**
 	 * Gets the BasicStudy with the study id
@@ -792,6 +802,13 @@ public interface RepositoryManager {
 	 * @return
 	 */
 	public List<VisualizationAccessRecord> getAccessRecordsPerUser();
+	
+	/**
+	 * Returns all the accessRecords for a specific users.
+	 * 
+	 * @return
+	 */
+	public List<VisualizationAccessData> getAllAccessRecordsPerUser();
 
 
 	/**
@@ -1134,6 +1151,14 @@ public interface RepositoryManager {
 	public void saveStudyModelName(Set<StudyModelName> modelNameSet, String studyId);
 
 	public boolean deleteDatasetFileByName(UserFile userFile);
+	
+	public void cleanRepoTables(StructuralFormStructure datastructure) throws SQLException;
+	
+	public void emailDevPublicationError(StructuralFormStructure datastructure, String errorMessage);
+
+	public BigDecimal getTotalDatasetFilesSize(Long arDatasetId);
+
+	public HashSet<SubmissionType> getDatasetWithSubmissionTypes(long datasetId);
 
 
 }

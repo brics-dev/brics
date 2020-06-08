@@ -1,0 +1,15 @@
+[DB-SRC]
+host=ibis-db-uat.cit.nih.gov
+database=dictionary_uat
+schema=dictionaryuat
+user=dictionaryuat
+
+[DB-TRG]
+host=localhost
+database=dictdb
+schema=dictsch
+user=dictuser
+
+[FILE-SYS]
+logDir=D:\\DEV\\appdata\\log\\pgCloner\\uat-local-dict
+;dumpDir=D:\\DEV\\appdata\\dump\\pgCloner\\uat-local-dict

@@ -1,5 +1,6 @@
 <%@include file="/common/taglibs.jsp"%>
 <%@taglib uri="/struts-tags" prefix="s"%>
+<%@page import="gov.nih.tbi.PortalConstants"%>
 <jsp:include page="/common/script-includes.jsp"></jsp:include>
 
 <script>
@@ -64,7 +65,7 @@ function getDiv(i) {
 function getDivInner(i) {
     var div = "";
     div += "<small>" + i + ".  </small>";
-    div += "<input type=\"file\" size=\"45\" class=\"fileInput\" name=\"imageFile\"  onchange=\"fileValidation(this.value)\"  >";
+    div += "<input type=\"file\" size=\"45\" class=\"fileInput\" name=\"imageFile\"  onchange=\"fileValidation(this.value,this)\"  >";
     div += "<br>";
     return div;
 }
@@ -112,18 +113,37 @@ function hideGraphics() {
 	
 }
 
-function fileValidation(val){
+var questionDocumentTypesStr = "<%=PortalConstants.PERMISSIBLE_UPLOAD_FILETYPES%>";
+var questionDocumentTypes = questionDocumentTypesStr.split(","); 
+
+var permissibleFileSize = "<%=PortalConstants.PERMISSIBLE_UPLOAD_FILESIZE%>";//in MB
+
+function fileValidation(val,fileDoc){
 	$.ibisMessaging("close", {type:"primary"}); 
+	var name = fileDoc.files[0].name;
+	var sizeInMB = (fileDoc.files[0].size)/(1024*1024);
 	var filename = val.split('\\').pop().split('/').pop();
-	var fileExtension = filename.split('.').pop().toLowerCase();
-	 //alert('Selected file: ' + fileExtension);
-	 if(fileExtension =="gif" || fileExtension =="jpg" || fileExtension=="jpeg" ||fileExtension=="png"){
-		//Continue
-	 }else{
+	var fileExtension = filename.split('.').pop().toUpperCase();
+	
+	 if((jQuery.inArray(fileExtension, questionDocumentTypes) > 0) && (sizeInMB > permissibleFileSize)){
 		 $.ibisMessaging("close", {type:"primary"}); 
-		 $.ibisMessaging("primary", "error", "Please upload file type GIF, JPG, JPEG, PNG.",{container: "#fileExtError"});
+		 $.ibisMessaging("primary", "error", "Please upload file with size less than "+permissibleFileSize+" MB.",{container: "#fileExtError"});
+	 }else if((jQuery.inArray(fileExtension, questionDocumentTypes) < 0) && (sizeInMB <= permissibleFileSize)){
+		 $.ibisMessaging("close", {type:"primary"}); 
+		 $.ibisMessaging("primary", "error", "Please upload file of type "+questionDocumentTypesStr+".",{container: "#fileExtError"});
+	 }else if((jQuery.inArray(fileExtension, questionDocumentTypes) < 0) && (sizeInMB > permissibleFileSize)){
+		 $.ibisMessaging("close", {type:"primary"}); 
+		 $.ibisMessaging("primary", "error", "Please upload file of type "+questionDocumentTypesStr+" and size less than "+permissibleFileSize+" MB.",{container: "#fileExtError"});
 	 }
 }
+
+function clearErrorMsg() {
+
+	$.ibisMessaging("close", {type:"primary"}); 
+	
+}
+
+
 
 $(document).ready(function(){ //hide fancybox navigation
 	$(".fancy-ico").text("");
@@ -161,7 +181,8 @@ $(document).ready(function(){ //hide fancybox navigation
                 	<s:if test="%{(questionId != null) && (questionId > 0)}">
                         <tr>
                             <td class="protocolReference" align="left" colspan="3">
-                                <b>Current question graphics (click on the thumbnail to view full size graphics):</b>
+                                <b>Current question files / graphics </br>
+                                (click on the thumbnail to view full size graphics or click on the file name to download the file):</b>
                             </td>
                         </tr>
                         <tr>
@@ -173,7 +194,7 @@ $(document).ready(function(){ //hide fancybox navigation
                     <s:if test="%{imageNames != null}">
                         <tr>
 							<td>
-								<input type="button" value="Delete Graphic(s)" onclick="hideGraphics()">
+								<input type="button" value="Delete File(s) / Graphic(s)" onclick="hideGraphics()">
 							</td>
 						</tr>
 
@@ -185,7 +206,7 @@ $(document).ready(function(){ //hide fancybox navigation
 									<idt:setProperty name="basic.msg.empty_list" value="Currently there are no images added for this question." />
 									<idt:column title="Select to Delete" property="checkboxDec" valign="center" nowrap="true"/>
 									<idt:column title="Number" property="numberDec" valign="center"/>
-									<idt:column title="Thumbnail" property="thumbnailDec" />
+									<idt:column title="File Name / Thumbnail" property="thumbnailDec" />
 								</idt:jsontable>
 								</div>
                                 
@@ -200,7 +221,7 @@ $(document).ready(function(){ //hide fancybox navigation
                         <td align="left">
                         	<b><s:text name="question.image.count.display"/></b>
 			      		    <s:select name="imageCount" onchange="javascript:countchange()" id="graphicSelect" list="{1,2,3,4,5}" />&nbsp;
-						    <input type="button" value="<s:text name='button.Reset'/>" onclick="javascript:document.questionImageForm.reset();countchange()"/>
+						    <input type="button" value="<s:text name='button.Reset'/>" onclick="javascript:document.questionImageForm.reset();countchange();clearErrorMsg()"/>
                         </td>
                     </tr>
                     <tr><td align="left">&nbsp;</td></tr>
@@ -208,7 +229,7 @@ $(document).ready(function(){ //hide fancybox navigation
                     	<td>
                     		<div id="divUpload">
                     				<div id="fileExtError"></div>
-			                     <small>1. </small><input type="file" size="45" name="imageFile" id="firstUploadFile" class="fileInput" onchange="fileValidation(this.value)"/>
+			                     <small>1. </small><input type="file" size="45" name="imageFile" id="firstUploadFile" class="fileInput" onchange="fileValidation(this.value,this)"/>
 			                </div>
 			                <div id="div1">
 			                </div>

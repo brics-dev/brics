@@ -1,0 +1,14 @@
+[RDF-SRC]
+serviceURL=http://brics-build.cit.nih.gov:8891/sparql/
+graph=http://ninds.nih.gov:8080/allTriples.ttl
+isqlPort=1111
+batchMax=7500
+
+[RDF-TRG]
+serviceURL=http://localhost:8891/sparql/
+graph=http://ninds.nih.gov:8080/allTriples.ttl
+isqlPort=1112
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\rdfCloner\build-local
+dumpDir=D:\SOFT\Virtuoso\import

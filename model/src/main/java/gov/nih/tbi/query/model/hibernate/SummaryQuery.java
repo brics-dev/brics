@@ -72,6 +72,34 @@ public class SummaryQuery implements Serializable {
 	 */
 	@Column(name="REQUIRES_SPARQL")
 	private Boolean requiresSparql;
+	
+	
+	/**
+	 * What instance does this belong to.
+	 */
+	@Column(name="INSTANCE")
+	private String instance;
+	
+	/**
+	 * Whether or not the query is used for summary data file.
+	 */
+	@Column(name="FORSUMMARYDATA")
+	private Boolean forSummaryData;
+	
+	/**
+	 * Whether or not the query contains the should output in postgres json.
+	 */
+	@Column(name="REQUIRES_POSTGRES")
+	private Boolean requiresPostgres;
+	
+	/**
+	 * Whether or not the query contains the should output to get proforms data.
+	 */
+	@Column(name="REQUIRES_PROFORMS")
+	private Boolean requiresProforms;
+	
+	@Column(name="NEEDS_OBJECT_MAPPING")
+	private Boolean NeedsObjectMapping;
 
 	public SummaryQuery() { super(); }
 
@@ -134,8 +162,50 @@ public class SummaryQuery implements Serializable {
 		this.requiresSparql = requiresSparql;
 	}
 	
+	public String getInstance() {
+		return instance;
+	}
+
+	public void setInstance(String instance) {
+		this.instance = instance;
+	}
+
+	public Boolean getForSummaryData() {
+		return forSummaryData;
+	}
+
+	public void setForSummaryData(Boolean forSummaryData) {
+		this.forSummaryData = forSummaryData;
+	}
+	
+	public Boolean getRequiresPostgres() {
+		return requiresPostgres;
+	}
+
+	public void setRequiresPostgres(Boolean requiresPostgres) {
+		this.requiresPostgres = requiresPostgres;
+	}
+	
+	public Boolean getRequiresProforms() {
+		return requiresProforms;
+	}
+
+	public void setRequiresProforms(Boolean requiresProforms) {
+		this.requiresProforms = requiresProforms;
+	}
+
 	@Override
 	public String toString() {
 		return "SummaryQuery [id=" + id + ", name="+shortname+"]";
 	}
+
+	public Boolean getNeedsObjectMapping() {
+		return NeedsObjectMapping;
+	}
+
+	public void setNeedsObjectMapping(Boolean needsObjectMapping) {
+		NeedsObjectMapping = needsObjectMapping;
+	}
+
+	
 }

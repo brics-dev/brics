@@ -187,13 +187,12 @@ public class GuidServerAuthenticationUtil {
 		JsonObject requestJson = new JsonObject();
 		requestJson.add(GuidJwt.CLAIM_USERNAME, new JsonPrimitive(modulesConstants.getModulesGuidServiceUsername()));
 		requestJson.add(GuidJwt.CLAIM_RENEW_URL, new JsonPrimitive(renewUrl));
-		// TODO: fill in
 		requestJson.add(GuidJwt.CLAIM_IS_HOME_ADMIN, new JsonPrimitive(false));
 		requestJson.add(GuidJwt.CLAIM_IS_ADMIN, new JsonPrimitive(true));
 		requestJson.add(GuidJwt.CLAIM_ORGANIZATION, new JsonPrimitive(modulesConstants.getGuidSysUserOrg()));
 		requestJson.add(GuidJwt.CLAIM_FIRSTNAME, new JsonPrimitive(modulesConstants.getGuidSysUserFirstname()));
 		requestJson.add(GuidJwt.CLAIM_LASTNAME, new JsonPrimitive(modulesConstants.getGuidSysUserLastname()));
-		requestJson.add(GuidJwt.CLAIM_EMAIL, new JsonPrimitive("REPLACED@nih.gov"));
+		requestJson.add(GuidJwt.CLAIM_EMAIL, new JsonPrimitive("bricsadmin@nih.gov"));
 		requestJson.add(GuidJwt.CLAIM_STATUS, new JsonPrimitive("ACTIVE"));
 		requestJson.add(GuidJwt.CLAIM_PERM_EXPIRATION, JsonNull.INSTANCE);
 

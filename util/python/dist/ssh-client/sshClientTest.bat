@@ -1,0 +1,1 @@
+sshClient.py --props=.\conf\test.conf

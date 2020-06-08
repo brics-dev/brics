@@ -9,7 +9,6 @@
 
 <head>
 <link rel="stylesheet" type="text/css" href="<s:property value="#webRoot"/>/common/css/hichart/highcharts-ng.css">
-<link rel="stylesheet" type="text/css" href="<s:property value="#webRoot"/>/common/css/hichart/y.css">
 <link rel="stylesheet" type="text/css" href="<s:property value="#webRoot"/>/common/css/hichart/select.css">
 <link rel="stylesheet" type="text/css" href="<s:property value="#webRoot"/>/common/css/bootstrap/bootstrap-3.2.0.css">
 <link rel="stylesheet" type="text/css" href="<s:property value="#webRoot"/>/common/css/hichart/select2.css">
@@ -25,7 +24,6 @@
 <script src="<s:property value="#webRoot"/>/common/js/hichart/exporting-7.1.0.js"></script>
 <script src="<s:property value="#webRoot"/>/common/js/hichart/export-data-7.1.0.js"></script>
 <script src="<s:property value="#webRoot"/>/common/js/hichart/offline-exporting-7.1.0.js"></script>
-<script src="<s:property value="#webRoot"/>/common/js/hichart/y.js"></script>
 <script src="<s:property value="#webRoot"/>/common/js/hichart/select.js"></script>
 <script src="<s:property value="#webRoot"/>/common/js/hichart/highcharts-ng.js"></script>
 
@@ -37,6 +35,7 @@
 		width: inherit;
 	}
 	span.filter-name-span {
+	    display: inline-block;
 		width: 160px;
 		font-weight: bold;
 		text-align: right;

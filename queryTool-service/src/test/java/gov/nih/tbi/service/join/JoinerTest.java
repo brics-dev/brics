@@ -295,7 +295,7 @@ public class JoinerTest {
 		Joiner joiner = new Joiner(formList, cache);
 		List<InstancedRecord> records = joiner.doJoin();
 		// debugPrintRecord(records);
-		assertEquals(records.size(), 4);
+		assertEquals(records.size(), 8);
 	}
 
 	@Test
@@ -357,6 +357,6 @@ public class JoinerTest {
 		Joiner joiner = new Joiner(formList, cache);
 		List<InstancedRecord> records = joiner.doJoin();
 		// debugPrintRecord(records);
-		assertEquals(records.size(), 8);
+		assertEquals(records.size(), 10);
 	}
 }

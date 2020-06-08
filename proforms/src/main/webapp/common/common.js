@@ -756,15 +756,16 @@ function jumpto(x) {
 
 }
 
-function calculate(inputbox, calculation, atype, decimalPrecision,conditionalForCalc) {
+function calculate(inputbox, calculation, atype, decimalPrecision, conditionalForCalc,isCount) {
+
+	
 	var typestr = new String(atype);
     var dt = new String("datetime");
     var isDateTime = (typestr.toString() == dt.toString()) ;
     var deName = $('#'+inputbox.id).attr('deName');
    
 
-    if (isDateTime)
-    {
+    if (isDateTime) {
         alert("Calculation will be done at Save Progress or Lock if this is Date/Date-Time Calculated Question.");
         return;
     }
@@ -775,111 +776,108 @@ function calculate(inputbox, calculation, atype, decimalPrecision,conditionalFor
     // only calcs that succeed will set a value, blank it now to trap all errors
     // but not for cdNRS PROMISRawScore
     if(deName !='PROMISRawScore'){
-    inputbox.value="";
+    	inputbox.value="";
     }
     $('#'+inputbox.id).attr("readonly", true).css('background-color', 'rgb(221, 221, 221)');
     while(ar = str.exec(calculation)) {
-		box_data = trimStr(document.getElementById(ar[1]).value);//e.g."blue"
+    	var box_data;
 		var isSingleSelect = false;
-		//IBIS-857: select or radio
-		if (box_data != null && box_data.length > 0 && document.getElementById(ar[1]+'_scoreBox')!=null)
-		{	
-			box_data = box_data.replace("..", "."); 
-			//e.g. value="red|1|blue|2|green|3|"
-			scoreBoxValue = trimStr(document.getElementById(ar[1]+'_scoreBox').value);
-	    	var scoreBoxValues = new Array();
 
-	    	scoreBoxValues = scoreBoxValue.split('|');
-	        if (scoreBoxValues!=null && scoreBoxValues.length>0)//codeValue[2].trim()!="") 
-	        { 
-	            for( var k=0; k<scoreBoxValues.length; k++)
-	        	{
-	            	if(box_data==scoreBoxValues[k].trim())
-	            	{
-	            		box_data=scoreBoxValues[k+1]; //e.g. "2"
-	            		
-						// other,please specify has a score of Intger.min. if user selects other please specify and enters something, dont do calculation
-	            		if(box_data == "-2147483648") {
-	            			return;
-	            		}
-	            	}
-	        	}
-	        }				
-		}
-		
-        if (box_data != null && box_data.length > 0) {
-            box_data = box_data.replace("..", ".");                
-            var re = new RegExp("\\[S_"+ar[1]+"_Q_" + ar[2] + "\\]", "g");
-            calculation = calculation.replace(re, box_data );
-            count++;
-        } else {
-            //box_data_old = trimStr(document.getElementById("Q_" + ar[1]).value);
-        	box_data_old = trimStr(document.getElementById("S_"+ar[1]+"_Q_" + ar[2]).value);
-        	
-    		//IBIS-857: select or radio
-    		if (box_data_old != null && box_data_old.length > 0
-    			&& document.getElementById("S_"+ar[1]+"_Q_" + ar[2] +'_scoreBox')!=null
-    		   )
-			{	 
-    			isSingleSelect = true;
-    			box_data_old = trimStr($('input[name="S_'+ar[1]+'_Q_'+ar[2]+'"]:checked').val());
-    			if(box_data_old==null){
-					box_data_old = trimStr($('#S_'+ar[1]+'_Q_'+ar[2]+' :selected').val());//e.g."blue"
-    			}
+		if(isCount == 'true') {
+			if($("#S_"+ar[1]+"_Q_" + ar[2]).is(':radio') || $("#S_"+ar[1]+"_Q_" + ar[2]).is(':checkbox')) {
+				//radio and checkbox questions
+				box_data = trimStr($('input[name="S_'+ar[1]+'_Q_'+ar[2]+'"]:checked').val());
 
-    			//e.g. value="red|1|blue|2|green|3|"
-				scoreBoxValue = trimStr(document.getElementById("S_"+ar[1]+"_Q_" + ar[2] +'_scoreBox').value);
-		    	var scoreBoxValues = new Array();
-		    	scoreBoxValues = scoreBoxValue.split('|');
-		        if (scoreBoxValues!=null && scoreBoxValues.length>0) 
-		        { 
-		            for( var k=0; k<scoreBoxValues.length; k++)
-		        	{
-		            	if(box_data_old==scoreBoxValues[k].trim()) //e.g. "blue"
-		            	{
-		            		box_data_old=scoreBoxValues[k+1]; //e.g. "2"
-							
-							//other,please specify has a score of Intger.min.   if user selects other please specify and enters something, dont do calculation
-		            		if(box_data_old == "-2147483648") {
-		            			return;
-		            		}
-		            		break;
-		            	}
-		        	}
-		        }				
+			}else {
+				//need to handle case in which they are editing a collection in which they already added a file
+				var elem = $("a[assoc_questionid='" + "S_" +ar[1]+"_Q_" + ar[2] + "'");
+				if(elem.length && elem.attr("attachmentid") != '-2147483648') {
+					box_data = 'file'; 
+				}else {
+					//all other cases
+					box_data = trimStr(document.getElementById("S_"+ar[1]+"_Q_" + ar[2]).value);
+				}	
 			}
-    		
-    		if (conditionalForCalc=='true') {
-    			//555 represents the permissible value code for single select to indicate Do Not Calculate
-        		if (box_data_old == null || box_data_old == "" || (isSingleSelect && box_data_old == 555)) {
-        			if (deName =='PROMISRawScore') {
-        				$("input[dename='PROMISRawScore']").attr("readonly", false).css('background-color', 'white');
-        				var userEntry = $('#inputFalg_' + inputbox.id).val();
-						
-        				if (userEntry == 'false') {
+			if (box_data != null && box_data.length > 0) {
+				box_data = '1';
+			}else {
+				box_data = '0';
+			}
+		}else {
+			box_data = trimStr(document.getElementById("S_"+ar[1]+"_Q_" + ar[2]).value);
+
+			//select or radio
+			if (box_data != null && box_data.length > 0
+					&& document.getElementById("S_"+ar[1]+"_Q_" + ar[2] +'_scoreBox')!=null
+			)
+			{	 
+				isSingleSelect = true;
+				box_data = trimStr($('input[name="S_'+ar[1]+'_Q_'+ar[2]+'"]:checked').val());
+				if(box_data==null){
+					box_data = trimStr($('#S_'+ar[1]+'_Q_'+ar[2]+' :selected').val());// e.g."blue"
+				}
+
+				// e.g. value="red|1|blue|2|green|3|"
+				scoreBoxValue = trimStr(document.getElementById("S_"+ar[1]+"_Q_" + ar[2] +'_scoreBox').value);
+				var scoreBoxValues = new Array();
+				scoreBoxValues = scoreBoxValue.split('|');
+				if (scoreBoxValues!=null && scoreBoxValues.length>0) 
+				{ 
+					for( var k=0; k<scoreBoxValues.length; k++)
+					{
+						if(box_data==scoreBoxValues[k].trim()) // e.g.
+						// "blue"
+						{
+							box_data=scoreBoxValues[k+1]; // e.g. "2"
+
+							// other,please specify has a score of
+							// Intger.min. if user selects other please
+							// specify and enters something, dont do
+							// calculation
+							if(box_data == "-2147483648") {
+								return;
+							}
+							break;
+						}
+					}
+				}				
+			}
+
+			if (conditionalForCalc=='true') {
+				// 555 represents the permissible value code for single
+				// select to indicate Do Not Calculate
+				if (box_data == null || box_data == "" || (isSingleSelect && box_data == 555)) {
+					if (deName =='PROMISRawScore') {
+						$("input[dename='PROMISRawScore']").attr("readonly", false).css('background-color', 'white');
+						var userEntry = $('#inputFalg_' + inputbox.id).val();
+
+						if (userEntry == 'false') {
 							inputbox.value = "";
-        				}
-         				set_tScore_SE();
-        			} else{
-        				inputbox.value="";
-        			}
-	                return;
-	        	}
-        	}
-    		
-        	if (box_data_old != null && box_data_old.length > 0) {
-            	var re = new RegExp("\\[S_"+ar[1]+"_Q_" + ar[2] + "\\]", "g");
-                calculation = calculation.replace(re, box_data_old);
-                count++;
-            } else {
-            	var re = new RegExp("\\[S_"+ar[1]+"_Q_" + ar[2] + "\\]", "g");
-                calculation = calculation.replace(re, 0 );
-            }
-        }
+						}
+						set_tScore_SE();
+					} else{
+						inputbox.value="";
+					}
+					return;
+				}
+			}
+		}
+
+
+		if (box_data != null && box_data.length > 0) {
+			var re = new RegExp("\\[S_"+ar[1]+"_Q_" + ar[2] + "\\]", "g");
+			calculation = calculation.replace(re, box_data);
+			count++;
+		} else {
+			var re = new RegExp("\\[S_"+ar[1]+"_Q_" + ar[2] + "\\]", "g");
+			calculation = calculation.replace(re, 0 );
+		}
+        
     }
 
     if (count == 0) {
-    	//We don't need alert here as per suggestion by Ben to address keyboard navigation
+    	// We don't need alert here as per suggestion by Ben to address keyboard
+		// navigation
     	inputbox.value = "";
         return;
     }
@@ -914,7 +912,7 @@ function calculate(inputbox, calculation, atype, decimalPrecision,conditionalFor
     }
     set_tScore_SE();
 
-    // if edit answer , add some reason 
+    // if edit answer , add some reason
     try {
 
     	var $inputbox = $(inputbox);
@@ -1336,6 +1334,74 @@ function applyskiprule(inputbox, children, stype, soption, svalue)
             undoskip(soption, children);
         }
     }
+    else if(stype == 'Less than'){
+    	
+    	 var flag=false;
+         if(inputbox_value && inputbox_value < svalue)
+         {
+             flag = true;
+         }
+
+         if( flag )
+         {
+             doskip(soption, children);
+         }
+         else
+         {
+             undoskip(soption, children);
+         }
+    }
+    else if(stype == 'Less than equal to'){
+    	
+   	 var flag=false;
+        if(inputbox_value && inputbox_value <= svalue)
+        {
+            flag = true;
+        }
+
+        if( flag )
+        {
+            doskip(soption, children);
+        }
+        else
+        {
+            undoskip(soption, children);
+        }
+   }
+   else if(stype == 'Greater than'){
+    	
+      	 var flag=false;
+           if(inputbox_value && inputbox_value > svalue)
+           {
+               flag = true;
+           }
+
+           if( flag )
+           {
+               doskip(soption, children);
+           }
+           else
+           {
+               undoskip(soption, children);
+           }
+      }
+    else if(stype == 'Greater than equal to'){
+    	
+     	 var flag=false;
+          if(inputbox_value && inputbox_value >= svalue)
+          {
+              flag = true;
+          }
+
+          if( flag )
+          {
+              doskip(soption, children);
+          }
+          else
+          {
+              undoskip(soption, children);
+          }
+     }
 }
 
 /****************************
@@ -1897,6 +1963,8 @@ function URLDecode(psEncodeString) {
 //==============Ching-Heng
 var assessmentId = "";
 var currentCatOid;
+var batteryAsmtIds = "";
+var batteryAsmtItems = "";
 
 function initiateCATs(){
 	var formOID = $('#OID').val();
@@ -1907,20 +1975,24 @@ function initiateCATs(){
 function getAsmtOID(formOID, postedData){
 	if(assessmentId.length == 0){
 		$.ajax({
-		    url: HealthMeasurementApiUrl + "Assessments/" + formOID + ".json",
-		    cache: false,
-		    type: "POST",
-		    data: "",
+		    url: baseUrl + "/ws/public/promis/getAsmtOID/" + formOID,
+		    type: "GET",
 		    dataType: "json",
-		
-		    beforeSend: function(xhr) {
-		    	var bytes = Crypto.charenc.Binary.stringToBytes(HealthMeasurementApiToken);
-		        var base64 = Crypto.util.bytesToBase64(bytes);
-		        xhr.setRequestHeader("Authorization", "Basic " + base64);
-		    },	
+			
 		    success: function(data) {
+//		    	console.log("data: "+JSON.stringify(data));
 		    	assessmentId = data.OID;
-		    	renderQuestion(assessmentId, postedData);
+		    	if(assessmentId != null){
+		    		renderQuestion(assessmentId, postedData);
+		    	} else { /*Battery form, there are multiple assessment ids for one battery form*/
+		    		batteryAsmtIds = data.batteryAssessments;
+		    		batteryAsmtItems = data.batteryAsmtItems;
+		    		
+		    		/*get the assessmentID for the first question*/
+	    			var jsonResp = batteryAsmtIds[0];
+	    			assessmentId = jsonResp.OID; 
+	    			renderQuestion(assessmentId, postedData);
+		    	}
 		    },	
 		    error: function(jqXHR, textStatus, errorThrown) {
 		        document.write(jqXHR.responseText + ':' + textStatus + ':' + errorThrown);
@@ -1934,17 +2006,11 @@ function getAsmtOID(formOID, postedData){
 function renderQuestion(assessmentId, postedData){
 	currentID = assessmentId; // always renew this ID by getAssessmentID??
 	$.ajax({
-		url: HealthMeasurementApiUrl + "Participants/" + currentID + ".json",
-		cache: false,
+		url: baseUrl + "/ws/public/promis/renderQuestion/" + currentID,
 		type: "POST",
 		data: postedData,
 		dataType: "json",
 		
-		beforeSend: function(xhr) {
-			var bytes = Crypto.charenc.Binary.stringToBytes(HealthMeasurementApiToken);
-			var base64 = Crypto.util.bytesToBase64(bytes);
-			xhr.setRequestHeader("Authorization", "Basic " + base64);
-		},
 		success: function(data) {			
 			if(data.DateFinished !=''){
 				scoring(currentID);
@@ -1953,8 +2019,9 @@ function renderQuestion(assessmentId, postedData){
 			}else{	
 				for(var i=0; i < data.Items.length; i++){					
 					var catOid = data.Items[i].ID;
-					$('#'+catOid).parent().closest('tr').show();
-					var secId = $('#'+catOid).attr('secid');
+					catOid = catOid.trim();
+					$("[id='" + catOid + "']").parent().closest('tr').show();
+					var secId = $("[id='" + catOid + "']").attr('secid');
 					$('#sectionContainer_'+secId).show();
 					currentCatOid = catOid;
 				}
@@ -1984,11 +2051,37 @@ function getNext(obj){
 	if(nothingChecked){
 		alert('Please select a value for the question displayed.');
 	}else{
-		$('#'+currentCatOid).parent().closest('tr').hide();		
-		var secId = $('#'+currentCatOid).attr('secid');
+		$("[id='" + currentCatOid + "']").parent().closest('tr').hide();		
+		var secId = $("[id='" + currentCatOid + "']").attr('secid');
 		$('#sectionContainer_'+secId).hide();
 		
-		var data = "ItemResponseOID="+responseID+"&Response="+responseValue;
+		/*Battery Form*/
+		var nextAsmtId = "";
+		for(var i = 0; i < batteryAsmtItems.length; i++){
+			var batteryAsmtItem = batteryAsmtItems[i];
+			if(batteryAsmtItem.OID == assessmentId) {
+				var isBreak = false;
+				for(var j=0; j < batteryAsmtItem.Items.length; j++){
+					var catOid = batteryAsmtItem.Items[j].ID;
+					if(catOid == currentCatOid 
+							&& j == (batteryAsmtItem.Items.length - 1) //last question of each assessment form 
+							&& i < (batteryAsmtItems.length -1)) {     //but not last question of whole battery form
+						nextAsmtId = batteryAsmtItems[i+1].OID;
+						isBreak = true;
+						break;
+					}
+				}
+				if(isBreak){
+					break;
+				}
+			}
+		}
+		var data = "";
+		if(nextAsmtId.length > 0){ /*Battery Form*/
+			assessmentId = nextAsmtId;
+		} else {
+		    data = "ItemResponseOID=" + responseID + "&Response=" + responseValue;
+		}
 		renderQuestion(assessmentId, data);
 	}
 }
@@ -1996,22 +2089,16 @@ function getNext(obj){
 function scoring(assessmentId){
 	var formOID = $('#OID').val();
 	$.ajax({
-		url: HealthMeasurementApiUrl + "Results/" + assessmentId + ".json",
-		cache: false,
-		type: "POST",
-		data: "",
+		url:  baseUrl + "/ws/public/promis/scoring/" + assessmentId,
+		type: "GET",
 		dataType: "json",
 		
-		beforeSend: function(xhr) {
-			var bytes = Crypto.charenc.Binary.stringToBytes(HealthMeasurementApiToken);
-			var base64 = Crypto.util.bytesToBase64(bytes);
-			xhr.setRequestHeader("Authorization", "Basic " + base64);
-		},
 		success: function(data) { 
 			var total_tScore = formatFloat(data.Theta*10+50,1);
 			var total_se = formatFloat(data.StdError*10,1);
 			for(var i=0; i < data.Items.length; i++){
 				var pqID = data.Items[i].ID;
+				pqID = pqID.trim();
 				var tscore = formatFloat(data.Items[i].Theta*10+50,1);
 				var se= formatFloat(data.Items[i].StdError*10,1);
 				

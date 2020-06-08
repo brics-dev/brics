@@ -1,0 +1,25 @@
+0 -- 'Success'
+1 -- 'In progress'
+2 -- 'Problem executing command'
+3 -- 'Bad branch ID'
+4 -- 'Bad user ID'
+5 -- 'Badly formatted file'
+6 -- 'Previous bad file unchanged'
+
+-----------------------------------------------
+
+1. Success (use 2 revs)
+2. Badly formatted file name (status  5)
+3. Fix 2.
+4. Bad user (status 4)
+5. Fix 4 (add user via rev)
+6. Bad user (status 4)
+7. Fix 6 (correct file)
+8. Bad branch (status 3)
+9. Fix 8 (correct file)
+10. Bad statement (status 2)
+11. Try to redeploy without changing file (status 6)
+12. Fix statement from 11, get success
+
+Q1. Should each revision batch be idempotent?
+

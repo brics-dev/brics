@@ -34,7 +34,7 @@
     boolean isROLE_ADMIN = false;
 	while(iter.hasNext()) {
 		AccountRole role = iter.next();
-		if (role.getRoleType().equals(RoleType.ROLE_ADMIN) && role.getRoleStatus().equals(RoleStatus.ACTIVE) && !role.isExpired()) {
+		if (role.getRoleType().equals(RoleType.ROLE_ADMIN) && role.getIsActive() && !role.isExpired()) {
 			isROLE_ADMIN =  true;
 			break;
 		}

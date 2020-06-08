@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hashcodes>
+	<hashcode>
+		<fieldgroup>
+			<field id="yob" default="" type="integer" />
+		</fieldgroup>
+		<fieldgroup>
+			<field id="dob" default="" type="integer" />
+		</fieldgroup>
+		<fieldgroup>
+			<field id="sex" default="M" type="string" />
+		</fieldgroup>
+		<fieldgroup>
+			<field id="giidc" default="" type="string" />
+			<field id="giid" default="" type="string" />
+		</fieldgroup>
+	</hashcode>
+	<hashcode>
+		<fieldgroup>
+			<field id="fn" default="" type="string" />
+		</fieldgroup>
+		<fieldgroup>
+			<field id="ln" default="" type="string" />
+		</fieldgroup>
+		<fieldgroup>
+			<field id="mn" default="" type="string" />
+		</fieldgroup>
+		<fieldgroup>
+			<field id="cnob" default="US" type="string" />
+			<field id="cob" default="" type="string" />
+		</fieldgroup>
+		<fieldgroup>
+			<field id="dob" default="" type="integer" />
+		</fieldgroup>
+		<fieldgroup>
+			<field id="mob" default="" type="integer" />
+		</fieldgroup>
+	</hashcode>
+	<hashcode>
+		<fieldgroup>
+			<field id="fn" default="" type="string" />
+		</fieldgroup>
+		<fieldgroup>
+			<field id="ln" default="" type="string" />
+		</fieldgroup>
+		<fieldgroup>
+			<field id="yob" default="" type="integer" />
+		</fieldgroup>
+		<fieldgroup>
+			<field id="cnob" default="US" type="string" />
+			<field id="cob" default="" type="string" />
+		</fieldgroup>
+		<fieldgroup>
+			<field id="dob" default="" type="integer" />
+		</fieldgroup>
+		<fieldgroup>
+			<field id="mob" default="" type="integer" />
+		</fieldgroup>
+	</hashcode>
+</hashcodes>

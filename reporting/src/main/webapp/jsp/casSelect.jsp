@@ -27,8 +27,8 @@
 				</div>
 			</s:if>
 			
-			<p><a href="https://REPLACED/cas/login?service=http://localhost:8080/portal/tbi_spring_cas_security_check">Federal Interagency Traumatic Brain Injury Research (FITBIR)</a>Informatics System</p>
-			<p><a href="https://REPLACED/cas/login?service=http://localhost:8080/portal/pd_spring_cas_security_check">Parkinson's Disease Biomarkers Program (PDBP)</a></p>
+			<p><a href="https://fitbir-dev.cit.nih.gov/cas/login?service=http://localhost:8080/portal/tbi_spring_cas_security_check">Federal Interagency Traumatic Brain Injury Research (FITBIR)</a>Informatics System</p>
+			<p><a href="https://pdbp-dev.cit.nih.gov/cas/login?service=http://localhost:8080/portal/pd_spring_cas_security_check">Parkinson's Disease Biomarkers Program (PDBP)</a></p>
 			
 			<div class="text-block">
 				<p>				

@@ -28,7 +28,9 @@ public class FileNode implements MutableTreeNode, Comparable<FileNode> {
 	private String crcHash;
 	private Long fileSize;
 	private int unknownErrorNum = 0;
-
+	
+	private FileNode association;
+	
 	private static final String[] typeStrings = {"UNKNOWN", "DIR", "TAB", "FORM STRUCTURE", "XML", "ASSOCIATED",
 			"THUMBNAIL", "TRANSLATIONS", "TRIPLANAR"};
 
@@ -54,6 +56,14 @@ public class FileNode implements MutableTreeNode, Comparable<FileNode> {
 		this.name = name;
 		this.type = type;
 		this.parent = parent;
+	}
+
+	public FileNode getAssociation() {
+		return association;
+	}
+
+	public void setAssociation(FileNode association) {
+		this.association = association;
 	}
 
 	public String getConicalPath() {

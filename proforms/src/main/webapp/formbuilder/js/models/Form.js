@@ -1,6 +1,7 @@
 var Form = BaseModel.extend({ 
 	defaults : {
 		name : "",
+		truncatedTitle : "",
 		formid : 0,
 		access : 1,
 		dataEntryFlag : 1,

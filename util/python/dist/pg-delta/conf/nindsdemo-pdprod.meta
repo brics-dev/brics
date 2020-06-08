@@ -1,0 +1,16 @@
+[DB-TRG]
+host=ninds-host-demo.cit.nih.gov
+database=ninds_demo
+schema=ninds_metademo
+user=ninds_metademo
+label=NINDS-TRG
+
+[DB-SRC]
+host=pdbp-db-prod.cit.nih.gov
+database=pd_prod
+schema=tbi_meta
+user=tbi_meta
+label=PROD-SRC
+
+[FILE-SYS]
+logDir=C:/databaselogs/brics/log/pg-delta/nindsdemo-pdprod-meta

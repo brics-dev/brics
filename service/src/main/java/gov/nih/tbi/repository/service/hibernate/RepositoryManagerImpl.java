@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.SocketException;
@@ -21,6 +22,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -68,6 +70,7 @@ import gov.nih.tbi.account.model.SessionAccount;
 import gov.nih.tbi.account.model.hibernate.Account;
 import gov.nih.tbi.account.model.hibernate.EntityMap;
 import gov.nih.tbi.account.model.hibernate.PermissionGroup;
+import gov.nih.tbi.account.model.hibernate.VisualizationEntityMap;
 import gov.nih.tbi.account.service.complex.BaseManagerImpl;
 import gov.nih.tbi.account.ws.RestAccountProvider;
 import gov.nih.tbi.commons.dao.FileTypeDao;
@@ -150,6 +153,7 @@ import gov.nih.tbi.repository.dao.VisualizationAccessRecordDao;
 import gov.nih.tbi.repository.model.DownloadPackageOrigin;
 import gov.nih.tbi.repository.model.StudySubmittedFormCache;
 import gov.nih.tbi.repository.model.SubmissionDataFile;
+import gov.nih.tbi.repository.model.SubmissionPackage;
 import gov.nih.tbi.repository.model.SubmissionTicket;
 import gov.nih.tbi.repository.model.SubmissionType;
 import gov.nih.tbi.repository.model.alzped.ModelName;
@@ -189,6 +193,7 @@ import gov.nih.tbi.repository.model.hibernate.StudyForm;
 import gov.nih.tbi.repository.model.hibernate.StudyKeyword;
 import gov.nih.tbi.repository.model.hibernate.SupportingDocumentation;
 import gov.nih.tbi.repository.model.hibernate.UserFile;
+import gov.nih.tbi.repository.model.hibernate.VisualizationAccessData;
 import gov.nih.tbi.repository.model.hibernate.VisualizationAccessRecord;
 import gov.nih.tbi.repository.rdf.RDFGeneratorManagerImpl;
 import gov.nih.tbi.repository.service.RepositoryTableBuilder;
@@ -204,7 +209,8 @@ import gov.nih.tbi.repository.xml.parser.MetaParser;
 /**
  * Implementation of the Repository Manager Interface.
  * 
- * Uses the SftpClientManager singleton to open and get connections to SFTP sites
+ * Uses the SftpClientManager singleton to open and get connections to SFTP
+ * sites
  * 
  * @author Andrew Johnson
  * 
@@ -214,7 +220,9 @@ import gov.nih.tbi.repository.xml.parser.MetaParser;
 public class RepositoryManagerImpl extends BaseManagerImpl implements RepositoryManager {
 	private static final Logger logger = Logger.getLogger(RepositoryManagerImpl.class);
 	private static final long serialVersionUID = 7730224803772719143L;
-
+	private static final String PV_MAPPING = "pv_mapping";
+	private static final String PV_MAPPING_FILE_NAME_SUFFIX = "pv_mapping.csv";
+	
 	@Autowired
 	MailEngine mailEngine;
 
@@ -300,7 +308,6 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 	@Autowired
 	VisualizationAccessRecordDao visualizationAccessRecordDao;
 
-
 	@Autowired
 	DownloadPackageDao downloadPackageDao;
 
@@ -339,25 +346,20 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 	@Autowired
 	RepositoryTableBuilder repositoryTableBuilder;
 
-
 	@Autowired
 	ResearchManagementDao researchManagementDao;
 
 	@Autowired
 	StudySubmittedFormsSparqlDao studySubmittedFormsSparqlDao;
 
-
 	@Autowired
 	TherapeuticAgentDataDao therapeuticAgentDataDao;
-
 
 	@Autowired
 	TherapeuticTargetDataDao therapeuticTargetDataDao;
 
-
 	@Autowired
 	TherapyTypeDataDao therapyTypesDataDao;
-
 
 	@Autowired
 	ModelNameDataDao modelNameDataDao;
@@ -411,7 +413,8 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 
 	/**
 	 * 
-	 * File Uploader specific for DDT, these files will be stored under the IBIS_Data_Drop User
+	 * File Uploader specific for DDT, these files will be stored under the
+	 * IBIS_Data_Drop User
 	 * 
 	 */
 	public UserFile uploadFileDDT(Long userId, File uploadFile, String fileName, String fileDescription,
@@ -454,7 +457,8 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 
 	/**
 	 * 
-	 * File Uploader specific for DDT, these files will be stored under the IBIS_Data_Drop User
+	 * File Uploader specific for DDT, these files will be stored under the
+	 * IBIS_Data_Drop User
 	 * 
 	 * @throws JSchException
 	 * 
@@ -491,7 +495,8 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 
 	/**
 	 * 
-	 * File Uploader specific for DDT, these files will be stored under the IBIS_Data_Drop User
+	 * File Uploader specific for DDT, these files will be stored under the
+	 * IBIS_Data_Drop User
 	 * 
 	 * @throws
 	 * 
@@ -737,10 +742,10 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 	/**
 	 * {@inheritDoc}
 	 */
-	public boolean createTableFromDataStructure(StructuralFormStructure datastructure, String errorToEmail,
-			Account account) throws SQLException, UserPermissionException {
+	public void createTableFromDataStructure(StructuralFormStructure datastructure, Account account)
+			throws SQLException, UserPermissionException {
 
-		return repositoryTableBuilder.createRepositoryStore(datastructure, errorToEmail, account);
+		repositoryTableBuilder.createRepositoryStore(datastructure, account);
 	}
 
 	/**
@@ -749,8 +754,8 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 	 */
 	public void createFileStore(String relativePath) throws JSchException, SftpException {
 
-		DatafileEndpointInfo dataFileEndpointInfo =
-				datafileEndpointInfoDao.get(ServiceConstants.TBI_DATAFILE_ENDPOINT_ID);
+		DatafileEndpointInfo dataFileEndpointInfo = datafileEndpointInfoDao
+				.get(ServiceConstants.TBI_DATAFILE_ENDPOINT_ID);
 
 		if (dataFileEndpointInfo != null) {
 			logger.info(" RepositoryManagerImpl :: createFileStore :: " + " , dataFileEndpointInfo name : "
@@ -765,8 +770,8 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 
 		client.createFolder(filePath);
 
-		DataStoreBinaryInfo dataStoreBinaryInfo =
-				dataStoreBinaryInfoDao.save(new DataStoreBinaryInfo(dataFileEndpointInfo, filePath));
+		DataStoreBinaryInfo dataStoreBinaryInfo = dataStoreBinaryInfoDao
+				.save(new DataStoreBinaryInfo(dataFileEndpointInfo, filePath));
 		dataStoreInfoDao.save(new DataStoreInfo(dataStoreBinaryInfo, false, false));
 	}
 
@@ -820,8 +825,10 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 	 */
 	public List<Study> listStudies(Account currentAccount, String proxyTicket, PermissionType permission) {
 
-		// If the user is an administrator then we can just pass "null" to grab all of the studies
-		// without performing the permission check. (not using GenericDao.getAll() because we need
+		// If the user is an administrator then we can just pass "null" to grab all of
+		// the studies
+		// without performing the permission check. (not using GenericDao.getAll()
+		// because we need
 		// them sorted by id). UNLESS THE USER ONLY WANTS OWNER! THEN CONTINUE AS NORMAL
 		if (accountManager.hasRole(currentAccount, RoleType.ROLE_STUDY_ADMIN)
 				&& !PermissionType.OWNER.equals(permission)) {
@@ -844,7 +851,8 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 			logger.error("Unable to retrieve studies permission for list study view.", e);
 		}
 
-		// If accessIds is empty (or null?) then there is no need to search (and doing so will lead
+		// If accessIds is empty (or null?) then there is no need to search (and doing
+		// so will lead
 		// to a SQLException)
 		if (accessIds == null || accessIds.isEmpty()) {
 			return new ArrayList<Study>();
@@ -865,8 +873,8 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 		return studyDao.getStudySumissionTypes(ids);
 	}
 
-	public List<Dataset> searchDatasets(String key, List<String> searchColumns, Account account, Long statusNow, Long statusRequest, Long ownerId,
-			PaginationData pageData) {
+	public List<Dataset> searchDatasets(String key, List<String> searchColumns, Account account, Long statusNow,
+			Long statusRequest, Long ownerId, PaginationData pageData) {
 
 		final long MINE = 0L;
 
@@ -1013,7 +1021,8 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 			newStudy = true;
 			currentStudy.setDateCreated(new Date());
 
-			// If the user is a study admin, skip requested and set status straight to public
+			// If the user is a study admin, skip requested and set status straight to
+			// public
 			if (accountManager.hasRole(account, RoleType.ROLE_STUDY_ADMIN)) {
 				currentStudy.setStudyStatus(StudyStatus.PUBLIC);
 			}
@@ -1033,7 +1042,8 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 		}
 
 		// If the study is public, then add it to the public group
-		// Note: This function saveStudy(Account, Study) will only properly register the group into
+		// Note: This function saveStudy(Account, Study) will only properly register the
+		// group into
 		// public study on the
 		// creation of a new study
 		// BY AN ADMIN. Studies created by non-admin users must be made public by
@@ -1103,10 +1113,8 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 			throw new UserPermissionException(ServiceConstants.READ_ACCESS_DENIED);
 		}
 
-
 		return study;
 	}
-
 
 	/**
 	 * {@inheritDoc}
@@ -1194,7 +1202,7 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 			conn.setReadTimeout(10000);
 
 			InputStream in = conn.getInputStream(); // throws FileNotFoundException if clinical
-													 // trial site is not avail
+													// trial site is not avail
 			// openConnection().getInputStream()
 
 			in.close();
@@ -1226,7 +1234,7 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 			conn.setReadTimeout(10000);
 
 			InputStream in = conn.getInputStream(); // throws FileNotFoundException if clinical
-													 // trial site is not avail
+													// trial site is not avail
 			ClassLoader cl = gov.nih.tbi.commons.model.ObjectFactory.class.getClassLoader();
 			JAXBContext jc = JAXBContext.newInstance("gov.nih.tbi.commons.model", cl);
 			Unmarshaller um = jc.createUnmarshaller();
@@ -1268,14 +1276,10 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 			return;
 		}
 
-		Long datasetID = dataset.getId();
-
 		if (dataset.hasData()) {
 
 			this.scheduleDatasetDataDeletion(dataset, user);
 		}
-
-		this.accountManager.unregisterEntity(EntityType.DATASET, datasetID);
 
 		eventLog = setValuesToEventLog(dataset.getId(), EntityType.DATASET, EventType.DATASET_DELETION, user, comment,
 				eventLog, DatasetStatus.DELETED.getId().toString(), dataset.getDatasetStatus().getId().toString());
@@ -1287,7 +1291,6 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 		dataset.setDatasetStatus(DatasetStatus.DELETED);
 		dataset.setDatasetRequestStatus(null);
 		this.datasetDao.save(dataset);
-		// datasetDao.remove(dataset.getId());
 	}
 
 	public EventLog getDatasetLatestEvent(Dataset dataset) {
@@ -1367,8 +1370,8 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 
 		// update permission group
 		if (DatasetStatus.SHARED.equals(currentDataset.getDatasetStatus())) { // add dataset to
-																				 // public study if
-																				 // shared
+																				// public study if
+																				// shared
 			PermissionGroup publicStudy = permissionGroupDao.getByName(ServiceConstants.PUBLIC_STUDY);
 			if (publicStudy != null) {
 				accountManager.registerEntity(publicStudy, EntityType.DATASET, currentDataset.getId(),
@@ -1376,11 +1379,11 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 			}
 		} else if (DatasetStatus.PRIVATE.equals(currentDataset.getDatasetStatus())
 				|| DatasetStatus.ARCHIVED.equals(currentDataset.getDatasetStatus())) { // remove
-																						 // dataset
-																						 // from
-																						 // public
-																						 // study if
-																						 // private
+																						// dataset
+																						// from
+																						// public
+																						// study if
+																						// private
 			accountManager.removeEntityFromPermissionGroup(account, ServiceConstants.PUBLIC_STUDY, EntityType.DATASET,
 					currentDataset.getId());
 		}
@@ -1440,6 +1443,15 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 		return basicStudyDao.getPublicSiteSearchBasicStudies();
 	}
 
+	public Map<Long, BasicStudySearch> getPublicSiteSearchBasicStudiesMap() {
+		List<BasicStudySearch> results = basicStudyDao.getPublicSiteSearchBasicStudies();
+		Map<Long, BasicStudySearch> studies = new HashMap<Long, BasicStudySearch>();
+		for (BasicStudySearch b : results) {
+			studies.put(b.getId().longValue(), b);
+		}
+		return studies;
+	}
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -1466,7 +1478,6 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 		return dataset.getDatasetFileSet();
 	}
 
-
 	/**
 	 * {@inheritDoc}
 	 */
@@ -1478,6 +1489,22 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 
 	public List<DatasetFile> getDatasetFiles(Dataset ds) {
 		return datasetFileDao.getByDatasetId(ds.getId());
+	}
+
+	public BigDecimal getTotalDatasetFilesSize(Long datasetId) {
+		return datasetFileDao.getTotalFilesSizeByDatasetId(datasetId);
+	}
+
+	public HashSet<SubmissionType> getDatasetWithSubmissionTypes(long datasetId) {
+
+		List<Integer> submissionTypesList = datasetDao.getSubmissionTypeseByDatasetId(datasetId);
+		HashSet<SubmissionType> submissionTypes = new HashSet<SubmissionType>();
+
+		for (Integer id : submissionTypesList) {
+			SubmissionType r = SubmissionType.values()[id];
+			submissionTypes.add(r);
+		}
+		return submissionTypes;
 	}
 
 	/**
@@ -1492,8 +1519,9 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 
 	/**
 	 * 
-	 * This function is called by both a webstart that still uses SOAP services and a method in Portal, so the
-	 * proxyTicket may be null. Set's the dataset file to complete. Used in the Upload Manager. SOAP ok.
+	 * This function is called by both a webstart that still uses SOAP services and
+	 * a method in Portal, so the proxyTicket may be null. Set's the dataset file to
+	 * complete. Used in the Upload Manager. SOAP ok.
 	 * 
 	 * {@inheritDoc}
 	 * 
@@ -1512,8 +1540,9 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 	 * 
 	 * Matt Green's Note:
 	 * 
-	 * loadDataFromDataset(account, datasetFile.getDataset().getId(),null); This line might create a problem in the
-	 * future, because the null might cause problems if initializeDatasetFile is called.
+	 * loadDataFromDataset(account, datasetFile.getDataset().getId(),null); This
+	 * line might create a problem in the future, because the null might cause
+	 * problems if initializeDatasetFile is called.
 	 * 
 	 */
 	public void setDatasetFileToComplete(Long id, Account account) throws MalformedURLException {
@@ -1590,60 +1619,67 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 		dataset.setIsProformsSubmission(isProformsSubmission);
 		dataset = saveDataset(currentAccount, dataset);
 
-
 		// Adds the data file into the dataset
 		DatafileEndpointInfo info = datafileEndpointInfoDao.get(ServiceConstants.TBI_DATAFILE_ENDPOINT_ID);
 		UserFile newUserFile = new UserFile();
-		newUserFile.setName(submissionTicket.getSubmissionPackage().getName() + ".xml");
+
+		newUserFile.setName(datasetName + ".xml");
+
 		newUserFile.setDatafileEndpointInfo(info);
 		newUserFile.setPath(serverPath);
-		newUserFile.setSize(submissionTicket.getSubmissionPackage().getDataFileBytes());
-		newUserFile.setUserId(currentUser.getId());
-		newUserFile = saveUserFile(newUserFile);
-		DatasetFile newDatasetFile = new DatasetFile();
-		newDatasetFile.setIsQueryable(false);
-		newDatasetFile.setFileType(SubmissionType.DATA_FILE);
-		newDatasetFile.setDatasetFileStatus(DatasetFileStatus.PENDING);
-		newDatasetFile.setLocalLocation(localPath + submissionTicket.getSubmissionPackage().getName() + ".xml");
-		newDatasetFile.setUserFile(newUserFile);
-		newDatasetFile.setDataset(dataset.getId());
-		dataset.getDatasetFileSet().add(newDatasetFile);
+		for (SubmissionPackage sp : submissionTicket.getSubmissionPackages()) {
+			if (sp.getName().equals(datasetName)) {
+				newUserFile.setSize(sp.getDataFileBytes());
 
-		for (SubmissionDataFile dataFile : submissionTicket.getSubmissionPackage().getDatasets()) {
-			UserFile userFile = new UserFile();
-			userFile.setName(dataFile.getName());
-			userFile.setDatafileEndpointInfo(info);
-			userFile.setPath(serverPath);
-			userFile.setSize(dataFile.getBytes());
-			userFile.setUserId(currentUser.getId());
-			userFile = saveUserFile(userFile);
-			DatasetFile datasetFile = new DatasetFile();
-			datasetFile.setIsQueryable(true);
-			datasetFile.setFileType(dataFile.getType());
-			datasetFile.setDatasetFileStatus(DatasetFileStatus.PENDING);
-			datasetFile.setLocalLocation(dataFile.getPath());
-			datasetFile.setUserFile(userFile);
-			datasetFile.setDataset(dataset.getId());
-			dataset.getDatasetFileSet().add(datasetFile);
-			dataset.getSubmissionTypes().add(dataFile.getType()); // Add type to dataset
-		}
+				newUserFile.setUserId(currentUser.getId());
+				newUserFile = saveUserFile(newUserFile);
+				DatasetFile newDatasetFile = new DatasetFile();
+				newDatasetFile.setIsQueryable(false);
+				newDatasetFile.setFileType(SubmissionType.DATA_FILE);
+				newDatasetFile.setDatasetFileStatus(DatasetFileStatus.PENDING);
+				newDatasetFile.setLocalLocation(localPath + newUserFile.getName());
+				newDatasetFile.setUserFile(newUserFile);
+				newDatasetFile.setDataset(dataset.getId());
+				dataset.getDatasetFileSet().add(newDatasetFile);
 
-		for (SubmissionDataFile dataFile : submissionTicket.getSubmissionPackage().getAssociatedFiles()) {
-			UserFile userFile = new UserFile();
-			userFile.setName(dataFile.getName());
-			userFile.setDatafileEndpointInfo(info);
-			userFile.setPath(serverPath);
-			userFile.setSize(dataFile.getBytes());
-			userFile.setUserId(currentUser.getId());
-			userFile = saveUserFile(userFile);
-			DatasetFile datasetFile = new DatasetFile();
-			datasetFile.setIsQueryable(false);
-			datasetFile.setFileType(dataFile.getType());
-			datasetFile.setDatasetFileStatus(DatasetFileStatus.PENDING);
-			datasetFile.setLocalLocation(dataFile.getPath());
-			datasetFile.setUserFile(userFile);
-			datasetFile.setDataset(dataset.getId());
-			dataset.getDatasetFileSet().add(datasetFile);
+				for (SubmissionDataFile dataFile : sp.getDatasets()) {
+					UserFile userFile = new UserFile();
+					userFile.setName(dataFile.getPath().replace("\\", "/")
+							.substring(dataFile.getPath().replace("\\", "/").lastIndexOf("/") + 1));
+					userFile.setDatafileEndpointInfo(info);
+					userFile.setPath(serverPath);
+					userFile.setSize(dataFile.getBytes());
+					userFile.setUserId(currentUser.getId());
+					userFile = saveUserFile(userFile);
+					DatasetFile datasetFile = new DatasetFile();
+					datasetFile.setIsQueryable(true);
+					datasetFile.setFileType(dataFile.getType());
+					datasetFile.setDatasetFileStatus(DatasetFileStatus.PENDING);
+					datasetFile.setLocalLocation(dataFile.getPath());
+					datasetFile.setUserFile(userFile);
+					datasetFile.setDataset(dataset.getId());
+					dataset.getDatasetFileSet().add(datasetFile);
+					dataset.getSubmissionTypes().add(dataFile.getType()); // Add type to dataset
+				}
+
+				for (SubmissionDataFile dataFile : sp.getAssociatedFiles()) {
+					UserFile userFile = new UserFile();
+					userFile.setName(dataFile.getName());
+					userFile.setDatafileEndpointInfo(info);
+					userFile.setPath(serverPath);
+					userFile.setSize(dataFile.getBytes());
+					userFile.setUserId(currentUser.getId());
+					userFile = saveUserFile(userFile);
+					DatasetFile datasetFile = new DatasetFile();
+					datasetFile.setIsQueryable(false);
+					datasetFile.setFileType(dataFile.getType());
+					datasetFile.setDatasetFileStatus(DatasetFileStatus.PENDING);
+					datasetFile.setLocalLocation(dataFile.getPath());
+					datasetFile.setUserFile(userFile);
+					datasetFile.setDataset(dataset.getId());
+					dataset.getDatasetFileSet().add(datasetFile);
+				}
+			}
 		}
 
 		return saveDataset(currentAccount, dataset);
@@ -1671,7 +1707,6 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 		return datasetDao.getStatusCount(DatasetStatus.getById(statusId), requested);
 	}
 
-
 	/**
 	 * Saves the secure subject
 	 * 
@@ -1691,11 +1726,12 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 
 		Iterator<DatasetSubject> datasetSubjectsIterator = datasetSubjects.iterator();
 
-		// here, we are to remove all of the datasetSubjects that references datasets the user does not have access to
+		// here, we are to remove all of the datasetSubjects that references datasets
+		// the user does not have access to
 		while (datasetSubjectsIterator.hasNext()) {
 			DatasetSubject currentDatasetSubject = datasetSubjectsIterator.next();
-			boolean hasAccess =
-					accountManager.getDatasetAccess(account, currentDatasetSubject.getDataset(), PermissionType.READ);
+			boolean hasAccess = accountManager.getDatasetAccess(account, currentDatasetSubject.getDataset(),
+					PermissionType.READ);
 
 			if (!hasAccess) {
 				datasetSubjectsIterator.remove();
@@ -1762,7 +1798,6 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 		return true;
 	}
 
-
 	/**
 	 * @param filePath
 	 * @throws SQLException {@inheritDoc}
@@ -1785,7 +1820,6 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 		return true;
 	}
 
-
 	/**
 	 * {@inheritDoc}
 	 */
@@ -1807,9 +1841,9 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 		return ServiceConstants.EMPTY_STRING + i + "/" + total;
 	}
 
-
 	/**
-	 * Returns semi-colon delimited list for a given list of permissible value descriptions
+	 * Returns semi-colon delimited list for a given list of permissible value
+	 * descriptions
 	 * 
 	 * @param permissibleValues
 	 * @return
@@ -1862,7 +1896,8 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 	}
 
 	/**
-	 * Returns semi-colon delimited list for a given list of permissible value output codes
+	 * Returns semi-colon delimited list for a given list of permissible value
+	 * output codes
 	 * 
 	 * @param permissibleValues
 	 * @return
@@ -1893,14 +1928,12 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 	 */
 	public void addDatasetToDownloadQueue(Dataset dataset, Account account, List<FormStructure> fsList,
 			Boolean sendEmail) {
-		String pvFileName = null;
 		FileWriter writer = null;
 		File pvFile = null;
+		List<File> pvFiles = new ArrayList<File>();
 		try {
 			for (FormStructure fs : fsList) {
-				pvFileName = fs.getShortName() + ServiceConstants.PV_MAPPING_FILENAME_EXTENSION;
-				pvFile = new File(pvFileName);
-
+				pvFile = File.createTempFile(fs.getShortName() + "_pv_mapping", ".csv");
 				writer = new FileWriter(pvFile, false);
 				writer.append(ServiceConstants.NAME_READABLE);
 				writer.append(ServiceConstants.COMMA);
@@ -1913,8 +1946,6 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 				writer.append(ServiceConstants.PERMISSIBLE_VALUES_DESCRIPTION_READABLE);
 				writer.append(ServiceConstants.COMMA);
 				writer.append(ServiceConstants.PERMISSIBLE_VALUES_OUTPUT_CODES_READABLE);
-
-
 
 				// Map<String, DataElement> deMap = fs.getDataElements();
 				// Map<String, DataElement> deMap = sortByComparator(uSorteddeMap);
@@ -1947,34 +1978,9 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 						writer.append(permissibleValueOutputCodeToCSVString(vrList));
 					}
 
-				}
-
-
-
-				//
-				// for (Entry<String, DataElement> dataElement : deMap.entrySet()) {
-				// if(!dataElement.getValue().getRestrictions().equals(InputRestrictions.FREE_FORM)){
-				// writer.append(ServiceConstants.NEWLINE);
-				// writer.append(
-				// dataElement.getValue().getName());
-				// writer.append(ServiceConstants.COMMA);
-				// writer.append(ServiceConstants.QUOTE+dataElement.getValue().getTitle()+ServiceConstants.QUOTE);
-				// writer.append(ServiceConstants.COMMA);
-				// writer.append(ServiceConstants.QUOTE+String.valueOf(dataElement.getValue().getShortDescription())+ServiceConstants.QUOTE);
-				//
-				// writer.append(ServiceConstants.COMMA);
-				// writer.append(permissibleValueToCSVString(dataElement.getValue().getValueRangeList()));
-				//
-				// writer.append(ServiceConstants.COMMA);
-				// writer.append(ServiceConstants.QUOTE+permissibleValueDescriptionToCSVString(dataElement.getValue().getValueRangeList())+ServiceConstants.QUOTE);
-				//
-				// writer.append(ServiceConstants.COMMA);
-				// writer.append(permissibleValueOutputCodeToCSVString(dataElement.getValue().getValueRangeList()));
-				//
-				//
-				// }
-				// }
-
+				}		
+				pvFiles.add(pvFile);
+				writer.flush();
 
 			}
 		} catch (IOException e) {
@@ -1991,24 +1997,29 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 		}
 
 		DatafileEndpointInfo info = datafileEndpointInfoDao.get(ServiceConstants.TBI_DATAFILE_ENDPOINT_ID);
-		UserFile newUserFile = new UserFile();
-		newUserFile.setName(pvFileName);
-		newUserFile.setDescription(ServiceConstants.PV_FS_DE_MAPPING_DESCRIPTION_TEXT);
-		newUserFile.setDatafileEndpointInfo(info);
-		newUserFile.setSize(Long.valueOf(pvFile.length()));
-		newUserFile.setUploadedDate(new Date());
-		newUserFile.setPath(ServiceConstants.REPO_SUBMISSION_UPLOAD_PATH + dataset.getStudy().getTitle()
-				+ ServiceConstants.FILE_SEPARATER + dataset.getName() + ServiceConstants.FILE_SEPARATER);
-		try {
-			SftpClient client = SftpClientManager.getClient(info);
-			client.upload(pvFile, newUserFile.getPath(), pvFileName);
-		} catch (JSchException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
+		List<UserFile> userFiles = new ArrayList<>();
+		for(File pvFileItem: pvFiles) {
+			UserFile newUserFile = new UserFile();
+			String trimmedPvFileName = pvFileItem.getName();
+			trimmedPvFileName = trimmedPvFileName.substring(0, trimmedPvFileName.indexOf(PV_MAPPING)) + PV_MAPPING_FILE_NAME_SUFFIX;
+			newUserFile.setName(trimmedPvFileName);
+			newUserFile.setDescription(ServiceConstants.PV_FS_DE_MAPPING_DESCRIPTION_TEXT);
+			newUserFile.setDatafileEndpointInfo(info);
+			newUserFile.setSize(Long.valueOf(pvFileItem.length()));
+			newUserFile.setUploadedDate(new Date());
+			newUserFile.setPath(ServiceConstants.REPO_SUBMISSION_UPLOAD_PATH + dataset.getStudy().getTitle()
+					+ ServiceConstants.FILE_SEPARATER + dataset.getName() + ServiceConstants.FILE_SEPARATER);
+			try {
+				SftpClient client = SftpClientManager.getClient(info);
+				client.upload(pvFileItem, newUserFile.getPath(), trimmedPvFileName);
+			} catch (JSchException e) {
+				e.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+				newUserFile = saveUserFile(newUserFile);
+				userFiles.add(newUserFile);
 		}
-		newUserFile = saveUserFile(newUserFile);
-
 
 		DownloadFileDataset downloadFileDataset = new DownloadFileDataset(dataset);
 
@@ -2019,13 +2030,14 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 		downloadPackage.setName(dataset.getName() + "_" + dataset.getStudy().getId());
 		downloadPackage.setUser(account.getUser());
 
-		DatasetDownloadFile newDatasetDownloadFile = new DatasetDownloadFile();
-		newDatasetDownloadFile.setDownloadPackage(downloadPackage);
-		newDatasetDownloadFile.setDataset(downloadFileDataset);
-		newDatasetDownloadFile.setUserFile(newUserFile);
-		newDatasetDownloadFile.setType(SubmissionType.DATA_FILE);
-		downloadPackage.addDownloadable(newDatasetDownloadFile);
-
+		for(UserFile userFile: userFiles) {
+			DatasetDownloadFile newDatasetDownloadFile = new DatasetDownloadFile();
+			newDatasetDownloadFile.setDownloadPackage(downloadPackage);
+			newDatasetDownloadFile.setDataset(downloadFileDataset);
+			newDatasetDownloadFile.setUserFile(userFile);
+			newDatasetDownloadFile.setType(SubmissionType.DATA_FILE);
+			downloadPackage.addDownloadable(newDatasetDownloadFile);
+		}
 		List<DatasetFile> dataFile = getDatasetFiles(dataset.getId());
 		if (dataFile != null) {
 			for (DatasetFile dsFile : dataFile) {
@@ -2132,10 +2144,10 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 	@Override
 	public List<Study> getStudyList() {
 
-		// NOTE: THIS IS TEMPORARY AND WILL BE REMOVED ONCE DATA TRANSFER TESTING IS COMPLETE
+		// NOTE: THIS IS TEMPORARY AND WILL BE REMOVED ONCE DATA TRANSFER TESTING IS
+		// COMPLETE
 		return studyDao.getAll();
 	}
-
 
 	/**
 	 * Check to see if a Dataset exists given the name
@@ -2234,8 +2246,13 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 	public List<VisualizationAccessRecord> getAccessRecordsPerUser() {
 		Date startDate = null, endDate = null;
 		return visualizationAccessRecordDao.getAll(Long.MIN_VALUE, startDate, endDate, null);
+	}
 
-
+	/**
+	 * {@inheritDoc}
+	 */
+	public List<VisualizationAccessData> getAllAccessRecordsPerUser() {
+		return visualizationAccessRecordDao.getAllAccessRecords();
 	}
 
 	/**
@@ -2244,7 +2261,8 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 	public List<AccessRecord> searchAccessRecords(Study study, String searchText, Long daysOld,
 			PaginationData pageData) {
 
-		// Create arguments for searchAccessRecords. Will be populated based on searchText
+		// Create arguments for searchAccessRecords. Will be populated based on
+		// searchText
 		// String dsPrefixId = null;
 		String dsId = null;
 		Long recCount = null;
@@ -2261,7 +2279,8 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 			status = DatasetStatus.getByName(searchText);
 			dsId = searchText;
 
-			// Using an exception to determine if this is numeric is slow. Using regex would be faster.
+			// Using an exception to determine if this is numeric is slow. Using regex would
+			// be faster.
 			try {
 				recCount = Long.valueOf(searchText);
 				dataSource = Long.valueOf(searchText);
@@ -2269,15 +2288,14 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 				logger.debug("searchAccessRecords searchText is not numeric.");
 			}
 
-			// Again using an exception to determine if string is a valid date. Test code using
+			// Again using an exception to determine if string is a valid date. Test code
+			// using
 			// BRICSTimeDateUtil may be faster.
 			try {
 				queueDate = new SimpleDateFormat("yyyy-MM-dd").parse(searchText);
 			} catch (ParseException e) {
 				logger.debug("searchAccessRecords searchText is not an ISO date.");
 			}
-
-
 
 		}
 
@@ -2311,7 +2329,6 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 		return packages;
 	}
 
-
 	// solution for consolidated download package
 	public void addQueryToolDownloadPackage(Account account, QTDownloadPackage qtDownloadPackage,
 			List<UserFile> dataFiles) {
@@ -2336,7 +2353,8 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 			qtPackage.addDownloadable(qtResultFile);
 		}
 
-		// XXX: this query in the loop may be a performance concern. may need to refactor this if it becomes a problem
+		// XXX: this query in the loop may be a performance concern. may need to
+		// refactor this if it becomes a problem
 		// add the attached files to the download package
 		if (qtDownloadPackage.getAttachedFilesMap() != null) {
 			for (Entry<Long, Collection<String>> attachedFileEntry : qtDownloadPackage.getAttachedFilesMap().asMap()
@@ -2384,7 +2402,6 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 		logger.debug("Package successfully saved to the database");
 	}
 
-
 	private void logMissingUserFiles(Account account, BasicDataset dataset, List<String> missingFiles) {
 		if (missingFiles.isEmpty()) {
 			throw new DownloadQueueException(
@@ -2417,7 +2434,7 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 		}
 		missingFileListBuffer.append("</ul>");
 
-		Object[] bodyArgs = new Object[] {userName, datasetName, missingFileListBuffer.toString()};
+		Object[] bodyArgs = new Object[] { userName, datasetName, missingFileListBuffer.toString() };
 		String mailBody = messageSource.getMessage(ServiceConstants.DOWNLOAD_QUEUE_MISSING_FILE_BODY, bodyArgs, null);
 
 		try {
@@ -2436,12 +2453,13 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 	private void sendDataErrorLoadNotification(List<String> datasetFiles) {
 
 		String emailAddress = modulesConstants.getModulesOrgEmail();
-		String mailSubject =
-				messageSource.getMessage(ServiceConstants.MAIL_RESOURCE_ERROR_LOAD_SUBMISSION_SUBJECT, null, null);
+		String mailSubject = messageSource.getMessage(ServiceConstants.MAIL_RESOURCE_ERROR_LOAD_SUBMISSION_SUBJECT,
+				null, null);
 
 		String modulesDTURLStr = modulesConstants.getModulesDTURL();
 
-		// List of Dataset Name, Dataset System ID., Study title User: [Username] [email address]
+		// List of Dataset Name, Dataset System ID., Study title User: [Username] [email
+		// address]
 		StringBuffer dataFileListBuffer = new StringBuffer();
 		dataFileListBuffer.append("<ul>");
 		for (String fileName : datasetFiles) {
@@ -2451,10 +2469,10 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 		}
 		dataFileListBuffer.append("</ul>");
 
-		Object[] bodyArgs =
-				new Object[] {dataFileListBuffer.toString(), modulesConstants.getModulesOrgName(), modulesDTURLStr};
-		String mailBody =
-				messageSource.getMessage(ServiceConstants.MAIL_RESOURCE_ERROR_LOAD_SUBMISSION_BODY, bodyArgs, null);
+		Object[] bodyArgs = new Object[] { dataFileListBuffer.toString(), modulesConstants.getModulesOrgName(),
+				modulesDTURLStr };
+		String mailBody = messageSource.getMessage(ServiceConstants.MAIL_RESOURCE_ERROR_LOAD_SUBMISSION_BODY, bodyArgs,
+				null);
 		try {
 			mailEngine.sendMail(mailSubject, mailBody, null, emailAddress);
 		} catch (MessagingException e) {
@@ -2506,8 +2524,8 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 		String emailAddress = account.getUser().getEmail();
 		String fullName = account.getUser().getFullName();
 		String mailSubject = messageSource.getMessage(ServiceConstants.DOWNLOAD_QUEUE_NOTIFICATION_SUBJECT, null, null);
-		Object[] bodyArgs = new Object[] {fullName, dateTimeAdded, origin.getName(), packageName,
-				modulesConstants.getModulesOrgName()};
+		Object[] bodyArgs = new Object[] { fullName, dateTimeAdded, origin.getName(), packageName,
+				modulesConstants.getModulesOrgName() };
 		String mailBody = messageSource.getMessage(ServiceConstants.DOWNLOAD_QUEUE_NOTIFICATION_BODY, bodyArgs, null);
 
 		try {
@@ -2649,7 +2667,8 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 	}
 
 	/**
-	 * Create study for doubling the amount of study appending "_DD" to the prefixedId in the new study
+	 * Create study for doubling the amount of study appending "_DD" to the
+	 * prefixedId in the new study
 	 * 
 	 * @param study
 	 * @param account
@@ -2672,8 +2691,8 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 
 		newStudy = saveStudy(account, newStudy);
 
-		String prefix =
-				modulesConstants.getModulesOrgName(Long.valueOf(account.getDiseaseKey())) + ModelConstants.PREFIX_STUDY;
+		String prefix = modulesConstants.getModulesOrgName(Long.valueOf(account.getDiseaseKey()))
+				+ ModelConstants.PREFIX_STUDY;
 		String prefixedId = prependZeroesToId(prefix, newStudy.getId()) + ModelConstants.SURFIX_PERFORM_BM;
 		newStudy.setPrefixedId(prefixedId);
 		newStudy = studyDao.save(newStudy);
@@ -2710,7 +2729,6 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 			default:
 				break;
 		}
-
 
 		if (eventType == EventType.DATASET_DELETION) {
 
@@ -2756,7 +2774,6 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 			default:
 				break;
 		}
-
 
 		if (eventType == EventType.REQUESTED_DELETE_APPROVED) {
 
@@ -2933,8 +2950,8 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 
 		for (Dataset dataset : datasetList) {
 			DownloadFileDataset downloadFileDataset = new DownloadFileDataset(dataset);
-			DownloadPackage downloadPackage =
-					getDownloadPackageByDatasetAndUser(downloadFileDataset, account.getUser());
+			DownloadPackage downloadPackage = getDownloadPackageByDatasetAndUser(downloadFileDataset,
+					account.getUser());
 			if (downloadPackage != null) {
 				downloadPackageList.add(downloadPackage);
 				downloadPackageIdList.add(downloadPackage.getId());
@@ -2950,17 +2967,16 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 						UserFile userFile = downloadable.getUserFile();
 
 						if (!userFile.getName().endsWith(".xml") && !userFile.getName().endsWith("_pv_mapping.csv")) { // not
-																														 // downloading
-																														 // dataFile-*.xml)
-																														 // and
-																														 // pv
-																														 // mapping
-																														 // file
+																														// downloading
+																														// dataFile-*.xml)
+																														// and
+																														// pv
+																														// mapping
+																														// file
 							try {
 								logger.info("userFile.getPath(): " + userFile.getPath() + "****userFile.getName(): "
 										+ userFile.getName());
 								sftp = SftpClientManager.getClient(userFile.getDatafileEndpointInfo());
-
 
 								synchronized (sftp) {
 									sftp.download(userFile.getName(), userFile.getPath(), destPath);
@@ -3047,7 +3063,6 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 
 	}
 
-
 	public StudyForm getStudyForm(Long studyId, String shortName, String version) {
 		return studyFormDao.getSingle(studyId, shortName, version);
 	}
@@ -3068,8 +3083,8 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 	}
 
 	public SemanticFormStructureList getPublishedFS(SessionAccount account, String proxyTicket) {
-		RestDictionaryProvider restProvider =
-				new RestDictionaryProvider(modulesConstants.getModulesDDTURL(), proxyTicket);
+		RestDictionaryProvider restProvider = new RestDictionaryProvider(modulesConstants.getModulesDDTURL(),
+				proxyTicket);
 		try {
 			return restProvider.getPublishedDataStructures();
 		} catch (UnsupportedEncodingException e) {
@@ -3079,8 +3094,8 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 	}
 
 	public SemanticFormStructureList getPublihedAndAwaitingFS(SessionAccount account, String proxyTicket) {
-		RestDictionaryProvider restProvider =
-				new RestDictionaryProvider(modulesConstants.getModulesDDTURL(), proxyTicket);
+		RestDictionaryProvider restProvider = new RestDictionaryProvider(modulesConstants.getModulesDDTURL(),
+				proxyTicket);
 		try {
 			return restProvider.getPublishedAndAwaitingFS();
 		} catch (UnsupportedEncodingException e) {
@@ -3091,8 +3106,8 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 
 	public FormStructure getFormStructureDetails(SessionAccount account, String shortName, String version,
 			String proxyTicket) {
-		RestDictionaryProvider restProvider =
-				new RestDictionaryProvider(modulesConstants.getModulesDDTURL(), proxyTicket);
+		RestDictionaryProvider restProvider = new RestDictionaryProvider(modulesConstants.getModulesDDTURL(),
+				proxyTicket);
 
 		FormStructure fs = null;
 		try {
@@ -3148,7 +3163,6 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 	public ResearchManagement getStudyManagementImage(Long studyId, Long rmId) {
 		return researchManagementDao.getStudyManagementImage(studyId, rmId);
 	}
-
 
 	/**
 	 * {@inheritDoc}
@@ -3219,6 +3233,53 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 				submittedDataJson.addProperty("fundingSource", basicStudySearch.getFundingSource());
 				submittedDataJson.addProperty("title", basicStudySearch.getTitle());
 
+				Set<Grant> grantSet = new HashSet<Grant>(study.getGrantSet());
+				List<String> grantIdList = new ArrayList<String>();
+				for (Grant grant : grantSet) {
+					grantIdList.add(grant.getGrantId());
+				}
+				String grantId = grantIdList.size() == 0 ? "" : StringUtils.join(grantIdList);
+				if (grantId.length() > 2) {// remove square blankets
+					grantId = grantId.substring(1, grantId.length() - 1);
+				}
+				submittedDataJson.addProperty("grantId", grantId);
+
+				Integer numbOfSubject = studySubmittedFormCache
+						.getSubjectCountByStudy(String.valueOf(basicStudySearch.getId()));
+				submittedDataJson.addProperty("subjectCount", numbOfSubject);
+
+				Integer totalRecordCount = studySubmittedFormCache
+						.getRowCountByStudy(String.valueOf(basicStudySearch.getId()));
+				submittedDataJson.addProperty("recordCount", totalRecordCount);
+
+				Integer formWithDataCount = studySubmittedFormCache
+						.getFormCountByStudy(String.valueOf(basicStudySearch.getId()));
+				submittedDataJson.addProperty("formWithDataCount", formWithDataCount);
+
+				submittedDataJson.addProperty("privateDatasetCount", basicStudySearch.getPrivateDatasetCount());
+				submittedDataJson.addProperty("sharedDatasetCount", basicStudySearch.getSharedDatasetCount());
+
+				submittedDataJsonArray.add(submittedDataJson);
+			}
+		}
+		// long stopTime = System.currentTimeMillis();
+		// long elapseTime = stopTime -startTime;
+		// logger.debug("Excution time: " + elapseTime);
+		logger.debug("submittedDataJsonArray: " + submittedDataJsonArray);
+		return submittedDataJsonArray;
+	}
+
+	public JsonArray getPublicSiteSubmittedDataByStudy(List<BasicStudySearch> basicStudySearchList, Study study,
+			StudySubmittedFormCache studySubmittedFormCache) {
+		JsonArray submittedDataJsonArray = new JsonArray();
+
+		for (BasicStudySearch basicStudySearch : basicStudySearchList) {
+			if (study.getId().equals(Long.valueOf(basicStudySearch.getId()))) {
+				JsonObject submittedDataJson = new JsonObject();
+				submittedDataJson.addProperty("id", basicStudySearch.getId());
+				submittedDataJson.addProperty("principleName", basicStudySearch.getPrincipleName());
+				submittedDataJson.addProperty("fundingSource", basicStudySearch.getFundingSource());
+				submittedDataJson.addProperty("title", basicStudySearch.getTitle());
 
 				Set<Grant> grantSet = new HashSet<Grant>(study.getGrantSet());
 				List<String> grantIdList = new ArrayList<String>();
@@ -3231,22 +3292,23 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 				}
 				submittedDataJson.addProperty("grantId", grantId);
 
-				Integer numbOfSubject =
-						studySubmittedFormCache.getSubjectCountByStudy(String.valueOf(basicStudySearch.getId()));
+				Integer numbOfSubject = studySubmittedFormCache
+						.getSubjectCountByStudy(String.valueOf(basicStudySearch.getId()));
 				submittedDataJson.addProperty("subjectCount", numbOfSubject);
 
-				Integer totalRecordCount =
-						studySubmittedFormCache.getRowCountByStudy(String.valueOf(basicStudySearch.getId()));
+				Integer totalRecordCount = studySubmittedFormCache
+						.getRowCountByStudy(String.valueOf(basicStudySearch.getId()));
 				submittedDataJson.addProperty("recordCount", totalRecordCount);
 
-				Integer formWithDataCount =
-						studySubmittedFormCache.getFormCountByStudy(String.valueOf(basicStudySearch.getId()));
+				Integer formWithDataCount = studySubmittedFormCache
+						.getFormCountByStudy(String.valueOf(basicStudySearch.getId()));
 				submittedDataJson.addProperty("formWithDataCount", formWithDataCount);
 
 				submittedDataJson.addProperty("privateDatasetCount", basicStudySearch.getPrivateDatasetCount());
 				submittedDataJson.addProperty("sharedDatasetCount", basicStudySearch.getSharedDatasetCount());
 
 				submittedDataJsonArray.add(submittedDataJson);
+
 			}
 		}
 		// long stopTime = System.currentTimeMillis();
@@ -3271,7 +3333,8 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 				authorList.add(err);
 			}
 
-			// First Author, PubMed returns in the format of LastName FIMI (First Name Initial and Middle Name Initial)
+			// First Author, PubMed returns in the format of LastName FIMI (First Name
+			// Initial and Middle Name Initial)
 			Elements authElements = doc.select("Item[Name=Author]");
 			for (Element authEle : authElements) {
 				String auth = authEle.html();
@@ -3281,7 +3344,6 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
 
 		return StringUtils.join(authorList, ", ");
 	}
@@ -3304,7 +3366,6 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 					publicationJson.addProperty("userFileId", userFile.getId());
 				}
 
-
 				Calendar cal = Calendar.getInstance();
 				cal.setTime(publication.getPublicationDate());
 				Integer pubYear = cal.get(Calendar.YEAR);
@@ -3316,11 +3377,11 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 				if (!pubMedId.isEmpty()) {
 					try {
 						allAuthors = new String(getAllAuthorsByPubMedId(pubMedId).getBytes("utf-8"), "ISO-8859-1"); // to
-																													 // escape
-																													 // latin
-																													 // characters
-																													 // like
-																													 // é
+																													// escape
+																													// latin
+																													// characters
+																													// like
+																													// é
 					} catch (UnsupportedEncodingException e) {
 						e.printStackTrace();
 					}
@@ -3381,7 +3442,6 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 		return datasetDao.getDatasetExcludingDatasetFiles(datasetId);
 	}
 
-
 	public Dataset getDatasetOnly(Long datasetId) {
 		return datasetDao.getDataset(datasetId);
 	}
@@ -3389,7 +3449,6 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 	public void updateDatasetStatus(DatasetStatus status, Dataset currentDataset) {
 		datasetDao.updateDatasetStatus(status, currentDataset.getId());
 	}
-
 
 	public BigInteger getDatasetPendingFileCount(Long datasetId) {
 		return datasetFileDao.getDatasetPendingFileCount(datasetId);
@@ -3401,7 +3460,6 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 	public void removeUserFile(long userFileId) {
 		userFileDao.remove(userFileId);
 	}
-
 
 	public boolean moveAsNewFileName(String filePath, String fileName, String newFileName) throws JSchException {
 		DatafileEndpointInfo info = datafileEndpointInfoDao.get(ServiceConstants.TBI_DATAFILE_ENDPOINT_ID);
@@ -3416,10 +3474,8 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 			return false;
 		}
 
-
 		SftpClientManager.closeAll();
 		return true;
-
 
 	}
 
@@ -3458,7 +3514,6 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 		}
 		return true;
 	}
-
 
 	public void saveStudyTherapeuticAgent(Set<StudyTherapeuticAgent> therapeuticAgentSet, String studyId) {
 		List<TherapeuticAgent> listAllTAgents = studyDao.getAllTherapeuticAgents();
@@ -3523,7 +3578,6 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 
 		Set<StudyTherapyType> insertRecords = new HashSet<>();
 		Set<StudyTherapyType> deleteRecords = new HashSet<>();
-
 
 		if (therapyTypeSet == null) {
 			deleteRecords.addAll(list);
@@ -3741,5 +3795,40 @@ public class RepositoryManagerImpl extends BaseManagerImpl implements Repository
 		for (StudyModelName s : deleteRecords) {
 			modelNameDataDao.deleteModelNameData(s, studyId);
 		}
+	}
+
+	@Override
+	public void cleanRepoTables(StructuralFormStructure datastructure) throws SQLException {
+
+		DataStoreInfo dataStoreInfo = dataStoreInfoDao.getByDataStructureId(datastructure.getId());
+
+		if (dataStoreInfo != null) {
+			Set<DataStoreTabularInfo> dataStoreTabularInfos = dataStoreInfo.getDataStoreTabularInfos();
+
+			List<String> tableNames = new ArrayList<String>();
+			List<String> sequenceNames = new ArrayList<String>();
+
+			for (DataStoreTabularInfo dataStoreTabularInfo : dataStoreTabularInfos) {
+				tableNames.add(dataStoreTabularInfo.getTableName());
+				sequenceNames.add(dataStoreTabularInfo.getTableName() + "_seq");
+			}
+
+			dataStoreDao.dropTables(StringUtils.join(tableNames, ","));
+			dataStoreDao.dropSequences(StringUtils.join(sequenceNames, ","));
+
+			dataStoreInfoDao.remove(dataStoreInfo.getId());
+		}
+
+	}
+
+	@Override
+	public void emailDevPublicationError(StructuralFormStructure datastructure, String errorMessage) {
+		try {
+			mailEngine.sendMail("Error: Unable to publish Form Structure " + datastructure.getShortName()
+					+ " to repository database", errorMessage, "error", modulesConstants.getModulesDevEmail());
+		} catch (MessagingException e1) {
+			logger.error("Could not send email for createTableFromDataStructure ERROR!");
+		}
+
 	}
 }

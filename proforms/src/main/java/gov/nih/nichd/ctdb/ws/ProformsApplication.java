@@ -13,5 +13,9 @@ public class ProformsApplication extends ResourceConfig {
 		register(RequestContextFilter.class);
 		register(SubmissionWS.class);
 		register(ProtocolRestService.class);
+		register(PromisRestService.class);
+		register(ImageRestService.class);
+		register(DataCollectionRestService.class);
+		register(SummaryDataWS.class);
 	}
 }

@@ -46,7 +46,7 @@
 					<param name="exception.logLevel">WARN</param>
 				</interceptor-ref>
 				<interceptor-ref name="fileUpload">
-					<param name="maximumSize">30485760</param>
+					<param name="maximumSize">524288000</param>
 				</interceptor-ref>
 				<interceptor-ref name="multiselect" />
 				<interceptor-ref name="checkbox" />
@@ -113,6 +113,7 @@
 			<!-- ADD NEW WEBSTARTS HERE -->
 			<result name="validationTool">/jnlps/validationTool.jsp</result>
 			<result name="submissionTool">/jnlps/submissionTool.jsp</result>
+			<result name="submissionTool64">/jnlps/submissionTool64.jsp</result>
 			<result name="uploadTool">/jnlps/uploadTool.jsp</result>
 			<result name="uploadButton">/jsp/contribute/uploadButton.jsp</result>
 			<result name="downloadTool">/jnlps/downloadTool.jsp</result>
@@ -153,24 +154,12 @@
 			<allowed-methods>download,downloadDDT,downloadAll</allowed-methods>
 		</action>
 		
-		
-		
 		<action name="fileDeleteAction" class="gov.nih.tbi.repository.portal.FileDownloadAction">		
 			<allowed-methods>deleteUserFile</allowed-methods>
 		</action>
-		
-		
-		
-		
-		
-		
-		
 
 		<action name="keepAlive" class="gov.nih.tbi.commons.portal.KeepAliveAction">
-			<!-- Send the "No Content" success HTTP status code. -->
-			<result name="success" type="httpheader">
-				<param name="status">204</param>
-			</result>
+			<allowed-methods>keepAlive</allowed-methods>
 		</action>
 	</package>
 	<include file="account/struts-account.xml" />
@@ -180,4 +169,5 @@
 	<include file="metastudy/struts-metastudy.xml" />
 	<include file="ordermanager/struts-ordermanager.xml" />
 	<include file="esign/struts-esign.xml" />
+	<include file="twoFa/struts-twoFa.xml" />
 </struts>

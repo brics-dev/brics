@@ -1,0 +1,7 @@
+[DB-TRG]
+host=cistar-db-stage.cit.nih.gov
+database=dictionary_stage
+schema=dictionarystg
+user=dictionarystg
+label=TARGET
+

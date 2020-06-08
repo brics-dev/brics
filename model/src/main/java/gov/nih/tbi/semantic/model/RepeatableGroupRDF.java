@@ -33,7 +33,7 @@ public class RepeatableGroupRDF {
 	// Relationship Properties
 	public static final Property RELATION_PROPERTY_HAS_FORM = property("hasForm");
 	public static final Property RELATION_PROPERTY_HAS_DATA_ELEMENT = property("hasDataElement");
-
+	public static final Property RELATION_PROPERTY_HAS_REQUIRED_TYPE = property("hasRequiredType");
 	public static final Property PROPERTY_POSITION = property("position");
 	public static final Property PROPERTY_REPEAT_TYPE = property("type");
 	public static final Property PROPERTY_THRESHOLD = property("threshold");

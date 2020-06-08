@@ -10,9 +10,12 @@ import java.util.Map;
 
 import org.springframework.stereotype.Repository;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.query.ResultSetFormatter;
+import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 
 import gov.nih.tbi.MetadataStore;
@@ -195,5 +198,43 @@ public class SummaryQuerySparqlDaoImpl extends
 			}
 		}
 		return output;
+	}
+	
+	/**
+	 * Calls virtuoso with the given query and parses the results into a key/value map of variables and counts (based on the convention of the SPARQL queries).
+	 * 
+	 * These queries should only be returning two variables: "value" and "count".  Anything else will be ignored.
+	 */
+
+	@Override
+	public SummaryResult getResultsMapping(String query) {
+		SummaryResult summaryResult = new SummaryResult();
+		
+		Multimap<String, String> summaryResultsMap = summaryResult.getResultsMultiMap();
+
+        ResultSet resultset = virtuosoStore.querySelect(query, MetadataStore.REASONING);
+
+        String strVar = resultset.getResultVars().get(0);
+        String countVar = resultset.getResultVars().get(1);
+        
+       
+  
+        while (resultset.hasNext()) {
+            QuerySolution row = resultset.next();
+
+            if (!row.contains(strVar)) {
+                continue;
+            }
+            
+            Literal categoryVal = row.getLiteral(strVar);
+            Literal countVal = row.getLiteral(countVar);
+            String category = String.valueOf(categoryVal);
+            String count = String.valueOf(countVal);
+
+           
+            summaryResultsMap.put(category, count);
+            
+        }
+		return summaryResult;
 	}
 }

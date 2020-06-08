@@ -1,0 +1,1 @@
+python pgDelta.py --props=.\conf\cistar.stage-tbi.stage.meta

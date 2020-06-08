@@ -21,13 +21,22 @@
 <body>
 <%--The below line is needed to export datatable in pdf, since we did not include header.jsp int this jsp file(as logo or banner is not displayed view audit page) --%>
  <a id="logo" class="float-left" href='${systemPreferences.get('brics.modules.workspace.url')}' style="display:none;"></a>
-
+ <script type="text/javascript">
+ function exportToPDF() {
+	var basePath = "<s:property value="#webRoot"/>";
+	var WindowArgs = "toolbar=no," + "location=no," + "directories=no," + "status=yes,";
+	var url = document.URL;
+	var selected_Form_Id = url.substring(url.lastIndexOf('?') + 1);
+	var url = basePath+ '/response/printPdfCollectionAuditTrail.action?'+selected_Form_Id;
+	//var url = basePath+ '/response/printPdfCollectionAuditTrail!downloadPdf.action;
+	window.open(url, "", WindowArgs+ "width=500,height=400,menubar=yes,status=yes,location=yes,toolbar=yes,scrollbars=yes,resizable=yes");
+}
+</script>
     <div id="wrap">
 	    <div class="container960">
 	   		 <div class="formbutton">
-	    		<input type="button" value="Close" id="bntCloseAudit" onClick="window.close()" title ="Click to close" class="no-print"/> 
-				<input type="button" value="Print" id="bntPrintAudit" onClick="window.print()" title ="Click to Print" class="no-print"/>
-				<input type="button" value="Export to CSV" id="exportCSV" title = "Export to CSV" class="no-print"/>	 
+				<input type="button" value="Export to CSV" id="exportCSV" title = "Export to CSV" class="no-print"/>	
+				<input type="button" value="<s:text name='button.ExportToPDF'/>" id= "exportPDF" title="Export to PDF" onclick="exportToPDF()"/>
 			</div>
 	    	<h3 align="left"><s:text name="response.viewedit.history.title"/></h3>
 		    <table border=0 width="100%">
@@ -51,7 +60,7 @@
 		            <td><img src="<s:property value="#imageRoot"/>/spacer.gif" width="1" height="15" alt="" border="0"/></td>
 		        </tr>
 		        <tr>
-		            <td class="subPageTitle"><h3><s:text name="response.viewaudit.dataentry1"/></h3></td>
+		            <td class="subPageTitle"><h3><s:text name="response.viewaudit.inprogressentries"/></h3></td>
 		        </tr>
 		        <tr>
 		            <td>
@@ -79,6 +88,20 @@
 		            <td><img src="<s:property value="#imageRoot"/>/spacer.gif" width="1" height="15" alt="" border="0"/></td>
 		        </tr>
 		        <tr>
+		            <td class="subPageTitle"><h3><s:text name="response.viewaudit.auditcomment"/></h3></td>
+		        </tr>
+		        <tr>
+		            <td>
+						<div id="responseListContainer" class="idtTableContainer brics" style="display:block">
+							<table id="responseListAuditCommentTable" class="table table-striped table-bordered" width="100%">
+							</table>
+						</div>		           
+		            </td>
+		        </tr>
+		        <tr>
+		            <td><img src="<s:property value="#imageRoot"/>/spacer.gif" width="1" height="15" alt="" border="0"/></td>
+		        </tr>
+		        <tr>
 		            <td class="subPageTitle"><h3><s:text name="response.viewaudit.sentEmails" /></h3></td>
 		        </tr>
 		        <tr>
@@ -92,9 +115,8 @@
 		    </table>   
 		    
 	   		 <div class="formbutton">
-				<input type="button" value="Close" id="bntCloseAudit" onClick="window.close()" title ="Click to close" class="no-print"/> 
-				<input type="button" value="Print" id="bntPrintAudit" onClick="window.print()" title ="Click to Print" class="no-print"/>
-				<input type="button" value="Export to CSV" id="exportCSV" title = "Export to CSV" class="no-print"/>	 
+				<input type="button" value="Export to CSV" id="exportCSVf" title = "Export to CSV" class="no-print"/>	 
+				<input type="button" value="<s:text name='button.ExportToPDF'/>" id= "exportPDF" title="Export to PDF" onclick="exportToPDF()"/>
 			</div>
 		</div>
 	</div>
@@ -104,8 +126,14 @@
 function getURLParameter(name) {
        return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search) || [null, ''])[1].replace(/\+/g, '%20')) || null;
 }
+function decodeHtmlStr(str) {
+	var decodedStr = $("<div>").html(str).text();
+	return decodedStr;
+}
 var aformId = getURLParameter('id');
-var ename = '<%=deh.getFormDisplay()%>';
+var eformName = '<s:property value="#session.dataentryheader.formDisplay" escapeXml="true"/>';
+var ename = decodeHtmlStr(eformName);
+
 $(document).ready(function() {
 	$('#dataEntryListTable').idtTable({
 		idtUrl: "<s:property value='#webRoot'/>/response/getInitialDataEntryList.action",
@@ -166,7 +194,7 @@ $(document).ready(function() {
 	    buttons: [
 			{
 				extend: "collection",
-				title: ename+'__Original Entries',
+				title: ename+'__In Progress Entries',
 				className: "no-print",
 				buttons: [				
 					{
@@ -206,6 +234,7 @@ $(document).ready(function() {
 	
 	$('#dataEntry1ListTable').idtTable({
 		idtUrl: "<s:property value='#webRoot'/>/response/getDataEntryList.action",
+		order: [[ 1, "asc" ]],
 		filterData: {
 			id: aformId
 		},
@@ -233,10 +262,10 @@ $(document).ready(function() {
 				parameter: "status"
 			},
 			{
-				title:"# of Questions Completed",
-				data: "questionCompleted",
-				name:"questionCompleted",
-				parameter: "questionCompleted"
+				title:"# of Questions Answered",
+				data: "numQuestionsAnswered",
+				name:"numQuestionsAnswered",
+				parameter: "numQuestionsAnswered"
 			}
 			<% if (enableEsignature) { %>
 			,{
@@ -384,6 +413,12 @@ $(document).ready(function() {
 				data: "reasonForEdit",
 				name:"reasonForEdit",
 				parameter: "reasonForEdit"
+			},
+			{
+				title:"Form Status",
+				data: "collStatus",
+				name:"collStatus",
+				parameter: "collStatus"
 			}						
 			<% if (enableEsignature) { %>
 			,{
@@ -398,7 +433,7 @@ $(document).ready(function() {
 	    buttons: [
 			{
 				extend: "collection",
-				title: ename+'__Answers edited after complete or lock',
+				title: ename+'__Answers Edited After Being Completed or Locked',
 				className: "no-print",
 				buttons: [				
 					{
@@ -436,6 +471,117 @@ $(document).ready(function() {
 		]
 	});
 	
+	//ArchivesListTable
+	$('#responseListAuditCommentTable').idtTable({
+		idtUrl: "<s:property value='#webRoot'/>/response/getEditArchivesListForAuditComment.action",
+		filterData: {
+			id: aformId
+		},
+	    "language": {
+	        "emptyTable": "There are no edited answers to display at this time."
+	    },
+		columns: [
+			{
+				title:"Name",
+				data: "username",
+				name:"username",
+				parameter: "username"
+			},
+			{
+				title:"Date/Time",
+				data: "editDate",
+				name:"editDate",
+				parameter: "editDate",
+				render: IdtActions.formatDateWithSeconds()
+			},
+			{
+				title:"Section Name",
+				data: "sectionName",
+				name:"sectionName",
+				parameter: "sectionName"
+			},
+			{
+				title:"Data Element Name",
+				data: "dataElementName",
+				name:"dataElementName",
+				parameter: "dataElementName"
+			},
+			{
+				title:"Question Text",
+				data: "questionText",
+				name:"questionText",
+				parameter: "questionText"
+			},
+			{
+				title:"Answers Before",
+				data: "preAnswers",
+				name:"preAnswers",
+				parameter: "preAnswers",
+				render: IdtActions.ellipsis(1000)
+			},
+			{
+				title:"Answers After",
+				data: "postAnswers",
+				name:"postAnswers",
+				parameter: "postAnswers",
+				render: IdtActions.ellipsis(1000)
+			},
+			{
+				title:"Audit Comment",
+				data: "auditcommentForEdit",
+				name:"auditcommentForEdit",
+				parameter: "auditcommentForEdit"
+			}
+			<% if (enableEsignature) { %>
+			,{
+				title:"e-Signature",
+				data: "editESignature",
+				name:"editESignature",
+				parameter: "editESignature"
+			}
+			<% } %>
+		],
+	    dom : 'Bfrtip',
+	    buttons: [
+			{
+				extend: "collection",
+				title: ename+'__Audit Comments',
+				buttons: [				
+					{
+						extend: 'csv',
+						text: 'csv',
+						className: 'btn btn-xs btn-primary p-5 m-0 width-35 assets-export-btn  buttons-csv',
+						extension: '.csv',
+						name: 'csv',
+						exportOptions: {
+							columns: ':visible',
+							orthogonal: 'export'
+						},
+						enabled: true,
+						action: IdtActions.exportAction()
+						
+					},
+					{
+						extend: 'pdf',
+						text: 'pdf',
+						className: 'btn btn-xs btn-primary p-5 m-0 width-35 assets-export-btn buttons-pdf',
+						extension: '.pdf',
+						name: 'pdf',
+						exportOptions: {
+							columns: ':visible',
+							orthogonal: 'export'
+						},
+						enabled: true,
+						orientation: 'landscape',
+						action: IdtActions.exportAction(),
+			            customize: IdtActions.pdfCustomizer()						
+					}			
+					
+				]
+			}
+		]
+	});
+
 	//ArchivesListTable
 	$('#sentEmailsTable').idtTable({
 		idtUrl: "<s:property value='#webRoot'/>/response/getSentEmailsList.action",
@@ -522,8 +668,59 @@ $(document).ready(function() {
 	
 	$("#exportCSV").click(function(){
 		
- 		var tables = ["dataEntryListTable","dataEntry1ListTable","responseListTable","sentEmailsTable"]; //table ids
- 		var tableNames = ["Original Entries","Form Summary Status","Answers edited after complete/lock","Sent Emails"]; //table names
+ 		var tables = ["dataEntry1ListTable","dataEntryListTable","responseListTable","responseListAuditCommentTable","sentEmailsTable"]; //table ids
+ 		var tableNames = ["Form Summary Status","Original Entries","Answers edited after complete/lock","Audit Comment","Sent Emails"]; //table names
+ 		var finalCSVString ='Data Collection Audit Log \r\n';
+ 		var count=0;
+ 		
+ 		//iterate details above the tables like eform name, protocol name etc and append it to string
+ 		$('#dataEntryHeader td').each(function() {
+ 			finalCSVString+=$(this).text().replace(/\r?\n|\r/g, "");
+ 			if((count+1)%2 === 0){
+ 				finalCSVString+='\r\n'; //add new line
+ 			}else{
+ 				finalCSVString+=' ';
+ 			}
+ 			count++;
+ 		});
+ 		finalCSVString+='\r\n';
+ 		
+ 		//Iterate all the tables in View Audit page
+ 		for(var i=0; i<tables.length; i++){
+	  		var titles = [];
+			var data = [];
+		
+			/*
+			 * Get the table headers, this will be CSV headers
+			 * The count of headers will be CSV string separator
+			 */
+			 var tableId = '#'+tables[i];
+			  $(tableId+' th').each(function() {
+			    titles.push($(this).text());
+			  });
+		
+			  /*
+			   * Get the actual data, this will contain all the data, in 1 array
+			   */
+			  $(tableId+' td').each(function() {
+			    data.push($(this).text());
+			  });
+			  
+			  /*
+			   * Convert our data to CSV string
+			   */
+			  var CSVString = prepCSVRow(titles, titles.length, '');
+			  CSVString = prepCSVRow(data, titles.length, CSVString);
+			  finalCSVString = finalCSVString + tableNames[i] + '\r\n' + CSVString + '\r\n';
+ 		}
+ 		downloadCSV(finalCSVString);
+	  
+	});
+	
+$("#exportCSVf").click(function(){
+		
+ 		var tables = ["dataEntry1ListTable","dataEntryListTable","responseListTable","responseListAuditCommentTable","sentEmailsTable"]; //table ids
+ 		var tableNames = ["Form Summary Status","Original Entries","Answers edited after complete/lock","Audit Comment","Sent Emails"]; //table names
  		var finalCSVString ='Data Collection Audit Log \r\n';
  		var count=0;
  		

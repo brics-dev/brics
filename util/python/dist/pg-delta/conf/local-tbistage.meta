@@ -1,0 +1,16 @@
+[DB-ONE]
+host=localhost
+database=metadb
+schema=metasch
+user=metauser
+label=LOCAL
+
+[DB-TWO]
+host=fitbir-db-stage.cit.nih.gov
+database=tbi_stage
+schema=tbi_metastg
+user=tbi_metastg
+label=STAGE
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\pgDelta\local-tbistage-meta

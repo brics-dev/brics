@@ -1,0 +1,6 @@
+[DB-TRG]
+host=cnrm-db-prod.ninds.nih.gov
+database=cnrm_prod
+schema=cnrm_meta
+user=cnrm_meta
+label=TARGET

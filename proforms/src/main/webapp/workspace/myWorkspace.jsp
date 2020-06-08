@@ -6,6 +6,7 @@
 <%@ taglib uri="/struts-tags" prefix="s"%>
 <%@ taglib uri="/WEB-INF/datatables.tld" prefix="idt" %>
 <%@ taglib uri="/WEB-INF/security.tld" prefix="security" %>
+<%@ taglib uri="http://java.sun.com/jstl/core" prefix="c" %>
 
 <%-- CHECK PRIVILEGES --%>
 <security:check privileges="viewprotocols, addeditprotocols, validuser"/>
@@ -18,11 +19,11 @@
 
 <jsp:include page="/common/header_struts2.jsp" />
 <jsp:include page="/workspace/dashboardJsCssLib.jsp" />
-
-
 <%
 	Locale l = request.getLocale();
 	User user = (User) session.getAttribute(CtdbConstants.USER_SESSION_KEY);
+	Protocol curProtocol = (Protocol) session.getAttribute(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
+	int SUBJECT_DISPLAY_TYPE = curProtocol.getPatientDisplayType();
 %>
 
 <script type="text/javascript">
@@ -332,8 +333,16 @@ var Calendar = {
 		}
 		$div.children(".calendarDataDisplay").append('<s:text name="myworkspace.dashboard.ScheduledAppointments" /><table cellpadding="0" cellspacing="0"><thead><tr></tr></thead></table>');
 		var $table = $div.children(".calendarDataDisplay").find("table");
+		
 		var $theadRow = $table.find("tr").last();
-		$theadRow.append('<th><s:text name="time" /></th><th><s:text name="response.resolveHome.tableHeader.subjectGUID" /></th><th><s:text name="response.label.interval" /></th><th><s:text name="study.add.number.display" /></th>');
+		$theadRow.append('<th><s:text name="time" /></th>');
+		<%if (SUBJECT_DISPLAY_TYPE  == CtdbConstants.PATIENT_DISPLAY_GUID) {%>
+			$theadRow.append('<th><s:text name="response.resolveHome.tableHeader.subjectGUID" /></th>');
+		<% } else { %>
+			$theadRow.append('<th><s:text name="response.resolveHome.tableHeader.subjectID" /></th>');
+		<% } %>
+		$theadRow.append('<th><s:text name="response.label.interval" /></th><th><s:text name="study.add.number.display" /></th>');
+
 		$table.append("<tbody></tbody>");
 		$tableBody = $table.children("tbody");
 		var eventData = null;
@@ -380,110 +389,19 @@ var Calendar = {
 	}
 };
 
-/*
- * init AE
- */
- var AE = {
-			Settings : {
-				aesData : [],
-				currentDate : new Date(),
-				divRef : null
-			},
-			
-			
-			/**
-			 * Initializes the AE object Data
-			 */
-			init : function($div, settings) {
-				$div.addClass("ibisActiveCalendar"); 
-				
-				// handle settings merging
- 				if (typeof settings == "undefined") {
- 					settings = {};
- 				}
-				this.Settings = $.extend(this.Settings, settings);
-				this.Settings.divRef = $div;
-				
-				// requests, via ajax
-				this.requestAEData($div, settings);
-			},
-			/**
-			 * Requests the data for ae table
-			 */
-			requestAEData : function($div, settings) {
-				this.Settings.currentData = [];
-				$.ajax({
-					type: "POST",  
-					url : "<s:property value="#webRoot"/>/workspace/aeJson.action",
-					success : function(response) {
-						if (response != "") {
-							response = jQuery.parseJSON(response);
-							AE.Settings.aesData = response;
-							AE.initStepTwo($div, settings);
-						}
-					}
-				});
-			},
-			
-			initStepTwo : function($div, settings) {
-				// draw the AE Log table and output list inside the div
-				this.clearTable();
-				this.displayAEDetails($div);
-			},
-			clearTable : function() {
-				this.Settings.divRef.empty();
-			},
-/**
- * Displays listings for the Adverse Events in the details pane.
- */
-displayAEDetails : function($div) {
 
-	var arrAesData = this.Settings.aesData;
-	if (arrAesData == null) {
-		arrAesData = new Array();
-	}
-    
-	
-	$div.append(' <div class="calendarContainer"><s:text name="Adverse Event Log" /><table cellpadding="0" cellspacing="0"><thead><tr></tr></thead></table></div> ');
-	var $table = $div.children(".calendarContainer").find("table");
-	
-	var $theadRow = $table.find("tr").last();
-	$theadRow.append('<th><s:text name="Date" /></th><th width="80"><s:text name="Incident Report" /></th>');
-	$table.append("<tbody></tbody>");
-	$tableBody = $table.children("tbody");
-	var aeData = null;
-	var cell = "";
+function getDate () {
+	   var newDate = new Date();
 
-	for (var i = 0; i < arrAesData.length; i++) {
-		$tableBody.append("<tr></tr>");
-		var $trow = $tableBody.find("tr").last();
+	   var sMonth = getValue(newDate.getMonth() + 1);
+	   var sDay = getValue(newDate.getDate());
+	   var sYear = newDate.getFullYear();
 
- 		aeData = arrAesData[i];
- 		cell= aeData.formCompleteddate;
- 		if(cell !=null) {cell=cell.substring(0, cell.indexOf(" "));}
- 		$trow.append('<td>'+ cell + "</td>");
-	<%
-		if (protocol == null) {
-	%>
-			$trow.append('<td>'+aeData.subject+'</td>');
-	<%
-		} else {
-	%>
-		var selected_Form_Ids =aeData.administeredformId; 
-		$trow.append('<td><a href="<s:property value="#webRoot"/>/response/dataCollection.action?action=editForm&mode=formPatient&aformId=' +selected_Form_Ids+ '&editUser=' +'1'+ '">' + aeData.subject + '</a></td>');
-	<%
-		}
-	%>
-	}
+	   return sYear + sMonth + sDay;
 }
-};
-
-
+var now = getDate();
 $(document).ready(function() {
 	Calendar.init($("#calendar"));
-	
-	AE.init($("#aeId"));
-	
 	
 	$("#messagesTable").idtTable({
 		idtUrl: "<s:property value='#webRoot'/>/getQaAlertsList.action",
@@ -562,6 +480,7 @@ var basePath = "<s:property value='#webRoot'/>";
 		<jsp:include page="/workspace/dashboardChart.jsp" />
 	</security:hasPrivilege>
 </s:if>
+
 <%-- <h3 class="toggleable"><s:text name="myworkspace.dashboard.SubjectVisits" /></h3> --%>
 <h3 class="toggleable" style="cursor: pointer;">
 	<a class="toggleable" href="javascript:;">
@@ -570,9 +489,6 @@ var basePath = "<s:property value='#webRoot'/>";
 </h3>
 <div>
 	<div id="calendar"></div>
-	<s:if test="#displayClinicalPoint">
-		<div id="aeId"></div> 
-	</s:if>
 </div>
 
 <%-- Include Footer --%>

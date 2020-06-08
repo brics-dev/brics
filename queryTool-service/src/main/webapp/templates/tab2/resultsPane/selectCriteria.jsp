@@ -9,10 +9,16 @@
 
 <script type="text/x-handlebars-template" id="selectCriteriaForm">
     <div class="selectCriteriaForm" uri="{{uri}}">
-        <div class="selectCriteriaFormName">{{title}}</div>
-        <div class="selectCriteriaGroupContainer">
+		<div class="selectCriteriaFormHeader">
+			<a href="javascript:;" class="formExpandCollapse pe-is-i-minus-circle"></a>
+        	<div class="selectCriteriaFormName">{{title}}</div>
+			<a href="javascript:;" class="formAddRemoveAll addRemoveAllButton checkbox checkboxChecked"></a>
+			<div class="selectCriteriaShowHideText">Show All/Hide in Datatable</div>
+		</div>
+        <div class="selectCriteriaGroupContainer selectCriteriaCollapsible">
             <div class="clearfix"></div>
         </div>
+	<div class="clearfix"></div>
     </div>
 </script>
 
@@ -21,23 +27,14 @@
         <div class="selectCriteriaGroupHeader">
             <a href="javascript:;" class="selectCriteriaGroupExpandCollapse pe-is-i-plus-circle"></a>
             {{name}}
+			<a href="javascript:;" class="sectionAddRemoveAll addRemoveAllButton checkbox checkboxChecked"></a>
             <div class="clearfix"></div>
         </div>
-        <div class="selectCriteriaGroupContent">
-            <div class="selectCriteriaGroupButtons">
-                <a href="javascript:;" class="selectCriteriaGroupSelectAll buttonWithIcon">
-                    <span class="icon pe-is-i-check-square-1"></span> Select All
-                </a>
-                <a href="javascript:;" class="selectCriteriaGroupDeselectAll buttonWithIcon">
-                    <span class="icon pe-is-i-close-square"></span> Deselect All
-                </a>
-                <span class="selectCriteriaGroupButtonsText">Data Elements in the <span class="selectCriteriaGroupSelectionName">{{name}}</span> group</span>
-                <div class="clearfix"></div>
-            </div>
+        <div class="selectCriteriaGroupContent selectCriteriaCollapsible">
             <div class="selectCriteriaTableHeader">
                 <div class="selectCriteriaDeNameContainer">Data element name</div>
-                <div class="selectCriteriaDeCheckboxContainer">Include in datatable</div>
-                <div class="selectCriteriaFilterContainer">Filter by this element</div>
+                <div class="selectCriteriaDeFilterContainer">Filter</div>
+				<div class="selectCriteriaDeCheckboxContainer">Show in datatable</div>
                 <div class="clearfix"></div>
             </div>
             <div class="selectCriteriaDeContainer">
@@ -53,14 +50,14 @@
             {{title}}
             <a href="javascript:;" class="deInformation pe-is-i-info-circle"></a>
         </div>
-        <div class="selectCriteriaDeCheckboxContainer">
-            <input type="checkbox" class="selectCriteriaDeCheckbox" checked="checked" />
-        </div>
         <div class="selectCriteriaDeFilterContainer">
-            <a href="javascript:;" class="selectCriteriaDeFilter buttonWithIcon">
-                <span class="icon pe-is-i-sliders-circle"></span>
-                <span class="selectCriteriaDeFilterText">Filter</span>
+            <a href="javascript:;" class="selectCriteriaDeFilter">
+                <span class="icon"></span>
             </a>
+        </div>
+		<div class="selectCriteriaDeCheckboxContainer">
+			<input type="checkbox" class="selectCriteriaDeCheckbox" id="{{id}}" checked="checked" />
+			<label for="{{id}}"></label>
         </div>
         <div class="clearfix"></div>
     </div>

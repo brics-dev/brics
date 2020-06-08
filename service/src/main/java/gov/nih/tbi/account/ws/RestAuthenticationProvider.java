@@ -37,7 +37,7 @@ public class RestAuthenticationProvider
 
     /***************************************************************************************************/
 
-    HttpClient client = new HttpClient();
+    protected HttpClient client = new HttpClient();
 
 
     /***************************************************************************************************/

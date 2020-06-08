@@ -1,5 +1,6 @@
 package gov.nih.tbi.repository.dao;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 import gov.nih.tbi.commons.dao.GenericDao;
@@ -25,4 +26,6 @@ public interface DatasetFileDao extends GenericDao<DatasetFile, Long> {
 	public List<DatasetFile> getByDatasetId(Long datasetId);
 	
 	public BigInteger getDatasetPendingFileCount(Long datasetId);
+
+	public BigDecimal getTotalFilesSizeByDatasetId(Long datasetId);
 }

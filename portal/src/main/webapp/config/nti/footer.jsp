@@ -7,9 +7,9 @@
 				<s:a href="%{modulesPublicURL}contact" class="margin-right">Contact</s:a>
 			</p>
 		</div>
-		<div class="build-notes clear-both line">
-			<p class="right">Build Version:<s:property value="%{deploymentVersion}" /></p>
-		</div>
+		
+		<!-- Include the release info section -->
+		<jsp:include page="/common/release-info.jsp" />
 	</div>
 </div>
 <!-- end #footer -->

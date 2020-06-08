@@ -5,7 +5,8 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
-import gov.nih.tbi.commons.model.hibernate.User;
+import com.jcraft.jsch.SftpException;
+
 import gov.nih.tbi.commons.service.BaseManager;
 import gov.nih.tbi.ordermanager.model.BiospecimenOrder;
 import gov.nih.tbi.ordermanager.model.OrderStatus;
@@ -16,7 +17,7 @@ public abstract interface OrderManager extends BaseManager {
 
 	public abstract SftpClient getBricsSftpClient();
 	
-	public abstract Boolean storeOrderFiles(UserFile userFile, byte[] byteStream,String path);
+	public abstract Boolean storeOrderFiles(UserFile userFile, byte[] byteStream, String path) throws SftpException;
 	
 	/**
 	 * This method returns true if an orderTitle has already been created in the system, excluding the order with the

@@ -1,0 +1,17 @@
+[RDF-SRC]
+serviceURL=http://ibis-rdfstore-uat.cit.nih.gov:8890/sparql/
+graph=http://ninds.nih.gov:8080/allTriples.ttl
+isqlPort=1111
+batchMax=7500
+
+[RDF-TRG]
+serviceURL=http://localhost:8891/sparql/
+graph=http://ninds.nih.gov:8080/allTriples.ttl
+isqlHost=localhost
+isqlPort=1112
+isqlUser=dba
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\rdfCloner\uat-local
+dumpDir=D:\SOFT\Virtuoso\import
+passwdFile=D:\DATA\secur\passwd.conf

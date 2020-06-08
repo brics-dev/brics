@@ -16,7 +16,7 @@
 			</div>
 		</c:if>
 
-		<p>Please provide your <s:property value="%{orgName}" /> username or email address. A link to reset your 
+		<p>Please provide your <span id="orgName"><s:property value="orgName" /></span> username or email address. A link to reset your 
 			password will be sent to the email address on file.</p>
 
 		<s:form id="passwordRecoveryForm" action="promptpasswordRecoveryValidationAction!submit" method="post">
@@ -45,5 +45,7 @@
 <script type="text/javascript">
 	$('document').ready(function() {
 		$("#navigation").hide();
+		var orgName = $("#orgName").text();
+		$("#orgName").text(orgName.replace(/_/g, ' '));
 	});
 </script>

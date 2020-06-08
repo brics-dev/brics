@@ -1,2 +1,6 @@
 /target/
 /test-output/
+/node_modules/
+/downloadTool/build/
+downloadTool.min.js
+/package-lock.json

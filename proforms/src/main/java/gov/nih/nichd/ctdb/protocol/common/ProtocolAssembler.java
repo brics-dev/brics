@@ -99,6 +99,7 @@ public class ProtocolAssembler extends CtdbAssembler {
 			protocolForm.setSiteHashMap(protocol.getSiteHashMap());
 			protocolForm.setDrugDeviceHashMap(protocol.getDrugDeviceHashMap());
 			protocolForm.setDeleteFlag(protocol.getDeleteFlag());
+			protocolForm.setPsrHeader(protocol.getPsrHeader());
 		}
 		catch (Exception e) {
 			throw new AssemblerException("Unable to assemble protocol form object.", e);
@@ -196,6 +197,7 @@ public class ProtocolAssembler extends CtdbAssembler {
 			protocol.setSiteHashMap(protoForm.getSiteHashMap());
 			protocol.setDrugDeviceHashMap(protoForm.getDrugDeviceHashMap());
 			protocol.setDeleteFlag(protoForm.getDeleteFlag());
+			protocol.setPsrHeader(protoForm.getPsrHeader());
 			
 			protocol.setClinicalLocationList(protoForm.getProtoClinicLocList());
 			protocol.setProcedureList(protoForm.getProtoProcedureList());

@@ -25,6 +25,10 @@
 			<div class="col-md-2">
 				<select id="skipRuleOperatorType" name="skipRuleOperatorType">
   					<option value="-2147483648">None</option>
+					<option value="8">Greater than equal to</option>
+					<option value="7">Greater than</option>
+					<option value="6">Less than equal to</option>
+					<option value="5">Less than</option>
   					<option value="4">Contains</option>
   					<option value="3">Has Any Value</option>
   					<option value="2">Is Blank</option>

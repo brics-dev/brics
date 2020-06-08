@@ -2,11 +2,13 @@
 package gov.nih.tbi.repository.model;
 
 import java.io.Serializable;
+import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
@@ -33,9 +35,10 @@ public class SubmissionTicket implements Serializable
 
     @XmlElement
     public String datasetName;
-
-    @XmlElement(required = true)
-    private SubmissionPackage submissionPackage;
+    
+    @XmlElementWrapper(name = "submissionPackages")
+    @XmlElement(name = "submissionPackage", required = true)
+    private List<SubmissionPackage> submissionPackages;
 
     public String getVersion()
     {
@@ -109,15 +112,15 @@ public class SubmissionTicket implements Serializable
         this.datasetName = datasetName;
     }
 
-    public SubmissionPackage getSubmissionPackage()
+    public List<SubmissionPackage> getSubmissionPackages()
     {
 
-        return submissionPackage;
+        return submissionPackages;
     }
 
-    public void setSubmissionPackage(SubmissionPackage submissionPackage)
+    public void setSubmissionPackages(List<SubmissionPackage> submissionPackages)
     {
 
-        this.submissionPackage = submissionPackage;
+        this.submissionPackages = submissionPackages;
     }
 }

@@ -1,17 +1,16 @@
 package gov.nih.tbi.dao;
 
 import gov.nih.tbi.pojo.DeSelectSearch;
-
-import com.hp.hpl.jena.query.ResultSet;
+import gov.nih.tbi.pojo.QueryResult;
 
 public interface DeSelectResultDao {
 
-	public ResultSet deSelectQuery(DeSelectSearch searchParameters);
+	public QueryResult deSelectQuery(DeSelectSearch searchParameters);
 	
-	public ResultSet deSelectCountQuery(DeSelectSearch searchParameters);
+	public QueryResult deSelectCountQuery(DeSelectSearch searchParameters);
 	
-	public ResultSet getPopulationOptions();
+	public QueryResult getPopulationOptions();
 	
-	public ResultSet getDiseaseOption();
+	public QueryResult getDiseaseOption();
 	
 }

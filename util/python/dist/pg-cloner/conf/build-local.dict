@@ -1,0 +1,15 @@
+[DB-SRC]
+host=brics-build.cit.nih.gov
+database=dictdb
+schema=dictschema
+user=dictuser
+
+[DB-TRG]
+host=localhost
+database=dictdb
+schema=dictsch
+user=dictuser
+
+[FILE-SYS]
+logDir=D:\\DEV\\appdata\\log\\pgCloner\\build-local-dict
+dumpDir=D:\\DEV\\appdata\\dump\\pgCloner\\build-local-dict

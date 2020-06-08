@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.google.gson.JsonObject;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
 
@@ -32,7 +33,7 @@ GenericSparqlDaoImpl <List<StudySubmittedForm>> implements StudySubmittedFormsSp
 		List <StudySubmittedForm> studySubmittedForms = new ArrayList<StudySubmittedForm>();
 		
 		StringBuffer qb =  new StringBuffer();
-		qb.append("select ?studyTitle ?fsName ?fsShortName ?datasetStatus (str(count(?row)) as ?count) {");
+		qb.append("select ?studyId ?studyTitle ?fsName ?fsShortName ?datasetStatus (str(count(?row)) as ?count) {");
 		qb.append("?row a ?form .");
 		qb.append("?form <http://ninds.nih.gov/dictionary/ibis/1.0/FormStructure/shortName> ?fsShortName .");
 		qb.append("?form <http://ninds.nih.gov/dictionary/ibis/1.0/FormStructure/title> ?fsName .");
@@ -41,19 +42,21 @@ GenericSparqlDaoImpl <List<StudySubmittedForm>> implements StudySubmittedFormsSp
 		qb.append("?dataset dataset:status ?datasetStatus .");
 		qb.append("?dataset study:facetedStudy ?study .");
 		qb.append("?study study:title ?studyTitle .");
+		qb.append("?study study:studyId ?studyId .");
 		qb.append("FILTER (str(?studyTitle) = \""+studyTitle+"\")");
 		qb.append("}");
-		qb.append(" group by ?fsName ?fsShortName ?studyTitle ?datasetStatus");
+		qb.append(" group by ?fsName ?fsShortName ?studyId ?studyTitle ?datasetStatus");
 		qb.append(" order by asc(?fsName)");
 		
 		String query = qb.toString();
 		ResultSet resultset = virtuosoStore.querySelect(query, MetadataStore.REASONING);
 		
-		String studyTitleVar = resultset.getResultVars().get(0);
-        String fSNameVar = resultset.getResultVars().get(1);
-        String fSShortNameVar = resultset.getResultVars().get(2);
-        String datasetStatusVar = resultset.getResultVars().get(3);
-        String countVar = resultset.getResultVars().get(4);
+		String studyIdVar = resultset.getResultVars().get(0);
+		String studyTitleVar = resultset.getResultVars().get(1);
+        String fSNameVar = resultset.getResultVars().get(2);
+        String fSShortNameVar = resultset.getResultVars().get(3);
+        String datasetStatusVar = resultset.getResultVars().get(4);
+        String countVar = resultset.getResultVars().get(5);
         
         
         while (resultset.hasNext()) {
@@ -63,13 +66,14 @@ GenericSparqlDaoImpl <List<StudySubmittedForm>> implements StudySubmittedFormsSp
                 continue;
             }
 
+            Long studyId = row.getLiteral(studyIdVar).getLong();
             String title = row.getLiteral(studyTitleVar).toString();
             String fSTitle = row.getLiteral(fSNameVar).toString();
             String fSShortName = row.getLiteral(fSShortNameVar).toString();
             String numberOfRecords = row.getLiteral(countVar).toString();
             String datasetStatus = row.getLiteral(datasetStatusVar).toString();
             
-            StudySubmittedForm studySubmittedForm = new StudySubmittedForm(title,fSTitle,fSShortName,numberOfRecords,datasetStatus);
+            StudySubmittedForm studySubmittedForm = new StudySubmittedForm(studyId,title,fSTitle,fSShortName,numberOfRecords,datasetStatus);
             studySubmittedForms.add(studySubmittedForm);
             
         }
@@ -85,12 +89,12 @@ GenericSparqlDaoImpl <List<StudySubmittedForm>> implements StudySubmittedFormsSp
 	}
 	
 	@Override
-	public Multimap<String, StudySubmittedForm> getAllStudySubmittedForms() {
+	public Multimap<Long, StudySubmittedForm> getAllStudySubmittedForms() {
 			
-		Multimap<String, StudySubmittedForm> studySubmittedForms = ArrayListMultimap.create();
+		Multimap<Long, StudySubmittedForm> studySubmittedForms = ArrayListMultimap.create();
 		
 		StringBuffer qb =  new StringBuffer();
-		qb.append("select ?studyTitle ?fsName ?fsShortName ?datasetStatus  (str(count(?row)) as ?count) {");
+		qb.append("select ?studyId ?studyTitle ?fsName ?fsShortName ?datasetStatus  (str(count(?row)) as ?count) {");
 		qb.append("?row a ?form .");
 		qb.append("?form <http://ninds.nih.gov/dictionary/ibis/1.0/FormStructure/shortName> ?fsShortName .");
 		qb.append("?form <http://ninds.nih.gov/dictionary/ibis/1.0/FormStructure/title> ?fsName .");
@@ -98,19 +102,24 @@ GenericSparqlDaoImpl <List<StudySubmittedForm>> implements StudySubmittedFormsSp
 		qb.append("?row fs:dataset ?dataset .");
 		qb.append("?dataset dataset:status ?datasetStatus .");
 		qb.append("?dataset study:facetedStudy ?study .");
-		qb.append("?study study:title ?studyTitle");
+		qb.append("?study study:title ?studyTitle .");
+		qb.append("?study study:studyId ?studyId .");
+		qb.append("?study study:status ?studyStatus .");
+		qb.append("FILTER (str(?studyStatus ) = \"Public\") ");
+		
 		qb.append("}");
-		qb.append(" group by ?fsName ?fsShortName ?studyTitle ?datasetStatus");
+		qb.append(" group by ?fsName ?fsShortName ?studyId ?studyTitle ?datasetStatus");
 		qb.append(" order by asc(?fsName)");
 		
 		String query = qb.toString();
 		ResultSet resultset = virtuosoStore.querySelect(query, MetadataStore.REASONING);
 		
-		String studyTitleVar = resultset.getResultVars().get(0);
-        String fSNameVar = resultset.getResultVars().get(1);
-        String fSShortNameVar = resultset.getResultVars().get(2);
-        String datasetStatusVar = resultset.getResultVars().get(3);
-        String countVar = resultset.getResultVars().get(4);
+		String studyIdVar = resultset.getResultVars().get(0);
+		String studyTitleVar = resultset.getResultVars().get(1);
+        String fSNameVar = resultset.getResultVars().get(2);
+        String fSShortNameVar = resultset.getResultVars().get(3);
+        String datasetStatusVar = resultset.getResultVars().get(4);
+        String countVar = resultset.getResultVars().get(5);
         
         
         while (resultset.hasNext()) {
@@ -119,15 +128,15 @@ GenericSparqlDaoImpl <List<StudySubmittedForm>> implements StudySubmittedFormsSp
             if (!row.contains(studyTitleVar)) {
                 continue;
             }
-
+            Long studyId = row.getLiteral(studyIdVar).getLong();
             String title = row.getLiteral(studyTitleVar).toString();
             String fSTitle = row.getLiteral(fSNameVar).toString();
             String fSShortName = row.getLiteral(fSShortNameVar).toString();
             String numberOfRecords = row.getLiteral(countVar).toString();
             String datasetStatus = row.getLiteral(datasetStatusVar).toString();
             
-            StudySubmittedForm studySubmittedForm = new StudySubmittedForm(title,fSTitle,fSShortName,numberOfRecords,datasetStatus);
-            studySubmittedForms.put(title, studySubmittedForm);
+            StudySubmittedForm studySubmittedForm = new StudySubmittedForm(studyId,title,fSTitle,fSShortName,numberOfRecords,datasetStatus);
+            studySubmittedForms.put(studyId, studySubmittedForm);
             
         }
         			
@@ -184,7 +193,7 @@ GenericSparqlDaoImpl <List<StudySubmittedForm>> implements StudySubmittedFormsSp
 		List<String> studyTitleList = new ArrayList<String>();
 		
 		StringBuffer qb =  new StringBuffer();
-		qb.append("select ?studyTitle ");
+		qb.append("select ?studyTitle ?studyId (str(count(?row)) as ?rowCount) ");
 		qb.append("where { ");
 		qb.append("?row a ?form . ");
 		qb.append("?form rdfs:subClassOf <http://ninds.nih.gov/dictionary/ibis/1.0/FormStructure> . ");
@@ -193,21 +202,33 @@ GenericSparqlDaoImpl <List<StudySubmittedForm>> implements StudySubmittedFormsSp
 		qb.append("?row fs:dataset ?dataset . ");
 		qb.append("?dataset study:facetedStudy ?study . ");
 		qb.append("?study study:title ?studyTitle . ");
+		qb.append("?study study:studyId ?studyId . ");
+		qb.append("?study study:status ?studyStatus . ");
 		qb.append("FILTER (str(?fsShortName ) = \""+fsShortName+"\") ");
+		qb.append("FILTER  (str(?studyStatus) = 'Public') ");
 		qb.append("} ");
-		qb.append("group by ?fsShortName ?studyTitle ");
+		qb.append("group by ?fsShortName ?studyTitle ?studyId ");
 		qb.append("order by asc(?studyTitle) ");
 		
 		String query = qb.toString();
 		ResultSet resultset = virtuosoStore.querySelect(query, MetadataStore.REASONING);
 		String studyTitleVar = resultset.getResultVars().get(0);
+		String studyIdVar = resultset.getResultVars().get(1);
+		String countVar = resultset.getResultVars().get(2);
+		JsonObject publicationJson = new JsonObject();
 		while (resultset.hasNext()) {
 			QuerySolution row = resultset.next();
 			if(!row.contains(studyTitleVar)){
 				continue;
 			}
 			String studyTitle = row.getLiteral(studyTitleVar).toString();
-			studyTitleList.add(studyTitle);
+			String studyId = row.getLiteral(studyIdVar).toString();
+			String numberOfRecords = row.getLiteral(countVar).toString();
+			publicationJson.addProperty("studyTitle", studyTitle);
+			publicationJson.addProperty("studyId", studyId);
+			publicationJson.addProperty("numberOfRecords", numberOfRecords);
+			String publications = publicationJson.toString(); 
+			studyTitleList.add(publications);
 		}		
 		return studyTitleList;
 	}
@@ -268,14 +289,10 @@ GenericSparqlDaoImpl <List<StudySubmittedForm>> implements StudySubmittedFormsSp
 		Integer numOfForms = 0;
 
 		StringBuffer qb =  new StringBuffer();
-		qb.append("select (str(count(distinct ?form)) as ?formCount)  where {");
-		qb.append("     ?row a ?form . ");		
-		qb.append("     ?form study:facetedStudy ?study . ");
-		qb.append("     ?row fs:dataset ?dataset . ");
-		qb.append("     ?study study:studyId ?studyId . ");
-		qb.append("		FILTER (str(?studyId ) = \""+studyId+"\") ");
-		qb.append("} ");
-		
+		qb.append("select (str(count(distinct ?form)) as ?formCount) { ?study rdfs:subClassOf <http://ninds.nih.gov/repository/fitbir/1.0/Study>. "
+				+ "?study <http://ninds.nih.gov/repository/fitbir/1.0/Study/studyId> \""+studyId+"\" ." + 
+				"?study <http://ninds.nih.gov/repository/fitbir/1.0/Study/facetedForm> ?form ." + 
+				"}");
 		String query = qb.toString(); //System.out.println("StudySubmittedFormsSparqlDaoImpl.getSubjectCountByStudy() query: "+query);
 		ResultSet resultset = virtuosoStore.querySelect(query, MetadataStore.REASONING);
 		String formCount = resultset.getResultVars().get(0);

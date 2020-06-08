@@ -402,6 +402,11 @@ var Config = {
 		validateEqualsSkipRuleEquals  :    "Please specify an equals value for the skip rule.",
 		validateSkipRuleType  :    "Please specify a skip rule.",
 		validateSkipRuleQuestions  :    "Please assign questions to skip for the skip rule.",
+		validateNumericSkipRuleEquals : "Please enter numeric value for the selected Skip Rule Operator.",
+		validateLessthanSkipRuleEquals  :    "Please specify a less than value for the skip rule.",
+		validateLessthanEqualtoSkipRuleEquals  :    "Please specify a less than equal to value for the skip rule.",
+		validateGreaterthanSkipRuleEquals  :    "Please specify a greater than value for the skip rule.",
+		validateGreaterthanEqualtoSkipRuleEquals  :    "Please specify a greater than equal to value for the skip rule.",
 		
 		// Question text
 		questionText 			: "Text is required.",

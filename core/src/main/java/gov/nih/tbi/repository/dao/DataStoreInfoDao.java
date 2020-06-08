@@ -40,4 +40,5 @@ public interface DataStoreInfoDao extends GenericDao<DataStoreInfo, Long>
      */
     public List<DataStoreInfo> search(String key, Boolean tabular, Boolean federated, Boolean archived,
             PaginationData pageData);
+    
 }

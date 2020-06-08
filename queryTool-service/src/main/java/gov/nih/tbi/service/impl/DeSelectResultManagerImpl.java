@@ -2,6 +2,7 @@ package gov.nih.tbi.service.impl;
 
 import gov.nih.tbi.dao.DeSelectResultDao;
 import gov.nih.tbi.pojo.DeSelectSearch;
+import gov.nih.tbi.pojo.QueryResult;
 import gov.nih.tbi.service.DeSelectResultManager;
 
 import java.io.Serializable;
@@ -28,9 +29,11 @@ public class DeSelectResultManagerImpl implements DeSelectResultManager, Seriali
 
 	@Autowired
 	private DeSelectResultDao deSelectResultDao;
-	
-	/** 
-	 * This method Calls the DAO and returns JsonArray for population and disease filter options.
+
+	/**
+	 * This method Calls the DAO and returns JsonArray for population and disease
+	 * filter options.
+	 * 
 	 * @return JsonArray data of population and disease filter options
 	 */
 	public JsonObject getDeSelectFilterOptions() {
@@ -38,18 +41,16 @@ public class DeSelectResultManagerImpl implements DeSelectResultManager, Seriali
 		JsonArray populations = new JsonArray();
 		JsonArray diseases = new JsonArray();
 
-		ResultSet populationResults = deSelectResultDao.getPopulationOptions();
-		while (populationResults.hasNext()) {
-			QuerySolution row = populationResults.next();
+		QueryResult populationResults = deSelectResultDao.getPopulationOptions();
+		for (QuerySolution row : populationResults.getQueryData()) {
 			RDFNode populationNode = row.get("population");
 			if (populationNode != null) {
 				populations.add(new JsonPrimitive(populationNode.asLiteral().getString()));
 			}
 		}
 
-		ResultSet diseaseResults = deSelectResultDao.getDiseaseOption();
-		while (diseaseResults.hasNext()) {
-			QuerySolution row = diseaseResults.next();
+		QueryResult diseaseResults = deSelectResultDao.getDiseaseOption();
+		for (QuerySolution row : diseaseResults.getQueryData()) {
 			RDFNode diseaseNode = row.get("disease");
 			if (diseaseNode != null) {
 				diseases.add(new JsonPrimitive(diseaseNode.asLiteral().getString()));
@@ -61,15 +62,13 @@ public class DeSelectResultManagerImpl implements DeSelectResultManager, Seriali
 		return output;
 	}
 
-	
 	public JsonArray searchDeSelect(DeSelectSearch searchParameters) {
 		log.debug("--- beginning data element selected query ---");
-		
-		ResultSet elements = deSelectResultDao.deSelectQuery(searchParameters);
+
+		QueryResult elements = deSelectResultDao.deSelectQuery(searchParameters);
 
 		JsonArray output = new JsonArray();
-		while (elements.hasNext()) {
-			QuerySolution element = elements.next();
+		for (QuerySolution element : elements.getQueryData()) {
 			JsonArray rowJson = new JsonArray();
 			RDFNode deUrl = element.get("de");
 			RDFNode classification = element.get("classification");
@@ -82,7 +81,7 @@ public class DeSelectResultManagerImpl implements DeSelectResultManager, Seriali
 				String titleOut = (title != null) ? title.asLiteral().toString() : "";
 				String varNameOut = (varName != null) ? varName.asLiteral().toString() : "";
 				String classificationOut = (classification != null) ? classification.asLiteral().toString() : "";
-				
+
 				// for datatables, these have to be in an array, not a map
 				rowJson.add(new JsonPrimitive(checkbox));
 				rowJson.add(new JsonPrimitive(titleOut));
@@ -95,10 +94,10 @@ public class DeSelectResultManagerImpl implements DeSelectResultManager, Seriali
 
 		return output;
 	}
-	
-	
+
 	/**
-	 * Counts the results of buildSearch() WITHOUT pagination. This is the same query but without the order, limits etc.
+	 * Counts the results of buildSearch() WITHOUT pagination. This is the same
+	 * query but without the order, limits etc.
 	 * 
 	 * @param searchParameters
 	 * @return
@@ -106,16 +105,16 @@ public class DeSelectResultManagerImpl implements DeSelectResultManager, Seriali
 	public int countQueryElements(DeSelectSearch searchParameters) {
 		log.debug("--- beginning data element count query ---");
 
-		ResultSet results = deSelectResultDao.deSelectCountQuery(searchParameters);
+		QueryResult results = deSelectResultDao.deSelectCountQuery(searchParameters);
 
 		int output = 0;
-		if (results.hasNext()) {
-			QuerySolution first = results.next();
+		if (!results.getQueryData().isEmpty()) {
+			QuerySolution first = results.getQueryData().get(0);
 			String count = first.get("count").asLiteral().toString();
 			String[] countParts = count.split("\\^\\^");
 			output = Integer.parseInt(countParts[0]);
 		}
-		
+
 		return output;
 	}
 }

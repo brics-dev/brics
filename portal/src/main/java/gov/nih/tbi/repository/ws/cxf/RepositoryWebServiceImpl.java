@@ -289,6 +289,7 @@ public class RepositoryWebServiceImpl extends HashMethods implements RepositoryW
 	}
 
 	@Override
+	@Deprecated
 	public boolean createTableFromDataStructure(StructuralFormStructure datastructure, UserLogin userLogin) {
 
 		logger.debug("createTableFromDataStructure() -- ");
@@ -306,8 +307,7 @@ public class RepositoryWebServiceImpl extends HashMethods implements RepositoryW
 		Thread createTableThread = new Thread(new Runnable() {
 			public void run() {
 				try {
-					repositoryManager.createTableFromDataStructure(datastructure, modulesConstants.getModulesDevEmail(),
-							account);
+					repositoryManager.createTableFromDataStructure(datastructure, account);
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

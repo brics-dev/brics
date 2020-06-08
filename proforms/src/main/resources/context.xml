@@ -9,8 +9,8 @@
 	http://www.springframework.org/schema/context
 	http://www.springframework.org/schema/context/spring-context-4.3.xsd">
 	<context:annotation-config />
-	<context:property-placeholder location="file:#{systemProperties['conf.dir']}/proforms-datasource.properties"/>
-	<context:component-scan base-package="gov.nih.nichd.ctdb.ws" />
+	<context:property-placeholder location="file:#{systemProperties['conf.dir']}/proforms-datasource.properties, file:#{systemProperties['conf.dir']}/proforms.properties"/>
+	<context:component-scan base-package="gov.nih.nichd.ctdb" />
 	<bean id="applicationProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
 		<property name="locations">
 			<list>
@@ -19,7 +19,7 @@
 		</property>
 		<property name="ignoreResourceNotFound" value="true" />
 	</bean>
-	<bean id="modulesConstants" class="gov.nih.nichd.ctdb.common.ModulesConstants" scope="singleton" />
+	<bean id="ProformsConstants" class="gov.nih.nichd.ctdb.common.ModulesConstants" scope="singleton" />
 	
 	<!-- HikariCP configuration -->
 	<bean id="mainDataSource" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
@@ -27,9 +27,22 @@
 		<property name="jdbcUrl" value="${proforms.db.jdbc.url}" />
 		<property name="username" value="${proforms.db.username}"/>
 		<property name="password" value="${proforms.db.password}"/>
-		<property name="maximumPoolSize" value="${proforms.cp.maxPoolSize}" />
+		<property name="maximumPoolSize" value="${proforms.cp.maximumPoolSize}" />
 		<property name="idleTimeout" value="${proforms.cp.idleTimeout}" />
 		<property name="maxLifetime" value="${proforms.cp.maxLifetime}" />
+		<property name="leakDetectionThreshold" value="30000" />
+		<property name="registerMbeans" value="true" />
+	</bean>
+	 
+	<bean id="btrisDataSource" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
+		<!-- <constructor-arg ref="hikariConfig"/> -->
+	    <property name="driverClassName" value="${btris.db.jdbc.Driver}"/>
+        <property name="jdbcUrl" value="${btris.db.jdbc.url}"/>
+        <property name="username" value="${btris.db.username}"/>
+        <property name="password" value="${btris.db.password}"/>
+        <property name="maximumPoolSize" value="${btris.cp.maximumPoolSize}" />
+        <property name="idleTimeout" value="${btris.cp.idleTimeout}" />
+	    <property name="maxLifetime" value="${btris.cp.maxLifetime}" />
 	</bean>
 	
 	<!-- <bean id="systemPropertiesLookUp" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" > -->
@@ -44,9 +57,26 @@
 	
 	<bean id="baseMgr" class="gov.nih.nichd.ctdb.common.CtdbManager">
 		<property name="dataSource" ref="mainDataSource" />
+		<property name="btrisDataSource" ref="btrisDataSource" />
 	</bean>
 	
 	<bean id="sessionAccount" class="gov.nih.tbi.account.model.SessionAccount" scope="session">
 		<aop:scoped-proxy />
 	</bean> 
+	
+	<bean id="contextClosedHandler"  class="gov.nih.nichd.ctdb.config.ProformsContextClosedHandler" />
+	
+	<bean id="mailEngine" class="gov.nih.tbi.commons.service.util.MailEngine">
+		<constructor-arg ref="mailSender" />
+	</bean>
+	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<property name="host" value="${mail.smtp.host}" />
+		<property name="port" value="${mail.smtp.port}" />
+		<property name="defaultEncoding" value="UTF-8" />
+	</bean>
+	
+	<bean id="modulesConstants" class="gov.nih.tbi.ModulesConstants" scope="singleton">
+		<property name="wsSet" value="true" />
+		<property name="defaultStylingKey" value="true" />
+	</bean>
 </beans>

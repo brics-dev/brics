@@ -1,24 +1,28 @@
 package gov.nih.tbi.dictionary.model;
 
-import gov.nih.tbi.commons.service.ServiceConstants;
-import gov.nih.tbi.commons.service.StaticReferenceManager;
-import gov.nih.tbi.dictionary.dao.hibernate.DataElementDaoImpl;
-import gov.nih.tbi.dictionary.model.hibernate.Disease;
-import gov.nih.tbi.dictionary.model.hibernate.DiseaseStructure;
-import gov.nih.tbi.dictionary.model.hibernate.FormStructure;
-import gov.nih.tbi.repository.model.SubmissionType;
-
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import gov.nih.tbi.commons.service.ServiceConstants;
+import gov.nih.tbi.commons.service.StaticReferenceManager;
+import gov.nih.tbi.dictionary.dao.hibernate.DataElementDaoImpl;
+import gov.nih.tbi.dictionary.model.hibernate.Disease;
+import gov.nih.tbi.dictionary.model.hibernate.DiseaseStructure;
+import gov.nih.tbi.dictionary.model.hibernate.FormLabel;
+import gov.nih.tbi.dictionary.model.hibernate.FormStructure;
+import gov.nih.tbi.dictionary.service.DictionaryServiceInterface;
+import gov.nih.tbi.repository.model.SubmissionType;
 
 public class DataStructureForm {
 
@@ -28,6 +32,9 @@ public class DataStructureForm {
 	@Autowired
 	StaticReferenceManager staticManager;
 
+	@Autowired
+	protected DictionaryServiceInterface dictionaryService;
+	
 	protected String title;
 	protected String description;
 	protected Boolean validatable;
@@ -38,6 +45,8 @@ public class DataStructureForm {
 	protected long dateCreated;
 	protected String createdBy;
 	protected Set<DiseaseStructure> diseaseList;
+	protected List<FormLabel> formLabelList;
+
 	protected String currentOrg;
 	protected String isInstancesRequiredForValue;
 	protected FormStructureStandardization standardization;
@@ -56,6 +65,7 @@ public class DataStructureForm {
 			Field current = fields[i];
 
 			if (!current.getName().equals("logger") && !ServiceConstants.STATIC_MANAGER.equals(current.getName())
+					&& !ServiceConstants.DICTIONARY_SERVICE.equals(current.getName())
 					&& !"currentOrg".equals(current.getName())) {
 				try {
 					if ("dateCreated".equals(current.getName())) {
@@ -148,6 +158,25 @@ public class DataStructureForm {
 		return diseaseList;
 	}
 
+	public void setFormLabelList(String[] formLabelIds) throws NumberFormatException {
+		List<FormLabel> formlabels = new ArrayList<FormLabel>();
+
+		for (String id : formLabelIds) {
+			for (FormLabel labelOption : dictionaryService.getFormLabels()) {
+				if (labelOption.getId() == Long.parseLong(id)) {
+					formlabels.add(labelOption);
+				}
+			}
+		}
+
+		this.formLabelList = formlabels;
+	}
+	
+	public List<FormLabel> getFormLabelList() {
+
+		return formLabelList;
+	}
+	
 	public SubmissionType getFileType() {
 
 		return fileType;
@@ -269,6 +298,7 @@ public class DataStructureForm {
 			Field current = fields[i];
 
 			if (!"logger".equals(current.getName()) && !ServiceConstants.STATIC_MANAGER.equals(current.getName())
+					&& !ServiceConstants.DICTIONARY_SERVICE.equals(current.getName())
 					&& !"currentOrg".equals(current.getName())) {
 				try {
 					if (enforceStaticFields == false || current.getAnnotation(StaticField.class) == null) {

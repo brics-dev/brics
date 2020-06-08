@@ -1,0 +1,7 @@
+[DB-TRG]
+host=fitbir-db-stage.cit.nih.gov
+database=proforms_data
+schema=proforms_app_stg
+user=proforms_app_stg
+label=TARGET
+

@@ -3,17 +3,11 @@ package gov.nih.tbi.filter;
 import java.io.Serializable;
 
 import com.google.gson.JsonObject;
-import com.hp.hpl.jena.sparql.expr.E_Bound;
-import com.hp.hpl.jena.sparql.expr.E_Equals;
-import com.hp.hpl.jena.sparql.expr.E_LogicalNot;
-import com.hp.hpl.jena.sparql.expr.Expr;
-import com.hp.hpl.jena.sparql.expr.ExprVar;
-import com.hp.hpl.jena.sparql.expr.NodeValue;
-import com.hp.hpl.jena.sparql.syntax.ElementFilter;
 
 import gov.nih.tbi.constants.QueryToolConstants;
-import gov.nih.tbi.exceptions.FilterException;
+import gov.nih.tbi.exceptions.FilterEvaluationException;
 import gov.nih.tbi.pojo.FilterType;
+import gov.nih.tbi.repository.model.InstancedRepeatableGroupRow;
 import gov.nih.tbi.repository.model.InstancedRow;
 
 public class ChangeInDiagnosisFilter implements Filter, Serializable {
@@ -21,11 +15,51 @@ public class ChangeInDiagnosisFilter implements Filter, Serializable {
 
 	private static String YES = "Yes";
 	private static String NO = "No";
-
+	private String name;
 	private String value;
+	private String logicBefore;
+	public Integer groupingBefore;
+	public Integer groupingAfter;
 
-	public ChangeInDiagnosisFilter(String value) {
+	public String getLogicBefore() {
+		return logicBefore;
+	}
+
+	public void setLogicBefore(String logicBefore) {
+		this.logicBefore = logicBefore;
+	}
+
+	public Integer getGroupingBefore() {
+		return groupingBefore;
+	}
+
+	public void setGroupingBefore(Integer groupingBefore) {
+		this.groupingBefore = groupingBefore;
+	}
+
+	public Integer getGroupingAfter() {
+		return groupingAfter;
+	}
+
+	public void setGroupingAfter(Integer groupingAfter) {
+		this.groupingAfter = groupingAfter;
+	}
+
+	public ChangeInDiagnosisFilter(String value, String name, String logicBefore, Integer groupingBefore,
+			Integer groupingAfter) {
 		this.value = value;
+		this.name = name;
+		this.logicBefore = logicBefore;
+		this.groupingBefore = groupingBefore;
+		this.groupingAfter = groupingAfter;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public String getValue() {
@@ -45,27 +79,11 @@ public class ChangeInDiagnosisFilter implements Filter, Serializable {
 	public JsonObject toJson() {
 		JsonObject filterJson = new JsonObject();
 
+		filterJson.addProperty("name", getName());
 		filterJson.addProperty("freeFormValue", value);
-		filterJson.addProperty("blank", false);
 		filterJson.addProperty("filterType", getFilterType().name());
 
 		return filterJson;
-	}
-
-	@Override
-	public ElementFilter toElementFilter(String variable) {
-
-		Expr expression = null;
-
-		if (YES.equalsIgnoreCase(value)) {
-			expression = new E_Equals(new ExprVar(QueryToolConstants.DO_HIGHLIGHT_VAR), NodeValue.makeString("true"));
-		} else if (NO.equalsIgnoreCase(value)) {
-			expression = new E_LogicalNot(new E_Bound(new ExprVar(QueryToolConstants.DO_HIGHLIGHT_VAR)));
-		} else {
-			return null;
-		}
-
-		return new ElementFilter(expression);
 	}
 
 	@Override
@@ -77,6 +95,10 @@ public class ChangeInDiagnosisFilter implements Filter, Serializable {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + ((groupingAfter == null) ? 0 : groupingAfter.hashCode());
+		result = prime * result + ((groupingBefore == null) ? 0 : groupingBefore.hashCode());
+		result = prime * result + ((logicBefore == null) ? 0 : logicBefore.hashCode());
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + ((value == null) ? 0 : value.hashCode());
 		return result;
 	}
@@ -90,6 +112,26 @@ public class ChangeInDiagnosisFilter implements Filter, Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		ChangeInDiagnosisFilter other = (ChangeInDiagnosisFilter) obj;
+		if (groupingAfter == null) {
+			if (other.groupingAfter != null)
+				return false;
+		} else if (!groupingAfter.equals(other.groupingAfter))
+			return false;
+		if (groupingBefore == null) {
+			if (other.groupingBefore != null)
+				return false;
+		} else if (!groupingBefore.equals(other.groupingBefore))
+			return false;
+		if (logicBefore == null) {
+			if (other.logicBefore != null)
+				return false;
+		} else if (!logicBefore.equals(other.logicBefore))
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
 		if (value == null) {
 			if (other.value != null)
 				return false;
@@ -100,8 +142,10 @@ public class ChangeInDiagnosisFilter implements Filter, Serializable {
 
 	/**
 	 * {@inheritDoc}
+	 * 
+	 * @throws FilterEvaluationException
 	 */
-	public boolean evaluate(InstancedRow row) {
+	public boolean evaluate(InstancedRow row) throws FilterEvaluationException {
 		if (row == null) {
 			return false;
 		}
@@ -115,8 +159,23 @@ public class ChangeInDiagnosisFilter implements Filter, Serializable {
 		} else if (NO.equalsIgnoreCase(value)) {
 			return !row.isDoHighlight();
 		} else {
-			throw new FilterException(
+			throw new FilterEvaluationException(
 					"Filter value for change in diagnosis filter must be either Yes or No! (case insensitive)");
 		}
+	}
+
+	public String toString() {
+		if (isEmpty()) {
+			return QueryToolConstants.EMPTY_STRING;
+		}
+
+		final String stringQueryFormat = "(%s = '%s')";
+
+		return String.format(stringQueryFormat, name, value);
+	}
+
+	@Override
+	public boolean evaluate(InstancedRepeatableGroupRow row) {
+		throw new UnsupportedOperationException("Cannot add non-data element filters to repeating groups!");
 	}
 }

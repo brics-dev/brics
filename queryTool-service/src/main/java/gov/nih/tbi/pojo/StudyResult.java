@@ -1,7 +1,5 @@
 package gov.nih.tbi.pojo;
 
-import gov.nih.tbi.constants.QueryToolConstants;
-
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
@@ -13,9 +11,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import gov.nih.tbi.constants.QueryToolConstants;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement()
@@ -31,6 +27,8 @@ public class StudyResult extends BaseResult implements Serializable, Comparable<
 	private String title;
 	private String pi;
 	private String status;
+	private String abstractText;
+	private String prefixedId;
 
 	@XmlElementWrapper(name = "forms")
 	@XmlElement(name = "formResult", type = FormResult.class)
@@ -58,6 +56,8 @@ public class StudyResult extends BaseResult implements Serializable, Comparable<
 		this.title = base.title;
 		this.pi = base.pi;
 		this.status = base.status;
+		this.abstractText = base.abstractText;
+		this.prefixedId = base.prefixedId;
 
 		// Clone the forms list.
 		this.forms = new LinkedList<FormResult>();
@@ -77,6 +77,22 @@ public class StudyResult extends BaseResult implements Serializable, Comparable<
 
 	public String getTitle() {
 		return title;
+	}
+
+	public String getAbstractText() {
+		return abstractText;
+	}
+
+	public String getPrefixedId() {
+		return prefixedId;
+	}
+
+	public void setPrefixedId(String prefixedId) {
+		this.prefixedId = prefixedId;
+	}
+
+	public void setAbstractText(String abstractText) {
+		this.abstractText = abstractText;
 	}
 
 	public void setTitle(String title) {

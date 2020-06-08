@@ -1,0 +1,7 @@
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\propPasswdUtil\stage-ninr-sched
+passFile=D:\DATA\secur\.pgpass
+
+[DEPLOY]
+trgRoot=D:\DEV\workspace\conf\stage\ninr-sched
+srcRoot=D:\DEV\BRIX\local\prop\stage\ninr-sched

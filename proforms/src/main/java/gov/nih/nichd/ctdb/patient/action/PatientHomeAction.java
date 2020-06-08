@@ -26,9 +26,9 @@ import gov.nih.tbi.idt.ws.InvalidColumnException;
 import gov.nih.tbi.idt.ws.Struts2IdtInterface;
 
 /**
- * The Struts Action class responsible for listing patients to the user
- * and giving the user the ability to search for a patient, sort the listing,
- * edit a patient, audit a patient, and add a new patient.
+ * The Struts Action class responsible for listing patients to the user and
+ * giving the user the ability to search for a patient, sort the listing, edit a
+ * patient, audit a patient, and add a new patient.
  *
  * @author Booz Allen Hamilton
  * @version 1.0
@@ -36,30 +36,35 @@ import gov.nih.tbi.idt.ws.Struts2IdtInterface;
 public class PatientHomeAction extends BaseAction {
 	private static final long serialVersionUID = 2154400619552095708L;
 	private static final Logger logger = Logger.getLogger(PatientHomeAction.class);
-	
+
 	private String lastNameSearch = null;
-    private String firstNameSearch = null;
-    private String recordNumberSearch = null;
-    private String mrnSearch = null;
+	private String firstNameSearch = null;
+	private String recordNumberSearch = null;
+	private String mrnSearch = null;
 	private String otherNameSearch = null;
-    private String maidenNameSearch = null;
-    private int protocolIdSearch = Integer.MIN_VALUE;
-    private String clicked = "submit";
-    private String sortBy = PatientResultControl.SORT_BY_SUBJECTID;
-    private String sortedBy = null;
-    private String sortOrder = PatientResultControl.SORT_ASC;
-    private String enrollmentStatus = "this";
-    private Map<String, String> enrollmentStatusList = null;
+	private String maidenNameSearch = null;
+	private int protocolIdSearch = Integer.MIN_VALUE;
+	private String clicked = "submit";
+	private String sortBy = PatientResultControl.SORT_BY_SUBJECTID;
+	private String sortedBy = null;
+	private String sortOrder = PatientResultControl.SORT_ASC;
+	private String enrollmentStatus = "this";
+	private Map<String, String> enrollmentStatusList = null;
 	private String inProtocol = "yes";
     private String activeInProtocol = null;
-	private String patientGroupNameSearch  = null;
+	private String patientGroupNameSearch = null;
     private String numResults = null;
     private String numResultsPerPage = null;
     private String subjectNumberSearch = null;
     private String guidSearch = null;
     private String searchSubmitted = "NO";
     private List<Patient> patients;
-    public String execute() throws Exception {
+    private boolean hasAnyPatInRandomization = false;
+    
+    private List<Integer> siteIds = new ArrayList<Integer>();
+
+	public String execute() throws Exception {
+
 		buildLeftNav(LeftNavController.LEFTNAV_SUBJECTS_MYSUBJECTS);
 		if (this.getCurrentProtocol() == null) {
 			return StrutsConstants.SELECTPROTOCOL;
@@ -72,31 +77,49 @@ public class PatientHomeAction extends BaseAction {
             return ERROR;
         }
 
-        // Display any action messages or errors from the add/edit subject page, and clear any session data
-        // that is associated with that page.
-        this.retrieveActionMessages(PatientAction.ACTION_MESSAGES_KEY);
-        this.retrieveActionErrors(PatientAction.ACTION_ERRORS_KEY);
-        
-        if ( session.get(CtdbConstants.ATTACHMENT_HASH_MAP) != null ) {
-        	PatientAction.clearSessionVariables(session);
-        }
+		boolean protocolClosed = (Boolean) session.get(CtdbConstants.PROTOCOL_CLOSED_SESSION_KEY) == null ? false
+				: ((Boolean) session.get(CtdbConstants.PROTOCOL_CLOSED_SESSION_KEY)).booleanValue();
+		if (protocolClosed) {
+			disableLinksForProtocolCloseout(LeftNavController.LEFTNAV_SUBJECTS_MYSUBJECTS,
+					new int[] { LeftNavController.LEFTNAV_SUBJECTS_ADD, LeftNavController.LEFTNAV_SUBJECTS_VISITS });
+		}
 
-        try {
-        	this.setupPage();
-        }
-        catch(CtdbException ce) {
-        	ce.printStackTrace();
-            return StrutsConstants.FAILURE;
-        }
+		// Display any action messages or errors from the add/edit subject page, and
+		// clear any session data
+		// that is associated with that page.
+		this.retrieveActionMessages(PatientAction.ACTION_MESSAGES_KEY);
+		this.retrieveActionErrors(PatientAction.ACTION_ERRORS_KEY);
 
-        return SUCCESS;
-    }
-    
+		if (session.get(CtdbConstants.ATTACHMENT_HASH_MAP) != null) {
+			PatientAction.clearSessionVariables(session);
+		}
+
+		try {
+			this.setupPage();
+		} catch (CtdbException ce) {
+			ce.printStackTrace();
+			return StrutsConstants.FAILURE;
+		}
+
+		return SUCCESS;
+	}
+
 	// url: http://fitbir-portal-local.cit.nih.gov:8082/ibis/getPatientList.action
 	public String getPatientList() throws Exception {
 		try {
 			@SuppressWarnings("unchecked")
-			List<Patient> patientList = (List<Patient>) session.get("patientList");
+			PatientManager pm = new PatientManager();
+
+			List<Patient> patientList = null;
+			
+			if(!isUserSiteCheckNeeded()) {
+				patientList = (List<Patient>) session.get("patientList");
+			} else {
+				Protocol protocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
+				int protocolId = protocol.getId();
+				siteIds = getUserAssignedSites();
+				patientList = pm.getPatientListByProtocolIdAndSiteIds(protocolId, siteIds);
+			}			
 			IdtInterface idt = new Struts2IdtInterface();
 			ArrayList<Patient> outputList = new ArrayList<Patient>(patientList);
 			idt.setList(outputList);
@@ -108,62 +131,65 @@ public class PatientHomeAction extends BaseAction {
 			logger.error("Failed get a list of patients.", e);
 			return StrutsConstants.FAILURE;
 		}
-		
+
 		return null;
-	}  
-    
-    public String deletePatient() {
+	}
+
+	public String deletePatient() {
 		buildLeftNav(LeftNavController.LEFTNAV_SUBJECTS_MYSUBJECTS);
 
 		User user = getUser();
-        
-        try {
-            PatientManager pm = new PatientManager();
 
-   			List<String> deletedList = new ArrayList<String>();
-    			
-   			if (!Utils.isBlank(request.getParameter("selectedIds"))) {
-   				String selectedIds = request.getParameter("selectedIds");
-   				String[] selectedPatientIds = selectedIds.split(",");;
-   				String patientVisitErrorList = "", patientAdminErrorList = "",idUsedInAnotherList="";
-    				
-    			for (String selectedPatientId : selectedPatientIds) {
-    			
-       				if (pm.hasFutureVisits(selectedPatientId)) {
-    					patientVisitErrorList += selectedPatientId + "  ";
-    				}
-       				if (pm.isAdministered(selectedPatientId)) {
-       					patientAdminErrorList += selectedPatientId + "  ";
-    				}
-       				if(pm.isSubjectReusedInOtherProtocolWithDifferentIdinPP(this.getCurrentProtocol().getId(), selectedPatientId)) {
-       					idUsedInAnotherList+= selectedPatientId + "  ";
-       				}
-    			}
-    			
-    			if ( patientVisitErrorList != "" || patientAdminErrorList != "") {
-    				String errMessage = "";
-    				if (patientVisitErrorList != "") {
-        				errMessage += "The selected subject(s) can not be deleted due to the coming scheduled visit(s).<br>";
-    				}
-    				if (patientAdminErrorList != "") {
-        				errMessage += "The selected subject(s) can not be deleted due to the existing administered data collection.";
-    				}
-    				if (idUsedInAnotherList != "") {
-        				errMessage += "The selected subject(s) can not be deleted becaused it's used in other protocol with different ID.";
-    				}
-   					addActionError(errMessage);
-   						
-    			} else {
-	    			if (selectedPatientIds != null && selectedPatientIds.length > 0) {
-	    				deletedList = pm.deletePatients(selectedPatientIds, user.getId());
-	    				
-						if (deletedList != null && !deletedList.isEmpty()){
+		try {
+			PatientManager pm = new PatientManager();
+
+			List<String> deletedList = new ArrayList<String>();
+
+			if (!Utils.isBlank(request.getParameter("selectedIds"))) {
+				String selectedIds = request.getParameter("selectedIds");
+				String[] selectedPatientIds = selectedIds.split(",");
+				;
+				String patientVisitErrorList = "", patientAdminErrorList = "", idUsedInAnotherList = "";
+
+				for (String selectedPatientId : selectedPatientIds) {
+
+					if (pm.hasFutureVisits(selectedPatientId)) {
+						patientVisitErrorList += selectedPatientId + "  ";
+					}
+					if (pm.isAdministered(selectedPatientId)) {
+						patientAdminErrorList += selectedPatientId + "  ";
+					}
+					if (pm.isSubjectReusedInOtherProtocolWithDifferentIdinPP(this.getCurrentProtocol().getId(),
+							selectedPatientId)) {
+						idUsedInAnotherList += selectedPatientId + "  ";
+					}
+				}
+
+				if (patientVisitErrorList != "" || patientAdminErrorList != "") {
+					String errMessage = "";
+					if (patientVisitErrorList != "") {
+						errMessage += "The selected subject(s) can not be deleted due to the coming scheduled visit(s).<br>";
+					}
+					if (patientAdminErrorList != "") {
+						errMessage += "The selected subject(s) can not be deleted due to the existing administered data collection.";
+					}
+					if (idUsedInAnotherList != "") {
+						errMessage += "The selected subject(s) can not be deleted because it's used in other protocol with different ID.";
+					}
+					addActionError(errMessage);
+
+				} else {
+					if (selectedPatientIds != null && selectedPatientIds.length > 0) {
+						deletedList = pm.deletePatients(selectedPatientIds, user.getId());
+
+						if (deletedList != null && !deletedList.isEmpty()) {
 							StringBuffer deletePatients = new StringBuffer(1000);
-								
+
 							for (String deletedName : deletedList) {
 								deletePatients.append(deletedName + " ");
 							}
-							addActionMessage(getText(StrutsConstants.SUCCESS_DELETE_KEY, new String[]{"selected subject(s)"}));
+							addActionMessage(getText(StrutsConstants.SUCCESS_DELETE_KEY,
+									new String[] { "selected subject(s)" }));
 						}
 	    			}
     			}
@@ -231,6 +257,11 @@ public class PatientHomeAction extends BaseAction {
            
         request.setAttribute("protocolList", protocolList);
         request.setAttribute("prc", prc);
+        
+        /*check if any of patient has been assigned to a randomization group*/
+    	int protocolId = this.getCurrentProtocol().getId();
+    	boolean hasRandom = pm.checkIfAnyPatProtoHasRandomization(protocolId);
+    	this.setHasAnyPatInRandomization(hasRandom);
     }
     
     
@@ -276,16 +307,18 @@ public class PatientHomeAction extends BaseAction {
         }
     }
 
-    
 	public List<Patient> getPatients() {
 		return patients;
 	}
+
 	public void setPatients(List<Patient> patients) {
 		this.patients = patients;
 	}
+
 	public String getLastNameSearch() {
 		return lastNameSearch;
 	}
+
 	public void setLastNameSearch(String lastNameSearch) {
 		this.lastNameSearch = lastNameSearch;
 	}
@@ -293,6 +326,7 @@ public class PatientHomeAction extends BaseAction {
 	public String getFirstNameSearch() {
 		return firstNameSearch;
 	}
+
 	public void setFirstNameSearch(String firstNameSearch) {
 		this.firstNameSearch = firstNameSearch;
 	}
@@ -300,6 +334,7 @@ public class PatientHomeAction extends BaseAction {
 	public String getRecordNumberSearch() {
 		return recordNumberSearch;
 	}
+
 	public void setRecordNumberSearch(String recordNumberSearch) {
 		this.recordNumberSearch = recordNumberSearch;
 	}
@@ -307,6 +342,7 @@ public class PatientHomeAction extends BaseAction {
 	public String getMrnSearch() {
 		return mrnSearch;
 	}
+
 	public void setMrnSearch(String mrnSearch) {
 		this.mrnSearch = mrnSearch;
 	}
@@ -314,6 +350,7 @@ public class PatientHomeAction extends BaseAction {
 	public String getOtherNameSearch() {
 		return otherNameSearch;
 	}
+
 	public void setOtherNameSearch(String otherNameSearch) {
 		this.otherNameSearch = otherNameSearch;
 	}
@@ -321,6 +358,7 @@ public class PatientHomeAction extends BaseAction {
 	public String getMaidenNameSearch() {
 		return maidenNameSearch;
 	}
+
 	public void setMaidenNameSearch(String maidenNameSearch) {
 		this.maidenNameSearch = maidenNameSearch;
 	}
@@ -328,6 +366,7 @@ public class PatientHomeAction extends BaseAction {
 	public int getProtocolIdSearch() {
 		return protocolIdSearch;
 	}
+
 	public void setProtocolIdSearch(int protocolIdSearch) {
 		this.protocolIdSearch = protocolIdSearch;
 	}
@@ -335,6 +374,7 @@ public class PatientHomeAction extends BaseAction {
 	public String getClicked() {
 		return clicked;
 	}
+
 	public void setClicked(String clicked) {
 		this.clicked = clicked;
 	}
@@ -342,6 +382,7 @@ public class PatientHomeAction extends BaseAction {
 	public String getSortBy() {
 		return sortBy;
 	}
+
 	public void setSortBy(String sortBy) {
 		this.sortBy = sortBy;
 	}
@@ -349,6 +390,7 @@ public class PatientHomeAction extends BaseAction {
 	public String getSortedBy() {
 		return sortedBy;
 	}
+
 	public void setSortedBy(String sortedBy) {
 		this.sortedBy = sortedBy;
 	}
@@ -356,6 +398,7 @@ public class PatientHomeAction extends BaseAction {
 	public String getSortOrder() {
 		return sortOrder;
 	}
+
 	public void setSortOrder(String sortOrder) {
 		this.sortOrder = sortOrder;
 	}
@@ -363,6 +406,7 @@ public class PatientHomeAction extends BaseAction {
 	public String getEnrollmentStatus() {
 		return enrollmentStatus;
 	}
+
 	public void setEnrollmentStatus(String enrollmentStatus) {
 		this.enrollmentStatus = enrollmentStatus;
 	}
@@ -370,6 +414,7 @@ public class PatientHomeAction extends BaseAction {
 	public Map<String, String> getEnrollmentStatusList() {
 		return enrollmentStatusList;
 	}
+
 	public void setEnrollmentStatusList(Map<String, String> enrollmentStatusList) {
 		this.enrollmentStatusList = enrollmentStatusList;
 	}
@@ -377,6 +422,7 @@ public class PatientHomeAction extends BaseAction {
 	public String getInProtocol() {
 		return inProtocol;
 	}
+
 	public void setInProtocol(String inProtocol) {
 		this.inProtocol = inProtocol;
 	}
@@ -384,6 +430,7 @@ public class PatientHomeAction extends BaseAction {
 	public String getActiveInProtocol() {
 		return activeInProtocol;
 	}
+
 	public void setActiveInProtocol(String activeInProtocol) {
 		this.activeInProtocol = activeInProtocol;
 	}
@@ -391,6 +438,7 @@ public class PatientHomeAction extends BaseAction {
 	public String getPatientGroupNameSearch() {
 		return patientGroupNameSearch;
 	}
+
 	public void setPatientGroupNameSearch(String patientGroupNameSearch) {
 		this.patientGroupNameSearch = patientGroupNameSearch;
 	}
@@ -398,6 +446,7 @@ public class PatientHomeAction extends BaseAction {
 	public String getNumResults() {
 		return numResults;
 	}
+
 	public void setNumResults(String numResults) {
 		this.numResults = numResults;
 	}
@@ -405,6 +454,7 @@ public class PatientHomeAction extends BaseAction {
 	public String getNumResultsPerPage() {
 		return numResultsPerPage;
 	}
+
 	public void setNumResultsPerPage(String numResultsPerPage) {
 		this.numResultsPerPage = numResultsPerPage;
 	}
@@ -412,6 +462,7 @@ public class PatientHomeAction extends BaseAction {
 	public String getSubjectNumberSearch() {
 		return subjectNumberSearch;
 	}
+
 	public void setSubjectNumberSearch(String subjectNumberSearch) {
 		this.subjectNumberSearch = subjectNumberSearch;
 	}
@@ -419,14 +470,22 @@ public class PatientHomeAction extends BaseAction {
 	public String getGuidSearch() {
 		return guidSearch;
 	}
+
 	public void setGuidSearch(String guidSearch) {
 		this.guidSearch = guidSearch;
 	}
-	
-    public void setSearchSubmitted(String searchSubmitted) {
+
+	public void setSearchSubmitted(String searchSubmitted) {
 		this.searchSubmitted = searchSubmitted;
 	}
+
 	public String getSearchSubmitted() {
 		return searchSubmitted;
 	}
+    public boolean getHasAnyPatInRandomization() {   	
+    	return hasAnyPatInRandomization;
+    }
+    public void setHasAnyPatInRandomization(boolean hasAnyPatInRandomization) {
+    	this.hasAnyPatInRandomization = hasAnyPatInRandomization;
+    }
 }

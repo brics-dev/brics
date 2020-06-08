@@ -1,6 +1,19 @@
 
 package gov.nih.tbi.dictionary.service;
 
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
+
 import gov.nih.tbi.ModulesConstants;
 import gov.nih.tbi.account.model.hibernate.Account;
 import gov.nih.tbi.account.service.complex.BaseManagerImpl;
@@ -11,6 +24,7 @@ import gov.nih.tbi.commons.model.EventType;
 import gov.nih.tbi.commons.model.PermissionType;
 import gov.nih.tbi.commons.model.RoleType;
 import gov.nih.tbi.commons.model.SeverityLevel;
+import gov.nih.tbi.commons.model.StatusType;
 import gov.nih.tbi.commons.service.AccountManager;
 import gov.nih.tbi.commons.service.ServiceConstants;
 import gov.nih.tbi.commons.service.UserPermissionException;
@@ -19,9 +33,11 @@ import gov.nih.tbi.commons.util.QueryConstructionUtil;
 import gov.nih.tbi.dictionary.dao.DataElementDao;
 import gov.nih.tbi.dictionary.dao.DataElementSparqlDao;
 import gov.nih.tbi.dictionary.dao.DictionaryEventLogDao;
+import gov.nih.tbi.dictionary.dao.FormLabelDao;
 import gov.nih.tbi.dictionary.dao.FormStructureDao;
 import gov.nih.tbi.dictionary.dao.FormStructureSparqlDao;
 import gov.nih.tbi.dictionary.dao.FormStructureSqlDao;
+import gov.nih.tbi.dictionary.dao.PublishedFormStructureDao;
 import gov.nih.tbi.dictionary.dao.StructuralDataElementDao;
 import gov.nih.tbi.dictionary.model.DictionarySearchFacets;
 import gov.nih.tbi.dictionary.model.FacetType;
@@ -31,22 +47,16 @@ import gov.nih.tbi.dictionary.model.SeverityRecord;
 import gov.nih.tbi.dictionary.model.StringFacet;
 import gov.nih.tbi.dictionary.model.hibernate.DataElement;
 import gov.nih.tbi.dictionary.model.hibernate.DictionaryEventLog;
+import gov.nih.tbi.dictionary.model.hibernate.DictionarySupportingDocumentation;
+import gov.nih.tbi.dictionary.model.hibernate.FormLabel;
 import gov.nih.tbi.dictionary.model.hibernate.FormStructure;
+import gov.nih.tbi.dictionary.model.hibernate.PublishedFormStructure;
 import gov.nih.tbi.dictionary.model.rdf.SemanticDataElement;
 import gov.nih.tbi.dictionary.model.rdf.SemanticFormStructure;
 import gov.nih.tbi.dictionary.service.rulesengine.RulesEngineInterface;
 import gov.nih.tbi.dictionary.service.rulesengine.model.InvalidOperationException;
 import gov.nih.tbi.dictionary.service.rulesengine.model.RulesEngineException;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
+import gov.nih.tbi.repository.dao.UserFileDao;
 
 @Service
 @Scope("singleton")
@@ -86,7 +96,16 @@ public class DictionaryService extends BaseManagerImpl implements DictionaryServ
 	private DictionaryEventLogDao dictionaryEventLogDao;
     
     @Autowired
+	private FormLabelDao formLabelDao;
+    
+    @Autowired
     private DictionaryEventLogService dictionaryEventLogService;
+    
+    @Autowired
+    private PublishedFormStructureDao publishedFormStructureDao;
+    
+    @Autowired
+    private UserFileDao userFileDao;
     
 
     /**
@@ -286,6 +305,16 @@ public class DictionaryService extends BaseManagerImpl implements DictionaryServ
     public List<SemanticDataElement> semanticDataElementSearchNoPermissions(DictionarySearchFacets facets, Map<FacetType, Set<String>> searchKeywords, PaginationData pageData, boolean exactMatch){
     	return semanticDataElementDao.search(facets, searchKeywords, exactMatch, pageData, false);
     }
+    
+	/**
+	 * Return a count of all dataElements.
+	 */
+    @Override
+    public int semanticDataElementSearchCount(DictionarySearchFacets facets,
+            Map<FacetType, Set<String>> searchKeywords, boolean exactMatch, boolean onlyOwned) {
+
+        return semanticDataElementDao.searchCount(facets, searchKeywords, exactMatch, onlyOwned);             
+    }    
 
     /**
      * {@inheritDoc}
@@ -567,40 +596,124 @@ public class DictionaryService extends BaseManagerImpl implements DictionaryServ
 		return dataEntityId;
 	}
 
-	  public DictionaryEventLog saveChangeHistoryEventlog(DictionaryEventLog eventLog,List<SeverityRecord> severityRecords, SeverityLevel highestSeverityLevel,EntityType entityType,Long oldEntityID,Long entityID,String comment){
-	    	eventLog.setComment(comment);
-	    	eventLog.setMinorMajorChange(true);
-	    	eventLog.setEventType(EventType.MINOR_MAJOR_CHANGE);	
-	    	eventLog.setOldValue(oldEntityID.toString());
-	    	eventLog.setNewValue(entityID.toString());
-	    	
+	public DictionaryEventLog saveChangeHistoryEventlog(DictionaryEventLog eventLog,
+			List<SeverityRecord> severityRecords, SeverityLevel highestSeverityLevel, EntityType entityType,
+			Long oldEntityID, Long entityID, String comment) {
+		eventLog.setComment(comment);
+		eventLog.setMinorMajorChange(true);
+		eventLog.setEventType(EventType.MINOR_MAJOR_CHANGE);
+		eventLog.setOldValue(oldEntityID.toString());
+		eventLog.setNewValue(entityID.toString());
 
-	    	String minorMajorDes = dictionaryEventLogService.getMinorMajorChangeLog(severityRecords, highestSeverityLevel,entityType);   	
-	    	eventLog.setMinorMajorDesc(minorMajorDes);
-	    	
-	    	dictionaryEventLogDao.save(eventLog);
-	    	
-	    	return eventLog;
-	    }
+		String minorMajorDes = dictionaryEventLogService.getMinorMajorChangeLog(severityRecords, highestSeverityLevel,
+				entityType);
+		eventLog.setMinorMajorDesc(minorMajorDes);
 
-		@Override
-		public Long getOriginalDataElementIdByName(String dataElementName) {
-			return structuralDataElementDao.getOriginalDataElementByName(dataElementName).getId();
-		}
+		dictionaryEventLogDao.save(eventLog);
+
+		return eventLog;
+	}
+
+	@Override
+	public Long getOriginalDataElementIdByName(String dataElementName) {
+		return structuralDataElementDao.getOriginalDataElementByName(dataElementName).getId();
+	}
+
+	@Override
+	public Long getOriginalFormStructureIdByName(String formStructureName) {
+		return structuralFormStructureDao.getOriginalFormStructureByName(formStructureName).getId();
+	}
+
+	@Override
+	public Set<DictionaryEventLog> getAllDEEventLogs(Long entityID) {
+		return dictionaryEventLogDao.searchDEEventLogs(entityID);
+	}
+
+	@Override
+	public Set<DictionaryEventLog> getAllFSEventLogs(Long entityID) {
+		return dictionaryEventLogDao.searchFSEventLogs(entityID);
+	}
 		
-		@Override
-		public Long getOriginalFormStructureIdByName(String formStructureName) {
-			return structuralFormStructureDao.getOriginalFormStructureByName(formStructureName).getId();
-		}
-
-		@Override
-		public Set<DictionaryEventLog> getAllDEEventLogs(Long entityID) {
-			return dictionaryEventLogDao.searchDEEventLogs(entityID);
-		}
-		
-		@Override
-		public Set<DictionaryEventLog> getAllFSEventLogs(Long entityID) {
-			return dictionaryEventLogDao.searchFSEventLogs(entityID);
-		}
+	@Override
+	public List<FormLabel> getFormLabels() {
+		return formLabelDao.getAllFormLabels();
+	}
     
+	@Override
+	public FormLabel getFormLabel(Long formLabelId) {
+		return formLabelDao.get(formLabelId);
+	}
+	
+	@Override
+	public boolean isFormLabelUnique(String formLabel) {
+		return formLabelDao.isFormLabelUnique(formLabel);
+	}
+	
+	@Override
+	public FormLabel saveFormLabel(FormLabel formLabel) {
+		return formLabelDao.save(formLabel);
+	}
+    
+	@Override
+	public void updateFormLabel(FormLabel formLabel, String newLabel) {
+		formLabel.setLabel(newLabel);
+		formLabelDao.save(formLabel);
+		
+		// also update the form label associated with any forms 
+		semanticFormStructureDao.updateFormLabel(formLabel, newLabel);
+	}
+	
+	@Override
+	public void deleteFormLabelById(Long formLabelId) {
+		formLabelDao.remove(formLabelId);
+		
+		// also delete the form label associated with any forms 
+		semanticFormStructureDao.removeFormLabel(formLabelId);
+	}
+
+	@Override
+	public boolean isFormStructurePublished(Long formStructureId, Long diseaseId) {
+		
+		PublishedFormStructure publishedFormstructure = publishedFormStructureDao.getFormStructurePublished(formStructureId, diseaseId);
+		
+		if(publishedFormstructure==null || !publishedFormstructure.isPublished()) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public void saveFormStructurePublished(PublishedFormStructure publishedFormStructure) {
+		
+		publishedFormStructureDao.save(publishedFormStructure);
+	}
+	
+	@Override
+	public DictionaryEventLog saveEventLog(DictionaryEventLog eventLog, FormStructure formStructure,
+			Set<DictionarySupportingDocumentation> docList, String statusChangeComment, EventType eventType) {
+		
+		
+		Long originalEntityId = structuralFormStructureDao.getOriginalFormStructureByName(formStructure.getShortName()).getId();
+		eventLog.setFormStructureID(originalEntityId);
+		
+		if (docList != null && !docList.isEmpty()) {
+			for (DictionarySupportingDocumentation sd : docList) {
+				if (sd.getUserFile() != null)
+					sd.setUserFile(userFileDao.save(sd.getUserFile()));
+
+				sd.setDictionaryEventLog(eventLog);
+			}
+		}
+		
+		eventLog.setSupportingDocumentationSet(docList);
+		eventLog.setComment(statusChangeComment);
+		eventLog.setOldValue(formStructure.getStatus().getId().toString());
+		eventLog.setNewValue(StatusType.PUBLISHED.getId().toString());
+		eventLog.setEventType(eventType);
+		
+		dictionaryEventLogDao.save(eventLog);
+		
+		return eventLog;
+	}
+	
 }

@@ -24,6 +24,10 @@
     
     <!-- Filters -->
     <filter>
+    	<filter-name>sessionTimeoutFilter</filter-name>
+    	<filter-class>gov.nih.tbi.web.filter.SessionTimeoutFilter</filter-class>
+    </filter>
+    <filter>
 		<filter-name>springSecurityFilterChain</filter-name>
 		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
 	</filter>
@@ -40,6 +44,10 @@
 		<filter-class>net.bull.javamelody.MonitoringFilter</filter-class>
 	</filter>
 	
+	<filter-mapping>
+		<filter-name>sessionTimeoutFilter</filter-name>
+		<url-pattern>/service/*</url-pattern>
+	</filter-mapping>
 	<filter-mapping>
 		<filter-name>springSecurityFilterChain</filter-name>
 		<url-pattern>/*</url-pattern>

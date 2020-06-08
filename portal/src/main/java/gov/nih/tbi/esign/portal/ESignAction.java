@@ -1,15 +1,15 @@
 package gov.nih.tbi.esign.portal;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.Collection;
 
 import org.apache.log4j.Logger;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.cas.authentication.CasAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import com.jcraft.jsch.JSchException;
 
@@ -37,6 +37,10 @@ public class ESignAction extends BaseAction {
 	private AccountSignatureForm accountSignatureForm;
 	private Account currentAccount;
 	
+	@Value("#{casSecurityProperties['cas.client.key']}")
+	private String[] key;
+	
+
 	public String validateName() {
 		return PortalConstants.ACTION_VIEW;
 	}
@@ -78,12 +82,19 @@ public class ESignAction extends BaseAction {
 
 		// Update authorities in the session
 		SecurityContext securityContext = SecurityContextHolder.getContext();
-		Authentication auth = securityContext.getAuthentication();
+		CasAuthenticationToken oldAuth = (CasAuthenticationToken) securityContext.getAuthentication();
 		Collection<GrantedAuthority> updatedAuthorities = AccountDetailService.getAuthorities(currentAccount);
+
+		if (key == null || key.length < 1) {
+			throw new RuntimeException("Property cas.client.key was not set.");
+		}
 		
-		Authentication newAuth = new UsernamePasswordAuthenticationToken(
-				auth.getPrincipal(), auth.getCredentials(), updatedAuthorities);
-        securityContext.setAuthentication(newAuth);
+		String caskey = key[0];
+		CasAuthenticationToken newAuth = new CasAuthenticationToken(caskey, oldAuth.getPrincipal(),
+				oldAuth.getCredentials(), updatedAuthorities, (UserDetails) oldAuth.getPrincipal(),
+				oldAuth.getAssertion());
+		newAuth.setDetails(oldAuth.getDetails());
+		securityContext.setAuthentication(newAuth);
         
 		return PortalConstants.ACTION_SUCCESS;
 	}

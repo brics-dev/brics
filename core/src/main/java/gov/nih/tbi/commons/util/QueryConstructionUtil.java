@@ -752,6 +752,13 @@ public class QueryConstructionUtil extends SparqlConstructionUtil {
 		basicFormStructureQuery.addResultVar(RDFConstants.DISEASE_VARIABLE,
 				new ExprAggregator(RDFConstants.DISEASE_VARIABLE, AggregatorFactory.createGroupConcat(false,
 						new E_Distinct(new ExprVar(RDFConstants.DISEASE_VARIABLE)), ",", null)));
+		basicFormStructureQuery.addResultVar(RDFConstants.LABEL_VARIABLE,
+				new ExprAggregator(RDFConstants.LABEL_VARIABLE, AggregatorFactory.createGroupConcat(false,
+						new E_Distinct(new ExprVar(RDFConstants.LABEL_VARIABLE)), ",", null)));
+		basicFormStructureQuery.addResultVar(RDFConstants.LABEL_ID_VARIABLE,
+				new ExprAggregator(RDFConstants.LABEL_ID_VARIABLE, AggregatorFactory.createGroupConcat(false,
+						new E_Distinct(new ExprVar(RDFConstants.LABEL_ID_VARIABLE)), ",", null)));
+		
 		basicFormStructureQuery.addResultVar(RDFConstants.ORGANIZATION_VARIABLE);
 		basicFormStructureQuery.addResultVar(RDFConstants.MODIFIED_DATE_VARIABLE);
 		basicFormStructureQuery.addResultVar(RDFConstants.STATUS_VARIABLE);
@@ -779,6 +786,15 @@ public class QueryConstructionUtil extends SparqlConstructionUtil {
 				RDFConstants.REQUIRED_VARIABLE));
 		body.addElement(buildGroupOptionalPattern(requiredList));
 
+		List<Triple> labelList = new ArrayList<Triple>();
+		labelList.add(Triple.create(RDFConstants.URI_NODE, RDFConstants.PROPERTY_FS_LABEL_NODE_N,
+				RDFConstants.LABEL_NODE_VARIABLE));
+		labelList.add(Triple.create(RDFConstants.LABEL_NODE_VARIABLE, RDFS.label.asNode(),
+				RDFConstants.LABEL_VARIABLE));
+		labelList.add(Triple.create(RDFConstants.LABEL_NODE_VARIABLE, RDFConstants.PROPERTY_FS_LABEL_ID_NODE_N,
+				RDFConstants.LABEL_ID_VARIABLE));
+		body.addElement(buildGroupOptionalPattern(labelList));
+		
 		body.addElement(buildSingleOptionalPattern(RDFConstants.URI_NODE,
 				RDFConstants.PROPERTY_BRICS_DESCRIPTION_NODE_N, RDFConstants.DESCRIPTION_VARIABLE));
 		body.addElement(buildSingleOptionalPattern(RDFConstants.URI_NODE, RDFConstants.PROPERTY_BRICS_TITLE_NODE_N,

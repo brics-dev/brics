@@ -1,0 +1,15 @@
+[DB-SRC]
+host=fitbir-db-uat.cit.nih.gov
+database=tbi_uat
+schema=tbi_metauat
+user=tbi_metauat
+
+[DB-TRG]
+host=fitbir-db-test.cit.nih.gov
+database=tbi_test
+schema=tbi_metatest
+user=tbi_metatest
+
+[FILE-SYS]
+logDir=/var/lib/brics/log/pgCloner/uat-test-meta
+dumpDir=/var/lib/brics/data/pgCloner/uat-test-meta

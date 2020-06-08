@@ -1,6 +1,7 @@
 package gov.nih.nichd.ctdb.site.manager;
 
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -270,4 +271,37 @@ public class SiteManager extends CtdbManager {
 
 		return siteMap;
 	}
+	
+	   public String getPatientProtocolSite(int protocolId,int patientId) throws CtdbException {
+	        Connection conn = null;
+	        String siteName="";
+	        try
+	        {
+	            conn = CtdbManager.getConnection();
+	            SiteDao sitedao = SiteDao.getInstance(conn);
+	            siteName = sitedao.getSiteNameByPatientIdProtocolId(protocolId, patientId);
+	        }
+	        finally
+	        {
+	            this.close(conn);
+	        }
+			return siteName;
+	    }
+	   
+	   public List<Integer> getSiteIdsFromProtocolusrrole(int protocolId, int roleId, int userId) throws CtdbException {
+	        Connection conn = null;
+	        List<Integer> siteIds= new ArrayList<Integer>();
+	        try
+	        {
+	            conn = CtdbManager.getConnection();
+	            SiteDao sitedao = SiteDao.getInstance(conn);
+	            siteIds = sitedao.getSiteIdFromProtocolusrrole(protocolId, roleId, userId);
+	        }
+	        finally
+	        {
+	            this.close(conn);
+	        }
+			return siteIds;
+	    }
+	   
 }

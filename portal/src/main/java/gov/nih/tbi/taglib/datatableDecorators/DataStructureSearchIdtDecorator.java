@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import org.apache.commons.lang.StringEscapeUtils;
 
 import gov.nih.tbi.PortalConstants;
+import gov.nih.tbi.commons.model.StatusType;
 import gov.nih.tbi.dictionary.model.rdf.SemanticFormStructure;
 
 public class DataStructureSearchIdtDecorator extends IdtDecorator {
@@ -29,6 +30,12 @@ public class DataStructureSearchIdtDecorator extends IdtDecorator {
 	}
 	
 	public String getStatus() {
+		
+		StatusType status = semanticFormStructure.getStatus();
+		
+		if(status==StatusType.PUBLISH_PENDING) {
+			return StatusType.AWAITING_PUBLICATION.getType();
+		}
 				
 		return semanticFormStructure.getStatus().getType();
 			

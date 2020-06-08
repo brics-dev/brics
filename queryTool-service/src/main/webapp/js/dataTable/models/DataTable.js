@@ -43,6 +43,7 @@ QTDT.DataTable = BaseModel.extend({
 		unselectedBioSampleArray: [], //this is an array to keep unselected biosamples when a user chooses all samples
 		selectAllChecked: false, //this is for biosample ordering
 		bioFormName : "",
+		queryState : 0, //this is used to determine if a change has been made to the query result and the datatable has not been updated to reflect it
 	},
 	
 	initialize : function() {
@@ -54,12 +55,12 @@ QTDT.DataTable = BaseModel.extend({
 	//rawData is the query result
 	loadData : function(rawData) {  
 		var query = QueryTool.page.get("query");
-		var customHeader = {"name":"Forms:","version":"","repeatableGroupHeaders":[{"name":"Repeatable Groups:","dataElementHeaders":["Study ID","Dataset"],"doesRepeat":false}]};
+		var customHeader = {"name":"Forms:","version":"","repeatableGroupHeaders":[{"name":"Repeatable Groups:","dataElementHeaders":["Row No.","Study ID","Dataset"],"doesRepeat":false}]};
 		//rawData.header[0].formHeaders = "Forms";
 		
 		
 		if(query.get("selectedForms").length > 1) { 
-			customHeader = {"name":"Forms:","version":"","repeatableGroupHeaders":[{"name":"Repeatable Groups:","dataElementHeaders":["GUID"],"doesRepeat":false}]};
+			customHeader = {"name":"Forms:","version":"","repeatableGroupHeaders":[{"name":"Repeatable Groups:","dataElementHeaders":["Row No.","GUID"],"doesRepeat":false}]};
 			//rawData.header[0].repeatableGroupHeaders.unshift({"name":"Repeatable Groups:","dataElementHeaders":["GUID"],"doesRepeat":false});
 			
 		} /*else {
@@ -190,6 +191,9 @@ QTDT.DataTable = BaseModel.extend({
 				this.rows.remove(row);
 			}
 			
+			var rowCount = atValue+1;
+			cells.unshift(rowCount.toString());
+	
 			var rowCells = new QTDT.ColCells();
 		
 			for (var j in cells) {

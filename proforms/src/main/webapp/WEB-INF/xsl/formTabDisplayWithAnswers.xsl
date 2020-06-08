@@ -2,6 +2,7 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <xsl:param name="webroot"/>
     <xsl:variable name="displaytop" select="/form/TOC/@display"/>
+    <xsl:variable name="hasBtrisMappingQuestion" select="/form/@hasBtrisMappingQuestion"/>
     <xsl:param name="imageroot"/>
     <xsl:param name="cssstylesheet"/>
     <xsl:param name="title"/>
@@ -149,6 +150,18 @@
 	            <td style="font-family: {htmlAttributes/formFont}; color: {htmlAttributes/formColor}">
 	            	<I><xsl:value-of select="description"/></I>
 	            </td>
+	        </tr>
+	        <tr align="left"><!-- BTRIS Get All Button -->
+	          <td>
+		           <xsl:choose>
+	                     <xsl:when test="$hasBtrisMappingQuestion = 'true'">
+	                     	<input type="button" id="getAllBtrisData" value="Get All BTRIS Data" class="allBtrisDataBtn" 
+	  									title="Get All BTRIS Data for All Mapped Questions"
+	  									onclick="openMappedBtrisQuestionsDlg();" 
+	  									style="float: right; display: none;"/>
+	   					</xsl:when>
+	   			    </xsl:choose>
+	          </td>
 	        </tr>
             <xsl:apply-templates select="TOC"/>
         </table>
@@ -890,6 +903,14 @@
                             </xsl:choose>
                         </xsl:when>
                        </xsl:choose>
+                        <!-- Btris Mapping -->
+                        <xsl:choose>
+                             <xsl:when test="@hasBtrisMapping = 'true'">
+                            		<xsl:for-each select="btrisMapping">
+                            		<br/><img src="{$imageroot}/icons/information.png" class="btrisMappingInfo" alt="Info Image" title="Has Btris Mapping" border="0" style="float: right; display: none;"/>
+           						</xsl:for-each>
+           					</xsl:when>
+           			   </xsl:choose>
                       </td>
                    </tr>
                 </table>
@@ -950,6 +971,7 @@
                         </xsl:choose>
                     </td>
                     <td align="{formQuestionAttributes/htmlAttributes/align}" valign="{formQuestionAttributes/htmlAttributes/valign}" width="50%" style="font-family: {formQuestionAttributes/htmlAttributes/fontFace}; color: {formQuestionAttributes/htmlAttributes/color}; font-size:{/form/htmlAttributes/formFontSize}pt">
+                    	<div style="display: table-cell; float: left;">
   	                                   	 <xsl:choose>
 	                                    	<xsl:when test="@upDescription ='true'">
 	                                    	<span style="font-size:14pt">
@@ -1363,18 +1385,36 @@
 	                                    	<br/>
 	                                    	</span>
 	                                    	</xsl:when>
-	                                  	  </xsl:choose>                           
+	                                  	  </xsl:choose>
+
+           			   </div>
+           			   <div style="display: table-cell; float: right;">
+           			   	 <!-- Btris Mapping -->
+                         <xsl:choose>
+                             <xsl:when test="@hasBtrisMapping = 'true'">
+                            		<xsl:for-each select="btrisMapping">
+                            		<br/><img src="{$imageroot}/icons/information.png" class="btrisMappingInfo" alt="Info Image" title="Has Btris Mapping" border="0" style="float: right; display: none;"/>
+           						</xsl:for-each>
+           					</xsl:when>
+           			     </xsl:choose>
+           			   </div>
+	                   <div width="5%" class="enterAuditComment" style="display: none; float: right; margin-right: 10%;" id="enterAuditComment_S_{$questionSectionNode}_Q_{$qid}"   >
+	                     	<img  id="imgAuditComment_S_{$questionSectionNode}_Q_{$qid}" src="{$webroot}/images/icons/comment.png" alt="Enter Comments" title="Enter comments" width="20" height="20"  />
+	                   </div>                             
                     </td>
                 </xsl:otherwise>
             </xsl:choose>
         </tr><!-- show question end -->
 	
-		<!--Question  graphics -->
-		<tr align='left'>
+        <!--Question documents -->
+        <tr align='left'>
             <td colspan="2" id="S_{$questionSectionNode}_Q_{$qid}_link">
-                <xsl:for-each select="images/filename">
-                    <!-- <img src="{$imageroot}/questionimages/{.}" alt="Question Image" border="0"/>&#160;&#160; -->
-                    <img class="imgThumb" src="{$dictionaryWsRoot}portal/ws/ddt/dictionary/eforms/question/{$qid}/document/{.}" alt="Question Image" border="0"  style="cursor: pointer"/>&#160;&#160;
+               	<xsl:for-each select="images/filename">
+                	<img class="imgThumb" src="{$dictionaryWsRoot}portal/ws/public/eforms/question/{$qid}/document/{.}" alt="Question Image" border="0"  style="cursor: pointer"/>&#160;&#160;
+                </xsl:for-each>
+                <xsl:for-each select="files/filename">
+                	<xsl:variable name="fileLink" select="@fileLink"/>
+                  	<a href="{@fileLink}" fileName="{.}" questionId="{$qid}" alt="Question File"><xsl:value-of select="current()"/></a>&#160;&#160;
                 </xsl:for-each>
             </td>
         </tr>

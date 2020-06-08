@@ -194,13 +194,6 @@
 			</s:if>
 
 			<jsp:include page="viewDatasetBasic.jsp" />
-			
-			<c:if test="${fn:length(eventLogList) != 0}">
-			
-				<h3>Dataset Administrative Status Change History</h3>						
-				<ndar:eventTable eventLogList="${eventLogList}" /> 
-				
-			</c:if>
 
 			<s:if test="currentDataset.study != null">
 				<h3>Study Overview</h3>

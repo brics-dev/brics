@@ -13,6 +13,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,6 +22,8 @@ import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuc
 import org.springframework.security.web.util.UrlUtils;
 import org.springframework.util.Assert;
 import org.springframework.web.filter.GenericFilterBean;
+
+import gov.nih.tbi.constants.ApplicationConstants;
 
 /**
  * A version of LogoutFilter from the spring security framework that takes multiple logoutSuccessURLs as an argument and
@@ -33,7 +36,7 @@ public class BricsLogoutFilter extends GenericFilterBean
     // ~ Instance fields
     // ================================================================================================
 
-    private String filterProcessesUrl = "/logout";
+    private String filterProcessesUrl = "";
     private List<LogoutHandler> handlers;
     private LinkedHashMap<String, String> logoutSuccessUrls;
     private SimpleUrlLogoutSuccessHandler logoutSuccessHandler;
@@ -44,6 +47,10 @@ public class BricsLogoutFilter extends GenericFilterBean
 	@Value("#{casSecurityProperties['cas.server.location']}")
 	private String[] casUrl;
 
+	private static final String QUERY_URL = "/query";
+	private static final String LOGOUT_URL= "/logout";
+    @Autowired
+    ApplicationConstants applicationConstants;
     // ~ Constructors
     // ===================================================================================================
 
@@ -74,10 +81,15 @@ public class BricsLogoutFilter extends GenericFilterBean
 
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
+    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    	String uri = request.getRequestURI();
 
+    	String logoutUri = QUERY_URL + LOGOUT_URL;
+    	if(uri.endsWith(logoutUri)) {
+    		response.sendRedirect(applicationConstants.getModulesAccountURL() + LOGOUT_URL);
+    	}
         if (requiresLogout(request, response))
         {
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
             if (logger.isDebugEnabled())
             {

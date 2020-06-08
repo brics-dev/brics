@@ -1,6 +1,7 @@
 /**
  * This View represents the page itself and allows the code to 
  */
+$.getScript('/js/sessionHandler.js', function() {});
 var PageView = BaseView.extend({
 	actionBarSubview : null,
 	loadFormStrucutre : 0,	
@@ -412,6 +413,7 @@ var PageView = BaseView.extend({
 			eMailTriggerId : attributeObj.eMailTriggerId,
 			deleteTrigger : attributeObj.deleteTrigger,
 			triggerAnswers : attributeObj.triggerAnswers,
+			triggerValues: attributeObj.triggerValues,
 			required : attributeObj.required,
 			answerTypeDisplay : attributeObj.answerTypeDisplay,
 			rangeValue2 : attributeObj.rangeValue2,
@@ -441,10 +443,14 @@ var PageView = BaseView.extend({
 			skipRuleDependent : attributeObj.skipRuleDependent,
 			skiprule : attributeObj.skiprule,
 			tableHeaderType : attributeObj.tableHeaderType,
-			showText : attributeObj.showText
+			showText : attributeObj.showText,
+			countFormula : attributeObj.countFormula,
+			questionsInCount: attributeObj.questionsInCount,
+			countFlag : attributeObj.countFlag
 		};
 		
-		if(typeof attributeObj.triggerAnswers != 'undefined' && attributeObj.triggerAnswers.length > 0){
+//		if(typeof attributeObj.triggerAnswers != 'undefined' && attributeObj.triggerAnswers.length > 0){
+		if(typeof attributeObj.triggerValues != 'undefined' && attributeObj.triggerValues.length > 0){
 			loadThis.emailTrigger = true;
 			questionModel.deleteTrigger = false;
 		}

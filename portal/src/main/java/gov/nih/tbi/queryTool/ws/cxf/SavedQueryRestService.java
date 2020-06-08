@@ -474,6 +474,16 @@ public class SavedQueryRestService extends AbstractRestService {
 	}
 	
 	@GET
+	@Path("util/isLinkedToMetaStudy/{savedQueryId}")
+	@Produces(MediaType.TEXT_PLAIN)
+	public Response isQueryLinkedToMetaStudy(@PathParam("savedQueryId") Long savedQueryId)
+			throws WebApplicationException {
+		
+		boolean isLinked = queryToolManager.isQueryLinkedToMetaStudy(savedQueryId);
+		return Response.ok(isLinked, MediaType.TEXT_PLAIN).build();
+	}
+
+	@GET
 	@Path("util/savedQueryPerMetaStudy/{savedQueryName}")
 	@Produces(MediaType.APPLICATION_XML)
 	public Response getSavedQueryByNameAndMetaStudy(@PathParam("savedQueryName") String savedQueryName,

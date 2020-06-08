@@ -41,4 +41,6 @@ public interface SummaryQuerySparqlDao extends GenericSparqlDao<SummaryResult> {
 	public Study getBasicStudyByTitle(String title);
 
 	public SummaryResult getResultJson(String query);
+
+	public SummaryResult getResultsMapping(String query);
 }

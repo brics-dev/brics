@@ -1,0 +1,11 @@
+1|sexec|temp|cat tomcat.pid
+2|sexec|temp|kill `cat tomcat.pid`
+3|sexec||sleep 10
+4|sexec|temp|rm -rf tomcat.pid
+#5|sexec|webapps|rm -f portal.war
+#6|sexec|webapps|rm -rf portal
+7|sput|archive_logs.sh|temp/archive_logs.sh
+8|sexec|temp|chmod +x archive_logs.sh
+9|sexec|temp|./archive_logs.sh
+10|sexec|temp|sudo service tomcat-2nd start
+11|sexec|temp|cat tomcat.pid

@@ -14,6 +14,7 @@ public class GuidRDF {
 	public static final String URI_NS = BASE_URI_NS + STRING_GUID + "/";
 	
 	public static final Property DO_HIGHLIGHT_PROP = property("doHighlight");
+	public static final Property MDS_UPDRS_X_PROP = property("mdsUpdrsX");
 	// Resources
 	public static final Resource RESOURCE_GUID = resource(STRING_GUID);
 

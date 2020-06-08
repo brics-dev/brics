@@ -40,6 +40,7 @@
 				<xs:element type="xs:boolean" name="isLegacy" minOccurs="0" maxOccurs="1"/>
 				<xs:element type="xs:boolean" name="isShared" minOccurs="0" maxOccurs="1"/>
 				<xs:element type="xs:boolean" name="isCAT" minOccurs="0" maxOccurs="1"/>
+				<xs:element type="xs:string" name="pfCategory" minOccurs="0" maxOccurs="1"/>
 				<xs:element type="xs:string" name="catOid" minOccurs="0" maxOccurs="1"/>
 				<xs:element type="xs:string" name="measurementType" minOccurs="0" maxOccurs="1"/>
 				<xs:element ref="SectionSet" minOccurs="1" maxOccurs="unbounded"/>
@@ -97,9 +98,11 @@
 				<xs:element type="xs:boolean" name="suppressFlag" minOccurs="0"/>
 				<xs:element type="xs:int" name="questionOrderColumn"/>
 				<xs:element type="xs:string" name="calculation" minOccurs="0"/>
+				<xs:element type="xs:string" name="countFormula" minOccurs="0"/>
 				<xs:element ref="Question" maxOccurs="unbounded" minOccurs="0"/>
 				<xs:element ref="CalculatedQuestionSet" maxOccurs="1" minOccurs="0"/>
 				<xs:element ref="SkipRuleQuestionSet" maxOccurs="1" minOccurs="0"/>
+				<xs:element ref="CountQuestionSet" maxOccurs="1" minOccurs="0"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
@@ -135,6 +138,11 @@
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
+	
+	
+	
+	
+	
 	<xs:element name="SkipRuleQuestion">
 		<xs:complexType>
 			<xs:sequence>
@@ -147,6 +155,30 @@
 			<xs:sequence>
 				<xs:element type="xs:long" name="skipRuleQuestion"/>
 				<xs:element type="xs:long" name="skipRuleSection"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<xs:element name="CountQuestionSet">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="CountQuestion" maxOccurs="unbounded" minOccurs="0"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<xs:element name="CountQuestion">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="CountQuestionReference" maxOccurs="1" minOccurs="0"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="CountQuestionReference">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element type="xs:long" name="countQuestion"/>
+				<xs:element type="xs:long" name="countSection"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
@@ -217,6 +249,7 @@
 				<xs:element type="xs:int" name="tableHeaderType" minOccurs="0"/>
 				<xs:element ref="EmailTrigger" maxOccurs="unbounded" minOccurs="0"/>
 				<xs:element type="xs:boolean" name="conditionalForCalc"/>
+				<xs:element type="xs:boolean" name="countFlag" minOccurs="0"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>

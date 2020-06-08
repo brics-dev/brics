@@ -1,6 +1,7 @@
 package gov.nih.nichd.ctdb.patient.action;
 
 import java.math.BigDecimal;
+import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,16 +9,21 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
+
+import javax.mail.MessagingException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import gov.nih.nichd.ctdb.common.BaseAction;
 import gov.nih.nichd.ctdb.common.CtdbConstants;
 import gov.nih.nichd.ctdb.common.CtdbException;
+import gov.nih.nichd.ctdb.common.ModulesConstants;
 import gov.nih.nichd.ctdb.common.ObjectNotFoundException;
 import gov.nih.nichd.ctdb.common.StrutsConstants;
 import gov.nih.nichd.ctdb.common.navigation.LeftNavController;
@@ -38,6 +44,7 @@ import gov.nih.nichd.ctdb.protocol.manager.ProtocolManager;
 import gov.nih.nichd.ctdb.security.domain.User;
 import gov.nih.nichd.ctdb.selfreporting.util.SelfReportingAcessControlUtil;
 import gov.nih.nichd.ctdb.util.common.SysPropUtil;
+import gov.nih.tbi.commons.service.util.MailEngine;
 import gov.nih.tbi.dictionary.model.hibernate.DataElement;
 import gov.nih.tbi.idt.ws.IdtInterface;
 import gov.nih.tbi.idt.ws.InvalidColumnException;
@@ -49,8 +56,12 @@ public class PatientVisitHomeAction extends BaseAction {
 	private static final Logger logger = Logger.getLogger(PatientVisitHomeAction.class);
 	private static final Integer VISIT_COMMENTS_MAX_LENGTH = 1000;
 
+    @Autowired
+    MailEngine mailEngine;
+
 	private String id;
     private int patientId;
+	private String patientEmail;
 	private String protocolId;
 	//private String subjectId;
     private String visitTypeId;
@@ -67,6 +78,8 @@ public class PatientVisitHomeAction extends BaseAction {
 	private List<PatientVisit> pvList;
 	private String selectedClinicPntId;
 	
+	private List<Integer> siteIds = new ArrayList<Integer>();
+
 	public PatientVisitHomeAction() {
 		patientId = -1;
 		pvPrepopValues = CtdbConstants.EMPTY_JSON_ARRAY_STR;
@@ -95,8 +108,6 @@ public class PatientVisitHomeAction extends BaseAction {
 		}
 	}
 	
-
-
 	/**
 	 * Sets up needed data that is required to show the patient visit page.
 	 * 
@@ -110,25 +121,38 @@ public class PatientVisitHomeAction extends BaseAction {
 		int protocolId = protocol.getId();
 		PatientManager pm = new PatientManager();
 		
-		// Get the patients for this protocol.
-		List<Patient> patients = pm.getMinPatientsByProtocolId(protocolId);
+		List<Patient> patients = new ArrayList<Patient>();
+		
+		if(!isUserSiteCheckNeeded()) {
+			 patients  = pm.getMinPatientsByProtocolIdSiteIds(protocolId,null);
+		}else {
+			siteIds = getUserAssignedSites();
+			patients  = pm.getMinPatientsByProtocolIdSiteIds(protocolId,siteIds);
+		}
 		
 		pm.updatePatientSubjectNumbers(patients, protocol);
 		session.put(CtdbConstants.PATIENT_LIST_KEY, patients);
+		
 		
 		// Get patient visits.
 		PatientVisitResultControl pvrc = new PatientVisitResultControl();
 		
 		pvrc.setProtocolId(protocol.getId());
 		
-
-		
 		if (patientId > 0) {
 			pvrc.setPatientId(patientId);
 			request.setAttribute(CtdbConstants.VISIT_TYPE_SCHEDULER_LIST_KEY, pm.getIntervalsWithSchedulerStatus(patientId, protocolId));
 		}
+
+		if(!isUserSiteCheckNeeded()) {
+			setPvList(pm.getPatientVisitsByUserSiteIds(pvrc,protocol.getId(),null));
+		}
+		else {
+			siteIds = getUserAssignedSites();
+			setPvList(pm.getPatientVisitsByUserSiteIds(pvrc,protocol.getId(),siteIds));
+		}
 		
-		setPvList(pm.getPatientVisits(pvrc,protocol.getId()));
+		
 		Collections.sort(getPvList(), new PatientVisitComparator());
 		request.setAttribute(CtdbConstants.PATIENT_VISIT_DATE_LIST_KEY, getPvList());
 		session.put("patientVisitList", this.getPvList());
@@ -250,11 +274,17 @@ public class PatientVisitHomeAction extends BaseAction {
 		}
 		
 		/*Update the patient visit list by selected patient */
-		setPvList(pm.getPatientVisits(pvrc,protocol.getId()));
+		
+		if(!isUserSiteCheckNeeded()) {
+			setPvList(pm.getPatientVisitsByUserSiteIds(pvrc,protocol.getId(),null));
+		}
+		else {
+			siteIds = getUserAssignedSites();
+			setPvList(pm.getPatientVisitsByUserSiteIds(pvrc,protocol.getId(),siteIds));
+		}
 		Collections.sort(getPvList(), new PatientVisitComparator());
 		request.setAttribute(CtdbConstants.PATIENT_VISIT_DATE_LIST_KEY, getPvList());
 		session.put("patientVisitList", this.getPvList());
-
 
 		return BaseAction.SUCCESS;
 	}
@@ -492,6 +522,96 @@ public class PatientVisitHomeAction extends BaseAction {
 		
 		return resultPath;
     }
+    
+    public String sendEmailPSR() 
+    {
+    	String resultPath = BaseAction.SUCCESS;
+
+		// Finish setting up data for the page.
+		try {
+			this.setupPage();
+		}
+		catch (Exception e) {
+			logger.error("Couldn't setup the page, while getting the patient visit by ID (" + id + ").", e);
+			return StrutsConstants.EXCEPTION;
+		}
+
+		/*
+		 * Validation to check patient email is not empty.
+		 */
+        if( Utils.isBlank( patientEmail ) )
+        {
+    		logger.error("The Patient's email address is missing. PSR Email has not been sent.");
+        	addActionError("The Patient's email address is missing. PSR Email has not been sent.");
+			return StrutsConstants.EXCEPTION;
+        }
+        
+		/*
+		 *  Need to use clinical point. Email is sent out to them. 
+		 */
+		if (Boolean.valueOf(SysPropUtil.getProperty("display.protocol.clinicalPoint"))) 
+		{
+			if (!Utils.isBlank(selectedClinicPntId) && !Utils.isNumeric(selectedClinicPntId)) 
+			{
+				logger.error("Interval clinical point has not been selected.");
+				addActionError(getText(StrutsConstants.ERROR_FIELD_INVALID,
+						new String[] {getText("protocol.intervalClinicalPoint.id.display")}));
+				return StrutsConstants.EXCEPTION;
+			} 
+			else 
+			{
+				Integer clinicPntId = Integer.parseInt(selectedClinicPntId);
+				IntervalClinicalPoint selectedIntervalClinicalPoint = null;
+				
+				for( IntervalClinicalPoint intervalClinicalPoint : intClinicalPntList )
+				{
+					if( intervalClinicalPoint != null && intervalClinicalPoint.getId() == clinicPntId )
+					{
+						selectedIntervalClinicalPoint = intervalClinicalPoint;
+						break;
+					}
+				}
+				
+		    	Protocol protocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
+		    	
+		    	/*
+		    	 * Retrieve the email template and send email.
+		    	 */
+		    	ResourceBundle mailProperties = ResourceBundle.getBundle("mail");
+		    	String subject =
+		    			MessageFormat.format(mailProperties.getString(ModulesConstants.MAIL_RESOURCE_EMAIL_PSR + ModulesConstants.MAIL_RESOURCE_SUBJECT),
+								(protocol != null && protocol.getName() != null) ? "" + protocol.getName() : "");
+		
+		        String messageText = 
+		        		MessageFormat.format(mailProperties.getString(ModulesConstants.MAIL_RESOURCE_EMAIL_PSR + ModulesConstants.MAIL_RESOURCE_BODY), 
+		        			(protocol != null && protocol.getName() != null) ? "" + protocol.getName() : "", // {0}
+			                token, // {1}
+			                selectedIntervalClinicalPoint.getPointOfContact().getFullName(), // {2}
+			                selectedIntervalClinicalPoint.getPointOfContact().getEmail(), // {3}
+			                selectedIntervalClinicalPoint.getPointOfContact().getPhone(), // {4} 
+			                selectedIntervalClinicalPoint.getPointOfContact().getAddress() // {5}
+		        		);
+		        
+		        String toAddrStr = getPatientEmail();
+		        String fromAddrStr = SysPropUtil.getProperty("admin.email.address.cistar");;
+		
+		        try
+		        {
+		            mailEngine.sendMail(subject, messageText, fromAddrStr, toAddrStr);
+		    		addActionMessage("PSR Email has been sent successfully.");
+		        }
+		        catch (MessagingException e)
+		        {
+					logger.error("Error sending PSR email", e);
+					addActionError("Error sending PSR email.");
+					resultPath = StrutsConstants.EXCEPTION;
+		        }
+			}
+		}
+		
+		return resultPath;
+    }
+    
     
     /**
      * Runs a suite of validation tests on the submitted patient visit.
@@ -919,4 +1039,13 @@ public class PatientVisitHomeAction extends BaseAction {
 	public void setSelectedClinicPntId(String clinicPntId){
 		this.selectedClinicPntId = clinicPntId;
 	}
+	
+	public String getPatientEmail() {
+		return this.patientEmail;
+	}
+
+	public void setPatientEmail(String patientEmail){
+		this.patientEmail = patientEmail;
+	}
+	
 }

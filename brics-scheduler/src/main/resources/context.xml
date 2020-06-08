@@ -26,6 +26,7 @@
 			<list>
 				<value>file:#{systemProperties['conf.dir']}/modules.properties</value>
 				<value>file:#{systemProperties['conf.dir']}/rdfgen.properties</value>
+				<value>file:#{systemProperties['conf.dir']}/datasource.properties</value>
 			</list>
 		</property>
 		<property name="ignoreResourceNotFound" value="true" />

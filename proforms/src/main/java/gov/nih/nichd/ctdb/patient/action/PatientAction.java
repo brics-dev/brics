@@ -183,7 +183,7 @@ public class PatientAction extends BaseAction {
             		patientForm.setId(patientId);
             		//patientForm.setSubjectId(patientId);
             		
-            		patient = pm.getPatient(String.valueOf(patientId));
+					patient = pm.getPatient(String.valueOf(patientId), protocol.getId());
             		patient.setUsingNonPII(nonPII);
             	}
             	
@@ -332,7 +332,7 @@ public class PatientAction extends BaseAction {
     		pp.setSubjectNumber(fullSubjNumber);
     	}
     	
-    	Patient patient = pm.getPatient(request.getParameter("id"));
+		Patient patient = pm.getPatient(request.getParameter("id"), protocol.getId());
     	patient.setUsingNonPII(SysPropUtil.getProperty("guid_with_non_pii"));
 		patient.updateUpdatedByInfo(getUser());
     	patient.getProtocols().add(pp);
@@ -383,7 +383,12 @@ public class PatientAction extends BaseAction {
 
         try {
         	PatientManager pm = new PatientManager();
-        	patIsExists = pm.isGuidExists(patient);
+			patIsExists = pm.isGuidExistsProtocol(patient, protocol.getId());
+			if(patIsExists) {
+            	addActionError(getText(StrutsConstants.SUBJECT_EXISTING_WARNING, new String[]{getText("subject.title.display").toLowerCase(userLocale) + 
+                		" " + patient.getDisplayLabel(protocol.getPatientDisplayType(), protocol.getId())}));
+                return BaseAction.ERROR;
+			}
         	pm.createPatient(patient,protocol.getId());
         	int id = patient.getId();
         	
@@ -406,7 +411,7 @@ public class PatientAction extends BaseAction {
             
             // Save the attachments
             AttachmentManager am = new AttachmentManager();
-            am.saveAttachments(attachmentMap);
+			am.saveAttachments(attachmentMap, protocol.getId());
         }
         catch ( DuplicateObjectException e ) {
         	logger.error("Duplicate subject found in the database while creating a new subject.", e);
@@ -438,16 +443,10 @@ public class PatientAction extends BaseAction {
     		}
         }
         else {
-			if (Integer.parseInt(SysPropUtil.getProperty("guid_with_non_pii")) == 0 && patIsExists) {
-            	addActionMessage(getText(StrutsConstants.SUBJECT_EXISTING_WARNING, new String[]{getText("subject.title.display").toLowerCase(userLocale) + 
-                		" " + patient.getDisplayLabel(protocol.getPatientDisplayType(), protocol.getId())}));
-                session.put(ACTION_MESSAGES_KEY, getActionMessages());
-        	}
-			else {
-        		addActionMessage(getText(StrutsConstants.SUCCESS_ADD_KEY, new String[]{getText("subject.title.display").toLowerCase(userLocale) + 
+        	addActionMessage(getText(StrutsConstants.SUCCESS_ADD_KEY, new String[]{getText("subject.title.display").toLowerCase(userLocale) + 
             		" " + patient.getDisplayLabel(protocol.getPatientDisplayType(), protocol.getId())}));
-            	session.put(ACTION_MESSAGES_KEY, getActionMessages());
-        	}
+            session.put(ACTION_MESSAGES_KEY, getActionMessages());
+        	
 
             this.retrieveActionErrors(PatientAction.ACTION_ERRORS_KEY);
             PatientAction.clearSessionVariables(session);
@@ -485,6 +484,14 @@ public class PatientAction extends BaseAction {
         		  throw new RuntimeException("Subject Id is required to create patient.");
         	}
             Patient patient = (Patient)PatientAssembler.formToDomain(patientForm);
+            boolean patIsExists = pm.isGuidExistsProtocol(patient, protocol.getId());
+            if(patIsExists) {
+                	addActionError(getText(StrutsConstants.SUBJECT_EXISTING_WARNING, new String[]{getText("subject.title.display").toLowerCase(userLocale) + 
+                    		" " + patient.getDisplayLabel(protocol.getPatientDisplayType(), protocol.getId())}));
+                    return BaseAction.ERROR;
+            }
+            
+            
             patient.setUsingNonPII(SysPropUtil.getProperty("guid_with_non_pii"));
             patientDisplayLabel = patient.getDisplayLabel(protocol.getPatientDisplayType(), pid);
            // patient.setSubjectId(this.getSubjectId());
@@ -551,7 +558,7 @@ public class PatientAction extends BaseAction {
             
             // Update attachments
             AttachmentManager am = new AttachmentManager();
-            am.saveAttachments(attachmentMap);
+			am.saveAttachments(attachmentMap, protocol.getId());
         }
         catch ( AssemblerException ae ) {
         	logger.error("Could not correctly assemble the Patient object for the form object.", ae);

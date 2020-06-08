@@ -1,0 +1,10 @@
+target
+/target
+target/
+/.project
+/.classpath
+/.sts4-cache/
+*.class
+/test-output
+/bin
+/WebContent

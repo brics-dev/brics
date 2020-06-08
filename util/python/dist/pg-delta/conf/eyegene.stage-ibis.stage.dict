@@ -1,0 +1,16 @@
+[DB-SRC]
+host=ibis-db-stage.cit.nih.gov
+database=dictionary_stage
+schema=dictionarystg
+user=dictionarystg
+label=IBIS
+
+[DB-TRG]
+host=eyegene-dbdictionary-stage.cit.nih.gov
+database=dictionary_stage
+schema=dictionarystg
+user=dictionarystg
+label=EYEGENE
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\pgDelta\eyegenestage-stage-meta

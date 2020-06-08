@@ -49,24 +49,14 @@ function dataElementSearch() {
 		hostStyle = "fitbir-style";
 	}else if(hostName.indexOf('eyegene') > -1 ) {
 		hostStyle = "eyegene-style";
-	}else if(hostName.indexOf('nei') > -1 ) {
-		hostStyle = "eyegene-style";
 	}else if(hostName.indexOf('cnrm') > -1 ) {
 		hostStyle = "cnrm-style";
-	}else if(hostName.indexOf('gsdr') > -1 ) {
-		hostStyle = "gsdr-style";
 	}else if(hostName.indexOf('ninds') > -1 ) {
 		hostStyle = "ninds-style";
 	}else if(hostName.indexOf('cistar') > -1 ) {
 		hostStyle = "cistar-style";
 	}else if(hostName.indexOf('cdrns') > -1 ) {
 		hostStyle = "cdrns-style";
-	}else if(hostName.indexOf('nti') > -1 ) {
-		hostStyle = "nti-style";
-	}else if(hostName.indexOf('nia') > -1 ) {
-		hostStyle = "nia-style";
-	}else if(hostName.indexOf('grdr') > -1 ) {
-		hostStyle = "grdr-style";
 	}
 	
 	var searchKey = $("#searchKey").val().trim();
@@ -172,6 +162,7 @@ function dataElementSearch() {
 		        
 		    "bFilter": false,
 		    "sPaginationType": "full_numbers",
+		    "scrollY": "1000px",
 		    "sScrollX": "100%",
 		    "bScrollCollapse": true,
 		    "bAutoWidth":false,
@@ -315,9 +306,7 @@ function exportDataElements(whichExport) {
 				"Click OK if you want to continue exporting.")) {
 			return;
 			
-		} else {
-			$("#downloadLinks").toggle("blind", 300);
-		}
+		} 
 	}
 	
 	var searchKey = $("#searchKey").val().trim();
@@ -408,6 +397,7 @@ function exportDataElements(whichExport) {
 	theForm.action = action;
 
 	theForm.submit();
+	$("#downloadLinks").toggle("blind", 300);
 
 }
 

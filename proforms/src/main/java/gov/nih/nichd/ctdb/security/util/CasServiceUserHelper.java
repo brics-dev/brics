@@ -21,10 +21,10 @@ public class CasServiceUserHelper {
 
 	
 	public static void main(String[] args) {
-		String username = "REPLACED";
-		String password = "REPLACED";
-		String loginUrl = "REPLACED/cas/v1/tickets";
-		String service = "REPLACED/portal/j_spring_cas_security_check";
+		String username = "abcd";
+		String password = "abcd";
+		String loginUrl = "http://fitbir-cas-local.cit.nih.gov:8083/cas/v1/tickets";
+		String service = "http://fitbir-dd-local.cit.nih.gov:8081/portal/j_spring_cas_security_check";
 		String formShortName = "AdverseEvents_7";
 		String serviceUrl = service;
 		
@@ -89,7 +89,7 @@ public class CasServiceUserHelper {
 		return eform;
 	}
 	
-	private static String login(Client client, String loginUrl, String serviceUrl, String username, String password) throws Exception {
+	public static String login(Client client, String loginUrl, String serviceUrl, String username, String password) throws Exception {
 		
 		logger.debug("begin log in to system user");
 		String sgtUrl = "";
@@ -119,7 +119,7 @@ public class CasServiceUserHelper {
 		return sgtUrl;
 	}
 	
-	private static String getServiceTicket(Client client, String sgtUrl, String serviceUrl) throws Exception {
+	public static String getServiceTicket(Client client, String sgtUrl, String serviceUrl) throws Exception {
 		logger.debug("begin get service ticket for system user");
 		String serviceTicket = "";
 		try {
@@ -147,6 +147,8 @@ public class CasServiceUserHelper {
 		Eform result = null;
 		String restfulDomain = SysPropUtil.getProperty("webservice.restful.ddt.domain");
 		String restfulUrl = restfulDomain + SysPropUtil.getProperty("webservice.restful.eform.ddt.url") + "/" + shortName;
+//		String restfulDomain = "http://fitbir-dd-local.cit.nih.gov:8081/";
+//		String restfulUrl = restfulDomain + "portal/ws/ddt/dictionary/eforms" + "/"  + shortName;
 		try {
 			WebTarget target = client.target(restfulUrl);
 			target = target.queryParam("ticket", serviceTicket);
@@ -166,7 +168,7 @@ public class CasServiceUserHelper {
 		return result;
 	}
 	
-	private static void logout(Client client, String loginUrl, String serviceTicket) throws Exception {
+	public static void logout(Client client, String loginUrl, String serviceTicket) throws Exception {
 		try {
 			logger.debug("begin system user log out");
 			String logoutUrl = loginUrl + "/" + serviceTicket;
@@ -186,6 +188,7 @@ public class CasServiceUserHelper {
 	}
 	
 	private static void verify() {
+		//String validateUrl = "http://fitbir-cas-local.cit.nih.gov:8083/cas/serviceValidate";
 //		try {
 //		// validate
 //		System.out.println("validate ticket");

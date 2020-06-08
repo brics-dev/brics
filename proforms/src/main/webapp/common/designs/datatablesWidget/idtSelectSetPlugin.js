@@ -66,7 +66,18 @@
 				var templateUrl = baseUrl + "templates/selectSet.hbs";
 				TemplateManager.loadNewAsync("selectSet", templateUrl, function(template) {
 					$columnHeader.prepend(template({}));
+					isWidgetVisible = true;
 					$widget = $columnHeader.find(".idt_selectAllSelector");
+					
+					if (!shouldAllowSelectAll()) {
+						$columnHeader.find(".idt_selectAll").hide();
+					}
+					if (!shouldAllowSelectNone()) {
+						$columnHeader.find(".idt_selectNone").hide();
+					}
+					if (!shouldAllowSelectFiltered()) {
+						$columnHeader.find(".idt_selectFilter").hide();
+					}
 					registerEvents();
 				});
 			}
@@ -79,23 +90,30 @@
 		 */
 		function registerEvents() {
 			$widget.find(".idt_selectAllHeader").on("click", openCloseDropdownCallback);
-			$widget.find(".idt_selectAll").on("click", selectAllCallback);
+			if (settings.serverSide) {
+				$widget.find(".idt_selectAll").on("click", selectAllServerCallback);
+			}
+			else {
+				$widget.find(".idt_selectAll").on("click", selectAllCallback);
+			}
 			$widget.find(".idt_selectFilter").on("click", selectFilteredCallback);
 			$widget.find(".idt_selectNone").on("click", selectNoneCallback);
 
-			var $wrapper = $(api.table().node()).parent();
+			$(api.table().node()).parent();
 		}
 
 		this.onSelect = function(selectedRowsLength) {
-			var fullLength = api.rows().count();
-			if (selectedRowsLength === 0) {
-				$widget.removeClass("idt_selectAll").removeClass("idt_selectFilter").addClass("idt_selectNone");
-			}
-			else if (selectedRowsLength == fullLength) {
-				$widget.removeClass("idt_selectFilter").removeClass("idt_selectNone").addClass("idt_selectAll");
-			}
-			else {
-				$widget.removeClass("idt_selectAll").removeClass("idt_selectNone").addClass("idt_selectFilter");
+			if ($widget) {
+				var fullLength = api.settings()[0].fnRecordsTotal();
+				if (selectedRowsLength === 0) {
+					$widget.removeClass("idt_selectAll").removeClass("idt_selectFilter").addClass("idt_selectNone");
+				}
+				else if (selectedRowsLength == fullLength) {
+					$widget.removeClass("idt_selectFilter").removeClass("idt_selectNone").addClass("idt_selectAll");
+				}
+				else {
+					$widget.removeClass("idt_selectAll").removeClass("idt_selectNone").addClass("idt_selectFilter");
+				}
 			}
 		};
 
@@ -116,12 +134,56 @@
 
 		function selectAllCallback(event) {
 			event.stopPropagation();
-			console.log("total row count: " + api.rows().count());
 			if (shouldAllowSelectAll()) {
-				// api.rows(":not(.idtSelectionDisabled)").select();
 				api.rows(function(idx, data, node) {
 					return !data.selectionDisable;
 				}).select();
+			}
+			/*check the checkbox*/
+			$widget.find(".idt_selectNone").removeClass("idt_selectNone").addClass("idt_selectAll");
+			/*uncheck the checkbox in selectAll*/
+			$widget.find(".idt_selectAll").each(function(){
+				if($(this).text().trim()!="Select All"){
+					$(this).removeClass("idt_selectAll").addClass("idt_selectNone");
+				}
+			});
+			/*uncheck the checkbox in selectFiltered*/
+			$widget.find(".idt_selectFilter").removeClass("idt_selectFilter").addClass("idt_selectNone");
+		}
+		
+		function selectAllServerCallback(event) {
+			event.stopPropagation();
+			if (shouldAllowSelectAll()) {
+				var url = settings.idtUrl;
+				var totalRecordCount = api.settings()[0].fnRecordsTotal();
+	
+				var data = {
+					start: 0,
+					length: totalRecordCount,
+					columns: [{
+						parameter: settings.idtData.primaryKey,
+						data: "id"
+					}]
+				}
+	
+				$.ajax({
+					type: "GET",
+					url: url,
+					dataType: "json",
+					data: data,
+					success: function(json) {
+						// I really wish I didn't have to modify this here
+						opts.selected = json.data.map(function(row) {
+							api.row("#" + row.id).select();
+							return row.id;
+						});
+	
+						api.rows(function(idx, data, node) {
+							return !data.selectionDisable;
+						}).select().draw(false);
+						// this.onSelect(totalRecordCount);
+					}
+				});
 			}
 		}
 
@@ -131,6 +193,16 @@
 				api.rows().deselect();
 				opts.selected = [];
 			}
+			/*check the checkbox*/
+			$widget.find(".idt_selectNone").removeClass("idt_selectNone").addClass("idt_selectAll");
+			/*uncheck the checkbox in selectAll*/
+			$widget.find(".idt_selectAll").each(function(){
+				if($(this).text().trim()!="Select None"){
+					$(this).removeClass("idt_selectAll").addClass("idt_selectNone");
+				}
+			});
+			/*uncheck the checkbox in selectFiltered*/
+			$widget.find(".idt_selectFilter").removeClass("idt_selectFilter").addClass("idt_selectNone");
 		}
 
 		function selectFilteredCallback(event) {
@@ -140,6 +212,13 @@
 					search: 'applied'
 				}).select();
 			}
+			$widget.find(".idt_selectAllItem").each(function(){
+				if($(this).text().trim()!="Select Filtered"){
+					$(this).removeClass("idt_selectAll").addClass("idt_selectNone");
+				} else {
+					$(this).removeClass("idt_selectAll").removeClass("idt_selectNone").addClass("idt_selectFilter");
+				}
+			})
 		}
 
 		/**
@@ -195,7 +274,6 @@
 		// multiselect
 		if (isMultiSelect()) {
 			render();
-			isWidgetVisible = true;
 		}
 		isInitialized = true;
 		return this;

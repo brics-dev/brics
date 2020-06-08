@@ -1,16 +1,5 @@
 package gov.nih.tbi.queryTool.ws.cxf;
 
-import gov.nih.tbi.ModulesConstants;
-import gov.nih.tbi.account.dao.AccountDao;
-import gov.nih.tbi.account.model.hibernate.Account;
-import gov.nih.tbi.account.ws.AbstractRestService;
-import gov.nih.tbi.commons.service.AccountManager;
-import gov.nih.tbi.commons.service.RepositoryManager;
-import gov.nih.tbi.commons.service.ServiceConstants;
-import gov.nih.tbi.commons.service.util.MailEngine;
-import gov.nih.tbi.query.model.QTDownloadPackage;
-import gov.nih.tbi.repository.model.hibernate.UserFile;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -21,8 +10,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.POST;
@@ -35,10 +22,22 @@ import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.jcraft.jsch.JSchException;
+
+import gov.nih.tbi.ModulesConstants;
+import gov.nih.tbi.account.dao.AccountDao;
+import gov.nih.tbi.account.model.hibernate.Account;
+import gov.nih.tbi.account.ws.AbstractRestService;
+import gov.nih.tbi.commons.service.AccountManager;
+import gov.nih.tbi.commons.service.RepositoryManager;
+import gov.nih.tbi.commons.service.ServiceConstants;
+import gov.nih.tbi.commons.service.util.MailEngine;
+import gov.nih.tbi.query.model.QTDownloadPackage;
+import gov.nih.tbi.repository.model.hibernate.UserFile;
 
 public class QueryToolRestService extends AbstractRestService {
 
@@ -58,14 +57,6 @@ public class QueryToolRestService extends AbstractRestService {
 
 	@Autowired
 	private AccountDao accountDao;
-
-	// regular expression for getting file name and file extension
-	// note that this is used also to validate file names, and file names with no extensions are considered invalid.
-	// group 1: file name
-	// group 2: file extension
-	private final String FILE_NAME_EXTENSION_REGEX = "([\\S]+)(\\.[\\S]+)";
-
-	private Pattern pattern = Pattern.compile(FILE_NAME_EXTENSION_REGEX);
 
 	private final Response ERROR_RESPONSE =
 			Response.status(Status.INTERNAL_SERVER_ERROR).type(MediaType.TEXT_HTML_TYPE).build();
@@ -250,9 +241,10 @@ public class QueryToolRestService extends AbstractRestService {
 
 		return OK_RESPONSE;
 	}
-	
+
 	/**
 	 * Convenience method to log when a file delete is successful or not
+	 * 
 	 * @param file
 	 */
 	private void deleteFile(File file) {
@@ -270,21 +262,17 @@ public class QueryToolRestService extends AbstractRestService {
 	}
 
 	/**
-	 * Given a composite file name (e.g. "test.csv"), returns only the extension of the file
+	 * Given a composite file name (e.g. "test.csv"), returns only the extension of the file. Returns null if the file
+	 * extension is missing.
 	 * 
 	 * @param compositeFileName
 	 * @return
 	 */
-	private String getFileExtension(String compositeFileName) {
+	protected String getFileExtension(String compositeFileName) {
+		// this is the extension without the . in the beginning
+		String baseExtension = FilenameUtils.getExtension(compositeFileName);
 
-		Matcher matcher = pattern.matcher(compositeFileName);
-
-		if (compositeFileName == null || !matcher.matches()) {
-			return null;
-		}
-
-		String extension = matcher.group(2);
-
-		return extension;
+		// we want to have it return the extension with the . in the beginning or null if the extension is missing.
+		return baseExtension.isEmpty() ? null : "." + baseExtension;
 	}
 }

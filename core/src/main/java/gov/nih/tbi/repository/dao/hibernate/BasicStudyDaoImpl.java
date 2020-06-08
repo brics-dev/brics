@@ -51,12 +51,13 @@ public class BasicStudyDaoImpl extends GenericDaoImpl<BasicStudy, Long> implemen
 				+ "(select count(id) from dataset where study_id = s.id and dataset_status_id = 1) as \"sharedDatasetCount\", "
 				+ "(select count(dataset_id) from dataset_submissiontype where dataset_id in (select id from dataset where study_id = s.id and dataset_status_id in (0,1)) and submissiontype_id = 0) as \"clinicalDataCount\", "
 				+ "(select count(dataset_id) from dataset_submissiontype where dataset_id in (select id from dataset where study_id = s.id and dataset_status_id in (0,1)) and submissiontype_id = 1) as \"genomicDataCount\", "
-				+ "(select count(dataset_id) from dataset_submissiontype where dataset_id in (select id from dataset where study_id = s.id and dataset_status_id in (0,1)) and submissiontype_id = 2) as \"imagingDataCount\" "
+				+ "(select count(dataset_id) from dataset_submissiontype where dataset_id in (select id from dataset where study_id = s.id and dataset_status_id in (0,1)) and submissiontype_id = 2) as \"imagingDataCount\", "
+				+ "s.study_status_id as \"studyStatus\" "
 				+ "from study s "
 				+ "left outer join research_management rm on s.id = rm.study_id "
 				+ "left join funding_source fs on s.funding_source_id = fs.id "
 				+ "where rm.role_id = 0 "
-				+ "and s.study_status_id = 0 "
+				//+ "and s.study_status_id = 0 "
 				+ "order by rm.last_name";
 		
 		Query query = getSession().createNativeQuery(publicSiteAggregateSearch);

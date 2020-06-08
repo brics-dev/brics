@@ -8,11 +8,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.struts2.ServletActionContext;
 
 import gov.nih.nichd.ctdb.common.CtdbConstants;
+import gov.nih.nichd.ctdb.common.CtdbException;
 import gov.nih.nichd.ctdb.common.tag.ActionIdtDecorator;
 import gov.nih.nichd.ctdb.patient.domain.Patient;
 import gov.nih.nichd.ctdb.patient.domain.PatientProtocol;
 import gov.nih.nichd.ctdb.patient.form.PatientSearchForm;
 import gov.nih.nichd.ctdb.protocol.domain.Protocol;
+import gov.nih.nichd.ctdb.protocol.domain.ProtocolRandomization;
+import gov.nih.nichd.ctdb.site.manager.SiteManager;
 
 public class PatienHomeIdtDecorator extends ActionIdtDecorator {
 
@@ -197,12 +200,78 @@ public class PatienHomeIdtDecorator extends ActionIdtDecorator {
 		
 		for (PatientProtocol pp : patient.getProtocols()) {
 			if (pp != null && pp.getId() == protocol.getId() && pp.isValidated()) {
-				result = "<img src=\"" + this.getWebRoot()
-						+ "/images/checkMark.png\" alt='validated' width='15' height='15' />";
+				result = "<img src=\"" + this.getWebRoot()  + "/images/checkMark.png\" alt='validated' width='15' height='15'/>";
 				break;
 			}
 		}
 		
 		return result;
+	}
+	
+	public Boolean getFormatValidator() throws JspException {
+		Patient patient = (Patient) this.getObject();
+		Protocol protocol = (Protocol) ServletActionContext.getRequest().getSession()
+				.getAttribute(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
+		Boolean result = false;
+		
+		for (PatientProtocol pp : patient.getProtocols()) {
+			if (pp != null && pp.getId() == protocol.getId() && pp.isValidated()) {
+				result = true;
+				break;
+			}
+		}
+		
+		return result;
+	}
+
+	public String getSiteName() throws JspException, CtdbException {
+	
+			String siteName="";
+	
+			Patient patient = (Patient) this.getObject();
+			Protocol protocol = (Protocol) ServletActionContext.getRequest().getSession()
+					.getAttribute(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
+			int patientId = patient.getId();
+			int protocolId = protocol.getId();
+
+			SiteManager sm =new SiteManager();
+			if(patientId != 0 && protocolId != 0) {
+    		 siteName= sm.getPatientProtocolSite(protocolId, patientId);
+    		 
+			}
+		return siteName;
+
+	}
+	
+	public String getPatRandomizationGroupName() {
+		String message = "";
+		Patient patient = (Patient) this.getObject();
+		Protocol protocol = (Protocol) ServletActionContext.getRequest().getSession()
+				.getAttribute(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
+		long protocolId = protocol.getId();
+		for (PatientProtocol pp : patient.getProtocols()) {
+			ProtocolRandomization randomization = pp.getProtocolRandomization();
+			if (pp.getId() == protocolId && randomization.getProtocolId() == protocolId) {
+				message = randomization.getGroupName();
+				break;
+			}
+		}
+		return message;
+	}
+	
+	public String getPatRandomizationGroupDescription() {
+		String message = "";
+		Patient patient = (Patient) this.getObject();
+		Protocol protocol = (Protocol) ServletActionContext.getRequest().getSession()
+				.getAttribute(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
+		long protocolId = protocol.getId();
+		for (PatientProtocol pp : patient.getProtocols()) {
+			ProtocolRandomization randomization = pp.getProtocolRandomization();
+			if (pp.getId() == protocolId && randomization.getProtocolId() == protocolId) {
+				message = randomization.getGroupDescription();
+				break;
+			}
+		}
+		return message;
 	}
 }

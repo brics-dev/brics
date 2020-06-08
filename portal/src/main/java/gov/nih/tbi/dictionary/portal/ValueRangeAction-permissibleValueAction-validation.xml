@@ -31,6 +31,11 @@
 		</field-validator>
 	</field>
 	<field name="valueDescription">
+		<field-validator type="requiredstring">
+			<param name="trim"> true 
+			</param>
+			<message key="errors.required" />
+		</field-validator>
 		<field-validator type="stringlength">
 			<param name="maxLength"> 1000 
 			</param>

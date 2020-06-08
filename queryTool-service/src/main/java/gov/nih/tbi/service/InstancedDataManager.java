@@ -1,5 +1,6 @@
 package gov.nih.tbi.service;
 
+import gov.nih.tbi.exceptions.FilterEvaluatorException;
 import gov.nih.tbi.pojo.CodeMapping;
 import gov.nih.tbi.pojo.DataTableColumnWithUri;
 import gov.nih.tbi.pojo.FormResult;
@@ -22,15 +23,16 @@ public interface InstancedDataManager {
 
 	public InstancedDataTable buildInstancedDataTable(List<FormResult> selectedForms, int offset, int limit,
 			DataTableColumn sortColumn, String sortOrder, InstancedDataCache instancedRowCache, CodeMapping codeMapping,
-			String userName, boolean forDownload, boolean doApplyFilter);
+			String userName, boolean forDownload, boolean doApplyFilter, String booleanExpression)
+			throws FilterEvaluatorException;
 
 	public InstancedDataTable buildInstancedDataTableForDownload(List<FormResult> formList, DataTableColumn sortColumn,
 			String sortOrder, InstancedDataCache instancedRowCache, CodeMapping codeMapping, String userName,
-			boolean isCartDownload, boolean isNormalCsv);
+			boolean isCartDownload, boolean isNormalCsv, boolean doApplyFilter, String booleanExpression) throws FilterEvaluatorException;
 
 	public void buildDataTableData(List<FormResult> selectedForms, InstancedDataTable instancedDataTable,
 			InstancedDataCache instancedRowCache, CodeMapping codeMapping, Node accountNode, boolean forDownload,
-			boolean doApplyFilter);
+			boolean doApplyFilter, String booleanExpression) throws FilterEvaluatorException;
 
 	public void loadRepeatableGroupRows(InstancedDataTable instancedDataTable, FormResult form, String rowUri,
 			String rgName, CodeMapping codeMapping, String userName);
@@ -47,26 +49,4 @@ public interface InstancedDataManager {
 	public Set<DataTableColumnWithUri> getColumnsWithNoData(List<FormResult> selectedForms, Node accountNode);
 
 	public boolean hasHighlightedGuid(FormResult formResult, Node accountNode);
-
-	/**
-	 * Given a list of row URIs that should not be selected, returns a list of all selected biosamples.
-	 * 
-	 * @param biosampleForm
-	 * @param unselectedRowUri
-	 * @param accountNode
-	 * @return
-	 */
-	public Set<String> getAllBiosampleIdsInverse(FormResult biosampleForm, Set<String> unselectedBiosample,
-			Node accountNode);
-
-	/**
-	 * Given a list of row URIs that should not be selected, returns a list of all selected biosamples.
-	 * 
-	 * @param biosampleForm
-	 * @param unselectedRowUri
-	 * @param accountNode
-	 * @return
-	 */
-	public Set<String> getRowUrisByBiosampleIdInverse(FormResult biosampleForm, Set<String> unselectedRowUri,
-			Node accountNode);
 }

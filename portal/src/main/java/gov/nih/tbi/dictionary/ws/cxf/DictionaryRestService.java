@@ -5,6 +5,7 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -13,6 +14,8 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Resource;
+import javax.mail.MessagingException;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
@@ -26,6 +29,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -33,9 +37,11 @@ import javax.xml.ws.WebServiceContext;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 
 import gov.nih.tbi.CoreConstants;
 import gov.nih.tbi.ModulesConstants;
+import gov.nih.tbi.PortalConstants;
 import gov.nih.tbi.account.model.hibernate.Account;
 import gov.nih.tbi.account.model.hibernate.EntityMap;
 import gov.nih.tbi.account.ws.AbstractRestService;
@@ -44,13 +50,17 @@ import gov.nih.tbi.account.ws.exception.UserAccessDeniedException;
 import gov.nih.tbi.commons.model.DataElementStatus;
 import gov.nih.tbi.commons.model.DataType;
 import gov.nih.tbi.commons.model.EntityType;
+import gov.nih.tbi.commons.model.EventType;
 import gov.nih.tbi.commons.model.PermissionType;
 import gov.nih.tbi.commons.model.SeverityLevel;
+import gov.nih.tbi.commons.model.StatusType;
 import gov.nih.tbi.commons.service.DictionaryToolManager;
 import gov.nih.tbi.commons.service.RepositoryManager;
 import gov.nih.tbi.commons.service.SchemaMappingManager;
 import gov.nih.tbi.commons.service.ServiceConstants;
 import gov.nih.tbi.commons.service.StaticReferenceManager;
+import gov.nih.tbi.commons.service.UserPermissionException;
+import gov.nih.tbi.commons.service.util.MailEngine;
 import gov.nih.tbi.commons.util.PaginationData;
 import gov.nih.tbi.dictionary.dao.CategoryDao;
 import gov.nih.tbi.dictionary.dao.DiseaseDao;
@@ -77,14 +87,18 @@ import gov.nih.tbi.dictionary.model.DictionaryRestServiceModel.UserFileWrapper;
 import gov.nih.tbi.dictionary.model.FormStructureFacet;
 import gov.nih.tbi.dictionary.model.hibernate.Category;
 import gov.nih.tbi.dictionary.model.hibernate.DataElement;
+import gov.nih.tbi.dictionary.model.hibernate.DictionaryEventLog;
+import gov.nih.tbi.dictionary.model.hibernate.DictionarySupportingDocumentation;
 import gov.nih.tbi.dictionary.model.hibernate.Disease;
 import gov.nih.tbi.dictionary.model.hibernate.Domain;
 import gov.nih.tbi.dictionary.model.hibernate.FormStructure;
 import gov.nih.tbi.dictionary.model.hibernate.MapElement;
+import gov.nih.tbi.dictionary.model.hibernate.PublishedFormStructure;
 import gov.nih.tbi.dictionary.model.hibernate.Schema;
 import gov.nih.tbi.dictionary.model.hibernate.StructuralFormStructure;
 import gov.nih.tbi.dictionary.model.hibernate.ValueRange;
 import gov.nih.tbi.dictionary.model.rdf.SemanticFormStructure;
+import gov.nih.tbi.dictionary.model.restful.CreateTableFromFormStructurePayload;
 import gov.nih.tbi.dictionary.model.restful.StructuralFormStructureListItem;
 import gov.nih.tbi.dictionary.service.DictionaryServiceInterface;
 import gov.nih.tbi.portal.PortalUtils;
@@ -139,6 +153,12 @@ public class DictionaryRestService extends AbstractRestService {
 	
 	@Autowired
 	StaticReferenceManager staticManager;
+	
+	@Autowired
+	MessageSource messageSource;
+	
+	@Autowired
+	MailEngine mailEngine;
 
 	/***************************************************************************************************/
 	// TODO: MV 6/6/2014 - There are a lot of commented out functions in this file that need to be rewritten to use the
@@ -1203,4 +1223,180 @@ public class DictionaryRestService extends AbstractRestService {
 		schemaList.addAll(schemas);
 		return schemaList;
 	}
+	
+	/**
+	 * Method to keep dictionary session alive, this will be called by QT
+	 * 
+	 * @return Response with certain status but no body
+	 */
+	@GET
+	@Path("keepDictAlive")
+	@Produces(MediaType.TEXT_PLAIN)
+	public Response keepDictionarySessionAlive(@Context HttpServletRequest request) {
+		logger.debug("Keep Dictionary session alive!");
+		
+		if (request != null && request.getSession() != null) {
+			return Response.ok().build();
+		} else {
+			return Response.status(Response.Status.UNAUTHORIZED).build();
+		}
+	}
+	
+	@POST
+	@Path("FormStructure/publish")
+	@Consumes(MediaType.APPLICATION_XML)
+	public Response publishFormStructure(CreateTableFromFormStructurePayload payLoad) throws UnsupportedEncodingException, 
+								UserAccessDeniedException, MalformedURLException, UserPermissionException, MessagingException {
+		
+		String statusChangeComment = payLoad.getStatusChangeComment();
+		String approveReason = payLoad.getApproveReason();
+		Set<DictionarySupportingDocumentation> docList = payLoad.getDocList();
+		StructuralFormStructure formStructure = payLoad.getFormStructure();
+		StatusType oldStatus = payLoad.getStatusType();
+		Long diseaseId = payLoad.getDiseaseId();
+		Long userId = payLoad.getUserId();
+		
+		//check if the form structure for current instance is published or not in prior attempt
+		boolean isPublishedOnCurrentInstance = dictionaryService.isFormStructurePublished(formStructure.getId(), diseaseId);
+			if(!isPublishedOnCurrentInstance) {
+				
+				PublishedFormStructure publishedFormStructure = new PublishedFormStructure(formStructure.getId(),diseaseId);
+				publishedFormStructure.setPublished(true);
+				publishedFormStructure.setPublicationDate(new Date());
+				
+				dictionaryService.saveFormStructurePublished(publishedFormStructure);			
+			}
+		
+		Set<Long> keys = modulesConstants.getModulesSTMap().keySet();
+		
+		boolean isPublished = false;
+		if (keys.size() == 1) {
+			isPublished = dictionaryService.isFormStructurePublished(formStructure.getId(), diseaseId);
+		} else {
+			for(Long key:keys) {
+				isPublished = dictionaryService.isFormStructurePublished(formStructure.getId(), key);
+			}
+		}
+		
+		if(isPublished) {
+			
+			FormStructure dataStructure = dictionaryToolManager.getDataStructure(formStructure.getId());
+			
+			dataStructure.setStatus(StatusType.PUBLISHED);
+			dataStructure.setPublicationDate(new Date());
+			
+			dictionaryToolManager.saveFormStructure(dataStructure);
+			
+			//Save eventlog for publishing a form structure
+			DictionaryEventLog eventLog = new DictionaryEventLog(getDiseaseId(), userId);	
+			EventType eventType;
+			
+			if(oldStatus == StatusType.DRAFT) {
+				eventType = EventType.STATUS_CHANGE_TO_PUBLISHED;
+				
+			} else {
+				eventType = EventType.REQUESTED_PUBLISH_APPROVED;
+			}
+			
+			dictionaryService.saveEventLog(eventLog,dataStructure, docList, statusChangeComment,eventType);
+			
+			//send approval email to owner if the form structure was in awaiting publication status
+			if(oldStatus==StatusType.AWAITING_PUBLICATION) {
+		
+				  Account currentDataStructureAccount = getEntityOwnerAccountRestful(formStructure.getId(), EntityType.DATA_STRUCTURE);
+				  String ownerName = currentDataStructureAccount.getUser().getFullName();
+				  
+				  Object[] subjectArg = new Object[] {formStructure.getReadableName()};
+				  String subject = messageSource.getMessage(PortalConstants.MAIL_RESOURCE_ACCEPTED_DATASTRUCTURE
+										+ PortalConstants.MAIL_RESOURCE_SUBJECT, subjectArg,null);
+				  
+				  Object[] bodyArg = new Object[] {modulesConstants.getModulesOrgName(getDiseaseId()),modulesConstants.getModulesOrgPhone(getDiseaseId()),
+						  ownerName,approveReason, formStructure.getReadableName()};
+				  String header = messageSource.getMessage(PortalConstants.MAIL_RESOURCE_COMMON
+							+ PortalConstants.MAIL_RESOURCE_HEADER, bodyArg,null);
+				  
+				  String emailBody = messageSource.getMessage(PortalConstants.MAIL_RESOURCE_ACCEPTED_DATASTRUCTURE
+							+ PortalConstants.MAIL_RESOURCE_BODY, bodyArg,null);
+				  
+				  String footer = messageSource.getMessage(PortalConstants.MAIL_RESOURCE_COMMON
+							+ PortalConstants.MAIL_RESOURCE_FOOTER, bodyArg,null);
+				  
+
+				  String from = modulesConstants.getModulesOrgEmail(getDiseaseId());
+
+						mailEngine.sendMail(subject, header+emailBody+footer, from, currentDataStructureAccount.getUser().getEmail());
+			}
+				  
+		}
+		
+		return Response.noContent().build();
+	}
+	
+	public Account getEntityOwnerAccountRestful(Long entityId, EntityType type)
+			throws MalformedURLException, UnsupportedEncodingException {
+
+		Set<Long> keys = modulesConstants.getModulesAccountMap().keySet();
+
+		// Case: There is only 1 account module listed
+		if (keys.size() == 1) {
+			RestAccountProvider anonAccountProvider = new RestAccountProvider(
+					modulesConstants.getModulesAccountURL(ServiceConstants.DEFAULT_PROVIDER), null);
+			return anonAccountProvider.getEntityOwnerAccount(entityId, type);
+		}
+
+		Account owner = null;
+
+		for (Long k : keys) {
+			RestAccountProvider anonAccountProvider =
+					new RestAccountProvider(modulesConstants.getModulesAccountURL(k), null);
+			owner = anonAccountProvider.getEntityOwnerAccount(entityId, type);
+			if (owner != null && owner.getId() != null) {
+				break;
+			}
+		}
+
+		return owner;
+
+	}
+	
+	@POST
+	@Path("FormStructure/savePublishedFormStructure")
+	@Consumes(MediaType.APPLICATION_XML)
+	public Response savePublishedFormStructure (PublishedFormStructure publishedFormStructure) throws UnsupportedEncodingException {
+		
+	
+		dictionaryService.saveFormStructurePublished(publishedFormStructure);
+	
+		return Response.noContent().build();
+	}
+	
+	@GET
+	@Path("FormStructure/editFormStructureStatus/{formStructureId}/{statusId}")
+	@Produces("text/xml")
+	public FormStructure editFormStructureStatus(@PathParam("formStructureId") Long formStructureId,@PathParam("statusId") Long statusId) throws UnsupportedEncodingException, UserAccessDeniedException, MalformedURLException, UserPermissionException {
+		
+		FormStructure formStructure = dictionaryToolManager.getDataStructure(formStructureId);
+		StatusType statusType = StatusType.statusOf(statusId);
+		
+		//revert formStructure status
+		formStructure.setStatus(statusType);
+		
+		return dictionaryToolManager.saveFormStructure(formStructure);
+	
+	}
+	
+	@POST
+	@Path("DataElement/getDataElementInfo")
+	@Produces("text/xml")
+	public DataElementList getDataElementInfo(@FormParam("deNames") List<String> deNames) {
+		Set<String> deSet = new HashSet<>();
+		deSet.addAll(deNames);
+		List<DataElement> deList = dictionaryToolManager.getLatestDataElementByNameList(deSet);
+		DataElementList deReturnList = new DataElementList();
+		deReturnList.addAll(deList);
+	
+		
+		return deReturnList;
+	}
+
 }

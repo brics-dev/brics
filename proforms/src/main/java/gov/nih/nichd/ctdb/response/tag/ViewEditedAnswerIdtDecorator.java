@@ -5,6 +5,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.servlet.jsp.JspException;
+
 import gov.nih.nichd.ctdb.common.CtdbConstants;
 import gov.nih.nichd.ctdb.common.tag.ActionIdtDecorator;
 import gov.nih.nichd.ctdb.question.domain.Question;
@@ -152,7 +154,7 @@ public class ViewEditedAnswerIdtDecorator extends ActionIdtDecorator
         DataEntryDraft dataEntry = (DataEntryDraft)this.getObject();
         if (dataEntry.getNumQuestionsAnswered() == Integer.MIN_VALUE)
         {
-            return "-";
+            return "";
         }
         else
         {
@@ -201,26 +203,70 @@ public class ViewEditedAnswerIdtDecorator extends ActionIdtDecorator
         }
         return sb.toString();
     }
+    
+	public String getAudStatus() throws JspException {
+		EditAnswerDisplay ead = (EditAnswerDisplay) this.getObject();
+		String audstatus = ead.getAuditStatus();
+		int sId = ead.getSectionId();
+		int qId = ead.getQuestionId();
+		int selected_Form_Ids = ead.getAdministeredformId();
 
-    /**
-     * Retrieves response's answer edit date
-     *
-     * @return  HTML string displaying the answer edit date.  If date is null,
-     *			return empty string.
-     */
-    public String getEditDate()
-    {
-    	EditAnswerDisplay  ead = (EditAnswerDisplay) this.getObject();
-    	SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+		if (audstatus != null && !audstatus.trim().isEmpty()) {
+			String audStatusTm = audstatus.trim();
+			if (CtdbConstants.AUDITCOMMENT_STATUS_COMPLETED.equalsIgnoreCase(audStatusTm)) {
+				audstatus = "<a href=\"" + this.getWebRoot()
+						+ "/response/dataCollection.action?action=auditComments&mode=formPatient&aformId="
+						+ selected_Form_Ids + "&audit=true&sqshow=true&sId=" + sId + "&qId=" + qId + "\">" + "Completed"
+						+ "</a>";
+			} else if (CtdbConstants.AUDITCOMMENT_STATUS_LOCKED.equalsIgnoreCase(audStatusTm)) {
+				audstatus = "<a href=\"" + this.getWebRoot()
+						+ "/response/dataCollection.action?action=auditComments&mode=formPatient&aformId="
+						+ selected_Form_Ids + "&audit=true&sqshow=true&sId=" + sId + "&qId=" + qId + "\">" + "Locked"
+						+ "</a>";
+			} else if (CtdbConstants.AUDITCOMMENT_STATUS_INPROGRESS.equalsIgnoreCase(audStatusTm)) {
+				audstatus = "<a href=\"" + this.getWebRoot()
+						+ "/response/dataCollection.action?action=auditComments&mode=formPatient&aformId="
+						+ selected_Form_Ids + "&audit=true&sqshow=true&sId=" + sId + "&qId=" + qId + "\">"
+						+ "In Progress" + "</a>";
+			}
+		}
 
-    	if (ead.getEditDate() != null) {
-         return df.format(ead.getEditDate());
-     } else {
-         return "N/A";
-     }
-       
- 
-    }
+		return audstatus;
+	}
+
+	public String getQuesText() throws JspException {
+		EditAnswerDisplay ead = (EditAnswerDisplay) this.getObject();
+		String quesText = ead.getQuestionText();
+		int sId = ead.getSectionId();
+		int qId = ead.getQuestionId();
+		int selected_Form_Ids = ead.getAdministeredformId();
+
+		if (quesText != null && !quesText.trim().isEmpty()) {
+			String quesTextTm = quesText.trim();
+			quesText = "<a href=\"" + this.getWebRoot()
+					+ "/response/dataCollection.action?action=auditComments&mode=formPatient&aformId="
+					+ selected_Form_Ids + "&audit=true&sqshow=true&sId=" + sId + "&qId=" + qId + "\">" + quesTextTm
+					+ "</a>";
+		}
+		return quesText;
+	}
+
+	/**
+	 * Retrieves response's answer edit date
+	 *
+	 * @return HTML string displaying the answer edit date. If date is null, return empty string.
+	 */
+	public String getEditDate() {
+		EditAnswerDisplay ead = (EditAnswerDisplay) this.getObject();
+		SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+
+		if (ead.getEditDate() != null) {
+			return df.format(ead.getEditDate());
+		} else {
+			return "N/A";
+		}
+	}
+
     /**
      * Retrieves meta data edit date string
      *

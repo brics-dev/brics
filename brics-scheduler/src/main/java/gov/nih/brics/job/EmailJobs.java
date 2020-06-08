@@ -43,6 +43,12 @@ public abstract class EmailJobs
         this.mailEngine.sendMail(subject, body, null, emailReceiver);
     }
     
+    protected void sendEmail(String subject, String body, String emailReceiver, String cc) throws MessagingException
+    {
+
+        this.mailEngine.sendMail(subject, body, null, new String[]{emailReceiver}, new String[]{cc});
+    }
+    
     protected void sendEmailWithAttachment(String subject, String body, String emailReceiver, DataSource source, String fileName) throws MessagingException
     {
 

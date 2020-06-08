@@ -8,6 +8,8 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import org.apache.commons.lang.StringUtils;
+
 @XmlRootElement(name = "dataTableColumn")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class DataTableColumn implements Serializable {
@@ -27,7 +29,8 @@ public class DataTableColumn implements Serializable {
 	private String hardCoded;
 
 	// jaxb needs a no-arg constructor
-	protected DataTableColumn() {}
+	protected DataTableColumn() {
+	}
 
 	/**
 	 * Makes a copy of the argument object.
@@ -98,11 +101,14 @@ public class DataTableColumn implements Serializable {
 
 	@Override()
 	public String toString() {
-		return form + "." + repeatableGroup + "." + dataElement;
+		if (!StringUtils.isEmpty(dataElement)) {
+			return form + "." + repeatableGroup + "." + dataElement;
+		} else {
+			return form + "." + repeatableGroup;
+		}
 	}
 
 	public String getHardCoded() {
-
 		return hardCoded;
 	}
 

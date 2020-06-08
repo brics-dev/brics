@@ -38,7 +38,6 @@ public class PermissionGroupForm {
 	private Boolean publicStatus;
 	private Set<PermissionGroupMember> memberSet;
 	private Set<PermissionGroupMember> memberApproval;
-	private Set<PermissionGroupMember> memberRemoval;
 	private Set<PermissionGroupMember> memberAccountUpdateSet;
 
 	public PermissionGroupForm() {
@@ -47,7 +46,6 @@ public class PermissionGroupForm {
 		publicStatus = Boolean.valueOf(false);
 		memberSet = new HashSet<PermissionGroupMember>();
 		memberApproval = new HashSet<PermissionGroupMember>();
-		memberRemoval = new HashSet<PermissionGroupMember>();
 		memberAccountUpdateSet = new HashSet<PermissionGroupMember>();
 	}
 
@@ -57,7 +55,6 @@ public class PermissionGroupForm {
 		groupDescription = pg.getGroupDescription();
 		publicStatus = pg.getPublicStatus();
 		memberApproval = new HashSet<PermissionGroupMember>();
-		memberRemoval = new HashSet<PermissionGroupMember>();
 		memberAccountUpdateSet = new HashSet<PermissionGroupMember>();
 
 		if (pg.getMemberSet() != null) {
@@ -101,10 +98,6 @@ public class PermissionGroupForm {
 
 	public Set<PermissionGroupMember> getMemberSet() {
 		return memberSet;
-	}
-
-	public Set<PermissionGroupMember> getMemberRemoval() {
-		return memberRemoval;
 	}
 
 	public Set<PermissionGroupMember> getMemberAccountUpdateSet() {
@@ -176,7 +169,6 @@ public class PermissionGroupForm {
 					// The deny action was selected. Add the member to the removal list.
 					member.getAccount().getPermissionGroupMemberList().remove(member);
 					memberAccountUpdateSet.add(member);
-					memberRemoval.add(member);
 				}
 
 				break;
@@ -256,7 +248,6 @@ public class PermissionGroupForm {
 		for (PermissionGroupMember member : permissionGroup.getMemberSet()) {
 			if (!memberSet.contains(member)) {
 				member.getAccount().getPermissionGroupMemberList().remove(member);
-				memberRemoval.add(member);
 			}
 		}
 
@@ -265,11 +256,8 @@ public class PermissionGroupForm {
 			member.setPermissionGroup(permissionGroup);
 		}
 
-		for (PermissionGroupMember member : memberRemoval) {
-			member.setPermissionGroup(permissionGroup);
-		}
 
 		// Save the new member set.
-		permissionGroup.setMemberSet(new HashSet<PermissionGroupMember>(memberSet));
+		permissionGroup.setMemberSet(memberSet);
 	}
 }

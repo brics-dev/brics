@@ -1,31 +1,5 @@
 package gov.nih.tbi.service.impl;
 
-import gov.nih.tbi.account.model.hibernate.Account;
-import gov.nih.tbi.commons.model.BRICSTimeDateUtil;
-import gov.nih.tbi.commons.model.BRICSZipUtil;
-import gov.nih.tbi.commons.util.BRICSStringUtils;
-import gov.nih.tbi.constants.ApplicationConstants;
-import gov.nih.tbi.constants.QueryToolConstants;
-import gov.nih.tbi.exceptions.CSVGenerationException;
-import gov.nih.tbi.export.csv.CSVGenerator;
-import gov.nih.tbi.pojo.CodeMapping;
-import gov.nih.tbi.pojo.DownloadPVMappingRow;
-import gov.nih.tbi.pojo.FormResult;
-import gov.nih.tbi.pojo.InstancedDataTable;
-import gov.nih.tbi.query.model.QTDownloadPackage;
-import gov.nih.tbi.repository.model.hibernate.DatafileEndpointInfo;
-import gov.nih.tbi.repository.model.hibernate.UserFile;
-import gov.nih.tbi.service.DataCartManager;
-import gov.nih.tbi.service.DownloadManager;
-import gov.nih.tbi.service.InstancedDataManager;
-import gov.nih.tbi.service.MetaStudyManager;
-import gov.nih.tbi.service.cache.InstancedDataCache;
-import gov.nih.tbi.service.io.SftpClient;
-import gov.nih.tbi.service.io.SftpClientManager;
-import gov.nih.tbi.util.DownloadUtil;
-import gov.nih.tbi.util.QueryRestProviderUtils;
-import gov.nih.tbi.ws.provider.QueryToolWebserviceProvider;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.SocketException;
@@ -48,6 +22,36 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.jcraft.jsch.JSchException;
 
+import gov.nih.tbi.account.model.hibernate.Account;
+import gov.nih.tbi.commons.model.BRICSTimeDateUtil;
+import gov.nih.tbi.commons.model.BRICSZipUtil;
+import gov.nih.tbi.commons.util.BRICSStringUtils;
+import gov.nih.tbi.constants.ApplicationConstants;
+import gov.nih.tbi.constants.QueryToolConstants;
+import gov.nih.tbi.dictionary.model.DictionaryRestServiceModel.DataElementList;
+import gov.nih.tbi.exceptions.CSVGenerationException;
+import gov.nih.tbi.exceptions.FilterEvaluatorException;
+import gov.nih.tbi.export.csv.CSVGenerator;
+import gov.nih.tbi.pojo.CodeMapping;
+import gov.nih.tbi.pojo.DataElement;
+import gov.nih.tbi.pojo.DownloadPVMappingRow;
+import gov.nih.tbi.pojo.FormResult;
+import gov.nih.tbi.pojo.InstancedDataTable;
+import gov.nih.tbi.pojo.RepeatableGroup;
+import gov.nih.tbi.query.model.QTDownloadPackage;
+import gov.nih.tbi.repository.model.hibernate.DatafileEndpointInfo;
+import gov.nih.tbi.repository.model.hibernate.UserFile;
+import gov.nih.tbi.service.DataCartManager;
+import gov.nih.tbi.service.DownloadManager;
+import gov.nih.tbi.service.InstancedDataManager;
+import gov.nih.tbi.service.MetaStudyManager;
+import gov.nih.tbi.service.cache.InstancedDataCache;
+import gov.nih.tbi.service.io.SftpClient;
+import gov.nih.tbi.service.io.SftpClientManager;
+import gov.nih.tbi.util.QueryRestProviderUtils;
+import gov.nih.tbi.ws.provider.DictionaryWebserviceProvider;
+import gov.nih.tbi.ws.provider.QueryToolWebserviceProvider;
+
 @Component
 @Scope("application")
 public class DownloadManagerImpl implements DownloadManager {
@@ -66,11 +70,16 @@ public class DownloadManagerImpl implements DownloadManager {
 	@Autowired
 	MetaStudyManager metaStudyManager;
 
+
 	/*
 	 * this method will take instance data and sent it to the user's download queue
 	 */
 	public String downloadDataTable(String packageName, InstancedDataTable instancedDataTable,
-			List<FormResult> selectedForms, CodeMapping codeMapping, String userName, boolean isNormalCSV, InstancedDataCache cache) throws CSVGenerationException {
+			List<FormResult> selectedForms, CodeMapping codeMapping, String userName, boolean isNormalCSV,
+			InstancedDataCache cache, String booleanExpression, boolean showAgeRange)
+			throws CSVGenerationException, FilterEvaluatorException {
+		// Matt wanted us to add this...
+		System.gc();
 
 		// At this stage, query should've been run and the instancedDataTable was populated in dataCart.
 		if (instancedDataTable == null) {
@@ -80,8 +89,28 @@ public class DownloadManagerImpl implements DownloadManager {
 
 		// Mapping file, only for downloading data table to queue
 		String displayOption = instancedDataTable.getDisplayOption();
-		List<DownloadPVMappingRow> mappings =
-				DownloadUtil.getDownloadPVMappings(selectedForms, displayOption, codeMapping);
+		List<DownloadPVMappingRow> mappings = new ArrayList<>();
+
+		Set<String> deList = new HashSet<>();
+
+		for (FormResult form : selectedForms) {
+			for (RepeatableGroup group : form.getRepeatableGroups()) {
+				for (DataElement element : group.getDataElements()) {
+					deList.add(element.getName());
+				}
+			}
+		}
+
+		DictionaryWebserviceProvider dictionaryWebserviceProvider = new DictionaryWebserviceProvider(
+				constants.getModulesDDTURL(), QueryRestProviderUtils.getProxyTicket(constants.getModulesDDTURL()));
+
+		DataElementList dataElementList =
+				dictionaryWebserviceProvider.getDataElementList(deList, constants.getDeInfoListURL());
+
+		for (gov.nih.tbi.dictionary.model.hibernate.DataElement element : dataElementList.getList()) {
+			mappings.add(new DownloadPVMappingRow(element));
+
+		}
 
 		byte[] mappingFileBytes = null;
 		if (mappings != null && !mappings.isEmpty()) {
@@ -94,8 +123,8 @@ public class DownloadManagerImpl implements DownloadManager {
 
 		// Need to rebuild the result table since the instancedDataTable passed in doesn't have all rows loaded.
 		InstancedDataTable resultTable = instancedDataManager.buildInstancedDataTableForDownload(selectedForms,
-				instancedDataTable.getSortColumn(), instancedDataTable.getSortOrder(), cache,
-				codeMapping, userName, false, isNormalCSV);
+				instancedDataTable.getSortColumn(), instancedDataTable.getSortOrder(), cache, codeMapping, userName,
+				false, isNormalCSV, false, booleanExpression);
 		resultTable.setDisplayOption(displayOption);
 		resultTable.setDownloadPVMappings(mappings);
 
@@ -103,7 +132,7 @@ public class DownloadManagerImpl implements DownloadManager {
 				QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
 
 		QTDownloadPackage qtDownloadPackage =
-				downloadForm(packageName, provider, resultTable, mappingFileBytes, userName, isNormalCSV);
+				downloadForm(packageName, provider, resultTable, mappingFileBytes, userName, isNormalCSV, showAgeRange);
 
 		if (qtDownloadPackage == null) {
 			return QueryToolConstants.ERROR;
@@ -123,9 +152,12 @@ public class DownloadManagerImpl implements DownloadManager {
 	 * @param isNormalCSV
 	 * @param permissionModel
 	 * @return
+	 * @throws FilterEvaluatorException
 	 */
 	public synchronized String downloadDataCart(String packageName, Collection<FormResult> forms, String userName,
-			boolean isNormalCSV) {
+			boolean isNormalCSV, boolean showAgeRange) throws FilterEvaluatorException {
+		// Matt wanted us to add this...
+		System.gc();
 
 		Map<String, byte[]> byteFileMap = new HashMap<>();
 
@@ -148,9 +180,10 @@ public class DownloadManagerImpl implements DownloadManager {
 
 			List<FormResult> formList = new ArrayList<FormResult>(1);
 			formList.add(form);
-
+			
+			InstancedDataCache cache = new InstancedDataCache();
 			InstancedDataTable dataTable = instancedDataManager.buildInstancedDataTableForDownload(formList, null,
-					QueryToolConstants.ASCENDING, null, null, userName, true, isNormalCSV);
+					QueryToolConstants.ASCENDING, cache, null, userName, true, isNormalCSV, false, null);
 
 			dateAdded = new Date();
 			String timestamp = BRICSTimeDateUtil.formatTimeStamp(dateAdded);
@@ -164,9 +197,9 @@ public class DownloadManagerImpl implements DownloadManager {
 
 				File dataFile;
 				if (isNormalCSV) {
-					dataFile = CSVGenerator.generateCSV(fileName, dataTable);
+					dataFile = CSVGenerator.generateCSV(fileName, dataTable, showAgeRange);
 				} else {
-					dataFile = CSVGenerator.generateFlattenedCSV(fileName, dataTable);
+					dataFile = CSVGenerator.generateFlattenedCSV(fileName, dataTable, showAgeRange);
 				}
 
 				dataFiles.add(dataFile.getAbsolutePath());
@@ -198,14 +231,15 @@ public class DownloadManagerImpl implements DownloadManager {
 	 * @return
 	 */
 	private synchronized QTDownloadPackage downloadForm(String packageName, QueryToolWebserviceProvider provider,
-			InstancedDataTable instancedDataTable, byte[] mappingFileBytes, String username, boolean isNormalCSV) {
+			InstancedDataTable instancedDataTable, byte[] mappingFileBytes, String username, boolean isNormalCSV,
+			boolean showAgeRange) {
+		// Matt wanted us to add this...
+		System.gc();
 
 		Date dateAdded = new Date();
 		String timestamp = BRICSTimeDateUtil.formatTimeStamp(dateAdded);
 
 		String csvFileName = generateCsvFileName(instancedDataTable.getFormNames(), timestamp);
-
-
 
 		Map<String, byte[]> byteFileMap = new HashMap<>();
 		try {
@@ -220,13 +254,13 @@ public class DownloadManagerImpl implements DownloadManager {
 
 			File dataFile = null;
 			if (isNormalCSV) {
-				dataFile = CSVGenerator.generateCSV(csvFileName, instancedDataTable);
+				dataFile = CSVGenerator.generateCSV(csvFileName, instancedDataTable, showAgeRange);
 			} else {
-				dataFile = CSVGenerator.generateFlattenedCSV(csvFileName, instancedDataTable);
+				dataFile = CSVGenerator.generateFlattenedCSV(csvFileName, instancedDataTable, showAgeRange);
 			}
 
 			if (mappingFileBytes != null) {
-				byteFileMap.put(QueryToolConstants.QT_PV_MAPPING_FILE + ".csv", mappingFileBytes);
+				byteFileMap.put(packageName + "_" + QueryToolConstants.QT_PV_MAPPING_FILE + ".csv", mappingFileBytes);
 			}
 
 			log.debug("Grabbing list of dataset IDs for download package...");
@@ -257,7 +291,10 @@ public class DownloadManagerImpl implements DownloadManager {
 	 */
 	public synchronized String downloadToMetaStudy(String fileName, InstancedDataTable instancedDataTable,
 			List<FormResult> selectedForms, CodeMapping codeMapping, Account userAccount, long metaStudyId,
-			String description, Assertion casAssertion, InstancedDataCache cache) {
+			String description, Assertion casAssertion, InstancedDataCache cache, String booleanExpression,
+			boolean showAgeRange) throws FilterEvaluatorException {
+		// Matt wanted us to add this...
+		System.gc();
 
 		QueryToolWebserviceProvider provider = null;
 		if (ApplicationConstants.isWebservicesSecured()) {
@@ -271,10 +308,11 @@ public class DownloadManagerImpl implements DownloadManager {
 		// call synchronized account method to generate data files and access records
 		InstancedDataTable resultTable = instancedDataManager.buildInstancedDataTableForDownload(selectedForms,
 				instancedDataTable.getSortColumn(), instancedDataTable.getSortOrder(), cache, codeMapping,
-				userAccount.getUserName(), false, true);
-
+				userAccount.getUserName(), false, true, false, booleanExpression);
+		resultTable.setDisplayOption(instancedDataTable.getDisplayOption());
+		
 		QTDownloadPackage qtDownloadPackage =
-				downloadForm(fileName, provider, resultTable, null, userAccount.getUserName(), true);
+				downloadForm(fileName, provider, resultTable, null, userAccount.getUserName(), true, showAgeRange);
 
 		if (qtDownloadPackage == null) {
 			return QueryToolConstants.ERROR;
@@ -383,10 +421,12 @@ public class DownloadManagerImpl implements DownloadManager {
 		return userFile;
 	}
 
+
 	@Override
-	public InstancedDataTable generateInstancedDataTable(List<FormResult> forms, String username) {
+	public InstancedDataTable generateInstancedDataTable(List<FormResult> forms, String username,
+			String booleanExpression) throws FilterEvaluatorException {
 		InstancedDataTable dataTable = instancedDataManager.buildInstancedDataTableForDownload(forms, null,
-				QueryToolConstants.ASCENDING, null, null, username, true, false);
+				QueryToolConstants.ASCENDING, null, null, username, true, false, false, booleanExpression);
 
 		return dataTable;
 	}

@@ -8,7 +8,8 @@ QT.RefineDataView = BaseView.extend({
 		"click .toggleFilterPane": "toggleFilterPane",
 		"click .outputCodeOption": "onSelectOutputCode",
 		"click .moveDataCartToQueue": "moveCartToQueue",
-		"click #downloadToQueue": "downloadToQueue"
+		"click #downloadToQueue": "downloadToQueue",
+		"click .toggleCartPane" : "toggleCartPane"
 	},
 
 	initialize: function () {
@@ -22,6 +23,9 @@ QT.RefineDataView = BaseView.extend({
 		EventBus.on("openFilterPane", this.openFilterPane, this);
 		EventBus.on("clearDataCart", this.resetOutputCode, this);
 		EventBus.on("resetOutputCode", this.resetOutputCode, this);
+		EventBus.on("select:stepTabBack", this.toggleCartPane, this);
+		EventBus.on("query:reset", this.expandCartPane, this);
+
 	},
 
 	render: function () {
@@ -56,6 +60,60 @@ QT.RefineDataView = BaseView.extend({
 		var borderThickness = 1;
 		containerHeight = windowHeight - currentTop - (paddingTop + paddingBottom) - extraPadding;
 		this.$(".filterPaneHandle").height(containerHeight);
+	},
+	
+	toggleCartPane : function() {
+		if (this.model.get("dataCartPaneOpen")) {
+			this.contractCartPane();
+		}
+		else {
+			this.expandCartPane();
+		}
+	},
+	
+	contractCartPane : function() {
+		if (this.model.get("dataCartPaneOpen") == true) {
+			var $cartPaneBody = $(".refineDataDataCartBody");
+			var $filterPane = $("#filterPaneContentContainer");
+			var $refineDataCart = $("#refineDataCartContainer");
+			var $filtersList = $("#filtersList");
+			$cartPaneBody.hide();
+			$refineDataCart
+					.attr("origHeight", $refineDataCart.height())
+					.css("height", "");
+			$filtersList
+					.attr("origHeight", $filtersList.height())
+					.height($filtersList.height() + $cartPaneBody.height());
+			$filterPane
+					.attr("origHeight", $filterPane.height())
+					.height($filterPane.height() + $cartPaneBody.height());
+			$(".toggleCartPane")
+					.addClass("pe-is-i-angle-circle-down")
+					.removeClass("pe-is-i-angle-circle-up");
+			// update model
+			this.model.set("dataCartPaneOpen", false);
+			EventBus.trigger("window:resize");
+		}
+	},
+	
+	expandCartPane : function() {
+		if (this.model.get("dataCartPaneOpen") == false) {
+			var $cartPaneBody = $(".refineDataDataCartBody");
+			var $filterPane = $("#filterPaneContentContainer");
+			var $refineDataCart = $("#refineDataCartContainer");
+			var $filtersList = $("#filtersList");
+			$(".refineDataDataCartBody").show();
+			$refineDataCart.height($refineDataCart.attr("origHeight"));
+			$filterPane.height($filterPane.attr("origHeight"));
+			$filtersList.height($filtersList.attr("origHeight"));
+			$(".toggleCartPane")
+					.addClass("pe-is-i-angle-circle-up")
+					.removeClass("pe-is-i-angle-circle-down");
+			$cartPaneBody.show();
+			// update model
+			this.model.set("dataCartPaneOpen", true);
+			EventBus.trigger("window:resize");
+		}
 	},
 
 	onWindowResize: function () {
@@ -108,10 +166,14 @@ QT.RefineDataView = BaseView.extend({
 
 	resetOutputCode: function () {
 
-		var selectedOptionLabel = "Permissible Value";
-		this.$(".outputCodeDropdown").text(selectedOptionLabel);
-
-		this.model.get("query").changeDisplayOption("pv");
+		var selectedOptionLabel = QueryTool.page.get("query").get("outputSelectionOption");
+		//TODO: Note, I feel like hard coding this if statement below is not the best solution, we should look into a better solution when time permits
+		this.$(".outputCodeDropdown").text((selectedOptionLabel == "pv") ? "Permissible Value" : selectedOptionLabel);
+		this.model.get("query").resetChangeDisplayOption(selectedOptionLabel);
+		var selectedOptionCode = QueryTool.page.get("query").get("outputCodeSelection");
+		QueryTool.page.get("query").set("outputCodeSelection",selectedOptionLabel);
+		EventBus.trigger("dataTableView:changeDisplayOption", selectedOptionCode);
+		
 	},
 
 
@@ -126,8 +188,10 @@ QT.RefineDataView = BaseView.extend({
 			this.$(".outputCodeDropdown").text(selectedOptionLabel);
 
 			$("#downloadToQueue").removeClass("disabled");
+			QueryTool.page.get("query").set("outputCodeSelection",selectedOptionLabel);
 			EventBus.trigger("dataTableView:changeDisplayOption", codeId);
 		}
+		
 	},
 
 	isDataAvailable: function () {

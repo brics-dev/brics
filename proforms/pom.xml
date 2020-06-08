@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>brics</groupId>
 		<artifactId>brics</artifactId>
-		<version>4.0.0</version>
+		<version>6.0.0</version>
 	</parent>
 
 	<properties>
@@ -95,6 +95,12 @@
 			<version>${apache.logging.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-web</artifactId>
+			<version>${apache.logging.version}</version>
+		</dependency>
+		
+		<dependency>
 			<groupId>org.freemarker</groupId>
 			<artifactId>freemarker</artifactId>
 			<version>2.3.26-incubating</version>
@@ -156,6 +162,12 @@
 			<groupId>org.jasig.cas.client</groupId>
 			<artifactId>cas-client-core</artifactId>
 			<version>3.3.3</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>log4j-over-slf4j</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- SPRING SECURITY -->
@@ -278,6 +290,14 @@
 		</dependency>
 
 		<dependency>
+		    <groupId>com.microsoft.sqlserver</groupId>
+		    <artifactId>mssql-jdbc</artifactId>
+		    <version>7.2.2.jre8</version>
+		    <scope>runtime</scope>
+		</dependency>
+
+
+		<dependency>
  			<groupId>com.zaxxer</groupId>
  			<artifactId>HikariCP</artifactId>
  			<version>${hikaricp.version}</version>
@@ -323,6 +343,17 @@
 			<groupId>oro</groupId>
 			<artifactId>oro</artifactId>
 			<version>2.0.8</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<scope>test</scope>
 		</dependency>
 
 	</dependencies>

@@ -2,6 +2,7 @@ package gov.nih.tbi.dictionary.model.hibernate.eform;
 
 import java.io.Serializable;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -12,7 +13,6 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
-import javax.persistence.Column;
 
 
 @Entity
@@ -32,13 +32,23 @@ public class EmailTriggerValue implements Serializable{
 	@Column(name = "ANSWER")
 	private String answer;
 	
+	@Column(name = "TRIGGER_CONDITION")
+	private String triggerCondition;
+
 	public EmailTriggerValue(){}
 	
 	public EmailTriggerValue(EmailTriggerValue emailTriggerValue){
 		this.setId(null);
 		this.setAnswer(emailTriggerValue.getAnswer());
+		this.setTriggerCondition(emailTriggerValue.getTriggerCondition());
 	}
 	
+	public EmailTriggerValue(String answer, String triggerCond) {
+		this.setId(null);
+		this.setAnswer(answer);
+		this.setTriggerCondition(triggerCond);
+	}
+
 	public EmailTriggerValue(String answer){
 		this.answer = answer;
 	}
@@ -59,12 +69,21 @@ public class EmailTriggerValue implements Serializable{
 		this.answer = answer;
 	}
 
+	public String getTriggerCondition() {
+		return triggerCondition;
+	}
+
+	public void setTriggerCondition(String triggerCondition) {
+		this.triggerCondition = triggerCondition;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((answer == null) ? 0 : answer.hashCode());
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + ((triggerCondition == null) ? 0 : triggerCondition.hashCode());
 		return result;
 	}
 
@@ -87,11 +106,16 @@ public class EmailTriggerValue implements Serializable{
 				return false;
 		} else if (!id.equals(other.id))
 			return false;
+		if (triggerCondition == null) {
+			if (other.triggerCondition != null)
+				return false;
+		} else if (!triggerCondition.equals(other.triggerCondition))
+			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "EmailTriggerValue [answer= " + answer + "]";
+		return "EmailTriggerValue [answer= " + answer + ", condition= " + triggerCondition + "]";
 	}
 }

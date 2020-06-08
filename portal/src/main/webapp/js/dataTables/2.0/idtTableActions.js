@@ -1,4 +1,45 @@
+if (!Array.prototype.fill) {
+     Array.prototype.fill = function(value) {
 
+    // Steps 1-2.
+    if (this == null) {
+      throw new TypeError('this is null or not defined');
+    }
+
+    var O = Object(this);
+
+    // Steps 3-5.
+    var len = O.length >>> 0;
+
+    // Steps 6-7.
+    var start = arguments[1];
+    var relativeStart = start >> 0;
+
+    // Step 8.
+    var k = relativeStart < 0 ?
+      Math.max(len + relativeStart, 0) :
+      Math.min(relativeStart, len);
+
+    // Steps 9-10.
+    var end = arguments[2];
+    var relativeEnd = end === undefined ?
+      len : end >> 0;
+
+    // Step 11.
+    var final = relativeEnd < 0 ?
+      Math.max(len + relativeEnd, 0) :
+      Math.min(relativeEnd, len);
+
+    // Step 12.
+    while (k < final) {
+      O[k] = value;
+      k++;
+    }
+
+    // Step 13.
+   return O;
+   };
+}
  var IdtActions = {
 
      ellipsis: function(showChars) {
@@ -255,12 +296,18 @@
              for(var i =0; i < columns.length; i++) {
                 columnsList.push(i);
              };
-             columnsList.shift();
-             var sConfig = jQuery.extend(true, {exportOptions: { modifier: { selected: true }, orthogonal: 'export', columns: columnsList } }, config);
+             
+             if(jQuery.isEmptyObject(config.exportOptions)) {
+                 
+            	 Object.assign(config.exportOptions, { orthogonal: 'export', columns: columnsList });
+
+             }
+
              var selected = dt.settings()[0].oInit.select;
-             // $.dialogMessage("dialog", "warning", "this is text",
-				// {container: "body", buttons: [{text: 'one', value: 'one'}]});
+             
              if (selected.style == 'multi' || selected.style == 'single') {
+            	 columnsList.shift();
+                 var sConfig = jQuery.extend(true, {exportOptions: { modifier: { selected: true }, orthogonal: 'export', columns: columnsList } }, config);
             	 if (dt.rows({ selected: true }).indexes().length !== 0) {
 	                 $("#dialog").dialog({
 	                     modal: true,
@@ -297,29 +344,32 @@
 	                 });
             	 }
             	 else if (dt.rows({ selected: true }).indexes().length == 0 || undefined) {
-                     console.log("just check for row length", dt.rows({ selected: true }).indexes().length);
-                      config.exportOptions = {
-                          orthogonal: 'export',
-                          columns: columnsList
-                      };
-                      that.runExportAction(self, e, dt, button, config);
+
+            	 	$.when(that.runExportAction(self, e, dt, button, config)).done(function(e) {
+            	 		
+            	 		setTimeout(function(){dt.buttons(['.buttons-excel', '.buttons-csv', '.buttons-pdf', '.buttons-print']).enable()}, 5000);
+            	 	})
                   }
              } 
              else {
-                 that.runExportAction(self, e, dt, button, config);
+         	 	$.when(that.runExportAction(self, e, dt, button, config)).done(function(e) {
+        	 		
+        	 		setTimeout(function(){dt.buttons(['.buttons-excel', '.buttons-csv', '.buttons-pdf', '.buttons-print']).enable()}, 5000);
+        	 	})
              }
          }
      },
 
      runExportAction: function(self, e, dt, button, config) {
     	 var that = this;
+    	 dt.buttons(['.buttons-excel', '.buttons-csv', '.buttons-pdf', '.buttons-print']).disable();
          if (dt.settings()[0].oInstance.fnSettings().oFeatures.bServerSide == true) {
              var oldStart = dt.settings()[0]._iDisplayStart;
              var recordsTotal = dt.settings()[0]._iRecordsTotal;
              // dt.settings()[0]._iRecordsTotal
              // console.log('teable selected ',
 				// table.idtTable('getOptions'));
-
+             
              dt.one('preXhr', function(e, s, data) {
                  // Just this once, load all data from the server...
             	 //console.log('test test test',data.length);

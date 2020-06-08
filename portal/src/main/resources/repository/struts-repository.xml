@@ -104,7 +104,7 @@
 			</result>
 			<result name="redirect" type="redirect"> datasetAction!list.action
 			</result>
-			<allowed-methods>viewLightbox,manageBulkDatasets,reloadData,delete,manageDataset,addToDownloadQueue,bulkList</allowed-methods>
+			<allowed-methods>viewLightbox,manageBulkDatasets,reloadData,delete,manageDataset,addToDownloadQueue,bulkList,getEventLogListOutput</allowed-methods>
 		</action>
 		<action name="datasetDeletionValidationAction" class="gov.nih.tbi.repository.portal.DatasetAction">
 			<result name="input"> /jsp/dataset/viewDataset.jsp</result>
@@ -325,7 +325,7 @@
 			</result>
 			<result name="manageDataset"> /jsp/dataset/manageDataset.jsp
 			</result>	
-			<allowed-methods>search,searchIdt,viewLightbox,manageBulkDatasets,bulkList,delete,reloadData,addToDownloadQueue,manageDataset</allowed-methods>
+			<allowed-methods>search,searchIdt,viewLightbox,manageBulkDatasets,bulkList,delete,reloadData,addToDownloadQueue,manageDataset,getEventLogListOutput</allowed-methods>
 		</action>
 		<action name="bulkDatasetValidationAction" class ="gov.nih.tbi.repository.portal.DatasetAction">	
 			<result name="redirect" type="redirect"> datasetAction!bulkList.action
@@ -369,7 +369,9 @@
 		<global-allowed-methods>execute,input,back,cancel,browse,edit,create,view,search,list,submit</global-allowed-methods>
 		<action name="downloadQueueAction" class="gov.nih.tbi.repository.portal.DownloadQueueAction">
 			<result name="view"> /jsp/repositoryManager/viewDownloadQueue.jsp</result>
-			<allowed-methods>delete</allowed-methods>
+			<result name="viewWebstartDt">/jsp/repositoryManager/viewWebstartDownloadTool.jsp</result>
+			<result name="viewJsDt">/jsp/repositoryManager/viewJsDownloadTool.jsp</result>
+			<allowed-methods>delete,getJwt,viewWebstartDownloadTool,viewJsDownloadTool</allowed-methods>
 		</action>
 	</package>
 

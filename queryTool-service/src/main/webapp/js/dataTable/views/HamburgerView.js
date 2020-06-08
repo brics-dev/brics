@@ -19,7 +19,6 @@ QTDT.HamburgerView = BaseView.extend({
 			EventBus.on("frozenhamburgerview:removeall",this.destroy,this);
 		} else {
 			EventBus.on("hamburgerview:removeall",this.destroy,this);
-			//EventBus.on("hamburgerview:showHideCol",this.altToggleShowHide,this);
 		}
 		
 		
@@ -94,7 +93,6 @@ QTDT.HamburgerView = BaseView.extend({
     
     destroy : function() {
     	EventBus.off("hamburgerview:removeall",this.destroy,this);
-    	EventBus.off("hamburgerview:showHideCol",this.altToggleShowHide,this);
 		this.close();
 		QTDT.HamburgerView.__super__.destroy.call(this);
 	}

@@ -1,0 +1,16 @@
+[DB-SRC]
+host=eyegene-db-prod.cit.nih.gov
+database=eyegene_prod
+schema=eyegene_repos
+user=eyegene_repos
+label=SOURCE
+
+[DB-TRG]
+host=eyegene-db-stage.cit.nih.gov
+database=eyegene_stage
+schema=eyegene_reposstg
+user=eyegene_reposstg
+initFile=0.0.002.build-old-PG.buildman.fwd
+label=TARGET
+
+

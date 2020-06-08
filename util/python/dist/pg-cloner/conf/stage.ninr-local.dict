@@ -1,0 +1,17 @@
+[DB-SRC]
+host=ninr-dbdictionary-stage.cit.nih.gov
+database=dictionary_stage
+schema=dictionarystg
+user=dictionarystg
+label=SOURCE
+
+[DB-TRG]
+host=localhost
+database=dictdb
+schema=dictsch
+user=dictuser
+label=TARGET
+
+[FILE-SYS]
+logDir=D:\\DEV\\appdata\\log\\pgCloner\\stageninr-local-dict
+workDir=D:\\DEV\\appdata\\dump\\pgCloner\\stageninr-local-dict

@@ -1,0 +1,7 @@
+[DB-TRG]
+host=fitbir-db-stage.cit.nih.gov
+database=tbi_stage
+schema=tbi_metastg
+user=tbi_metastg
+label=TARGET
+

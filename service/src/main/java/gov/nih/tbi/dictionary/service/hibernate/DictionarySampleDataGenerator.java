@@ -23,6 +23,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Random;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,8 +37,9 @@ public class DictionarySampleDataGenerator
 {
 
     /**************************************************************************************************/
-
-    private static final String AVAILABLE_CHARACTERS = "abcdefghijklmnopqrstuvwxyz             ";
+	private static final Logger logger = Logger.getLogger(DictionarySampleDataGenerator.class);
+    
+	private static final String AVAILABLE_CHARACTERS = "abcdefghijklmnopqrstuvwxyz             ";
     private static final String X_STRING = "x";
     private static final String BIOSAMPLE_PREFIX = "BSID";
 
@@ -151,8 +153,11 @@ public class DictionarySampleDataGenerator
         data.set(0, ModelConstants.RECORD_STRING, X_STRING);
 
         // generate data for Main repeatable group first
-        generateRepeatableGroupData(data, main);
-
+        if(main != null) {
+        	generateRepeatableGroupData(data, main);
+        } else {
+        	logger.info("Main group is empty. Skipping generating data for it.");
+        }
         // generate data for each other group afterwards
         for (RepeatableGroup rg : dataStructure.getRepeatableGroups())
         {

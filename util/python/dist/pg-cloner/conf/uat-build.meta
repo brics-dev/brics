@@ -1,0 +1,16 @@
+[DB-SRC]
+host=fitbir-db-uat.cit.nih.gov
+database=tbi_uat
+schema=tbi_metauat
+user=tbi_metauat
+
+[DB-TRG]
+host=localhost
+database=metadb
+schema=metaschema
+user=metauser
+
+[FILE-SYS]
+logDir=/var/lib/brics/log/pgCloner/uat-build-meta
+dumpDir=/var/lib/brics/data/pgCloner/uat-build-meta
+

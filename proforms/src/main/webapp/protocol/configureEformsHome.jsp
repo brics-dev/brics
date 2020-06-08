@@ -101,8 +101,8 @@
 </script>
 
 
-<h3><s:text name="protocol.psr.eforms.configure.title.display"/></h3>
-<p><s:text name="protocol.psr.eforms.configure.instruction"/></p>
+<h3><s:text name="protocol.eform.configure.title.display"/></h3>
+<p><s:text name="protocol.eform.configure.instruction"/></p>
 <br>
 <div class="idtTableContainer brics" id="configureEformsTableDiv">
 	<table id="configureEformsTable" class="table table-striped table-bordered" width="100%">

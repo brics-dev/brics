@@ -19,6 +19,7 @@ QT.SendToMetaStudyDialogView = BaseView.extend({
 		}, {
 			text: "Cancel",
 			click: function() {
+				
 				EventBus.trigger("close:sendToMetaStudy");
 			}
 		}],
@@ -127,6 +128,7 @@ QT.SendToMetaStudyDialogView = BaseView.extend({
 	 * when the changes to the saved query saves correctly.
 	 */
 	closeDialog : function() {
+		this.$(".metaStudySelector").prop("checked", false);
 		this.Dialog.close();
 	},
 	
@@ -212,7 +214,8 @@ QT.SendToMetaStudyDialogView = BaseView.extend({
 					queryName : queryName,
 					sendData : sendData,
 					dataName : dataName,
-					metaStudyId : selectedMetaStudy
+					metaStudyId : selectedMetaStudy,
+					filterExpression : QueryTool.query.filters.getExpression()
 			};
 			
 			$.ajax({
@@ -252,7 +255,8 @@ QT.SendToMetaStudyDialogView = BaseView.extend({
 						$("#validateQueryName").html(imageName+validateQueryName);
 					}
 					else{											
-						view.linkSavedQueryData();							
+						view.linkSavedQueryData();	
+						
 					}
 				},
 				error : function(jqXHR, textStatus, errorThrown) {
@@ -260,6 +264,7 @@ QT.SendToMetaStudyDialogView = BaseView.extend({
 				}
 			});		
 		}
+		
 	},
 
 	linkSavedQueryData : function() {
@@ -279,8 +284,11 @@ QT.SendToMetaStudyDialogView = BaseView.extend({
 				sendData : sendData,
 				dataName : dataName,
 				dataDescription : dataDescription,
-				metaStudyId : selectedMetaStudy
+				metaStudyId : selectedMetaStudy,
+				filterExpression : QueryTool.query.filters.getExpression(),
+				outputCode : QueryTool.page.get("query").get("outputCodeSelection")
 		};
+		
 		
 		var view = this;
 		
@@ -292,6 +300,7 @@ QT.SendToMetaStudyDialogView = BaseView.extend({
 			data : dataForSave,
 			success : function(data, textStatus, jqXHR) {
 				$.ibisMessaging("flash", "success", "Your data has been successfully linked to Meta Study.");
+				view.$(".metaStudySelector").prop("checked", false);
 				view.closeDialog();
 			},
 			error : function(jqXHR, textStatus, errorThrown) {

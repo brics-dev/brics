@@ -136,6 +136,10 @@ var QuestionView  = BaseView.extend({
 		this.needDisableDelete();
 		this.afterChangeActive();
 		this.showHideText();
+				
+		if(this.model.get("emailTrigger")){
+			this.getTriggerAnswers(this.model);
+		}
 
 		return this;
 	},
@@ -670,18 +674,36 @@ var QuestionView  = BaseView.extend({
 			this.$(".graphicDisplay").html(grphicTemplate);
 			for(var i=0;i<graphicNames.length;i++){
 				//this.$('.qFraphic_'+i).show();
-				var view=this;
-				
+				var view=this;				
+
 				$.ajax({
 					  type: "POST",
 					  url: baseUrl+"renderImageAction!renderImage.action",
 					  data: {questionId:this.model.get("questionId"),imageFileName:graphicNames[i]},
 					  success: function (data) {
+						  var questionFileTypes = ["pdf", "doc", "docx","avi","mov", "mpg","mp4","mpeg"];
 						  var imgArray = JSON.parse(data);
 						  for(i=0;i<imgArray.length;i++){
-							 
-							  var $_img =  view.$('.qFraphic_'+i) ;
-							  $_img.attr("src", imgArray[i]).show();
+							 var imgJson = imgArray[i];
+							 var fileName = imgJson.name;
+							 var fileExtension = fileName.split('.').pop().toLowerCase();
+							 if(graphicNames[i] == fileName){
+							 var isGraphic = true;
+								 if(jQuery.inArray(fileExtension, questionFileTypes) >= 0) {
+									 isGraphic = false;
+								 };
+								 if(isGraphic){
+									 var filesrc = imgJson.source;
+									 var $_img =  view.$('.qFraphic_'+i) ;
+									 $_img.attr("src", filesrc).show();
+								 } else {
+									 var userFileId = imgJson.userFileId;
+									 var fileLink = "fileDownloadAction!download.action?fileId=" + userFileId;
+									 var $_a =  view.$('.qFraphic_'+i) ;
+									 $_a.attr("href", fileLink);
+									 $_a.text(fileName).show();
+								 }
+							 }
 						  }
 						//var $_img =  view.$('.qFraphic_'+i+':visible');
 						//$_img.attr("src",data);
@@ -691,6 +713,7 @@ var QuestionView  = BaseView.extend({
 						 // alert("error"+e);
 					  }
 				});
+
 			}	
 		}
 	},
@@ -736,4 +759,43 @@ var QuestionView  = BaseView.extend({
 		var upperCase = this.model.get("questionName").toUpperCase();
 		this.model.set("questionName",upperCase,{silent:true});
 	},
+	
+	isGraphic: function(graphicName) {
+		var rtn = true;
+		var nameLen = graphicName.length;
+		var fileTypeArr = [".pdf"];
+		for(var i = 0; i < fileTypeArr.length; i ++){
+			var fileType = fileTypeArr[i];
+			if(fileType == ".pdf"
+				&& graphicName.lastIndexOf(fileType) == nameLen - fileType.length) {
+				rtn = false;
+			}
+		}
+		return rtn;
+	},
+	getTriggerAnswers : function(model) {
+		var type = this.model.get("questionType");
+		var answerType = this.model.get("answerType");
+		var questionTypes = Config.questionTypes;
+		
+		var triggerAnswers = [];
+		var triggerValues = model.get("triggerValues");
+		if(type == questionTypes.radio || type == questionTypes.checkbox 
+				||type == questionTypes.select || type == questionTypes.multiSelect ){
+			for(var i = 0; i < triggerValues.length; i++){
+				if(i < triggerValues.length -1){
+					triggerAnswers.push(triggerValues[i].etAnswer + " ");
+				} else {
+					triggerAnswers.push(triggerValues[i].etAnswer);
+				}
+			}
+			if(triggerAnswers.length == 0){
+				triggerAnswers = this.model.get("triggerAnswers");
+			}
+		} else if (type == questionTypes.textbox && answerType == 2) {
+			triggerAnswers.push(triggerValues[0].etCondition);
+		}
+
+		model.set("triggerAnswers", triggerAnswers);
+	}
 });

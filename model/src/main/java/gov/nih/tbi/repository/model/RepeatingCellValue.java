@@ -1,7 +1,7 @@
 
 package gov.nih.tbi.repository.model;
 
-import gov.nih.tbi.ModelConstants;
+import gov.nih.tbi.commons.model.DataType;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,7 +41,7 @@ public class RepeatingCellValue extends CellValue {
 		this.rows = new ArrayList<InstancedRepeatableGroupRow>();
 	}
 
-	public RepeatingCellValue(String dataElementType, int dataElementCount, int rowCount) {
+	public RepeatingCellValue(DataType dataElementType, int dataElementCount, int rowCount) {
 		super(dataElementType, true);
 		this.rows = new ArrayList<InstancedRepeatableGroupRow>();
 		this.dataElementCount = dataElementCount;
@@ -50,7 +50,7 @@ public class RepeatingCellValue extends CellValue {
 	}
 
 	public RepeatingCellValue(int dataElementCount) {
-		super(ModelConstants.EMPTY_STRING, true);
+		super(null, true);
 		this.rows = new ArrayList<InstancedRepeatableGroupRow>();
 		this.dataElementCount = dataElementCount;
 		this.expanded = false;
@@ -75,13 +75,13 @@ public class RepeatingCellValue extends CellValue {
 	}
 
 	@Override
-	public String getDataElementType() {
+	public DataType getDataElementType() {
 
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void setDataElementType(String dataElementType) {
+	public void setDataElementType(DataType dataElementType) {
 
 		throw new UnsupportedOperationException();
 	}

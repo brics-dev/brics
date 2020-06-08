@@ -3,8 +3,11 @@ package gov.nih.nichd.ctdb.response.action;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Document;
 
 import gov.nih.nichd.ctdb.common.BaseAction;
@@ -12,6 +15,7 @@ import gov.nih.nichd.ctdb.common.CtdbConstants;
 import gov.nih.nichd.ctdb.common.CtdbException;
 import gov.nih.nichd.ctdb.common.StrutsConstants;
 import gov.nih.nichd.ctdb.common.TransformationException;
+import gov.nih.nichd.ctdb.common.cache.AformCache;
 import gov.nih.nichd.ctdb.common.util.XslTransformer;
 import gov.nih.nichd.ctdb.form.common.FormConstants;
 import gov.nih.nichd.ctdb.form.domain.Form;
@@ -42,34 +46,46 @@ import gov.nih.nichd.ctdb.util.common.SysPropUtil;
 public class ViewFormAction extends BaseAction {
 	private static final long serialVersionUID = 1804095360305675606L;
 	private static final Logger logger = Logger.getLogger(ViewFormAction.class.getName());
+	
 
 	String userEntryFlagStr = null;
 	String action = null;
+	
+	@Autowired
+    private AformCache aformCache;
 
 	public String execute() throws Exception {
 		logger.info("ViewFormAction----------------->");
 		session.remove(ResponseConstants.DATAENTRYHEADER_SESSION_KEY);
 		
-		String aformIdStr = null;
+		String aformIdStr = null;  //used in view entry from mycollections page where we know aformid
+		String acKey = null; //used in view completed form when user locks collection during data collection where we know ackey
+		int aformId;
 		User user = null;
+		int eformid = -1;
 		try {
 			ResponseManager rm = new ResponseManager();
 			AdministeredForm aform  = null;
+			acKey = request.getParameter(CtdbConstants.AFORM_CACHE_KEY);
+			if(acKey != null && !acKey.equals("")) { 
+				//doing view collection during locking of data colection
+				aform = aformCache.get(acKey);
+				aformId = aform.getId();
+				eformid = aform.getEformid();
+			}else {
+				//doing view entry from my collections page
+				aformIdStr = request.getParameter(CtdbConstants.ID_REQUEST_ATTR); 
+				if (aformIdStr == null) {
+		        	logger.error("Errror: Form Id is not defined");
+		        	addActionError("Form Id is not fdefined");
+					return StrutsConstants.FAILURE;
+				}
+				aformId = Integer.parseInt(aformIdStr);
+			}
 
-			aformIdStr = request.getParameter(CtdbConstants.ID_REQUEST_ATTR); // required
-			if (aformIdStr == null) {
-	        	logger.error("Errror: Form Id is not defined");
-	        	addActionError("Form Id is not fdefined");
-				return StrutsConstants.FAILURE;
-			}
-			int aformId = Integer.parseInt(aformIdStr);
 			
 			
-			if(aformId == Integer.MIN_VALUE) {
-				//get aform id from session aform object
-				aform = (AdministeredForm) session.get(ResponseConstants.AFORM_SESSION_KEY);
-				aformId = aform.getId();	
-			}
+			
 
 			userEntryFlagStr = request.getParameter("userEntryFlag");
 
@@ -89,23 +105,37 @@ public class ViewFormAction extends BaseAction {
 			else{ // request from a regular user locking a data collection
 				user = getUser();
 			}
+			
 			FormManager fm = new FormManager();
 			Protocol protocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
-			String shortName = fm.getEFormShortNameByAFormId(aformId);
-			//if(aform == null) {
+			if(aform == null ) {
+				String shortName = fm.getEFormShortNameByAFormId(aformId);
 				aform = rm.getAdministeredForm(aformId, user);
-			//}
-			int eformid = aform.getEformid();
-			FormDataStructureUtility fsUtil = new FormDataStructureUtility();
-			Form form = fsUtil.getEformFromBrics(request, shortName);
-			form.setId(eformid);
-			form.setProtocolId(protocol.getId());
-			aform.setForm(form);
-			DataCollectionUtils.completeAform(aform);
+				eformid = aform.getEformid();
+				FormDataStructureUtility fsUtil = new FormDataStructureUtility();
+				Form form = fsUtil.getEformFromBrics(request, shortName);
+				form.setId(eformid);
+				form.setProtocolId(protocol.getId());
+				aform.setForm(form);
+				DataCollectionUtils.completeAform(aform);
+			}
+			
+			
+			//check to see if eform is configured
+			ProtocolManager protoMan = new ProtocolManager();
+			boolean isConfigured = protoMan.isEformConfigured(eformid);
+			request.setAttribute(CtdbConstants.IS_EFORM_CONFIGURED,isConfigured);
 					
 			session.put(ResponseConstants.LOCKEDFORM_SESSION_KEY, aform);
 			this.setHTML(aform, user.getId());
 			this.setDataEntryHeader(aform);
+			
+			//need to check to see if there are any sections or questions that need to be hidden
+			List<String> hiddenSectionsQuestionsPVsElementIdsList = rm.getHiddenSectionsQuestionsPVsElementIds(protocol.getId(), eformid);
+			JSONArray jsonReturnArray = new JSONArray(hiddenSectionsQuestionsPVsElementIdsList);
+			String hiddenSectionsQuestionsPVsElementIdsJSON = jsonReturnArray.toString();
+			session.put(StrutsConstants.HIDDENIDS, hiddenSectionsQuestionsPVsElementIdsJSON);
+
 
 		} catch (Exception ce) {
         	logger.error("Failed to retrieve the form entry for the given user.", ce);

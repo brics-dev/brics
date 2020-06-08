@@ -1,0 +1,7 @@
+[DB-TRG]
+host=fitbir-db-uat.cit.nih.gov
+database=tbi_uat
+schema=tbi_metauat
+user=tbi_metauat
+label=TARGET
+

@@ -1,12 +1,5 @@
 package gov.nih.tbi.ws.cxf;
 
-import gov.nih.tbi.commons.model.BRICSTimeDateUtil;
-import gov.nih.tbi.constants.QueryToolConstants;
-import gov.nih.tbi.semantic.model.E_Distinct;
-import gov.nih.tbi.service.RDFStoreManager;
-import gov.nih.tbi.service.model.PermissionModel;
-import gov.nih.tbi.util.InstancedDataUtil;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -24,14 +17,11 @@ import org.apache.log4j.Logger;
 import org.openrdf.http.protocol.UnauthorizedException;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import au.com.bytecode.opencsv.CSVWriter;
-
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.query.QuerySolution;
-import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.sparql.core.Var;
 import com.hp.hpl.jena.sparql.expr.ExprAggregator;
 import com.hp.hpl.jena.sparql.expr.ExprVar;
@@ -41,12 +31,21 @@ import com.hp.hpl.jena.sparql.syntax.ElementTriplesBlock;
 import com.hp.hpl.jena.vocabulary.RDF;
 import com.hp.hpl.jena.vocabulary.RDFS;
 
+import au.com.bytecode.opencsv.CSVWriter;
+import gov.nih.tbi.commons.model.BRICSTimeDateUtil;
+import gov.nih.tbi.constants.QueryToolConstants;
+import gov.nih.tbi.pojo.QueryResult;
+import gov.nih.tbi.semantic.model.E_Distinct;
+import gov.nih.tbi.service.RDFStoreManager;
+import gov.nih.tbi.service.model.PermissionModel;
+import gov.nih.tbi.util.InstancedDataUtil;
+
 @Path("/recordCount")
 public class RecordCountReportService extends QueryBaseRestService {
 
 	private static final Logger log = Logger.getLogger(RecordCountReportService.class);
 
-	private static final String[] COLUMNS = {"Study", "Form", "Dataset", "GUID", "Visit Type", "Count"};
+	private static final String[] COLUMNS = { "Study", "Form", "Dataset", "GUID", "Visit Type", "Count" };
 
 	@Autowired
 	RDFStoreManager rdfStoreManager;
@@ -69,7 +68,7 @@ public class RecordCountReportService extends QueryBaseRestService {
 		log.info("Start downloading Record Count Report");
 
 		Query query = constructRecordCountQuery();
-		ResultSet result = rdfStoreManager.querySelect(query);
+		QueryResult result = rdfStoreManager.querySelect(query);
 		ByteArrayOutputStream baos = writeResultToOutputStream(result);
 
 		ResponseBuilder response = Response.ok(baos.toByteArray(), "text/csv");
@@ -82,7 +81,6 @@ public class RecordCountReportService extends QueryBaseRestService {
 		return response.build();
 	}
 
-
 	// Constructs the SPARQL query used to create the record count report
 	private Query constructRecordCountQuery() {
 		Query query = QueryFactory.make();
@@ -94,8 +92,7 @@ public class RecordCountReportService extends QueryBaseRestService {
 		query.setQueryPattern(body);
 		query.addResultVar(QueryToolConstants.STUDY_VAR);
 		query.addResultVar("formName");
-		query.addResultVar(
-				QueryToolConstants.DATASET_IDS_VAR,
+		query.addResultVar(QueryToolConstants.DATASET_IDS_VAR,
 				new ExprAggregator(QueryToolConstants.DATASET_IDS_VAR, AggregatorFactory.createGroupConcat(false,
 						new E_Distinct(new ExprVar(QueryToolConstants.DATASET_ID_VAR)), ", ", null)));
 		query.addResultVar(QueryToolConstants.GUID_VAR);
@@ -108,8 +105,8 @@ public class RecordCountReportService extends QueryBaseRestService {
 				Var.alloc("formName")));
 		block.addTriple(Triple.create(QueryToolConstants.ROW_VAR, QueryToolConstants.ROW_PREFIX,
 				QueryToolConstants.DATASET_ID_VAR));
-		block.addTriple(Triple.create(QueryToolConstants.ROW_VAR, QueryToolConstants.ROW_STUDY,
-				QueryToolConstants.STUDY_VAR));
+		block.addTriple(
+				Triple.create(QueryToolConstants.ROW_VAR, QueryToolConstants.ROW_STUDY, QueryToolConstants.STUDY_VAR));
 		block.addTriple(Triple.create(QueryToolConstants.ROW_VAR, QueryToolConstants.ROW_GUID, Var.alloc("guidUri")));
 		block.addTriple(Triple.create(Var.alloc("guidUri"), RDFS.label.asNode(), QueryToolConstants.GUID_VAR));
 		block.addTriple(Triple.create(QueryToolConstants.ROW_VAR, QueryToolConstants.HAS_REPEATABLE_GROUP_INSTANCE_N,
@@ -118,16 +115,15 @@ public class RecordCountReportService extends QueryBaseRestService {
 				QueryToolConstants.VISIT_TYPE_URI, QueryToolConstants.VISIT_TYPE_VAR));
 
 		Node accountNode = InstancedDataUtil.getAccountNode(permissionModel.getUserName());
-		block =
-				InstancedDataUtil.addPermissionTriples(block, accountNode, QueryToolConstants.ROW_VAR,
-						QueryToolConstants.DATASET_VAR, QueryToolConstants.STUDY_ID_VAR);
+		block = InstancedDataUtil.addPermissionTriples(block, accountNode, QueryToolConstants.ROW_VAR,
+				QueryToolConstants.DATASET_VAR, QueryToolConstants.STUDY_ID_VAR);
 
 		query.addOrderBy(QueryToolConstants.STUDY_VAR, Query.ORDER_ASCENDING);
 		return query;
 	}
 
 	// Returns the output stream with the CSV data
-	private ByteArrayOutputStream writeResultToOutputStream(ResultSet result) {
+	private ByteArrayOutputStream writeResultToOutputStream(QueryResult result) {
 		int columnSize = COLUMNS.length;
 
 		CSVWriter csvWriter = null;
@@ -137,9 +133,8 @@ public class RecordCountReportService extends QueryBaseRestService {
 			csvWriter = new CSVWriter(new PrintWriter(byteOutputStream));
 			csvWriter.writeNext(COLUMNS);
 
-			while (result.hasNext()) {
+			for (QuerySolution resultRow : result.getQueryData()) {
 				String[] row = new String[columnSize];
-				QuerySolution resultRow = result.next();
 
 				row[0] = InstancedDataUtil.rdfNodeToString(resultRow.get(QueryToolConstants.STUDY_VAR.getName()));
 				row[1] = InstancedDataUtil.rdfNodeToString(resultRow.get("formName"));

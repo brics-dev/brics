@@ -13,10 +13,15 @@ import gov.nih.nichd.ctdb.common.navigation.LeftNavController;
 import gov.nih.nichd.ctdb.protocol.domain.Protocol;
 import gov.nih.nichd.ctdb.question.tag.SubmissionReportDecorator;
 import gov.nih.nichd.ctdb.response.common.ReportingConstants;
+import gov.nih.nichd.ctdb.response.domain.AdverseEvent;
 import gov.nih.nichd.ctdb.response.domain.SubmissionSummaryReport;
+import gov.nih.nichd.ctdb.response.domain.ViewAuditorComment;
 import gov.nih.nichd.ctdb.response.form.ReportingForm;
 import gov.nih.nichd.ctdb.response.manager.ReportingManager;
+import gov.nih.nichd.ctdb.response.tag.AdverseEventIdtDecorator;
 import gov.nih.nichd.ctdb.response.tag.CompletedVisitsReportIdtDecorator;
+import gov.nih.nichd.ctdb.response.tag.ViewAuditorCommentIdtDecorator;
+import gov.nih.nichd.ctdb.response.tag.ViewAuditorCommentsDetailsIdtDecorator;
 import gov.nih.tbi.idt.ws.IdtInterface;
 import gov.nih.tbi.idt.ws.InvalidColumnException;
 import gov.nih.tbi.idt.ws.Struts2IdtInterface;
@@ -24,6 +29,8 @@ import gov.nih.tbi.idt.ws.Struts2IdtInterface;
 public class ReportingAction extends BaseAction {
 	private static final long serialVersionUID = -2827964076654047077L;
 	private static final Logger logger = Logger.getLogger(ReportingAction.class);
+	
+	private ReportingManager reporting = new ReportingManager();
 	
 	private List<ReportingForm> guidsWithoutCollectionsReport = null;	
 	private List<ReportingForm> completedVisitsReport = null;
@@ -37,7 +44,8 @@ public class ReportingAction extends BaseAction {
 			LeftNavController.LEFTNAV_QUERY_FORMSTATUS, LeftNavController.LEFTNAV_QUERY_COMPLETED,
 			LeftNavController.LEFTNAV_QUERY_FORMS_REQ_LOCK, LeftNavController.LEFTNAV_QUERY_PERFORMANCE_OVERVIEW,
 			LeftNavController.LEFTNAV_QUERY_SUBMISSION_SUMMARY, LeftNavController.LEFTNAV_SUBJECT_MATRIX_DASHBORAD,
-			LeftNavController.LEFTNAV_QUERY_GUIDS_WITHOUT_COLLECTIONS };
+			LeftNavController.LEFTNAV_QUERY_GUIDS_WITHOUT_COLLECTIONS, LeftNavController.LEFTNAV_SCHEDULE,
+			LeftNavController.LEFTNAV_ADVERSE_EVENT, LeftNavController.LEFTNAV_VIEW_AUDITOR_COMMENTS};
 
 	// Completed Visits
 	public String showCompletedVisits() {
@@ -329,7 +337,145 @@ public class ReportingAction extends BaseAction {
 		
 		return null;
 	}
+	
+	
+	// Adverse Event
+	public String adverseEvent() throws CtdbException {
+		Protocol p = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
+		if (p != null) {
+			buildLeftNav(LeftNavController.LEFTNAV_ADVERSE_EVENT);
+		} else {
+			return StrutsConstants.SELECTPROTOCOL;
+		}
+		
+		this.cleanupReports();
 
+		return SUCCESS;
+	}	
+	// View Auditor Comments
+	public String viewAuditorComments() throws CtdbException {
+		Protocol p = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
+		if (p != null) {
+			buildLeftNav(LeftNavController.LEFTNAV_VIEW_AUDITOR_COMMENTS);
+		} else {
+			return StrutsConstants.SELECTPROTOCOL;
+		}
+		
+		this.cleanupReports();
+
+		return SUCCESS;
+	}
+	
+	/* Adverse Event Table */
+	// url: http://fitbir-portal-local.cit.nih.gov:8082/ibis/report/getAEs.action
+	public String getAEs() throws Exception {
+		try {
+			IdtInterface idt = new Struts2IdtInterface();
+			List<AdverseEvent> aes = new ArrayList<AdverseEvent>();
+			aes = getAEList();
+			ArrayList<AdverseEvent> outputList = new ArrayList<AdverseEvent>(aes);
+			idt.setList(outputList);
+			idt.setTotalRecordCount(outputList.size());
+			idt.setFilteredRecordCount(outputList.size());
+			idt.decorate(new AdverseEventIdtDecorator());
+			idt.output();
+		} catch (InvalidColumnException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public List<AdverseEvent> getAEList() throws Exception {
+		
+		Protocol protocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
+		List<AdverseEvent> aes = new ArrayList<AdverseEvent>();
+        if(protocol==null) {
+        	//aes = new ArrayList<AdverseEvent>();
+        	return aes;
+      	}
+		try {
+			aes = (List<AdverseEvent>)reporting.getAEListBySelectedStudy(request, protocol.getId());			
+		} 		
+        catch(Exception e) {
+        	// getting 401: unauthorized
+        	e.printStackTrace();
+        }
+		session.put("aes", aes);
+		return aes;
+	}
+	/* view auditor comments summary data table*/
+	// url: http://fitbir-portal-local.cit.nih.gov:8082/ibis/report/getVQSum.action
+	public String getVQSum() throws Exception {
+		try {
+			IdtInterface idt = new Struts2IdtInterface();
+			List<ViewAuditorComment> vqs = new ArrayList<ViewAuditorComment>();
+			vqs = getVQList();
+			ArrayList<ViewAuditorComment> outputList = new ArrayList<ViewAuditorComment>(vqs);
+			idt.setList(outputList);
+			idt.setTotalRecordCount(outputList.size());
+			idt.setFilteredRecordCount(outputList.size());
+			idt.decorate(new ViewAuditorCommentIdtDecorator());
+			idt.output();
+		} catch (InvalidColumnException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public List<ViewAuditorComment> getVQList() throws Exception {
+		
+		Protocol protocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
+		List<ViewAuditorComment> vqs = new ArrayList<ViewAuditorComment>();
+        if(protocol==null) {
+        	return vqs;
+      	}
+		try {
+			vqs = (List<ViewAuditorComment>)reporting.getVQListBySelectedStudy(protocol.getId());			
+		} 		
+        catch(Exception e) {
+        	// getting 401: unauthorized
+        	e.printStackTrace();
+        }
+		session.put("vqs", vqs);
+		return vqs;
+	}
+	
+	/* Auditor Comments List for View Auditor Comments Details table */	
+	public List<ViewAuditorComment> getListEditedAnswersForVAC() throws Exception  {
+		List<ViewAuditorComment> editArchiveList = new ArrayList<ViewAuditorComment>();
+        Protocol protocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
+        
+        try {
+        	editArchiveList = reporting.getAuditorCommentList(request, protocol.getId());
+        }
+        catch(Exception e) {
+        	logger.error("Database error occurred when getting data for View Auditor Comments Details table.", e);
+        	e.printStackTrace();
+        }
+
+        return editArchiveList;
+	}
+	
+	/* List for View Auditor Comments Details data table */
+	public String getAuditorCommentsDetailList() throws Exception {
+		List<ViewAuditorComment> editArchiveList = new ArrayList<ViewAuditorComment>();
+		editArchiveList = this.getListEditedAnswersForVAC();
+
+		try {
+			IdtInterface idt = new Struts2IdtInterface();
+			ArrayList<ViewAuditorComment> outputList = new ArrayList<ViewAuditorComment>(editArchiveList);
+			idt.setList(outputList);
+			idt.setTotalRecordCount(outputList.size());
+			idt.setFilteredRecordCount(outputList.size());
+			idt.decorate(new ViewAuditorCommentsDetailsIdtDecorator());
+			idt.output();
+		} catch (InvalidColumnException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	
 	/**
 	 * Clears the session of all reporting data.
 	 */

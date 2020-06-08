@@ -1,0 +1,16 @@
+[DB-TRG]
+host=cistar-dbdictionary-prod.ninds.nih.gov
+database=dictionary_prod
+schema=dictionary
+user=dictionary
+label=TRG-CISTAR
+
+[DB-SRC]
+host=ibis-db-prod.cit.nih.gov
+database=dictionary_prod
+schema=dictionary
+user=dictionary
+label=SRC-PROD-IBIS
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\pgDelta\prodcistar-prodibis-dict

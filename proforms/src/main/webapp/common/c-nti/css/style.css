@@ -1976,7 +1976,7 @@ body {
   top: 300px;
   width: 10px;
   height: 2px;
-  font-family: ∩┐╜Trebuchet MS∩┐╜, Helvetica, sans-serif;
+  font-family: �Trebuchet MS�, Helvetica, sans-serif;
   font-size: 12px;
   font-weight: normal;
   text-shadow: 0px 0px 1px #333;
@@ -2120,6 +2120,9 @@ table.dataTable th {
     background: linear-gradient(to bottom, #1472B9 0%, #000000 80%);
     /* W3C */ }
 
+@media print {
+  .no-print, .no-print * {
+    display: none !important; } }
 /***
 
  * ===>>  Instance-specific Style Overrides   <<=================================================================
@@ -2143,11 +2146,13 @@ table.dataTable th {
   line-height: 120px; }
 
 #logo {
-  margin: 10px 20px 10px 10px;
+  margin: 10px 10px 10px 10px;
   background: url(../images/logo.png) no-repeat center center;
   background-color: #fff;
   height: 100px;
-  width: 100px; }
+  width: 141px;
+  background-size: 324px;
+  background-position-x: 56px; }
 
 #login-button {
   margin: 52px 20px 53px 0; }
@@ -2180,6 +2185,10 @@ table.dataTable th {
   margin-right: auto;
   width: 880px; }
 
+.build-notes {
+  float: left;
+  clear: both; }
+
 #navigation {
   width: auto !important; }
 
@@ -2190,9 +2199,7 @@ table.dataTable th {
   font-weight: bold;
   padding: 8px 15px; }
   
-@media print {    
-   .no-print, .no-print * {
-       display: none !important;
-   }
-}
+.selfReportingPSRHeader ol{
+	padding-left: 15px; }
+
 /*# sourceMappingURL=style.css.map */

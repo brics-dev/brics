@@ -1,12 +1,13 @@
 @font-face {
   font-family: 'brics-qt';
-  src:  url('../fonts/brics-qt.eot?k77bl1');
-  src:  url('../fonts/brics-qt.eot?k77bl1#iefix') format('embedded-opentype'),
-    url('../fonts/brics-qt.ttf?k77bl1') format('truetype'),
-    url('../fonts/brics-qt.woff?k77bl1') format('woff'),
-    url('../fonts/brics-qt.svg?k77bl1#brics-qt') format('svg');
+  src:  url('../fonts/brics-qt.eot?b16nei');
+  src:  url('../fonts/brics-qt.eot?b16nei#iefix') format('embedded-opentype'),
+    url('../fonts/brics-qt.ttf?b16nei') format('truetype'),
+    url('../fonts/brics-qt.woff?b16nei') format('woff'),
+    url('../fonts/brics-qt.svg?b16nei#brics-qt') format('svg');
   font-weight: normal;
   font-style: normal;
+  font-display: block;
 }
 
 [class^="brics-qt-"], [class*=" brics-qt-"] {
@@ -25,6 +26,9 @@
 }
 
 .brics-qt-32232:before {
+  content: "\e901";
+}
+.brics-qt-filter:before {
   content: "\e900";
 }
 

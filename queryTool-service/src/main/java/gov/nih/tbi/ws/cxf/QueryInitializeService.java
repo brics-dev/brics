@@ -4,12 +4,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.GET;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -57,10 +59,13 @@ public class QueryInitializeService extends QueryBaseRestService {
 
 	@Autowired
 	QueryAccountManager queryAccountManager;
-	
+
 
 	@Autowired
 	ApplicationConstants constants;
+	
+	@Autowired
+	MetaDataCache metaDataCache;
 
 	/**
 	 * Web service method to be called when launching QT, it populates MetaDataCache if necessary and also initializes
@@ -68,21 +73,22 @@ public class QueryInitializeService extends QueryBaseRestService {
 	 * 
 	 * @return
 	 * @throws UnsupportedEncodingException
-	 * @throws UnauthorizedException 
+	 * @throws UnauthorizedException
 	 */
 	@GET
 	@Path("initialize/")
 	@Produces(MediaType.APPLICATION_XML)
-	public Response initialize(@QueryParam("savedQueryId") String savedQueryId) throws UnsupportedEncodingException, UnauthorizedException {
+	public Response initialize(@QueryParam("savedQueryId") String savedQueryId)
+			throws UnsupportedEncodingException, UnauthorizedException {
 
 		logger.info("Initializing PermissionModel ...");
 		Account account = getAuthenticatedAccount();
-		
+
 		if (account == null || ANONYMOUS_USER_NAME.equals(account.getUserName())) {
 			URI uri = UriBuilder.fromUri("../cas/logout").build();
 			return Response.temporaryRedirect(uri).build();
 		}
-		
+
 		if (permissionModel == null || permissionModel.getAccount() == null) {
 
 			initializePermission(account);
@@ -90,11 +96,11 @@ public class QueryInitializeService extends QueryBaseRestService {
 
 		logger.info("Initializing MetaDataCache ...");
 
-		if (MetaDataCache.isResultCacheEmpty(ResultType.STUDY)) {
-			SearchResultUtil.cacheStudyResults(resultManager);
+		if (metaDataCache.isResultCacheEmpty(ResultType.STUDY)) {
+			SearchResultUtil.cacheStudyResults(metaDataCache, resultManager);
 		}
-		if (MetaDataCache.isResultCacheEmpty(ResultType.FORM_STRUCTURE)) {
-			SearchResultUtil.cacheFormResults(resultManager);
+		if (metaDataCache.isResultCacheEmpty(ResultType.FORM_STRUCTURE)) {
+			SearchResultUtil.cacheFormResults(metaDataCache, resultManager);
 		}
 
 		String savedQueryUriPart = "";
@@ -110,8 +116,8 @@ public class QueryInitializeService extends QueryBaseRestService {
 	 * Web service method that clears the meta data cache. Url: http://hostname:8080/query/service/clearCache
 	 * 
 	 * @return response with OK status if cache is cleared successfully.
-	 * @throws UnsupportedEncodingException 
-	 * @throws UnauthorizedException 
+	 * @throws UnsupportedEncodingException
+	 * @throws UnauthorizedException
 	 */
 	@GET
 	@Path("clearCache")
@@ -126,13 +132,14 @@ public class QueryInitializeService extends QueryBaseRestService {
 		}
 
 		logger.info("Clearing MetaDataCache ...");
-		MetaDataCache.clearCache();
+		metaDataCache.clearCache();
 
 		return Response.ok().build();
 	}
 
 
-	private void initializePermission(Account account) throws UnsupportedEncodingException, WebApplicationException, UnauthorizedException {
+	private void initializePermission(Account account)
+			throws UnsupportedEncodingException, WebApplicationException, UnauthorizedException {
 		getAuthenticatedAccount();
 		permissionModel.setAccount(account);
 
@@ -144,7 +151,7 @@ public class QueryInitializeService extends QueryBaseRestService {
 		}
 
 		String accUrl = applicationConstants.getModulesAccountURL();
-		logger.error("This is the accUrl var: " + accUrl);
+		logger.info("This is the accUrl var: " + accUrl);
 		RestQueryAccountProvider accountProvider =
 				new RestQueryAccountProvider(accUrl, QueryRestProviderUtils.getProxyTicket(accUrl));
 
@@ -154,8 +161,13 @@ public class QueryInitializeService extends QueryBaseRestService {
 		for (StudyResultPermission srp : queryPermissions.getStudyResultPermissions()) {
 			permissionModel.addStudyResultPermission(srp);
 		}
+
+		Map<Long, String> formIdNameMap = queryAccountManager.getFormIdNameMap();
+
 		for (FormResultPermission frp : queryPermissions.getFormResultPermissions()) {
-			permissionModel.addFormResultPermission(frp);
+			Long formId = frp.getFormId();
+			String shortName = formIdNameMap.get(formId);
+			permissionModel.addFormResultPermission(shortName, frp);
 		}
 
 		queryAccountManager.updateGraphAccount(permissionModel);
@@ -168,7 +180,7 @@ public class QueryInitializeService extends QueryBaseRestService {
 	// http://hostname:8080/query/service/accountInfo
 	public String getAccountInfo() throws UnauthorizedException, UnsupportedEncodingException {
 		getAuthenticatedAccount();
-		
+
 		JsonObject accountJson = new JsonObject();
 		Account account = permissionModel.getAccount();
 
@@ -181,7 +193,7 @@ public class QueryInitializeService extends QueryBaseRestService {
 
 		return accountJson.toString();
 	}
-	
+
 	@GET
 	@Path("accounts/")
 	@Produces("application/json")
@@ -189,7 +201,7 @@ public class QueryInitializeService extends QueryBaseRestService {
 	public Response qtAccounts() throws UnauthorizedException, UnsupportedEncodingException {
 		logger.info("Retrieve list of Query Tool accessible accounts");
 		getAuthenticatedAccount();
-		
+
 		String accUrl = applicationConstants.getModulesAccountURL();
 		String proxyTicket = QueryRestProviderUtils.getProxyTicket(accUrl);
 		if (proxyTicket == null) {
@@ -203,34 +215,61 @@ public class QueryInitializeService extends QueryBaseRestService {
 		HTTPClientPolicy policy = http.getClient();
 		policy.setConnectionTimeout(1000000);
 		policy.setReceiveTimeout(1000000);
-		
+
 		client.query("ticket", proxyTicket);
 		String output = client.get(String.class);
-		
+
 		return Response.ok(output, MediaType.APPLICATION_JSON).build();
 	}
 
 
+	/**
+	 * This web service will keep both portal and dictionary session alive.
+	 * @return
+	 * @throws WebApplicationException
+	 * @throws UnauthorizedException
+	 */
 	@GET
 	@Path("keepAlive")
-	public void keepAlive() throws WebApplicationException, UnauthorizedException {
-		System.out.println("KEEP ALIVE!!");
-		
+	public Response keepAlive() throws UnsupportedEncodingException, UnauthorizedException {
+		logger.debug("Keep Portal session alive!!!");
+
 		String accUrl = applicationConstants.getModulesAccountURL();
 		String proxyTicket = QueryRestProviderUtils.getProxyTicket(accUrl);
 		if (proxyTicket == null) {
 			logger.error("The user's session has expired");
-			throw new UnauthorizedException();
+			return Response.status(Response.Status.UNAUTHORIZED).build();
 		}
-		String restServiceUrl = "portal/ws/account/account/";
+		String restServiceUrl = "/ws/account/account/";
 		WebClient client = WebClient.create(accUrl + restServiceUrl + "keepAlive");
-		client.accept("text/xml");
+		Response response = client.get();
+		
+		logger.debug("Keep Dictionary session alive!!!");
+		
+		String dictUrl = applicationConstants.getModulesDDTURL();
+		String dictProxyTicket = QueryRestProviderUtils.getProxyTicket(dictUrl);
+		if (dictProxyTicket == null) {
+			logger.error("The user's dictionary session has expired");
+			return Response.status(Response.Status.UNAUTHORIZED).build();
+		}
+		String dictRestServiceUrl = "/ws/ddt/dictionary/";
+		WebClient dictClient = WebClient.create(dictUrl + dictRestServiceUrl + "keepDictAlive");
+		Response dictResp = dictClient.get();
+		
+		if (response.getStatus() == 200 && dictResp.getStatus() == 200) {
+			return response;
+		} else {
+			String msg = "error in QT keep session alive " + response.getStatus() + " " + dictResp.getStatus();
+			logger.error(msg);
+			Response errRes = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(msg).build();
+			throw new InternalServerErrorException(errRes);
+		}
 	}
 
 
 	private void getModulePermissionJson(JsonObject json) throws UnauthorizedException, UnsupportedEncodingException {
 		getAuthenticatedAccount();
-		
+
 		Account account = permissionModel.getAccount();
 
 		Boolean hasAccessToAccount = false;
@@ -290,7 +329,7 @@ public class QueryInitializeService extends QueryBaseRestService {
 					|| queryAccountManager.hasRole(account, RoleType.ROLE_METASTUDY_ADMIN)) {
 				hasAccessToMetaStudy = true;
 			}
-			
+
 			if (queryAccountManager.hasRole(account, RoleType.ROLE_REPORTING_ADMIN)) {
 				hasAccessToReporting = true;
 			}
@@ -306,16 +345,16 @@ public class QueryInitializeService extends QueryBaseRestService {
 		json.addProperty("hasAccessToMetaStudy", hasAccessToMetaStudy.toString());
 		json.addProperty("hasAccessToReporting", hasAccessToReporting.toString());
 	}
-	
+
 	@POST
 	@Path("stateless/clearCache/")
 	@Produces(MediaType.TEXT_HTML)
 	public Response clearMetaCache() {
-		MetaDataCache.clearCache();
+		metaDataCache.clearCache();
 		return Response.noContent().build();
 	}
-	
-	// http://hostname:8080/query/service/deploymentVersion 
+
+	// http://hostname:8080/query/service/deploymentVersion
 	@GET
 	@Path("deploymentVersion/")
 	@Produces(MediaType.TEXT_PLAIN)
@@ -356,13 +395,5 @@ public class QueryInitializeService extends QueryBaseRestService {
 		}
 
 		return repositoryId;
-	}
-	
-	
-	@GET
-	@Path("lastDeployed/")
-	@Produces(MediaType.TEXT_PLAIN)
-	public String getLastDeployed(@Context HttpServletRequest request) {
-		return constants.getLastDeployedTimeStamp();
 	}
 }

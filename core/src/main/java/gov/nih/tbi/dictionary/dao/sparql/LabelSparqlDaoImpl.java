@@ -26,178 +26,168 @@ import com.hp.hpl.jena.update.UpdateRequest;
 import com.hp.hpl.jena.vocabulary.RDFS;
 
 @Repository
-public class LabelSparqlDaoImpl extends GenericSparqlDaoImpl<Keyword> implements LabelSparqlDao
-{
+public class LabelSparqlDaoImpl extends GenericSparqlDaoImpl<Keyword> implements LabelSparqlDao {
 
-    /**
-     * Returns a label object by the given name. This label object contains a name, uri, and count. Returns null if
-     * label does not exist
-     * 
-     * @param name
-     * @return
-     */
-    public Keyword getByName(String name)
-    {
+	/**
+	 * Returns a label object by the given name. This label object contains a name, uri, and count. Returns null if
+	 * label does not exist
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public Keyword getByName(String name) {
 
-        Query query = QueryConstructionUtil.getLabelQuery();
-        ElementGroup body = (ElementGroup) query.getQueryPattern();
-        ElementTriplesBlock block = (ElementTriplesBlock) body.getElements().get(0);
+		Query query = QueryConstructionUtil.getLabelQuery();
+		ElementGroup body = (ElementGroup) query.getQueryPattern();
+		ElementTriplesBlock block = (ElementTriplesBlock) body.getElements().get(0);
 
-        if (block == null)
-        {
-            block = new ElementTriplesBlock();
-            body.addElement(block);
-        }
+		if (block == null) {
+			block = new ElementTriplesBlock();
+			body.addElement(block);
+		}
 
-        block.addTriple(Triple.create(RDFConstants.LABEL_VARIABLE, RDFS.label.asNode(), NodeFactory.createLiteral(name)));
+		block.addTriple(
+				Triple.create(RDFConstants.LABEL_VARIABLE, RDFS.label.asNode(), NodeFactory.createLiteral(name)));
 
-        ResultSet results = querySelect(query);
-        if (results.hasNext())
-        {
-            return parseRow(results.next());
-        }
+		ResultSet results = querySelect(query);
+		if (results.hasNext()) {
+			return parseRow(results.next());
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    /**
-     * Returns a list of labels that contain the given string. Search is case insensitive.
-     * 
-     * @param searchKey
-     * @return
-     */
-    public List<Keyword> search(String searchKey)
-    {
+	/**
+	 * Returns a list of labels that contain the given string. Search is case insensitive.
+	 * 
+	 * @param searchKey
+	 * @return
+	 */
+	public List<Keyword> search(String searchKey) {
 
-        Query query = QueryConstructionUtil.getLabelQuery();
-        ElementGroup body = (ElementGroup) query.getQueryPattern();
-        body.addElementFilter(QueryConstructionUtil.regexFilter(RDFConstants.LABEL_VARIABLE, searchKey));
+		Query query = QueryConstructionUtil.getLabelQuery();
+		ElementGroup body = (ElementGroup) query.getQueryPattern();
 
-        ResultSet results = querySelect(query);
+		if (searchKey != null && !searchKey.isEmpty()) {
+			searchKey = searchKey.trim();
+			body.addElementFilter(QueryConstructionUtil.regexFilter(RDFConstants.LABEL_VARIABLE, searchKey));
+		}
 
-        List<Keyword> labels = new ArrayList<Keyword>();
+		ResultSet results = querySelect(query);
 
-        while (results.hasNext())
-        {
-            labels.add(parseRow(results.next()));
-        }
+		List<Keyword> labels = new ArrayList<Keyword>();
 
-        return labels;
-    }
+		while (results.hasNext()) {
+			labels.add(parseRow(results.next()));
+		}
 
-    public Keyword parseRow(QuerySolution row)
-    {
-        String uri = rdfNodeToString(row.get(RDFConstants.LABEL_VARIABLE.toString()));
-        String labelName = rdfNodeToString(row.get(RDFConstants.VALUE_VARIABLE.toString()));
-        String countString = rdfNodeToString(row.get(RDFConstants.COUNT_VARIABLE.toString()));
-        if (labelName == null || countString == null)
-        {
-            throw new NullPointerException("label or label count is null.");
-        }
+		return labels;
+	}
 
-        Long count = Long.valueOf(countString);
+	public Keyword parseRow(QuerySolution row) {
+		String uri = rdfNodeToString(row.get(RDFConstants.LABEL_VARIABLE.toString()));
+		String labelName = rdfNodeToString(row.get(RDFConstants.VALUE_VARIABLE.toString()));
+		String countString = rdfNodeToString(row.get(RDFConstants.COUNT_VARIABLE.toString()));
+		if (labelName == null || countString == null) {
+			throw new NullPointerException("label or label count is null.");
+		}
 
-        Keyword label = new Keyword();
-        label.setUri(uri);
-        label.setKeyword(labelName);
-        label.setCount(count);
+		Long count = Long.valueOf(countString);
 
-        return label;
-    }
+		Keyword label = new Keyword();
+		label.setUri(uri);
+		label.setKeyword(labelName);
+		label.setCount(count);
 
-    @Override
-    public List<Keyword> getAll()
-    {
+		return label;
+	}
 
-        Query query = QueryConstructionUtil.getLabelQuery();
-        ResultSet results = querySelect(query);
+	@Override
+	public List<Keyword> getAll() {
 
-        List<Keyword> labels = new ArrayList<Keyword>();
+		Query query = QueryConstructionUtil.getLabelQuery();
+		ResultSet results = querySelect(query);
 
-        while (results.hasNext())
-        {
-            Keyword label = parseRow(results.next());
-            labels.add(label);
-        }
+		List<Keyword> labels = new ArrayList<Keyword>();
 
-        return labels;
-    }
+		while (results.hasNext()) {
+			Keyword label = parseRow(results.next());
+			labels.add(label);
+		}
 
-    @Override
-    public Keyword get(String uri)
-    {
+		return labels;
+	}
 
-        Query query = QueryConstructionUtil.getLabelQuery();
-        ElementGroup body = (ElementGroup) query.getQueryPattern();
-        ElementTriplesBlock block = (ElementTriplesBlock) body.getElements().get(0);
+	@Override
+	public Keyword get(String uri) {
 
-        if (block == null)
-        {
-            block = new ElementTriplesBlock();
-            body.addElement(block);
-        }
+		Query query = QueryConstructionUtil.getLabelQuery();
+		ElementGroup body = (ElementGroup) query.getQueryPattern();
+		ElementTriplesBlock block = (ElementTriplesBlock) body.getElements().get(0);
 
-        block.addTriple(Triple.create(RDFConstants.LABEL_VARIABLE, RDFS.isDefinedBy.asNode(), NodeFactory.createLiteral(uri)));
+		if (block == null) {
+			block = new ElementTriplesBlock();
+			body.addElement(block);
+		}
 
-        ResultSet results = querySelect(query);
-        if (results.hasNext())
-        {
-            return parseRow(results.next());
-        }
+		block.addTriple(
+				Triple.create(RDFConstants.LABEL_VARIABLE, RDFS.isDefinedBy.asNode(), NodeFactory.createLiteral(uri)));
 
-        return null;
-    }
+		ResultSet results = querySelect(query);
+		if (results.hasNext()) {
+			return parseRow(results.next());
+		}
 
-    @Override
-    public Keyword save(Keyword label)
-    {
+		return null;
+	}
 
-        if (exists(label))
-        {
-            delete(label);
-        }
+	@Override
+	public Keyword save(Keyword label) {
 
-        UpdateDataInsert updateInsert = new UpdateDataInsert(QueryConstructionUtil.generateLabelTriples(label));
-        UpdateRequest request = UpdateFactory.create();
-        request.add(updateInsert);
-        virtuosoStore.update(request);
-        return label;
-    }
+		if (exists(label)) {
+			delete(label);
+		}
 
-    public boolean exists(Keyword label)
-    {
+		UpdateDataInsert updateInsert = new UpdateDataInsert(QueryConstructionUtil.generateLabelTriples(label));
+		UpdateRequest request = UpdateFactory.create();
+		request.add(updateInsert);
+		virtuosoStore.update(request);
+		return label;
+	}
 
-        if (label == null)
-        {
-            throw new NullPointerException("Why are you checking if a null label exists?!");
-        }
+	public boolean exists(Keyword label) {
 
-        if (label.getUri() == null) // no uri means that this is a new label, thus does not exist in db
-        {
-            return false;
-        }
+		if (label == null) {
+			throw new NullPointerException("Why are you checking if a null label exists?!");
+		}
 
-        Query existsQuery = QueryFactory.make();
-        existsQuery.setQueryAskType();
+		if (label.getUri() == null) // no uri means that this is a new label, thus does not exist in db
+		{
+			return false;
+		}
 
-        ElementTriplesBlock block = new ElementTriplesBlock();
-        ElementGroup body = new ElementGroup();
-        body.addElement(block);
-        existsQuery.setQueryPattern(body);
+		Query existsQuery = QueryFactory.make();
+		existsQuery.setQueryAskType();
 
-        block.addTriple(Triple.create(RDFConstants.LABEL_VARIABLE, RDFS.isDefinedBy.asNode(), NodeFactory.createURI(label.getUri())));
+		ElementTriplesBlock block = new ElementTriplesBlock();
+		ElementGroup body = new ElementGroup();
+		body.addElement(block);
+		existsQuery.setQueryPattern(body);
 
-        return virtuosoStore.queryAsk(existsQuery);
-    }
+		block.addTriple(Triple.create(RDFConstants.LABEL_VARIABLE, RDFS.isDefinedBy.asNode(),
+				NodeFactory.createURI(label.getUri())));
 
-    private void delete(Keyword label)
-    {
+		return virtuosoStore.queryAsk(existsQuery);
+	}
 
-        String uri = label.getUri();
+	private void delete(Keyword label) {
 
-        String sparqlUpdate = "WITH <http://ninds.nih.gov:8080/allTriples.ttl> DELETE { <" + uri + "> ?p ?o } WHERE { <" + uri + "> ?p ?o }";
+		String uri = label.getUri();
 
-        update(sparqlUpdate);
-    }
+		String sparqlUpdate = "WITH <http://ninds.nih.gov:8080/allTriples.ttl> DELETE { <" + uri + "> ?p ?o } WHERE { <"
+				+ uri + "> ?p ?o }";
+
+		update(sparqlUpdate);
+	}
 
 }

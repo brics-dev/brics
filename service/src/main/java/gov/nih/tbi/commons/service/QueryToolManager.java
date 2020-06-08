@@ -64,14 +64,10 @@ public interface QueryToolManager {
 	  * @param shortname
 	  * @return
 	  */
-	 public SummaryResult getSummaryData(String shortname);
+	 public SummaryQuery getSummaryByName(String shortname);
+	
+	 public SummaryResult getSummaryData(String shortname, SummaryQuery query);
 	 
-	 public SummaryResult getSparqlSummaryData(String shortname);
-	 
-	 public SummaryResult getSparqlSummaryData(String shortname, Long number);
-	 
-	 public SummaryResult getSparqlSummaryData(String shortname, String number);
-
 	 /**
 	  * This method requests summary data based on the shortname of the summary query.  It passes in variables
 	  * that must be substituted in the query.
@@ -79,9 +75,17 @@ public interface QueryToolManager {
 	  * @param shortname
 	  * @param site
 	  * @param study
+	  * @param number
+	  * @param text
 	  * @return
 	  */
-	 public SummaryResult getSummaryData(String shortname, String site, String study);
+	 public SummaryResult getSummaryData(String shortname, SummaryQuery query, String site, String study, Long number, String text);
+	 
+	 public SummaryResult getSparqlSummaryData(String shortname);
+	 
+	 public SummaryResult getSparqlSummaryData(String shortname, Long number);
+	 
+	 public SummaryResult getSparqlSummaryData(String shortname, String number);
 	 
 	 public SummaryResult getSparqlSummaryData(String shortname, String site, String study, Long number, String text);
 	 
@@ -92,8 +96,8 @@ public interface QueryToolManager {
 	  */
 	 public List<String> getAllStudyTitles();
 	 
-	 public List<SummaryQuery> getAllStudySummaryQueriesShortnames();
-	 public List<SummaryQuery> getAllProgramSummaryQueriesShortnames();   
+	 public List<SummaryQuery> getAllStudySummaryQueriesShortnames(String instance);
+	 public List<SummaryQuery> getAllProgramSummaryQueriesShortnames(String instance);   
 	 
 	 public List<SavedQuery> searchSavedQuery(Set<Long> savedQueryIdsList, String savedQueryName, 
 			 String savedQueryDescription, Date startDateRange, Date endDateRange, boolean includeCopies);
@@ -104,11 +108,13 @@ public interface QueryToolManager {
 
 	 public boolean isSavedQueryFileNameUniquePerMetaStudy(String savedQueryFileName, Long metaStudyId);
 	 
+	 public boolean isQueryLinkedToMetaStudy(Long savedQueryId);
+	 
 	 public SavedQuery getSavedQueryByNameAndMetaStudy(String savedQueryName,Long metaStudyId);
 	 
 	 public List<StudySubmittedForm> getStudySubmittedForms(String studyTitle);
 	 
-	 public Multimap<String, StudySubmittedForm> getAllStudySubmittedForms();
+	 public Multimap<Long, StudySubmittedForm> getAllStudySubmittedForms();
 	 
 	 public List<PublicSubmittedForm> getAllPublicSubmittedForms();
 	 

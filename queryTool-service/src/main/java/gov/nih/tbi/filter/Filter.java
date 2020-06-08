@@ -1,21 +1,13 @@
 package gov.nih.tbi.filter;
 
 import com.google.gson.JsonObject;
-import com.hp.hpl.jena.sparql.syntax.ElementFilter;
 
 import gov.nih.tbi.pojo.FilterType;
+import gov.nih.tbi.repository.model.InstancedRepeatableGroupRow;
 import gov.nih.tbi.repository.model.InstancedRow;
 
 public interface Filter {
 	public JsonObject toJson();
-
-	/**
-	 * Returns JENA representation of the current filter for use in generation of SPARQL queries.
-	 * 
-	 * @param variable
-	 * @return
-	 */
-	public ElementFilter toElementFilter(String variable);
 
 	public FilterType getFilterType();
 
@@ -33,4 +25,16 @@ public interface Filter {
 	 * @return the exact result of the evaluation.
 	 */
 	public boolean evaluate(InstancedRow row);
+	
+	public String getName();
+	public void setName(String name);
+	
+	//the following fields are needed for the frontend for saved query
+	public String getLogicBefore();
+	public void setLogicBefore(String logicBefore);
+	public Integer getGroupingBefore();
+	public void setGroupingBefore(Integer groupingBefore);
+	public Integer getGroupingAfter();
+	public void setGroupingAfter(Integer groupingAfter);
+	public boolean evaluate(InstancedRepeatableGroupRow row);
 }

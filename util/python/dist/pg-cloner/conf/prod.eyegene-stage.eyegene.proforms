@@ -1,0 +1,16 @@
+[DB-SRC]
+host=eyegene-db-prod.cit.nih.gov
+database=eyegene_data
+schema=proforms_app_prod
+user=proforms_app_prod
+label=SOURCE
+
+[DB-TRG]
+host=eyegene-db-stage.cit.nih.gov
+database=eyegene_data
+schema=proforms_app_stg
+user=proforms_app_stg
+label=TARGET
+
+[FILE-SYS]
+logDir=/var/lib/brics/log/pgCloner/prodeyegene-stageeyegene-dict

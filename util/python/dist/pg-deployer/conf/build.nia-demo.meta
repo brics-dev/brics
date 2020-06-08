@@ -1,0 +1,7 @@
+[DB-TRG]
+host=nia-host-demo.cit.nih.gov
+database=nia_demo
+schema=nia_metademo
+user=nia_metademo
+label=TARGET
+

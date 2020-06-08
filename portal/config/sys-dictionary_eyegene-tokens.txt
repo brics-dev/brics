@@ -1,0 +1,19 @@
+<value>file:///c:/brics/ = <value>file:///opt/apache-tomcat/brics/
+.log4j.logger.org.hibernate.SQL\=.* = log4j.logger.org.hibernate.SQL\=ERROR
+log4j.logger.gov.nih.tbi\=.* = log4j.logger.gov.nih.tbi\=ERROR
+mipav.launch.link \= .* = mipav.launch.link \= http://mipav.cit.nih.gov/fitbir_jws/mipav_fitbir_demo_jws.php
+http://fitbir-portal-local.cit.nih.gov:8080/portal/j = http://eyegene-dd-sys.cit.nih.gov/portal/j
+http://cnrm-portal-local.cit.nih.gov:8080/portal/j = http://eyegene-dd-sys.cit.nih.gov/portal/j
+http://pdbp-portal-local.cit.nih.gov:8080/portal/j = http://eyegene-dd-sys.cit.nih.gov/portal/j
+http://ninds-portal-local.cit.nih.gov:8080/portal/j = http://eyegene-dd-sys.cit.nih.gov/portal/j
+http://cistar-portal-local.ninds.nih.gov:8080/portal/j = http://eyegene-dd-sys.ninds.nih.gov/portal/j
+https://fitbir-portal-local.cit.nih.gov:8443/portal/j = http://eyegene-dd-sys.cit.nih.gov/portal/j
+https://cnrm-portal-local.cit.nih.gov:8443/portal/j = http://eyegene-dd-sys.cit.nih.gov/portal/j
+https://pdbp-portal-local.cit.nih.gov:8443/portal/j = http://eyegene-dd-sys.cit.nih.gov/portal/j
+https://ninds-portal-local.cit.nih.gov:8443/portal/j = http://eyegene-dd-sys.cit.nih.gov/portal/j
+https://cistar-portal-local.ninds.nih.gov:8443/portal/j = http://eyegene-dd-sys.ninds.nih.gov/portal/j
+pdbp-dev.cit.nih.gov/cas = eyegene-sys.cit.nih.gov/cas
+cnrm-dev.cit.nih.gov/cas = eyegene-sys.cit.nih.gov/cas
+fitbir-dev.cit.nih.gov/cas = eyegene-sys.cit.nih.gov/cas
+ninds-dev.cit.nih.gov/cas = eyegene-sys.cit.nih.gov/cas
+cistar-dev.ninds.nih.gov/cas = eyegene-sys.ninds.nih.gov/cas

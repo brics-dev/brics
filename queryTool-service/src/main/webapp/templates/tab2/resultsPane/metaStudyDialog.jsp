@@ -36,7 +36,7 @@
 				</div>			
 				<div class="savedQueryField_description formrow_1">
 					<label for="savedQueryField_desc">Description:</label>
-					<textarea id="savedQueryField_desc" name="queryDescription"></textarea>
+					<textarea id="savedQueryField_desc" name="queryDescription" maxlength="300"></textarea>
 				</div>
 				<div class="savedQueryField_saveData formrow_1">
 					<label>Save filtered data file to meta study:</label>
@@ -54,7 +54,7 @@
 				</div>
 				<div class="savedQueryField_dataDesc formrow_1">
 					<label class="requiredInput">Description<span class="requiredStar">*</span></label>
-					<textarea id="savedQueryField_dataDesc" name="dataDescription"></textarea>
+					<textarea id="savedQueryField_dataDesc" name="dataDescription" maxlength="300"></textarea>
 				</div>
 			</form>
 		</div>

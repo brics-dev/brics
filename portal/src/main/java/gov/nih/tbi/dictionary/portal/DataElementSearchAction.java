@@ -214,7 +214,7 @@ public class DataElementSearchAction extends BaseDataElementSearchAction {
 				searchDataElementPublicSite(facets, searchKeywords, pageData);
 			}			
 			
-		    idt.setTotalRecordCount(numSearchResults);
+		    idt.setTotalRecordCount(dataElementTotalCount());
 		    idt.setFilteredRecordCount(numSearchResults);
 			ArrayList<SemanticDataElement> outputAr = new ArrayList<SemanticDataElement>(dataElementList);
 			idt.setList(outputAr);
@@ -235,6 +235,13 @@ public class DataElementSearchAction extends BaseDataElementSearchAction {
 			
 			ascending = orderColumn.getOrderDirection().equals(IdtRequest.ORDER_ASCENDING);
 		}
+	}
+	
+	private int dataElementTotalCount() {
+		boolean onlyOwned = (getOwnerId() == 1);
+
+		return dictionaryService.semanticDataElementSearchCount(new DictionarySearchFacets(), new HashMap<FacetType, Set<String>>(), false, onlyOwned);
+		
 	}
 		
 	

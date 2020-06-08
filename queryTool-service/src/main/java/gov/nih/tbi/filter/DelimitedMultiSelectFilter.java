@@ -2,18 +2,16 @@ package gov.nih.tbi.filter;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.google.gson.JsonObject;
-import com.hp.hpl.jena.sparql.expr.Expr;
-import com.hp.hpl.jena.sparql.expr.ExprVar;
-import com.hp.hpl.jena.sparql.syntax.ElementFilter;
 
 import gov.nih.tbi.commons.util.BRICSStringUtils;
 import gov.nih.tbi.pojo.DataElement;
 import gov.nih.tbi.pojo.FilterType;
 import gov.nih.tbi.pojo.FormResult;
 import gov.nih.tbi.pojo.RepeatableGroup;
-import gov.nih.tbi.util.InstancedDataUtil;
 
 public class DelimitedMultiSelectFilter extends DataElementFilter implements Filter, Serializable {
 
@@ -24,26 +22,42 @@ public class DelimitedMultiSelectFilter extends DataElementFilter implements Fil
 
 	private List<String> values;
 
-	public DelimitedMultiSelectFilter(FormResult form, RepeatableGroup group, DataElement element, boolean blank,
-			String delimitedValues) {
-		super(form, group, element, blank);
-		this.delimitedValues = delimitedValues;
+	private DelimitedMultiSelectMode mode;
 
+	private static final String INCLUSIVE_PATTERN_FORMAT = ".*(%s).*";
+
+	public static enum DelimitedMultiSelectMode {
+		EXACT("exact"), INCLUSIVE("inclusive");
+
+		private String name;
+
+		private DelimitedMultiSelectMode(final String name) {
+			this.name = name;
+		}
+
+		public String getName() {
+			return name;
+		}
+	}
+
+	public DelimitedMultiSelectFilter(FormResult form, RepeatableGroup group, DataElement element,
+			String delimitedValues, String name, String logicBefore, Integer groupingBefore, Integer groupingAfter,
+			DelimitedMultiSelectMode mode) {
+		super(form, group, element, name, logicBefore, groupingBefore, groupingAfter);
+		this.delimitedValues = delimitedValues;
+		this.mode = mode;
 		if (delimitedValues != null && !delimitedValues.isEmpty()) {
 			this.values = BRICSStringUtils.delimitedStringToList(delimitedValues, DELIMITER);
 		}
 	}
 
-	@Override
-	public ElementFilter toElementFilter(String variable) {
-		if(isEmpty()) {
-			return null;
-		}
-		
-		ExprVar var = new ExprVar(variable);
-		Expr filterExpression = InstancedDataUtil.multiRegexFilter(var, values);
+	public DelimitedMultiSelectMode getMode() {
+		return mode;
+	}
 
-		return applyIsBlank(var, new ElementFilter(filterExpression));
+
+	public void setMode(DelimitedMultiSelectMode mode) {
+		this.mode = mode;
 	}
 
 	public String getDelimitedValues() {
@@ -64,13 +78,8 @@ public class DelimitedMultiSelectFilter extends DataElementFilter implements Fil
 
 	@Override
 	public JsonObject toJson() {
-		JsonObject filterJson = new JsonObject();
-
-		filterJson.addProperty("groupUri", getGroup().getUri());
-		filterJson.addProperty("elementUri", getElement().getUri());
+		JsonObject filterJson = super.toJson();
 		filterJson.addProperty("freeFormValue", delimitedValues);
-		filterJson.addProperty("blank", isBlank());
-		filterJson.addProperty("filterType", getFilterType().name());
 
 		return filterJson;
 	}
@@ -85,6 +94,7 @@ public class DelimitedMultiSelectFilter extends DataElementFilter implements Fil
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + ((delimitedValues == null) ? 0 : delimitedValues.hashCode());
+		result = prime * result + ((mode == null) ? 0 : mode.hashCode());
 		result = prime * result + ((values == null) ? 0 : values.hashCode());
 		return result;
 	}
@@ -103,6 +113,8 @@ public class DelimitedMultiSelectFilter extends DataElementFilter implements Fil
 				return false;
 		} else if (!delimitedValues.equals(other.delimitedValues))
 			return false;
+		if (mode != other.mode)
+			return false;
 		if (values == null) {
 			if (other.values != null)
 				return false;
@@ -116,6 +128,7 @@ public class DelimitedMultiSelectFilter extends DataElementFilter implements Fil
 		return values == null || values.isEmpty();
 	}
 
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -126,19 +139,38 @@ public class DelimitedMultiSelectFilter extends DataElementFilter implements Fil
 		}
 
 		if (cellValue == null || cellValue.isEmpty()) {
-			if (isBlank()) {
-				return true;
-			} else {
+			return false;
+		}
+
+		switch (mode) {
+			case EXACT:
+				for (String value : values) {
+					if (cellValue.equalsIgnoreCase(value)) {
+						return true;
+					}
+				}
+
 				return false;
-			}
+			case INCLUSIVE:
+				Pattern p = buildInclusiveRegex();
+				Matcher m = p.matcher(cellValue);
+				return m.matches();
+			default:
+				throw new UnsupportedOperationException(
+						mode.getName() + " in an unimplemented for delimited multi-select filters.");
 		}
+	}
 
-		for (String value : values) {
-			if (cellValue.equalsIgnoreCase(value)) {
-				return true;
-			}
-		}
+	protected Pattern buildInclusiveRegex() {
+		String token = String.join("|", (String[]) values.toArray());
+		String regexString = String.format(INCLUSIVE_PATTERN_FORMAT, token);
+		Pattern p = Pattern.compile(regexString);
+		return p;
+	}
 
-		return false;
+	@Override
+	public String toString() {
+		String output = buildQueryInString(values);
+		return output;
 	}
 }

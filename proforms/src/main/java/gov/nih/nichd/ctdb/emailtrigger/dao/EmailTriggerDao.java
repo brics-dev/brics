@@ -1,15 +1,5 @@
 package gov.nih.nichd.ctdb.emailtrigger.dao;
 
-import gov.nih.nichd.ctdb.common.CtdbDao;
-import gov.nih.nichd.ctdb.common.CtdbException;
-import gov.nih.nichd.ctdb.common.Version;
-import gov.nih.nichd.ctdb.emailtrigger.domain.EmailTrigger;
-import gov.nih.nichd.ctdb.emailtrigger.domain.SentEmail;
-import gov.nih.nichd.ctdb.form.domain.Form;
-import gov.nih.nichd.ctdb.form.domain.Section;
-import gov.nih.nichd.ctdb.question.domain.Question;
-import gov.nih.nichd.ctdb.response.domain.AdministeredForm;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -18,6 +8,19 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+
+import gov.nih.nichd.ctdb.common.CtdbDao;
+import gov.nih.nichd.ctdb.common.CtdbException;
+import gov.nih.nichd.ctdb.common.Version;
+import gov.nih.nichd.ctdb.emailtrigger.domain.EmailTrigger;
+import gov.nih.nichd.ctdb.emailtrigger.domain.EmailTriggerValue;
+import gov.nih.nichd.ctdb.emailtrigger.domain.SentEmail;
+import gov.nih.nichd.ctdb.form.domain.Form;
+import gov.nih.nichd.ctdb.form.domain.Section;
+import gov.nih.nichd.ctdb.question.domain.AnswerType;
+import gov.nih.nichd.ctdb.question.domain.Question;
+import gov.nih.nichd.ctdb.question.domain.QuestionType;
+import gov.nih.nichd.ctdb.response.domain.AdministeredForm;
 
 /**
  * Created by IntelliJ IDEA.
@@ -80,11 +83,12 @@ public class EmailTriggerDao extends CtdbDao {
 			stmt.executeUpdate();
 			et.setId(this.getInsertId(conn, "emailtrigger_seq"));
 
-			for (String answer : et.getTriggerAnswers()) {
-				sb = new StringBuffer("insert into emailtriggervalues (emailtriggerid, answer) values (?, ?) ");
+			for (EmailTriggerValue etv : et.getTriggerValues()) {
+				sb = new StringBuffer("insert into emailtriggervalues (emailtriggerid, answer, triggercondition) values (?, ?, ?) ");
 				stmt = this.conn.prepareStatement(sb.toString());
-				stmt.setLong(1, Long.valueOf(et.getId()));
-				stmt.setString(2, answer);
+				stmt.setLong(1, Long.valueOf(etv.getId()));
+				stmt.setString(2, etv.getAnswer());
+				stmt.setString(3, etv.getTriggerCondition());
 				stmt.executeUpdate();
 			}
 		} catch (SQLException sqle) {
@@ -117,11 +121,13 @@ public class EmailTriggerDao extends CtdbDao {
 			stmt.setLong(1, Long.valueOf(et.getId()));
 			stmt.executeUpdate();
 
-			for (String answer : et.getTriggerAnswers()) {
-				sb = new StringBuffer("insert into emailtriggervalues (emailtriggerid, answer) values (?, ?) ");
+			for (EmailTriggerValue etv : et.getTriggerValues()) {
+				sb = new StringBuffer(
+						"insert into emailtriggervalues (emailtriggerid, answer, triggercondition) values (?, ?, ?) ");
 				stmt = this.conn.prepareStatement(sb.toString());
-				stmt.setLong(1, Long.valueOf(et.getId()));
-				stmt.setString(2, answer);
+				stmt.setLong(1, Long.valueOf(etv.getId()));
+				stmt.setString(2, etv.getAnswer());
+				stmt.setString(3, etv.getTriggerCondition());
 				stmt.executeUpdate();
 			}
 		} catch (SQLException sqle) {
@@ -148,7 +154,11 @@ public class EmailTriggerDao extends CtdbDao {
 				if (i == 0) {
 					et = rsToEmailTrigger(rs);
 				}
-				et.getTriggerAnswers().add(rs.getString("answer"));
+				EmailTriggerValue etv = new EmailTriggerValue();
+				etv.setId(rs.getInt("emailtriggerid"));
+				etv.setAnswer(rs.getString("answer"));
+				etv.setTriggerCondition(rs.getString("triggercondition"));
+				et.addToTriggerValues(etv);
 			}
 			return et;
 
@@ -351,14 +361,14 @@ public class EmailTriggerDao extends CtdbDao {
 	 * @param answers
 	 * @throws CtdbException
 	 */
-	public void insertSentEmail (int emailTriggerId, AdministeredForm aForm, List<String> answers) throws CtdbException {
+	public void insertSentEmail (int emailTriggerId, AdministeredForm aForm, List<String> triggerValues, QuestionType qt, AnswerType at) throws CtdbException {
 		PreparedStatement stmt = null;
 
 		try {
-			StringBuffer sb = new StringBuffer("insert into sentemail (sentemailid, emailtriggerid, patientid, intervalid, eformid, visitdate, answer, datesent) ");
-			sb.append(" values (DEFAULT, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP) ");
+			StringBuffer sb = new StringBuffer("insert into sentemail (sentemailid, emailtriggerid, patientid, intervalid, eformid, visitdate, answer, condition, datesent) ");
+			sb.append(" values (DEFAULT, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP) ");
 			stmt = this.conn.prepareStatement(sb.toString());
-			for (String answer : answers) {
+			for (String value : triggerValues) {
 				stmt.setLong(1, Long.valueOf(emailTriggerId));
 				stmt.setLong(2, Long.valueOf(aForm.getPatient().getId()));
 
@@ -371,7 +381,16 @@ public class EmailTriggerDao extends CtdbDao {
 
 				stmt.setLong(4, Long.valueOf(aForm.getForm().getId()));
 				stmt.setTimestamp(5, new Timestamp (aForm.getVisitDate().getTime()));
+				String answer = "";
+				String condition = "";
+				if(qt == QuestionType.RADIO || qt == QuestionType.CHECKBOX 
+						|| qt == QuestionType.SELECT || qt == QuestionType.MULTI_SELECT) {
+					answer = value;
+				} else if (qt == QuestionType.TEXTBOX && at == AnswerType.NUMERIC) {
+					condition = value;
+				}
 				stmt.setString(6, answer);
+				stmt.setString(7, condition);
 				stmt.addBatch();
 			}
 
@@ -420,10 +439,6 @@ public class EmailTriggerDao extends CtdbDao {
 				rs = stmt.executeQuery();
 				
 			}
-			
-			
-			
-			
 
 			while (rs.next()) {
 				al.add (rsToSentEmail(aform, rs));
@@ -439,19 +454,31 @@ public class EmailTriggerDao extends CtdbDao {
 
 		return al;
 	}
+	
 
-	private SentEmail rsToSentEmail (AdministeredForm aform, ResultSet rs) throws SQLException {
-		EmailTrigger se = new SentEmail();
+	private SentEmail rsToSentEmail(AdministeredForm aform, ResultSet rs) throws SQLException {
+		SentEmail se = new SentEmail();
 		int emailTriggerId = rs.getInt("emailtriggerid");
 
 		//need to find the email trigger from the form object
-		Form f = aform.getForm();
 		EmailTrigger e = null;
 		loop:		for (List<Section> sectionList : aform.getForm().getRowList()) {
 						for (Section section : sectionList) {
 							for (Question question : section.getQuestionList()) {
 								 if ( question.getFormQuestionAttributes().getEmailTrigger().getId() == emailTriggerId) {
 									 e = question.getFormQuestionAttributes().getEmailTrigger();
+									 
+										se.setVersion(e.getVersion());
+										se.setToEmailAddress(e.getToEmailAddress());
+										se.setCcEmailAddress(e.getCcEmailAddress());
+										se.setId(e.getId());
+										se.setSubject(e.getSubject());
+										se.setBody(e.getBody());
+										se.setCreatedBy(e.getCreatedBy());
+										se.setCreatedDate(e.getCreatedDate());
+										se.setUpdatedBy(e.getUpdatedBy());
+										se.setUpdatedDate(e.getUpdatedDate());
+										
 									 break loop;
 								 }
 							}
@@ -459,28 +486,14 @@ public class EmailTriggerDao extends CtdbDao {
 					}
 		
 		
+		se.setDateSent(rs.getTimestamp("datesent"));
+		se.setPatientId(rs.getInt ("patientid"));
+		se.setIntervalId(rs.getInt ("intervalid"));
+		se.setFormId(rs.getInt ("eformid"));
+		se.setPatientId(rs.getInt ("patientid"));
+		se.setVisitdate(rs.getDate("visitdate"));
+		se.setTriggeredAnswer(rs.getString("answer"));
 		
-		
-		
-		((SentEmail)se).setVersion(e.getVersion());
-		((SentEmail)se).setToEmailAddress(e.getToEmailAddress());
-		((SentEmail)se).setCcEmailAddress(e.getCcEmailAddress());
-		((SentEmail)se).setId(emailTriggerId);
-		((SentEmail)se).setSubject(e.getSubject());
-		((SentEmail)se).setBody(e.getBody());
-		((SentEmail)se).setCreatedBy(e.getCreatedBy());
-		((SentEmail)se).setCreatedDate(e.getCreatedDate());
-		((SentEmail)se).setUpdatedBy(e.getUpdatedBy());
-		((SentEmail)se).setUpdatedDate(e.getUpdatedDate());
-		
-		
-		((SentEmail)se).setDateSent(rs.getTimestamp("datesent"));
-		((SentEmail)se).setPatientId(rs.getInt ("patientid"));
-		((SentEmail)se).setIntervalId(rs.getInt ("intervalid"));
-		((SentEmail)se).setFormId(rs.getInt ("eformid"));
-		((SentEmail)se).setPatientId(rs.getInt ("patientid"));
-		((SentEmail)se).setVisitdate(rs.getDate("visitdate"));
-		((SentEmail)se).setTriggeredAnswer(rs.getString("answer"));
-		return (SentEmail)se;
+		return se;
 	}
 }

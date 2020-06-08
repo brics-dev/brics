@@ -42,7 +42,15 @@ var QuestionConversionFactorDecorator = {
 			"click #convLeftP" : function(){this.parenC(' (');},
 			"click #convRightP" : function(){this.parenC(') ');},
 			
-
+			"click #calcGreater" : function(){this.button('>');},
+			"click #calcGreaterEqual" : function(){this.button('>=');},
+			"click #calcLesser" : function(){this.button('<');},
+			"click #calcLesserEqual" : function(){this.button('<=');},
+			
+			"click #calcEqualEqual" : function(){this.button('==');},
+			"click #calcNotEqual" : function(){this.button('!=');},
+			"click #calcAnd" : function(){this.button('&&');},
+			"click #calcOr" : function(){this.button('||');},
 		},
 		
 		

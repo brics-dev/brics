@@ -19,6 +19,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -35,7 +36,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.xml.bind.JAXBException;
 
 import org.apache.log4j.Logger;
 import org.openrdf.http.protocol.UnauthorizedException;
@@ -75,14 +75,15 @@ public class SavedQueryService extends QueryBaseRestService {
 	 * @return A response object containing the updated saved query JSON object, whose data has been synced with the
 	 *         database. (i.e. any temporay IDs will be replaced with their actual IDs.
 	 * @throws WebApplicationException When there is an error while saving the saved query data.
-	 * @throws UnsupportedEncodingException 
-	 * @throws UnauthorizedException 
+	 * @throws UnsupportedEncodingException
+	 * @throws UnauthorizedException
 	 */
 	@POST
 	@Path("/save")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response save(String sqJSON) throws WebApplicationException, UnauthorizedException, UnsupportedEncodingException {
+	public Response save(String sqJSON)
+			throws WebApplicationException, UnauthorizedException, UnsupportedEncodingException {
 		getAuthenticatedAccount();
 		SavedQuery savedQuery = null;
 		List<EntityMap> entityMapList = null;
@@ -124,44 +125,11 @@ public class SavedQueryService extends QueryBaseRestService {
 		logger.info("Peristing the saved query data to the database...");
 
 		// Save the query.
-		try {
-			savedQuery = savedQueryManager.saveSavedQuery(dataCart, savedQuery, entityMapList);
+		savedQuery = savedQueryManager.saveSavedQuery(dataCart, savedQuery, entityMapList);
 
-			// Convert the update SavedQuery and EntityMap list objects to a JSON object.
-			logger.info("Converting the new/updated saved query data and permissions to JSON...");
-			jsonSavedQuery = SavedQueryUtil.savedQueryToBackBoneModel(savedQuery, entityMapList);
-		} catch (WebApplicationException wae) {
-			// Check for an authentication error (i.e. the forbidden response)
-			if (wae.getResponse().getStatus() == 403) {
-				logger.error("Authentication error occured with one of the web service calls.", wae);
-				JsonArray clientMsgs = new JsonArray();
-				clientMsgs
-						.add(new JsonPrimitive(
-								"An authentication error occured while saving your defined query. Please try logging out and logging back in."));
-
-				// Send the custom error message back to the browser.
-				Response errResponse =
-						Response.status(Response.Status.FORBIDDEN).type(MediaType.APPLICATION_JSON)
-								.entity(clientMsgs.toString()).build();
-				throw new WebApplicationException(errResponse);
-			} else {
-				String msg = "Couldn't save the saved query object or permissions due to a web service error.";
-				logger.error(msg, wae);
-				throw new InternalServerErrorException(msg, wae);
-			}
-		} catch (JAXBException je) {
-			String msg = "Couldn't marshal the data cart to XML.";
-			logger.error(msg, je);
-			throw new InternalServerErrorException(msg, je);
-		} catch (UnsupportedEncodingException uee) {
-			String msg = "There was an encoding issue with the proxy ticket";
-			logger.error(msg, uee);
-			throw new InternalServerErrorException(msg, uee);
-		} catch (Exception e) {
-			String msg = "Couldn't save the saved query object.";
-			logger.error(msg, e);
-			throw new InternalServerErrorException(msg, e);
-		}
+		// Convert the update SavedQuery and EntityMap list objects to a JSON object.
+		logger.info("Converting the new/updated saved query data and permissions to JSON...");
+		jsonSavedQuery = SavedQueryUtil.savedQueryToBackBoneModel(savedQuery, entityMapList);
 
 		return Response.ok(jsonSavedQuery.toString(), MediaType.APPLICATION_JSON).build();
 	}
@@ -170,7 +138,7 @@ public class SavedQueryService extends QueryBaseRestService {
 	@Path("/")
 	@Produces(MediaType.APPLICATION_JSON)
 	// http://pdbp-portal-local.cit.nih.gov:8080/query/services/savedQueries/
-	public Response getAll() throws UnauthorizedException, UnsupportedEncodingException {
+	public Response getAll() {
 		getAuthenticatedAccount();
 		List<SavedQuery> savedQueries = savedQueryManager.getSavedQueries(permissionModel.getUserName());
 
@@ -196,7 +164,7 @@ public class SavedQueryService extends QueryBaseRestService {
 	@GET
 	@Path("/query")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getQuery(@QueryParam("id") String id) throws UnauthorizedException, UnsupportedEncodingException {
+	public Response getQuery(@QueryParam("id") String id) {
 		getAuthenticatedAccount();
 		JsonObject output = new JsonObject();
 		Long sqId = Long.parseLong(id);
@@ -208,24 +176,29 @@ public class SavedQueryService extends QueryBaseRestService {
 	@GET
 	@Path("/view")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getQueryView(@QueryParam("id") String id) throws UnauthorizedException, UnsupportedEncodingException {
+	public Response getQueryView(@QueryParam("id") String id) {
 		getAuthenticatedAccount();
 		JsonObject output = new JsonObject();
 		Long sqId = Long.parseLong(id);
 		SavedQuery sq = savedQueryManager.getSavedQueryById(sqId);
-		try {
-			RestQueryAccountProvider accountProvider =
-					new RestQueryAccountProvider(constants.getModulesAccountURL(),
-							QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()),
-							ApplicationConstants.isWebservicesSecured());
+		RestQueryAccountProvider accountProvider = new RestQueryAccountProvider(constants.getModulesAccountURL(),
+				QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()),
+				ApplicationConstants.isWebservicesSecured());
 
-			List<EntityMap> entityMap =
-					accountProvider.listEntityAccess(sq.getId(), EntityType.SAVED_QUERY, permissionModel.getAccount(),
-							constants.getListSavedQueryPermissionsWebServiceURL());
-			output = SavedQueryUtil.toJsonViewWithPerms(sq, entityMap);
-		} catch (Exception e) {
-			logger.error("Saved query " + sqId + " could not be translated to JSON View");
+		List<EntityMap> entityMap = accountProvider.listEntityAccess(sq.getId(), EntityType.SAVED_QUERY,
+				permissionModel.getAccount(), constants.getListSavedQueryPermissionsWebServiceURL());
+		output = SavedQueryUtil.toJsonViewWithPerms(sq, entityMap);
+		//This was added to accommodate past saved queries that don't have the date values inside their queryData property
+		Date sqLastUpdated = sq.getLastUpdated();
+		if(sqLastUpdated != null) {
+			output.addProperty("lastUpdated", sqLastUpdated.toString());
 		}
+		
+		Date sqDateCreated = sq.getDateCreated();
+		if(sqDateCreated != null) {
+			output.addProperty("dateCreated", sqDateCreated.toString());
+		}
+
 		return Response.ok(output.toString()).build();
 	}
 
@@ -240,8 +213,8 @@ public class SavedQueryService extends QueryBaseRestService {
 	 * @throws WebApplicationException When there is a HTTP error response when getting a list of accounts.
 	 * @throws IllegalStateException When there is an error while accessing data from the JSON array.
 	 */
-	private List<EntityMap> jsonToEntityMapList(JsonArray linkedUsers) throws UnsupportedEncodingException,
-			WebApplicationException, IllegalStateException {
+	private List<EntityMap> jsonToEntityMapList(JsonArray linkedUsers)
+			throws UnsupportedEncodingException, WebApplicationException, IllegalStateException {
 		// Build a list of account user names from the saved query linked users array.
 		List<String> usernames = new ArrayList<String>(linkedUsers.size());
 
@@ -252,10 +225,9 @@ public class SavedQueryService extends QueryBaseRestService {
 		}
 
 		// Get a map of Account objects by the user names for the linked users array.
-		RestQueryAccountProvider accountProvider =
-				new RestQueryAccountProvider(constants.getModulesAccountURL(),
-						QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()),
-						ApplicationConstants.isWebservicesSecured());
+		RestQueryAccountProvider accountProvider = new RestQueryAccountProvider(constants.getModulesAccountURL(),
+				QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()),
+				ApplicationConstants.isWebservicesSecured());
 
 		Map<String, Account> accountMap =
 				accountProvider.getUserAccountsByUserName(usernames, constants.getAccountMapByUserNameURL());
@@ -276,7 +248,7 @@ public class SavedQueryService extends QueryBaseRestService {
 	 *         ticket couldn't be created for a web service call, or one or more of the validation tests fail.
 	 * @throws IllegalStateException When there is an error accessing properties of the JSON object.
 	 */
-	private void validateSavedQuery(JsonObject jo) throws WebApplicationException, IllegalStateException {
+	private void validateSavedQuery(JsonObject jo) {
 		JsonArray errorArray = new JsonArray();
 		boolean isValid = true;
 		String name = jo.getAsJsonPrimitive("name").getAsString().trim();
@@ -288,15 +260,9 @@ public class SavedQueryService extends QueryBaseRestService {
 			// Check for duplicate names in the system.
 			if (jo.getAsJsonPrimitive("editMode").getAsString().equals("create")
 					|| (jo.has("oldName") && !jo.getAsJsonPrimitive("oldName").getAsString().equals(name))) {
-				try {
-					if (!savedQueryManager.isQueryNameUnique(name)) {
-						errorArray.add(new JsonPrimitive("The query name already exists in the system."));
-						isValid = false;
-					}
-				} catch (UnsupportedEncodingException uee) {
-					String msg = "A proxy ticket couldn't be generated for a web service call.";
-					logger.error(msg, uee);
-					throw new InternalServerErrorException(msg, uee);
+				if (!savedQueryManager.isQueryNameUnique(name)) {
+					errorArray.add(new JsonPrimitive("The query name already exists in the system."));
+					isValid = false;
 				}
 			}
 
@@ -324,19 +290,12 @@ public class SavedQueryService extends QueryBaseRestService {
 
 		jo.addProperty("description", desc);
 
-		// Validate the length of the description.
-		if (desc.length() > 100) {
-			errorArray.add(new JsonPrimitive("The query's description cannot exeed 100 characters."));
-			isValid = false;
-		}
-
 		// Count the number of owners for this saved query.
 		int numOwner = 0;
 
 		for (JsonElement userElm : jo.getAsJsonArray("linkedUsers")) {
-			String permission =
-					userElm.getAsJsonObject().getAsJsonObject("assignedPermission").getAsJsonPrimitive("permission")
-							.getAsString();
+			String permission = userElm.getAsJsonObject().getAsJsonObject("assignedPermission")
+					.getAsJsonPrimitive("permission").getAsString();
 
 			if (permission.equals(PermissionType.OWNER.getName())) {
 				numOwner++;
@@ -361,12 +320,7 @@ public class SavedQueryService extends QueryBaseRestService {
 
 		// If any of the validation tests fail send an error response back to the client.
 		if (!isValid) {
-			logger.warn("Validation error(s) found in the \"" + name
-					+ "\" query. Sending the following error message(s) back to the client: " + errorArray.toString());
-			Response response =
-					Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)
-							.entity(errorArray.toString()).build();
-			throw new WebApplicationException(response);
+			throw new BadRequestException("The saved query is invalid");
 		}
 	}
 
@@ -374,11 +328,10 @@ public class SavedQueryService extends QueryBaseRestService {
 	@GET
 	@Path("/canEdit")
 	@Produces(MediaType.TEXT_PLAIN)
-	public Response canEditSavedQuery(@QueryParam("id") String id) throws UnauthorizedException, UnsupportedEncodingException {
+	public Response canEditSavedQuery(@QueryParam("id") String id) {
 		getAuthenticatedAccount();
 		if (ValUtil.isBlank(id) || !ValUtil.isNumeric(id)) {
-			logger.error("Invalid parameter passed in.");
-			return Response.ok(Boolean.FALSE, MediaType.TEXT_PLAIN).build();
+			throw new BadRequestException("Invalid parameter passed in.");
 		}
 
 		long sqId = Long.parseLong(id);
@@ -386,21 +339,30 @@ public class SavedQueryService extends QueryBaseRestService {
 
 		return Response.ok(canEditSavedQuery, MediaType.TEXT_PLAIN).build();
 	}
-	
-	
+
+
 	@GET
 	@Path("/canDelete")
 	@Produces(MediaType.TEXT_PLAIN)
-	public Response canDeleteSavedQuery(@QueryParam("id") String id) throws UnauthorizedException, UnsupportedEncodingException {
+	public Response canDeleteSavedQuery(@QueryParam("id") String id)
+			throws UnauthorizedException, UnsupportedEncodingException {
 		getAuthenticatedAccount();
 		if (ValUtil.isBlank(id) || !ValUtil.isNumeric(id)) {
-			logger.error("Invalid parameter passed in.");
-			return Response.ok(Boolean.FALSE, MediaType.TEXT_PLAIN).build();
+			throw new BadRequestException("Invalid parameter passed in.");
 		}
 
 		long sqId = Long.parseLong(id);
 		boolean canDeleteSavedQuery = queryAccountManager.canDeleteSavedQuery(sqId, permissionModel.getAccount());
-
+		
+		if (!canDeleteSavedQuery) {
+			return Response.ok(canDeleteSavedQuery, MediaType.TEXT_PLAIN).build();
+		} 
+		
+		boolean isLinkedToMetaStudy = savedQueryManager.isQueryLinkedToMetaStudy(sqId);
+		if (isLinkedToMetaStudy) {
+			return Response.ok("linked", MediaType.TEXT_PLAIN).build();
+		}
+		
 		return Response.ok(canDeleteSavedQuery, MediaType.TEXT_PLAIN).build();
 	}
 }

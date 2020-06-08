@@ -2,6 +2,9 @@
 <title>Edit Meta Study</title>
 
 <script type="text/javascript"
+	src='/portal/js/metastudy/savedQueryViewEngine.js'></script>
+<!-- 
+<script type="text/javascript"
 	src='/portal/js/metastudy/SavedQueryViewEngine.js'></script>
 <script type="text/javascript" src='/portal/js/metastudy/SavedQuery.js'></script>
 
@@ -14,7 +17,7 @@
 	src='/portal/js/metastudy/SavedQueryForm.js'></script>
 <script type="text/javascript"
 	src='/portal/js/metastudy/SavedQueryForms.js'></script>
-``
+
 <script type="text/javascript"
 	src='/portal/js/metastudy/SavedQueryRg.js'></script>
 <script type="text/javascript"
@@ -35,6 +38,8 @@
 	src='/portal/js/metastudy/SavedQueryStudyView.js'></script>
 <script type="text/javascript"
 	src='/portal/js/metastudy/SavedQueryView.js'></script>
+ -->
+
 
 <link
 	href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css"

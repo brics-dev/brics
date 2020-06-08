@@ -83,7 +83,6 @@ public class PatientAssembler extends CtdbAssembler
             PatientProtocol protocol = new PatientProtocol();
             protocol.setId(Integer.parseInt(protocolId));
             protocol.setRecruited(patientForm.isRecruited());
-            protocol.setBiorepositoryId(patientForm.getBiorepositoryId());
             protocol.setSubjectNumber(patientForm.getSubjectNumber());
             protocol.setEnrollmentDate(patientForm.getEnrollmentDate());
             protocol.setAssociated(Boolean.valueOf(patientForm.getAssociated2Protocol()).booleanValue());
@@ -150,7 +149,6 @@ public class PatientAssembler extends CtdbAssembler
                 form.setSiteId(protocol.getSiteId());
                 form.setCompletionDate(protocol.getCompletionDate());
                 form.setActive(new Boolean(protocol.isActive()).toString() );
-                form.setBiorepositoryId(protocol.getBiorepositoryId());
                 form.setFutureStudy(protocol.isFutureStudy());
                 form.setValidated(protocol.isValidated());
                 form.setRecruited(protocol.isRecruited());

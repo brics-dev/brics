@@ -41,6 +41,9 @@ public class BasicStudySearch implements Serializable {
 	
 	@Expose
 	private BigInteger imagingDataCount;
+	
+	@Expose
+	private Integer studyStatus;
 
 	public BasicStudySearch() {
 
@@ -132,6 +135,14 @@ public class BasicStudySearch implements Serializable {
 
 	public void setImagingDataCount(BigInteger imagingDataCount) {
 		this.imagingDataCount = imagingDataCount;
+	}
+
+	public Integer getStudyStatus() {
+		return studyStatus;
+	}
+
+	public void setStudyStatus(Integer studyStatus) {
+		this.studyStatus = studyStatus;
 	}
 
 	@Override

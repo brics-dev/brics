@@ -1976,10 +1976,10 @@ function setCaretPosition(ctrl, pos){
 				       			<td>
 				       				<table>
 						                <tr width="100%" algin="right">
-						                    <td colspan="5" width="100%" align="right">
+						                    <td colspan="9" width="100%" align="right">
 						                        <a href="javascript:backspace()"><img border="0" src="<s:property value="#webRoot"/>/images/calc_backspace.png"></a>
 						                        <a href="javascript:clear()"><img border="0" src="<s:property value="#webRoot"/>/images/calc_clear.png"></a>
-						                    </td>
+						                    </td>						                    
 						                </tr>
 						                <tr>
 						                    <td><a href="javascript:number('7')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_seven.png"></a></td>
@@ -1987,13 +1987,19 @@ function setCaretPosition(ctrl, pos){
 						                    <td><a href="javascript:number('9')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_nine.png"></a></td>
 						                    <td><a href="javascript:button('/')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_divide.png"></a></td>
 						                    <td><a href="javascript:paren(' sqrt(')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_sqrt.png"></a></td>
+											<td><a href="javascript:button('==')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_equal_equal.png"></a></td>
+											<td><a href="javascript:button('!=')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_not_equal.png"></a></td>
+											<td colspan="2"><a href="javascript:button('if (')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_if.png"></a></td>		
 						                </tr>
 						                <tr>
 						                    <td><a href="javascript:number('4')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_four.png"></a></td>
 						                    <td><a href="javascript:number('5')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_five.png"></a></td>
 						                    <td><a href="javascript:number('6')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_six.png"></a></td>
 						                    <td><a href="javascript:button('*')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_multiply_star.png"></a></td>
-						                    <td><a href="javascript:percent()"><img border="0" src="<s:property value="#webRoot"/>/images/calc_percent.png"></a></td>
+						                    <td><a href="javascript:percent('%')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_percent.png"></a></td>
+											<td><a href="javascript:button('>')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_greater.png"></a></td>
+											<td><a href="javascript:button('>=')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_greater_equal.png"></a></td>
+											<td colspan="2"><a href="javascript:button('else{')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_else.png"></a></td>	
 						                </tr>
 						                <tr>
 						                    <td><a href="javascript:number('1')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_one.png"></a></td>
@@ -2001,6 +2007,9 @@ function setCaretPosition(ctrl, pos){
 						                    <td><a href="javascript:number('3')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_three.png"></a></td>
 						                    <td><a href="javascript:button('-')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_minus.png"></a></td>
 						                    <td><a href="javascript:button('+')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_plus.png"></a></td>
+											<td><a href="javascript:button('<')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_lesser.png"></a></td>
+											<td><a href="javascript:button('<=')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_lesser_equal.png"></a></td>
+											<td colspan="2"><a href="javascript:button('else if (')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_else_if.png"></a></td>
 						                </tr>
 						                <tr>
 						                    <td><a href="javascript:flipsign()"><img border="0" src="<s:property value="#webRoot"/>/images/calc_plus_minus.png"></a></td>
@@ -2008,6 +2017,9 @@ function setCaretPosition(ctrl, pos){
 						                    <td><a href="javascript:number('.')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_decimal.png"></a></td>
 						                    <td><a href="javascript:paren(' (')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_paren_left.png"></a></td>
 						                    <td><a href="javascript:paren(') ')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_paren_right.png"></a></td>
+											<td><a href="javascript:button('&&')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_and.png"></a></td>
+											<td><a href="javascript:button('||')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_or.png"></a></td>
+											<td colspan="2"><a href="javascript:button('{')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_open_brac.png"></a><a href="javascript:button('}')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_close_brac.png"></a></td>
 						                </tr>
 						            </table>				       		
 				       			</td>
@@ -2045,42 +2057,54 @@ function setCaretPosition(ctrl, pos){
 					</td>
 					<td>&nbsp;&nbsp;&nbsp;</td>
 					<td>
-						<table>
-							<tr width="100%" algin="right">
-								<td colspan="5" width="100%" align="right">
-									<a href="javascript:backspaceC()"><img border="0" src="<s:property value="#webRoot"/>/images/calc_backspace.png"></a>
-						            <a href="javascript:clearC()"><img border="0" src="<s:property value="#webRoot"/>/images/calc_clear.png"></a>
-								</td>
-							</tr>
-						    <tr>
-								<td><a href="javascript:numberC('7')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_seven.png"></a></td>
-								<td><a href="javascript:numberC('8')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_eight.png"></a></td>
-								<td><a href="javascript:numberC('9')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_nine.png"></a></td>
-								<td><a href="javascript:buttonC('/')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_divide.png"></a></td>
-								<td><a href="javascript:parenC(' sqrt(')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_sqrt.png"></a></td>
-							</tr>
-							<tr>
-								<td><a href="javascript:numberC('4')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_four.png"></a></td>
-								<td><a href="javascript:numberC('5')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_five.png"></a></td>
-								<td><a href="javascript:numberC('6')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_six.png"></a></td>
-								<td><a href="javascript:buttonC('*')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_multiply_star.png"></a></td>
-								<td><a href="javascript:percentC()"><img border="0" src="<s:property value="#webRoot"/>/images/calc_percent.png"></a></td>
-							</tr>
-							<tr>
-								<td><a href="javascript:numberC('1')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_one.png"></a></td>
-								<td><a href="javascript:numberC('2')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_two.png"></a></td>
-								<td><a href="javascript:numberC('3')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_three.png"></a></td>
-								<td><a href="javascript:buttonC('-')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_minus.png"></a></td>
-								<td><a href="javascript:buttonC('+')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_plus.png"></a></td>
-							</tr>
-							<tr>
-								<td><a href="javascript:flipsignC()"><img border="0" src="<s:property value="#webRoot"/>/images/calc_plus_minus.png"></a></td>
-								<td><a href="javascript:numberC('0')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_zero.png"></a></td>
-								<td><a href="javascript:numberC('.')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_decimal.png"></a></td>
-								<td><a href="javascript:parenC(' (')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_paren_left.png"></a></td>
-								<td><a href="javascript:parenC(') ')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_paren_right.png"></a></td>
-							</tr>
-						</table>				       		
+				       				<table>
+						                <tr width="100%" algin="right">
+						                    <td colspan="9" width="100%" align="right">
+						                        <a href="javascript:backspaceC()"><img border="0" src="<s:property value="#webRoot"/>/images/calc_backspace.png"></a>
+						                        <a href="javascript:clearC()"><img border="0" src="<s:property value="#webRoot"/>/images/calc_clear.png"></a>
+						                    </td>						                    
+						                </tr>
+						                <tr>
+						                    <td><a href="javascript:numberC('7')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_seven.png"></a></td>
+						                    <td><a href="javascript:numberC('8')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_eight.png"></a></td>
+						                    <td><a href="javascript:numberC('9')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_nine.png"></a></td>
+						                    <td><a href="javascript:buttonC('/')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_divide.png"></a></td>
+						                    <td><a href="javascript:parenC(' sqrt(')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_sqrt.png"></a></td>
+											<td><a href="javascript:buttonC('==')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_equal_equal.png"></a></td>
+											<td><a href="javascript:buttonC('!=')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_not_equal.png"></a></td>
+											<td colspan="2"><a href="javascript:buttonC('if (')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_if.png"></a></td>		
+						                </tr>
+						                <tr>
+						                    <td><a href="javascript:numberC('4')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_four.png"></a></td>
+						                    <td><a href="javascript:numberC('5')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_five.png"></a></td>
+						                    <td><a href="javascript:numberC('6')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_six.png"></a></td>
+						                    <td><a href="javascript:buttonC('*')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_multiply_star.png"></a></td>
+						                    <td><a href="javascript:percentC('%')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_percent.png"></a></td>
+											<td><a href="javascript:buttonC('>')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_greater.png"></a></td>
+											<td><a href="javascript:buttonC('>=')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_greater_equal.png"></a></td>
+											<td colspan="2"><a href="javascript:buttonC('else{')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_else.png"></a></td>	
+						                </tr>
+						                <tr>
+						                    <td><a href="javascript:numberC('1')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_one.png"></a></td>
+						                    <td><a href="javascript:numberC('2')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_two.png"></a></td>
+						                    <td><a href="javascript:numberC('3')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_three.png"></a></td>
+						                    <td><a href="javascript:buttonC('-')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_minus.png"></a></td>
+						                    <td><a href="javascript:buttonC('+')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_plus.png"></a></td>
+											<td><a href="javascript:buttonC('<')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_lesser.png"></a></td>
+											<td><a href="javascript:buttonC('<=')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_lesser_equal.png"></a></td>
+											<td colspan="2"><a href="javascript:buttonC('else if (')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_else_if.png"></a></td>
+						                </tr>
+						                <tr>
+						                    <td><a href="javascript:flipsignC()"><img border="0" src="<s:property value="#webRoot"/>/images/calc_plus_minus.png"></a></td>
+						                    <td><a href="javascript:numberC('0')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_zero.png"></a></td>
+						                    <td><a href="javascript:numberC('.')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_decimal.png"></a></td>
+						                    <td><a href="javascript:parenC(' (')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_paren_left.png"></a></td>
+						                    <td><a href="javascript:parenC(') ')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_paren_right.png"></a></td>
+											<td><a href="javascript:buttonC('&&')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_and.png"></a></td>
+											<td><a href="javascript:buttonC('||')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_or.png"></a></td>
+											<td colspan="2"><a href="javascript:buttonC('{')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_open_brac.png"></a><a href="javascript:buttonC('}')"><img border="0" src="<s:property value="#webRoot"/>/images/calc_close_brac.png"></a></td>
+						                </tr>
+						            </table>					       		
 					</td>
 					<td>&nbsp;&nbsp;&nbsp;</td>
 					<td valign="bottom">

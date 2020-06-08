@@ -16,9 +16,9 @@ import gov.nih.tbi.repository.model.GenericTableRow;
 import gov.nih.tbi.semantic.model.GuidRDF;
 import gov.nih.tbi.semantic.model.SubjectVisit;
 
-public class DiagnosisChangeResourceBuilder {
+public class DiagnosisChangeResourceBuilder implements RDFGenResourceBuilder {
 	static Logger log = Logger.getLogger(DiagnosisChangeResourceBuilder.class);
-	public Map<String, GenericTable> repeatableTableResultMap;
+	private Map<String, GenericTable> repeatableTableResultMap;
 
 	private static final String REQUIRED_RG = "Required";
 	private static final String DIAGNOSIS_RG = "Diagnosis";

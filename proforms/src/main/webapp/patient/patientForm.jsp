@@ -29,6 +29,15 @@
 %>
 
 <html>
+<style>
+#guidBtrisDataSearchDiv {
+  width: 100%;
+  padding: 5px 0;
+  text-align: center;
+  background-color: lightblue;
+  margin-top: 10px;
+}
+</style>
 <s:set var="pageTitle" scope="request">
 	<s:if test="%{(patientId != null) && (patientId > 0)}">
 		<s:text name="patient.edit.title.display" /> 
@@ -38,12 +47,16 @@
 		<s:text name="patient.add.title.display" />
 	</s:else>
 </s:set>
+<s:set var="pageTitle" scope="request">
+	<s:text name="subject.table.title.display"/>
+</s:set>
 <jsp:include page="/common/header_struts2.jsp" />
 <s:set var="disallowingPII" value="#systemPreferences.get('guid_with_non_pii')" />
 <s:set var="actionName" value="%{#context['struts.actionMapping'].name}"></s:set>
 <s:set var="guidWsUrl" value="#systemPreferences.get('webservice.centralizedguid.base.url')" />
 
 <script src="<s:property value="#webRoot"/>/common/js/guidClient.js" type="text/javascript"></script>
+<script src="<s:property value="#webRoot"/>/common/js/btris.js" type="text/javascript"></script>
 
 <script type="text/javascript">
 	var DISALLOWING_PII = '<s:property value="disallowingPII" />';
@@ -97,9 +110,7 @@
 					"<s:param>is</s:param></s:text><br>";
 			}
 		}
-		
-		
-		
+
 		// skip unnecessary GUID validation if any missing required fields(s)
 		if (errmsg.length > 0) {
 			$.ibisMessaging("primary", "error", errmsg);
@@ -492,7 +503,6 @@
 		}
 		
 	});
-	
 </script>
 <link rel="stylesheet" type="text/css" href="<s:property value="guidWsUrl" />ws/v1/../../styles/guidTool/guidTool.min.css" />
 <script src="<s:property value="guidWsUrl" />ws/v1/../../js/guidTool/GlobalLibs.min.js"></script>
@@ -547,7 +557,6 @@
 		    			<span style="font-style: italic;"><s:text name="patient.requiredSynbol.display"/></span>
 	   				</div>
 				</div>
-					
 				<div id="guidDisplay">
 					<h4></h4>
 					<div class="formrow_2">
@@ -575,10 +584,6 @@
 					<s:checkbox name="patientForm.recruited" fieldValue="true" />
 				</div>
 			
-				<!--  <div class="formrow_2">
-					<label for="patientForm.biorepositoryId"><s:text name="patient.biorepositoryid.display" /> </label>
-					<s:textfield name="patientForm.biorepositoryId" size="25" maxlength="100" cssClass="validateMe"/>
-				</div> -->
 			</s:if>
 			<s:else>
 				<!-- For CNRM and CiStar users, PII information need to be manually entered and saved for display -->
@@ -602,6 +607,10 @@
 				<div class="formrow_2">
 					<label for="patientForm.firstname" class="requiredInput"><s:text name="patient.firstname.display" /></label>
 					<s:textfield name="patientForm.firstName" maxlength="128" size="25" id="firstName" cssClass="validateMe" />	
+				</div>
+				<div class="formrow_2">
+					<input type="button" style="margin-left: 180px;" name="btngetFromBTRIS" value="<s:text name='button.getFromBTRIS'/>" id="btngetFromBTRIS" 
+								title="Get Subject from BTRIS" disabled />
 				</div>
 				<div class="formrow_2">
 					<label for="patientForm.birthCity"><s:text name="patient.birthCity.display" /></label>
@@ -662,9 +671,24 @@
 				</div>
 				
 				<div class="formrow_1">
-					<s:text name="patient.add.subject.instruction.display"/>&nbsp;<b><s:text name="patient.add.subject.reminder.display"/></b> <br/>
-					<div id="guidClient" class="guidClient"></div>	
+					<s:text name="patient.add.subject.instruction.display"/>&nbsp;<b><s:text name="patient.add.subject.reminder.display"/></b> <br/>					
 				</div>
+				<div class="hidden" id="guidBtrisDataSearchDiv">
+					<div class="formrow_4">
+						<label for="patientForm.subjectId"> <s:text name="patient.mrn.display" /></label>
+						<s:textfield name="patientForm.mrnG" maxlength="128" size="25" id="mrnG" cssClass="validateMe" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						
+						<label for="patientForm.firstname"><s:text name="patient.firstname.display" /></label>
+						<s:textfield name="patientForm.firstNameG" maxlength="128" size="25" id="firstNameG" cssClass="validateMe" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				
+						<label for="patientForm.lastName"><s:text name="patient.lastname.display" /></label>
+						<s:textfield name="patientForm.lastNameG" maxlength="128" size="25" id="lastNameG" cssClass="validateMe" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					
+						<input type="button" style="margin-left: 10px;" name="btngetFromBTRIS" value="<s:text name='button.getFromBTRIS'/>" id="btngetFromBTRISG" 
+									title="Get Subject from BTRIS" disabled /><br/>
+					</div>
+				</div>				
+				<div id="guidClient" class="guidClient"></div>	
 					
 				<div id="guidDisplay">
 					<div class="formrow_2">

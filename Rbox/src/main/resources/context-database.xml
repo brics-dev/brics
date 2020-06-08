@@ -15,9 +15,9 @@
 		<property name="jdbcUrl" value="${jdbc.meta.url}" />
 		<property name="username" value="${jdbc.meta.username}" />
 		<property name="password" value="${jdbc.meta.password}" />
-		<property name="maximumPoolSize" value="10" />
-		<property name="idleTimeout" value="600000" />
-		<property name="maxLifetime" value="3600000" />
+		<property name="maximumPoolSize" value="${jdbc.meta.maximumPoolSize}" />
+		<property name="idleTimeout" value="${jdbc.meta.idleTimeout}" />
+		<property name="maxLifetime" value="${jdbc.meta.maxLifetime}" />
 	</bean>
 
 	<bean id="dictionaryConnection" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
@@ -25,9 +25,9 @@
 		<property name="jdbcUrl" value="${jdbc.meta.url}" />
 		<property name="username" value="${jdbc.meta.username}" />
 		<property name="password" value="${jdbc.meta.password}" />
-		<property name="maximumPoolSize" value="10" />
-		<property name="idleTimeout" value="600000" />
-		<property name="maxLifetime" value="3600000" />
+		<property name="maximumPoolSize" value="${jdbc.meta.maximumPoolSize}" />
+		<property name="idleTimeout" value="${jdbc.meta.idleTimeout}" />
+		<property name="maxLifetime" value="${jdbc.meta.maxLifetime}" />
 	</bean>
 
 	<bean id="repositoryConnection" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
@@ -35,9 +35,9 @@
 		<property name="jdbcUrl" value="${jdbc.repo.url}" />
 		<property name="username" value="${jdbc.repo.username}" />
 		<property name="password" value="${jdbc.repo.password}" />
-		<property name="maximumPoolSize" value="10" />
-		<property name="idleTimeout" value="600000" />
-		<property name="maxLifetime" value="3600000" />
+		<property name="maximumPoolSize" value="${jdbc.repo.maximumPoolSize}" />
+		<property name="idleTimeout" value="${jdbc.repo.idleTimeout}" />
+		<property name="maxLifetime" value="${jdbc.repo.maxLifetime}" />
 	</bean>
 
 	<bean id="rdfConnection" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
@@ -45,9 +45,9 @@
 		<property name="jdbcUrl" value="${rdf.url}" />
 		<property name="username" value="${rdf.username}" />
 		<property name="password" value="${rdf.password}" />
-		<property name="maximumPoolSize" value="10" />
-		<property name="idleTimeout" value="600000" />
-		<property name="maxLifetime" value="3600000" />
+		<property name="maximumPoolSize" value="${rdf.maximumPoolSize}" />
+		<property name="idleTimeout" value="${rdf.idleTimeout}" />
+		<property name="maxLifetime" value="${rdf.maxLifetime}" />
 	</bean>
 
 	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->

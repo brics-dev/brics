@@ -473,6 +473,16 @@
 					</c:if>
 				</s:if>
 			</s:if>
+			
+			<s:if test="%{dataType == 'dataElement'}">
+			  <s:if test='modulesQTURL != ""'>
+			  <s:if test='currentDataElement.seeAlso != ""'> <!-- Test if see also list is blank before adding link to KG -->
+				<li>
+					<a href="${modulesQTURL}knowledgeGraph.jsp?dataElementName=${currentDataElement.name}" target="_blank" >Knowledge Graph</a>
+				</li>
+			  </s:if>
+			  </s:if>
+			</s:if>
 			</s:if>
 			
 			

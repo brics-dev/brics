@@ -1,5 +1,12 @@
 package gov.nih.tbi.util;
 
+import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
 import gov.nih.tbi.constants.QueryToolConstants;
 import gov.nih.tbi.exceptions.ResultSetTranslationException;
 import gov.nih.tbi.pojo.BeanField;
@@ -8,51 +15,44 @@ import gov.nih.tbi.pojo.StudyResult;
 import gov.nih.tbi.service.ResultManager;
 import gov.nih.tbi.service.model.MetaDataCache;
 
-import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
 public class SearchResultUtil {
 
 	private static final Logger log = LogManager.getLogger(SearchResultUtil.class);
 
-	public static void cacheStudyResults(ResultManager resultManager) {
-		
+	public static void cacheStudyResults(MetaDataCache metaDataCache, ResultManager resultManager) {
+
 		try {
 			log.info("Caching study Results.");
 			List<StudyResult> studyResults = resultManager.runStudyQueryForCaching();
 			insertFormDetails(resultManager, studyResults);
-			
+
 			for (StudyResult studyResult : studyResults) {
-				MetaDataCache.putStudyResult(studyResult.getUri(), studyResult);
+				metaDataCache.putStudyResult(studyResult.getUri(), studyResult);
 			}
 		} catch (ResultSetTranslationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
-	
-	public static void cacheFormResults(ResultManager resultManager) {
-		
+
+	public static void cacheFormResults(MetaDataCache metaDataCache, ResultManager resultManager) {
+
 		try {
 			List<FormResult> formResults = resultManager.runFormQueryForCaching();
 			insertStudyDetails(resultManager, formResults);
-			
+
 			for (FormResult formResult : formResults) {
-				MetaDataCache.putFormResult(formResult.getUri(), formResult);
+				metaDataCache.putFormResult(formResult.getUri(), formResult);
 			}
 		} catch (ResultSetTranslationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 	}
 
 	// Inserts the details of the forms into each study
-	private static void insertFormDetails(ResultManager resultManager, List<StudyResult> studies) {
+	public static void insertFormDetails(ResultManager resultManager, List<StudyResult> studies) {
 
 		if (studies == null || studies.isEmpty()) {
 			return;
@@ -115,8 +115,8 @@ public class SearchResultUtil {
 		}
 	}
 
-	private static Method getSetMethod(Class<?> type, String field, Class<?> methodType) throws SecurityException,
-			NoSuchMethodException {
+	private static Method getSetMethod(Class<?> type, String field, Class<?> methodType)
+			throws SecurityException, NoSuchMethodException {
 
 		String setMethodName = "set" + field.substring(0, 1).toUpperCase() + field.substring(1);
 		return type.getMethod(setMethodName, methodType);
@@ -128,7 +128,7 @@ public class SearchResultUtil {
 		return type.getMethod(getMethodName);
 	}
 
- 	/**
+	/**
 	 * Sorts the studies list in alphabetical order by title (ignoring case). Also sorts the list of forms in each study
 	 * in alphabetical order by short name (ignoring case).
 	 */

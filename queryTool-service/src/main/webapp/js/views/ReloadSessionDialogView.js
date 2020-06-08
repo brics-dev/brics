@@ -44,7 +44,8 @@ QT.ReloadSessionDialogView = BaseView.extend({
 		this.Dialog = new QT.Dialog();
 		this.template = TemplateManager.getTemplate("reloadSessionDialogTemplate");
 		
-		EventBus.on("complete:studiesFormsDataLoad", this.open, this);
+		//EventBus.on("complete:studiesFormsDataLoad", this.open, this);
+		EventBus.on("view:reloadSessionDialog", this.open, this);
 		
 		QT.ReloadSessionDialogView.__super__.initialize.call(this);
 	},

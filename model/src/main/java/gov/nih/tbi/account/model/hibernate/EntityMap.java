@@ -2,6 +2,7 @@
 package gov.nih.tbi.account.model.hibernate;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -59,13 +60,6 @@ public class EntityMap implements Serializable
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PERMISSION_GROUP_ID")
     private PermissionGroup permissionGroup;
-
-    // @OneToMany( fetch=FetchType.EAGER,
-    // cascade=CascadeType.ALL,
-    // mappedBy="entityMap",
-    // targetEntity=PermissionMap.class)
-    // @MapKey(name="permission")
-    // private Map<PermissionType, PermissionMap> permissions;
 
     @Enumerated(EnumType.ORDINAL)
     @Column(name = "PERMISSION_TYPE_ID")
@@ -200,4 +194,23 @@ public class EntityMap implements Serializable
 		return "EntityMap [entityId=" + entityId + ", id=" + id + ", permission=" + permission + ", typeId=" + type
 				+ "]";
     }
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(account, entityId, id, permission, permissionGroup, type);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof EntityMap)) {
+			return false;
+		}
+		EntityMap other = (EntityMap) obj;
+		return Objects.equals(account, other.account) && Objects.equals(entityId, other.entityId)
+				&& Objects.equals(id, other.id) && permission == other.permission
+				&& Objects.equals(permissionGroup, other.permissionGroup) && type == other.type;
+	}
 }

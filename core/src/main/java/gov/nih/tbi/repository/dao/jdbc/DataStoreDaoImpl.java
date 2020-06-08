@@ -51,6 +51,8 @@ public class DataStoreDaoImpl implements DataStoreDao {
 			"CONSTRAINT %1$s" + PKEY_SUFFIX + " PRIMARY KEY (" + REPEATABLE_GROUP_ID + ")" + // table name
 			", CONSTRAINT %1$s" + FKEY_SUFFIX + REPEATABLE_GROUP_FK + // table name
 			") WITH ( OIDS=FALSE );";
+	private static final String DROP_TABLES = "DROP TABLE IF EXISTS %1$s ";
+	private static final String DROP_SEQUENCES = "DROP SEQUENCE IF EXISTS %1$s ";
 
 	private JdbcTemplate jdbcTemplate;
 
@@ -153,6 +155,25 @@ public class DataStoreDaoImpl implements DataStoreDao {
 	public JdbcTemplate getJdbcTemplate() {
 
 		return this.jdbcTemplate;
+	}
+
+	@Override
+	public void dropTables(String tableNames) throws SQLException {
+		
+		Formatter formatter = new Formatter();
+		formatter.format(DROP_TABLES, tableNames);
+		executeSql(formatter.toString());
+		formatter.close();
+		
+	}
+
+	@Override
+	public void dropSequences(String sequences) throws SQLException {
+		
+		Formatter formatter = new Formatter();
+		formatter.format(DROP_SEQUENCES, sequences);
+		executeSql(formatter.toString());
+		formatter.close();
 	}
 
 }

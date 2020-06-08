@@ -1,0 +1,17 @@
+[DB-SRC]
+host=cistar-dbdictionary-prod.ninds.nih.gov
+database=dictionary_prod
+schema=dictionary
+user=dictionary
+label=SOURCE
+
+[DB-TRG]
+host=cistar-dbdictionary-stage.cit.nih.gov
+database=dictionary_stg
+schema=dictionarystg
+user=dictionarystg
+label=TARGET
+
+[FILE-SYS]
+logDir=/var/lib/brics/log/pgCloner/prodcistar-stagecistar-dict
+workDir=/var/lib/brics/data/pgCloner/prodcistar-stagecistar-dict

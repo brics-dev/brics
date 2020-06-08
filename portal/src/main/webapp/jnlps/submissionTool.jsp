@@ -60,13 +60,8 @@ response.setHeader("Content-disposition", "inline; filename=\"submissionTool.jnl
         printActionVar(context, "hash1");
         printActionVar(context, "hash2");
         printActionVar(context, "orgEmail");
-        printActionVar(context, "webstartSftpName");
-        printActionVar(context, "webstartSftpBasedir");
-        printActionVar(context, "webstartSftpPort");
-        printActionVar(context, "webstartSftpUrl");
-        printActionVar(context, "webstartSftpUser");
-        printActionVar(context, "webstartSftpPassword");
         printActionVar(context, "webstartPortalRoot");
+        printActionVar(context, "webstartPerformExtraValidation");
 
     %>
 
@@ -81,12 +76,7 @@ response.setHeader("Content-disposition", "inline; filename=\"submissionTool.jnl
     	<argument><s:property value="%{hash1}" /></argument>
     	<argument><s:property value="%{hash2}" /></argument>
     	<argument><s:property value="%{orgEmail}" /></argument>
-    	<argument><s:property value="%{webstartSftpName}" /></argument>
-    	<argument><s:property value="%{webstartSftpBasedir}" /></argument>
-    	<argument><s:property value="%{webstartSftpPort}" /></argument>
-    	<argument><s:property value="%{webstartSftpUrl}" /></argument>
-    	<argument><s:property value="%{webstartSftpUser}" /></argument>
-    	<argument><s:property value="%{webstartSftpPassword}" /></argument>
     	<argument><s:property value="%{webstartPortalRoot}" /></argument>
+    	<argument><s:property value="%{webstartPerformExtraValidation}" /></argument>
     </application-desc>
 </jnlp>  

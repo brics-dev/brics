@@ -37,6 +37,7 @@
 	<bean id="eformValidationServiceBean" class="gov.nih.tbi.dictionary.ws.cxf.EformValidationService" />
 	<bean id="statelessAccountRestServiceBean" class="gov.nih.tbi.account.ws.cxf.StatelessAccountRestService" />
 	<bean id="recaptchaRestServiceBean" class="gov.nih.tbi.recaptcha.ws.RecaptchaRestService" />
+	<bean id="publicEformRestServiceBean" class="gov.nih.tbi.dictionary.ws.PublicEformRestService" />
 	
 	
 	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
@@ -141,6 +142,7 @@
 			<ref bean="publicStudyServiceBean" />
 			<ref bean="publicMetaStudyServiceBean" />
 			<ref bean="publicSubmittedDataServiceBean" />
+			<ref bean="publicEformRestServiceBean" />
 		</jaxrs:serviceBeans>
 		<jaxrs:providers>
 			<bean class="gov.nih.tbi.commons.ws.util.GsonJaxrsProvider"/>

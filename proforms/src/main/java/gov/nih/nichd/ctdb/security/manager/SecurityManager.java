@@ -208,18 +208,26 @@ public class SecurityManager extends CtdbManager
     	return haveRole;
     }
     
-    public Site getUserProtocolSite(int userId, int protocolId) throws CtdbException {
+    public List<Site> getUserProtocolSites(int userId, int protocolId) throws CtdbException {
         Connection conn = null;
         try
         {
             conn = CtdbManager.getConnection();
             SecurityManagerDao dao = SecurityManagerDao.getInstance(conn);
             SiteDao sitedao = SiteDao.getInstance(conn);
-            int siteId = dao.getUserProtocolSite(userId, protocolId);
-            if (siteId == 0) {
-            	return null;
+            List<Integer> siteIds = dao.getUserProtocolSites(userId, protocolId);
+            List<Site> SiteList =new ArrayList<Site>();
+            if (siteIds.size() == 0) {
+            	return SiteList;
+            } else {
+            	for (int siteId :siteIds) {
+            		if(siteId !=0) {
+            		SiteList.add(sitedao.getSite(siteId));
+            		}
+            	}
+            	
             }
-            return sitedao.getSite(siteId);
+            return SiteList;
         }
         finally
         {
@@ -474,7 +482,7 @@ public class SecurityManager extends CtdbManager
 	        	// if the role is not VALID, don't add it
 	        	if ( SecuritySessionUtil.validProformsRole(act) )
 	        	{
-	        		proformsUsers.add(User.userFromBricsAccount(act));
+					proformsUsers.add(new User(act));
 	        	}
 	        }
 			

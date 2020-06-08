@@ -3,7 +3,18 @@
 <s:set var="currentDataStructure" value="currentDataStructure" />
 <s:set var="isDictionaryAdmin" value="isDictionaryAdmin" />
 <s:set var="isDataStructureAdmin" value="isDataStructureAdmin" />
-<div style="border-bottom:1px solid #d9d9d9; margin-bottom:5px;"><b>Status:</b>&nbsp;<s:property value="currentDataStructure.status.type" /></div>
+
+
+	<div style="border-bottom:1px solid #d9d9d9; margin-bottom:5px;">
+		<s:if test="%{currentDataStructure.status.type=='Publication - Pending'}">
+			<b>Status:</b>&nbsp;Awaiting Publication
+		</s:if>
+		<s:else>
+		    <b>Status:</b>&nbsp;<s:property value="currentDataStructure.status.type" />
+		</s:else>
+	</div>
+
+	<input type="hidden" name="currentStatus" id="currentStatusId" value="<s:property value="currentDataStructure.status.id" />" />
 
 <ul>
 	<s:if test="%{currentDataStructure.status.type=='Draft'}">

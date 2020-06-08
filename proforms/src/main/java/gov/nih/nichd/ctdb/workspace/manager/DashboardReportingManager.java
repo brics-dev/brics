@@ -7,7 +7,6 @@ import java.util.List;
 
 import gov.nih.nichd.ctdb.common.CtdbException;
 import gov.nih.nichd.ctdb.common.CtdbManager;
-import gov.nih.nichd.ctdb.response.domain.AdverseEvent;
 import gov.nih.nichd.ctdb.workspace.dao.DashboardReportingDao;
 import gov.nih.nichd.ctdb.workspace.domain.DashboardChartFilter;
 import gov.nih.nichd.ctdb.workspace.domain.DashboardOverallStatus;
@@ -64,21 +63,6 @@ public class DashboardReportingManager extends CtdbManager {
 			return DashboardReportingDao.getInstance(conn).getEFormCountByFilterAndVisitType(chartFilter,
 					visitTypeName);
 		} finally {
-			this.close(conn);
-		}
-	}
-
-
-	public List<AdverseEvent> getAEListBySelectedStudy(Integer protocolId) throws CtdbException {
-		Connection conn = null;
-		try
-
-		{
-			conn = CtdbManager.getConnection();
-			return DashboardReportingDao.getInstance(conn).getAEListBySelectedStudy(protocolId);
-		} finally
-
-		{
 			this.close(conn);
 		}
 	}

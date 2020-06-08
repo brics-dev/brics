@@ -1,0 +1,6 @@
+[DB-TRG]
+host=ninr-db-prod.cit.nih.gov
+database=ninr_prod
+schema=ninr_meta
+user=ninr_meta
+label=TARGET

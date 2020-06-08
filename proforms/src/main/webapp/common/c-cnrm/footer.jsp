@@ -49,10 +49,7 @@
 					</div>
 				</div>
 
-				<div class="contact build-notes" style="margin: 20px;">
-					<p class="left">Build Version:<s:property value="%{buildID}" /></br>
-					Repository ID: <s:property value="%{deploymentID}" /></br>
-					Last Deployed: <s:property value="%{lastDeployed}" /></p>
-				</div>
+				<!-- Include release info section -->
+				<jsp:include page="/common/release-info.jsp" />
 			</div>
 </body>

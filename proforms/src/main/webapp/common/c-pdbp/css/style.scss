@@ -143,6 +143,12 @@ $nav-hvr: $lighter-gray;
 	width: 120px;
 }
 
+.build-notes {
+	float: left;
+	clear: both;
+	margin: -28px -21px 33px 0;
+}
+
 #header .content {
 	background: url("../images/bkg-header.png") no-repeat right top;
 } 

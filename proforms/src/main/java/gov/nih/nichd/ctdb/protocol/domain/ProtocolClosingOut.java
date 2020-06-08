@@ -21,6 +21,8 @@ public class ProtocolClosingOut extends CtdbDomainObject {
 	private String closingUserName;
 	private String closingUserFullName;
 	private Date closingOutDate;
+	private Boolean reopenStatus;
+	private Date reopenDate;
 	
 	public ProtocolClosingOut() {
 		
@@ -85,6 +87,22 @@ public class ProtocolClosingOut extends CtdbDomainObject {
 	}
 	public void setClosingOutDate(Date closingOutDate) {
 		this.closingOutDate = closingOutDate;
+	}
+
+	public Boolean getReopenStatus() {
+		return reopenStatus;
+	}
+
+	public void setReopenStatus(Boolean reopenStatus) {
+		this.reopenStatus = reopenStatus;
+	}
+
+	public Date getReopenDate() {
+		return reopenDate;
+	}
+
+	public void setReopenDate(Date reopenDate) {
+		this.reopenDate = reopenDate;
 	}
 	
 	@Override

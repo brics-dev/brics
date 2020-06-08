@@ -413,7 +413,7 @@ public class ApplicationConstants implements Serializable {
 	public String getDevEmail() {
 
 		if (modulesDevEmail == null || modulesDevEmail.isEmpty()) {
-			return "REPLACED@mail.nih.gov";
+			return "FITBIR-DEV@mail.nih.gov";
 		} else {
 			return modulesDevEmail;
 		}
@@ -1129,7 +1129,7 @@ public class ApplicationConstants implements Serializable {
 	public String getRdfLoadFailureNotificationEmail() {
 
 		if (rdfLoadFailureNotificationEmail == null || rdfLoadFailureNotificationEmail.isEmpty()) {
-			return "REPLACED@mail.nih.gov";
+			return "FITBIR-DEV@mail.nih.gov";
 		} else {
 			return rdfLoadFailureNotificationEmail;
 		}

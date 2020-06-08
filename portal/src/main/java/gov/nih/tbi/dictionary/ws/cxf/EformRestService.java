@@ -26,9 +26,11 @@ import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.apache.log4j.Logger;
 import org.hibernate.HibernateException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 
 import gov.nih.tbi.account.model.hibernate.Account;
@@ -117,7 +119,7 @@ public class EformRestService extends AbstractRestService {
 				logger.debug("user is not a dictionary administrator");
 				String accountUrl = modulesConstants.getModulesAccountURL(getDiseaseId());
 				RestAccountProvider restProvider = new RestAccountProvider(accountUrl, PortalUtils.getProxyTicket(accountUrl));
-				PermissionType permission = restProvider.getAccess(requestingAccount.getId(), EntityType.EFORM, eform.getId()).getPermission();
+				PermissionType permission = restProvider.getAccess(requestingAccount.getId(), EntityType.EFORM, eform.getId(), true).getPermission();
 				// Null permisson means user doesn't have read, write or owner any
 				// type of permsisson
 				if (permission == null || ((!(PermissionType.compare(permission, PermissionType.READ) >= 0) && StatusType.DRAFT.equals(eform.getStatus())))) {
@@ -131,11 +133,43 @@ public class EformRestService extends AbstractRestService {
 			String msg = "There was an error authenticating the user.";
 			logger.error(msg, e);
 			throw new BadRequestException(msg, e);
-		} catch (UserAccessDeniedException e) {
-			String msg = "Access denied while getting primissions for eForm (" + eformShortName + ").";
-			logger.error(msg, e);
-			throw new ForbiddenException(msg, e);
 		}
+	}
+	
+	
+	
+	@POST
+	@Path("getBasicEForms")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_XML)
+	public Response getBasicEForms(String shortNames) throws WebApplicationException {
+		
+		BasicEformList wrapper = new BasicEformList();
+		try {
+			logger.info("getting basic eforms");
+			
+			JsonParser parser = new JsonParser();
+			JsonArray eFormShortNameArray = parser.parse(shortNames).getAsJsonArray();
+			
+			List<BasicEform> basicEForms = eformManager.getBasicEforms(eFormShortNameJsonArrayToSet(eFormShortNameArray));
+			
+			wrapper.addAll(basicEForms);
+			
+		}catch(DataAccessException dae) {
+			String msg = "There was an error getting basic eforms from the db";
+			logger.error(msg, dae);
+			throw new BadRequestException(msg, dae);
+		}catch(JsonParseException jpe) {
+			String msg = "There was an error parsing json string";
+			logger.error(msg, jpe);
+			throw new BadRequestException(msg, jpe);
+		}catch(IllegalStateException ise) {
+			String msg = "Error occured while converting the JSON array to a set.";
+			logger.error(msg, ise);
+			throw new BadRequestException(msg, ise);
+		}
+		
+		return Response.ok(wrapper).build();
 	}
 
 	@POST
@@ -174,7 +208,8 @@ public class EformRestService extends AbstractRestService {
 					logger.debug("user is not a dictionary administrator");
 					String accountUrl = modulesConstants.getModulesAccountURL(getDiseaseId());
 					RestAccountProvider restProvider = new RestAccountProvider(accountUrl, PortalUtils.getProxyTicket(accountUrl));
-					PermissionType permission = restProvider.getAccess(requestingAccount.getId(), EntityType.EFORM, eform.getId()).getPermission();
+					boolean includePermissionGroups = true;
+					PermissionType permission = restProvider.getAccess(requestingAccount.getId(), EntityType.EFORM, eform.getId(), includePermissionGroups).getPermission();
 					// Null permisson means user doesn't have read, write or owner any
 					// type of permsisson
 					if (permission == null || ((!(PermissionType.compare(permission, PermissionType.READ) >= 0) && StatusType.DRAFT.equals(eform.getStatus())))) {
@@ -189,10 +224,6 @@ public class EformRestService extends AbstractRestService {
 			String msg = "There was an error authenticating the user.";
 			logger.error(msg, e);
 			throw new BadRequestException(msg, e);
-		} catch (UserAccessDeniedException e) {
-			String msg = "User access has been denied.";
-			logger.error(msg, e);
-			throw new ForbiddenException(msg, e);
 		}
 	}
 	

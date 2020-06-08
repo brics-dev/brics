@@ -245,3 +245,4 @@
 		});
 	}
 </script>
+<script src="/portal/struts-custom/optiontransferselect.js"></script>

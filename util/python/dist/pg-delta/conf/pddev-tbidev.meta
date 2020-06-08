@@ -1,0 +1,16 @@
+[DB-TRG]
+host=fitbir-db-dev.cit.nih.gov
+database=tbi_dev
+schema=tbi_metadev
+user=tbi_metadev
+label=TRG-TBI
+
+[DB-SRC]
+host=pdbp-db-dev.cit.nih.gov
+database=pd_dev
+schema=tbi_metadev
+user=tbi_metadev
+label=SRC-PD
+
+[FILE-SYS]
+logDir=/var/lib/brics/log/pgDelta/pddev-tbidev-meta

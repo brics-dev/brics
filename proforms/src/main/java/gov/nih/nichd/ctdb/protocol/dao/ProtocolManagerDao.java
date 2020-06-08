@@ -19,6 +19,8 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.postgresql.util.PSQLException;
 
 import gov.nih.nichd.ctdb.attachments.domain.Attachment;
@@ -45,6 +47,7 @@ import gov.nih.nichd.ctdb.protocol.domain.Protocol;
 import gov.nih.nichd.ctdb.protocol.domain.ProtocolClosingOut;
 import gov.nih.nichd.ctdb.protocol.domain.ProtocolDefaults;
 import gov.nih.nichd.ctdb.protocol.domain.ProtocolLink;
+import gov.nih.nichd.ctdb.protocol.domain.ProtocolRandomization;
 import gov.nih.nichd.ctdb.protocol.domain.ProtocolUser;
 import gov.nih.nichd.ctdb.security.domain.User;
 import gov.nih.nichd.ctdb.util.common.SysPropUtil;
@@ -109,8 +112,8 @@ public class ProtocolManagerDao extends CtdbDao {
 					+ "updatedby, version, isevent, usepatientid, typename, lockformintervals, patientdisplaytype, "
 					+ "subjectautoincrement, subjectnumberprefix, subjectnumbersuffix, subjectnumberstart, "
 					+ "autoAssignPatientRoles, principalInvestigator, accountableInvestigator, useEbinder, "
-					+ "studyproject, enableEsignature,brics_studyid) values (DEFAULT, ?, ?, ?, ?, ?, ?, ?, "
-					+ "CURRENT_TIMESTAMP, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ";
+					+ "studyproject, enableEsignature,brics_studyid, psrheader) values (DEFAULT, ?, ?, ?, ?, ?, ?, ?, "
+					+ "CURRENT_TIMESTAMP, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ";
 
 			stmt = this.conn.prepareStatement(sqlStmt);
 			stmt.setString(1, protocol.getProtocolNumber().toUpperCase());
@@ -154,6 +157,7 @@ public class ProtocolManagerDao extends CtdbDao {
 			stmt.setString(24, protocol.getStudyProject());
 			stmt.setBoolean(25, protocol.isEnableEsignature());
 			stmt.setString(26, protocol.getBricsStudyId());
+			stmt.setString(27, protocol.getPsrHeader());
 
 			stmt.executeUpdate();
 			protocol.setId(getInsertId(conn, "protocol_seq"));
@@ -198,8 +202,8 @@ public class ProtocolManagerDao extends CtdbDao {
 					+ "usepatientid = ?, lockformintervals = ?, patientdisplaytype = ? ,subjectautoincrement = ?, "
 					+ "subjectnumberstart = ?, subjectnumberprefix = ?, subjectnumbersuffix = ?, autoAssignPatientRoles = ?, "
 					+ "principalInvestigator = ?, accountableInvestigator = ?, useEbinder = ?, "
-					+ "studyproject = ?, brics_studyid = ?, funding_organization = ?, enableEsignature = ?, typename = ? "
-					+ "where protocolid = ? ";
+					+ "studyproject = ?, brics_studyid = ?, funding_organization = ?, enableEsignature = ?, typename = ?, "
+					+ "psrheader = ? where protocolid = ? ";
 
 			stmt = this.conn.prepareStatement(sqlStmt);
 
@@ -236,6 +240,12 @@ public class ProtocolManagerDao extends CtdbDao {
 			// Check if the study type is null.
 			if (newStudy.getStudyType() != null) {
 				stmt.setString(n++, newStudy.getStudyType().getName());
+			} else {
+				stmt.setNull(n++, Types.VARCHAR);
+			}
+
+			if (newStudy.getPsrHeader() != null && newStudy.getPsrHeader().length() > 0) {
+				stmt.setString(n++, newStudy.getPsrHeader());
 			} else {
 				stmt.setNull(n++, Types.VARCHAR);
 			}
@@ -343,8 +353,8 @@ public class ProtocolManagerDao extends CtdbDao {
 					+ "createdby, updateddate, updatedby, isevent, usepatientid, typename, lockformintervals, "
 					+ "patientdisplaytype, subjectautoincrement, subjectnumberprefix, subjectnumbersuffix, "
 					+ "subjectnumberstart, autoAssignPatientRoles, principalInvestigator, accountableInvestigator, "
-					+ "useEbinder, studyproject, imagefilename, brics_studyid, enableEsignature) "
-					+ "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ";
+					+ "useEbinder, studyproject, imagefilename, brics_studyid, enableEsignature,psrheader) "
+					+ "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?) ";
 
 			stmt = this.conn.prepareStatement(sqlStmt);
 
@@ -384,6 +394,11 @@ public class ProtocolManagerDao extends CtdbDao {
 			stmt.setString(27, oldStudy.getDataSubmissionFile().getFileName());
 			stmt.setString(28, oldStudy.getBricsStudyId());
 			stmt.setBoolean(29, oldStudy.isEnableEsignature());
+			if (oldStudy.getPsrHeader() != null) {
+				stmt.setString(30, oldStudy.getPsrHeader());
+			} else {
+				stmt.setNull(30, Types.VARCHAR);
+			}
 
 			stmt.executeUpdate();
 		} catch (PSQLException e) {
@@ -740,7 +755,8 @@ public class ProtocolManagerDao extends CtdbDao {
 		}
 	}
 
-	public void associateProtocolUser(int protocolId, int siteId, int roleId, int userId) throws CtdbException {
+	public void associateProtocolUser(int protocolId, JSONArray siteIds, int roleId, int userId) throws CtdbException, JSONException {
+		
 		PreparedStatement searchStmt = null;
 		StringBuffer searchSql = new StringBuffer();
 		searchSql.append("select protocolid FROM protocolusrrole WHERE protocolid = ? AND usrid = ?");
@@ -753,6 +769,11 @@ public class ProtocolManagerDao extends CtdbDao {
 		StringBuffer insertSql = new StringBuffer();
 		insertSql.append("insert into protocolusrrole(protocolid, usrid, roleid, siteid)");
 		insertSql.append("values(?, ?, ?, ?)");
+		
+		PreparedStatement insertStmtWithoutSiteID = null;
+		StringBuffer insertWithoutSiteIDSql = new StringBuffer();
+		insertWithoutSiteIDSql.append("insert into protocolusrrole(protocolid, usrid, roleid, siteid)");
+		insertWithoutSiteIDSql.append("values(?, ?, ?, null)");
 
 		ResultSet rs = null;
 
@@ -772,19 +793,37 @@ public class ProtocolManagerDao extends CtdbDao {
 			}
 
 			// if we are adding a role in, add it
-			if (roleId != 0) {
+			if (roleId != 0 && siteIds != null) {
 				// insert new listing
-				insertStmt = this.conn.prepareStatement(insertSql.toString());
-				insertStmt.setLong(1, protocolId);
-				insertStmt.setLong(2, userId);
-				insertStmt.setLong(3, roleId);
-				if (siteId != Integer.MIN_VALUE && siteId != 0) {
-					insertStmt.setLong(4, siteId);
-				} else {
-					insertStmt.setNull(4, java.sql.Types.NUMERIC);
+				for (int i = 0; i < siteIds.length(); i++) {
+					insertStmt = this.conn.prepareStatement(insertSql.toString());
+					insertStmt.setLong(1, protocolId);
+					insertStmt.setLong(2, userId);
+					insertStmt.setLong(3, roleId);
+					Long siteId = siteIds.getLong(i);
+					try {
+						siteId = siteIds.getLong(i);
+
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					if (siteId != Integer.MIN_VALUE && siteId != 0) {
+						insertStmt.setLong(4, siteId);
+					} else {
+						insertStmt.setNull(4, java.sql.Types.NUMERIC);
+					}
+					insertStmt.executeUpdate();
 				}
-				insertStmt.executeUpdate();
+			} else if ((roleId != 0 && siteIds == null)) {
+				insertStmtWithoutSiteID = this.conn.prepareStatement(insertWithoutSiteIDSql.toString());
+				insertStmtWithoutSiteID.setLong(1, protocolId);
+				insertStmtWithoutSiteID.setLong(2, userId);
+				insertStmtWithoutSiteID.setLong(3, roleId);
+
+				insertStmtWithoutSiteID.executeUpdate();
+
 			}
+			
 		} catch (SQLException e) {
 			throw new CtdbException("Unable to associate users with Protocol ID: " + protocolId + ".", e);
 		} finally {
@@ -1402,6 +1441,38 @@ public class ProtocolManagerDao extends CtdbDao {
 		return intervals;
 	}
 
+	
+	/**
+	 * Determines if eForm is Configured (Hiding sections, questions, and/or pvs)
+	 * @param eformid
+	 * @return
+	 * @throws CtdbException
+	 */
+	public boolean isEformConfigured(int eformid) throws CtdbException{
+		boolean isConfigured = false;
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		try {
+			String sql = "select * from psr_hidden_elements where eformid = ?";
+
+			stmt = this.conn.prepareStatement(sql);
+			stmt.setLong(1, eformid);
+			rs = stmt.executeQuery();
+			
+			if (rs.next()) {
+				isConfigured = true;
+			}
+			
+		}catch (SQLException e) {
+			throw new CtdbException("Unable to determine if eform is configured.", e);
+		} finally {
+			this.close(rs);
+			this.close(stmt);
+		}
+		return isConfigured;
+	}
+	
+	
 	/**
 	 * Gets list of all unique eforms that are associated with visit types for a protocol and determines if eform is
 	 * already psr configured
@@ -1511,13 +1582,19 @@ public class ProtocolManagerDao extends CtdbDao {
 			while (rs.next()) {
 				int sectionId = rs.getInt("dict_sectionid");
 				boolean isQuestion = rs.getBoolean("is_question");
+				boolean isPV = rs.getBoolean("is_pv");
 				String elementIdString = "";
 				int questionId = -1;
+				int pvid = -1;
 
-				if (isQuestion) {
+				if (isQuestion) { // question
 					questionId = rs.getInt("dict_questionid");
 					elementIdString = "S_" + sectionId + "_Q_" + questionId;
-				} else {
+				} else if (isPV) { // pv
+					pvid = rs.getInt("dict_pvid");
+					questionId = rs.getInt("dict_questionid");
+					elementIdString = "S_" + sectionId + "_Q_" + questionId + "_" + pvid;
+				} else { // section
 					elementIdString = "S_" + sectionId;
 				}
 
@@ -1541,7 +1618,7 @@ public class ProtocolManagerDao extends CtdbDao {
 	 * @param sectionQuestionIds
 	 * @throws CtdbException
 	 */
-	public void updatePSRHiddenElements(int protocolId, int eformId, List<String> sectionQuestionIds, User user)
+	public void updatePSRHiddenElements(int protocolId, int eformId, List<String> sectionQuestionPVIds, User user)
 			throws CtdbException {
 
 		PreparedStatement stmt = null;
@@ -1571,22 +1648,44 @@ public class ProtocolManagerDao extends CtdbDao {
 			stmt.close();
 			// insert into psr_hidden_elements
 			sql = new StringBuffer();
-			sql.append(" insert into psr_hidden_elements values (?, ?, ?, ?, ?, ?)");
+			sql.append(" insert into psr_hidden_elements values (?, ?, ?, ?, ?, ?, ?, ?)");
 			stmt = this.conn.prepareStatement(sql.toString());
-			for (String elementIdString : sectionQuestionIds) {
+			for (String elementIdString : sectionQuestionPVIds) {
 				boolean isQuestion = false;
+				boolean isPV = false;
 				String sectionIdString = "";
 				String questionIdString = "";
+				String pvIdString = "";
 				int questionId = -1;
 				int sectionId = -1;
+				int pvId = -1;
 				if (elementIdString.contains("Q_")) {
-					isQuestion = true;
-					sectionIdString = elementIdString.substring(elementIdString.indexOf("S_") + 2,
-							elementIdString.indexOf("_Q_"));
-					sectionId = Integer.valueOf(sectionIdString).intValue();
-					questionIdString =
-							elementIdString.substring(elementIdString.indexOf("Q_") + 2, elementIdString.length());
-					questionId = Integer.valueOf(questionIdString).intValue();
+					int numCount = StringUtils.countMatches(elementIdString, '_');
+					if (numCount == 3) {
+						// format is S_123_Q_456
+						// this is question
+						isQuestion = true;
+						sectionIdString = getSectionString(elementIdString);
+						sectionId = Integer.valueOf(sectionIdString).intValue();
+						questionIdString =
+								elementIdString.substring(elementIdString.indexOf("Q_") + 2, elementIdString.length());
+						questionId = Integer.valueOf(questionIdString).intValue();
+
+					} else if (numCount == 4) {
+						// format is S_123_Q_456_789
+						// this is PV
+						isPV = true;
+						sectionIdString = getSectionString(elementIdString);
+						sectionId = Integer.valueOf(sectionIdString).intValue();
+						String questionPVIdString =
+								elementIdString.substring(elementIdString.indexOf("Q_"), elementIdString.length());
+						questionIdString = questionPVIdString.substring(questionPVIdString.indexOf("Q_") + 2,
+								questionPVIdString.lastIndexOf("_"));
+						questionId = Integer.valueOf(questionIdString).intValue();
+						pvIdString = questionPVIdString.substring(questionPVIdString.lastIndexOf("_") + 1,
+								questionPVIdString.length());
+						pvId = Integer.valueOf(pvIdString).intValue();
+					}
 				} else {
 					sectionIdString =
 							elementIdString.substring(elementIdString.indexOf("S_") + 2, elementIdString.length());
@@ -1604,14 +1703,19 @@ public class ProtocolManagerDao extends CtdbDao {
 				}
 
 				stmt.setBoolean(6, isQuestion);
+				stmt.setBoolean(7, isPV);
+
+				if (pvId == -1) {
+					stmt.setNull(8, java.sql.Types.BIGINT);
+				} else {
+					stmt.setLong(8, pvId);
+				}
 
 				stmt.addBatch();
-
 			}
-			stmt.executeBatch();
 
-			// now do audit
-			this.auditPSRHiddenElements(protocolId, eformId, currentHiddenElements, sectionQuestionIds, user);
+			stmt.executeBatch();
+			this.auditPSRHiddenElements(protocolId, eformId, currentHiddenElements, sectionQuestionPVIds, user);
 
 		} catch (SQLException e) {
 			throw new CtdbException("Unable to update protocolDefaults: " + e.getMessage(), e);
@@ -1622,25 +1726,30 @@ public class ProtocolManagerDao extends CtdbDao {
 
 	}
 
+	private String getSectionString(String elementIdString) {
+		// format is S_123_Q_456 or S_123_Q_456_789
+		return elementIdString.substring(elementIdString.indexOf("S_") + 2, elementIdString.indexOf("_Q_"));
+	}
+
 	public void auditPSRHiddenElements(int protocolId, int eformId, List<String> currentHiddenElements,
-			List<String> sectionQuestionIds, User user) throws CtdbException {
+			List<String> sectionQuestionPVIds, User user) throws CtdbException {
 		PreparedStatement stmt = null;
 		List<String> hideElements = new ArrayList<String>();
 		List<String> showElements = new ArrayList<String>();
-		// if currentHiddenElements is empty, then everthing goes into hideElements
+		// if currentHiddenElements is empty, then everything goes into hideElements
 		if (currentHiddenElements.size() == 0) {
-			for (int i = 0; i < sectionQuestionIds.size(); i++) {
-				String sectionQuestionId = sectionQuestionIds.get(i);
-				hideElements.add(sectionQuestionId);
+			for (int i = 0; i < sectionQuestionPVIds.size(); i++) {
+				String sectionQuestionPVId = sectionQuestionPVIds.get(i);
+				hideElements.add(sectionQuestionPVId);
 			}
 		} else {
 			// Iterate over currentHiddenElements....then iterate over
-			// sectionQuestionIds....if its not in sectionQuestionIds, then this goes into
+			// sectionQuestionPVIds....if its not in sectionQuestionPVIds, then this goes into
 			// showElements
 			for (String currentHiddenElement : currentHiddenElements) {
 				boolean isShow = true;
-				for (String sectionQuestionId : sectionQuestionIds) {
-					if (currentHiddenElement.equals(sectionQuestionId)) {
+				for (String sectionQuestionPVId : sectionQuestionPVIds) {
+					if (currentHiddenElement.equals(sectionQuestionPVId)) {
 						isShow = false;
 						break;
 					}
@@ -1650,19 +1759,19 @@ public class ProtocolManagerDao extends CtdbDao {
 				}
 			}
 
-			// Iterate over sectionQuestionIds...then iterate over
+			// Iterate over sectionQuestionPVIds...then iterate over
 			// currentHiddenElements...if its not in currentHiddenElements, then this goes
 			// into hideElements
-			for (String sectionQuestionId : sectionQuestionIds) {
+			for (String sectionQuestionPVId : sectionQuestionPVIds) {
 				boolean isHide = true;
 				for (String currentHiddenElement : currentHiddenElements) {
-					if (sectionQuestionId.contentEquals(currentHiddenElement)) {
+					if (sectionQuestionPVId.contentEquals(currentHiddenElement)) {
 						isHide = false;
 						break;
 					}
 				}
 				if (isHide) {
-					hideElements.add(sectionQuestionId);
+					hideElements.add(sectionQuestionPVId);
 				}
 			}
 		}
@@ -1670,27 +1779,50 @@ public class ProtocolManagerDao extends CtdbDao {
 		try {
 			// now save hideElements and showElements to psr_hidden_elements_audit
 			StringBuffer sql = new StringBuffer(25);
-			sql.append(" insert into psr_hidden_elements_audit values (DEFAULT, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)");
+			sql.append(
+					" insert into psr_hidden_elements_audit values (DEFAULT, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)");
 			stmt = this.conn.prepareStatement(sql.toString());
 			for (String elementIdString : showElements) {
 				stmt.setLong(1, protocolId);
 				stmt.setLong(2, eformId);
 				String sectionIdString = "";
 				String questionIdString = "";
+				String pvIdString = "";
 				int questionId = -1;
 				int sectionId = -1;
+				int pvId = -1;
+
 				if (elementIdString.contains("Q_")) {
-					sectionIdString = elementIdString.substring(elementIdString.indexOf("S_") + 2,
-							elementIdString.indexOf("_Q_"));
-					sectionId = Integer.valueOf(sectionIdString).intValue();
-					questionIdString =
-							elementIdString.substring(elementIdString.indexOf("Q_") + 2, elementIdString.length());
-					questionId = Integer.valueOf(questionIdString).intValue();
+					int numCount = StringUtils.countMatches(elementIdString, '_');
+					if (numCount == 3) {
+						// format is S_123_Q_456
+						// this is question
+						sectionIdString = getSectionString(elementIdString);
+						sectionId = Integer.valueOf(sectionIdString).intValue();
+						questionIdString =
+								elementIdString.substring(elementIdString.indexOf("Q_") + 2, elementIdString.length());
+						questionId = Integer.valueOf(questionIdString).intValue();
+
+					} else if (numCount == 4) {
+						// format is S_123_Q_456_789
+						// this is PV
+						sectionIdString = getSectionString(elementIdString);
+						sectionId = Integer.valueOf(sectionIdString).intValue();
+						String questionPVIdString =
+								elementIdString.substring(elementIdString.indexOf("Q_"), elementIdString.length());
+						questionIdString = questionPVIdString.substring(questionPVIdString.indexOf("Q_") + 2,
+								questionPVIdString.lastIndexOf("_"));
+						questionId = Integer.valueOf(questionIdString).intValue();
+						pvIdString = questionPVIdString.substring(questionPVIdString.lastIndexOf("_") + 1,
+								questionPVIdString.length());
+						pvId = Integer.valueOf(pvIdString).intValue();
+					}
 				} else {
 					sectionIdString =
 							elementIdString.substring(elementIdString.indexOf("S_") + 2, elementIdString.length());
 					sectionId = Integer.valueOf(sectionIdString).intValue();
 				}
+
 				stmt.setLong(3, sectionId);
 				if (questionId == -1) {
 					stmt.setNull(4, java.sql.Types.BIGINT);
@@ -1699,6 +1831,11 @@ public class ProtocolManagerDao extends CtdbDao {
 				}
 				stmt.setString(5, "Show");
 				stmt.setLong(6, user.getId());
+				if (pvId == -1) {
+					stmt.setNull(7, java.sql.Types.BIGINT);
+				} else {
+					stmt.setLong(7, pvId);
+				}
 				stmt.addBatch();
 			}
 			for (String elementIdString : hideElements) {
@@ -1706,15 +1843,35 @@ public class ProtocolManagerDao extends CtdbDao {
 				stmt.setLong(2, eformId);
 				String sectionIdString = "";
 				String questionIdString = "";
+				String pvIdString = "";
 				int questionId = -1;
 				int sectionId = -1;
+				int pvId = -1;
 				if (elementIdString.contains("Q_")) {
-					sectionIdString = elementIdString.substring(elementIdString.indexOf("S_") + 2,
-							elementIdString.indexOf("_Q_"));
-					sectionId = Integer.valueOf(sectionIdString).intValue();
-					questionIdString =
-							elementIdString.substring(elementIdString.indexOf("Q_") + 2, elementIdString.length());
-					questionId = Integer.valueOf(questionIdString).intValue();
+					int numCount = StringUtils.countMatches(elementIdString, '_');
+					if (numCount == 3) {
+						// format is S_123_Q_456
+						// this is question
+						sectionIdString = getSectionString(elementIdString);
+						sectionId = Integer.valueOf(sectionIdString).intValue();
+						questionIdString =
+								elementIdString.substring(elementIdString.indexOf("Q_") + 2, elementIdString.length());
+						questionId = Integer.valueOf(questionIdString).intValue();
+
+					} else if (numCount == 4) {
+						// format is S_123_Q_456_789
+						// this is PV
+						sectionIdString = getSectionString(elementIdString);
+						sectionId = Integer.valueOf(sectionIdString).intValue();
+						String questionPVIdString =
+								elementIdString.substring(elementIdString.indexOf("Q_"), elementIdString.length());
+						questionIdString = questionPVIdString.substring(questionPVIdString.indexOf("Q_") + 2,
+								questionPVIdString.lastIndexOf("_"));
+						questionId = Integer.valueOf(questionIdString).intValue();
+						pvIdString = questionPVIdString.substring(questionPVIdString.lastIndexOf("_") + 1,
+								questionPVIdString.length());
+						pvId = Integer.valueOf(pvIdString).intValue();
+					}
 				} else {
 					sectionIdString =
 							elementIdString.substring(elementIdString.indexOf("S_") + 2, elementIdString.length());
@@ -1728,6 +1885,11 @@ public class ProtocolManagerDao extends CtdbDao {
 				}
 				stmt.setString(5, "Hide");
 				stmt.setLong(6, user.getId());
+				if (pvId == -1) {
+					stmt.setNull(7, java.sql.Types.BIGINT);
+				} else {
+					stmt.setLong(7, pvId);
+				}
 				stmt.addBatch();
 			}
 			stmt.executeBatch();
@@ -1765,6 +1927,9 @@ public class ProtocolManagerDao extends CtdbDao {
 				if (rs.getInt("dict_questionid") != 0) {
 					audit.setQuestionId(rs.getInt("dict_questionid"));
 				}
+				if (rs.getInt("dict_pvid") != 0) {
+					audit.setPvId(rs.getInt("dict_pvid"));
+				}
 				audit.setAction(rs.getString("action"));
 				audit.setUpdatedBy(rs.getInt("usrid"));
 				audit.setUpdatedDate(rs.getTimestamp("updateddate"));
@@ -1791,11 +1956,17 @@ public class ProtocolManagerDao extends CtdbDao {
 	public String rsToCurrentElement(ResultSet rs) throws SQLException {
 		int sectionId = rs.getInt("dict_sectionid");
 		boolean isQuestion = rs.getBoolean("is_question");
+		boolean isPV = rs.getBoolean("is_pv");
 		String elementIdString = "";
 		int questionId = -1;
+		int pvId = -1;
 		if (isQuestion) {
 			questionId = rs.getInt("dict_questionid");
 			elementIdString = "S_" + sectionId + "_Q_" + questionId;
+		} else if (isPV) {
+			questionId = rs.getInt("dict_questionid");
+			pvId = rs.getInt("dict_pvid");
+			elementIdString = "S_" + sectionId + "_Q_" + questionId + "_" + pvId;
 		} else {
 			elementIdString = "S_" + sectionId;
 		}
@@ -1885,7 +2056,7 @@ public class ProtocolManagerDao extends CtdbDao {
 		try {
 			List<BasicEform> forms = new ArrayList<BasicEform>();
 
-			String sql = "select distinct e.eformid,e.shortname shortName, e.name eformName ,fi.mandatory, "
+			String sql = "select distinct e.eformid,e.shortname shortName, e.data_structure_name dataStructureName, e.name eformName ,fi.mandatory, "
 					+ "fi.selfreport, e.description edescription, fi.intervalformorder from form_interval fi, "
 					+ "eform e where fi.eformid = e.eformid and fi.intervalid = ? order by intervalformorder";
 
@@ -1899,6 +2070,7 @@ public class ProtocolManagerDao extends CtdbDao {
 
 				form.setId(Long.valueOf((rs.getString("eformid"))));
 				form.setShortName(rs.getString("shortName"));
+				form.setFormStructureShortName(rs.getString("dataStructureName"));
 				form.setTitle(rs.getString("eformName"));
 				form.setDescription(rs.getString("edescription"));
 				form.setIsMandatory(
@@ -1978,7 +2150,7 @@ public class ProtocolManagerDao extends CtdbDao {
 		ResultSet rs = null;
 
 		try {
-			String sql = "select ef.name, fi.eformid, fi.mandatory, fi.selfreport, fi.intervalformorder "
+			String sql = "select ef.shortname, ef.name, fi.eformid, fi.mandatory, fi.selfreport, fi.intervalformorder "
 					+ "from eform ef, form_interval fi where fi.eformid = ef.eformid and fi.intervalid = ? "
 					+ "order by intervalformorder";
 
@@ -1990,6 +2162,7 @@ public class ProtocolManagerDao extends CtdbDao {
 			while (rs.next()) {
 				Form form = new Form();
 				form.setId(rs.getInt("eformid"));
+				form.setShortName(rs.getString("shortname"));
 				form.setName(rs.getString("name"));
 				form.setMandatory(
 						rs.getString("mandatory") != null && rs.getString("mandatory").equalsIgnoreCase("true"));
@@ -2312,6 +2485,12 @@ public class ProtocolManagerDao extends CtdbDao {
 		}
 
 		protocol.setEnableEsignature(rs.getBoolean("enableEsignature"));
+		if (rs.getString("psrheader") != null) {
+			protocol.setPsrHeader(rs.getString("psrheader"));
+		}else {
+			protocol.setPsrHeader("");
+		}
+		
 
 		return protocol;
 	}
@@ -3957,13 +4136,16 @@ public class ProtocolManagerDao extends CtdbDao {
 		return closingOutList;
 	}
 
-	public void saveProtocolClosingout(ProtocolClosingOut pco) throws CtdbException {
+	public boolean saveProtocolClosingout(ProtocolClosingOut pco) throws CtdbException {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
+		int count = 0;
+		boolean protocolClosed = false;
 
 		try {
-			String sql = "insert into protocolclosingout (protocolclosingoutid, protocolid, "
-					+ "brics_studyid, usrid, brics_userid, closingoutdate) values (DEFAULT, ?, ?, ?, ?, ?) ";
+			String sql =
+					"insert into protocolclosingout (protocolclosingoutid, protocolid, brics_studyid, usrid, brics_userid, closingoutdate, reopen) "
+							+ " values (DEFAULT, ?, ?, ?, ?, ?, ?); ";
 
 			stmt = conn.prepareStatement(sql);
 			stmt.setInt(1, pco.getProtocolId());
@@ -3971,9 +4153,15 @@ public class ProtocolManagerDao extends CtdbDao {
 			stmt.setInt(3, pco.getClosingUserId());
 			stmt.setLong(4, pco.getClosingBricsUserId());
 			stmt.setTimestamp(5, new Timestamp(pco.getClosingOutDate().getTime()));
-			stmt.executeUpdate();
+			stmt.setBoolean(6, pco.getReopenStatus());
+			count = stmt.executeUpdate();
+			if (count > 0) {
+				protocolClosed = true;
+			}
+			return protocolClosed;
+
 		} catch (SQLException e) {
-			throw new CtdbException("Unable to save closing out data.", e);
+			throw new CtdbException("Error in inserting record in protocolclosingout", e);
 		} finally {
 			this.close(rs);
 			this.close(stmt);
@@ -3983,26 +4171,211 @@ public class ProtocolManagerDao extends CtdbDao {
 	public boolean checkProtocolClosed(int protocolId) throws CtdbException {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		boolean closedout = false;
+		boolean protocolClosed = false;
 
 		try {
-			String sql = "select * from protocolclosingout where protocolId = ? ";
+			String sql =
+					"select protocolclosingoutid, reopen from protocolclosingout where protocolid=? order by protocolclosingoutid desc limit 1";
 
 			stmt = conn.prepareStatement(sql);
 			stmt.setInt(1, protocolId);
 			rs = stmt.executeQuery();
 
 			if (rs.next()) {
-				closedout = true;
+				protocolClosed = !(rs.getBoolean("reopen")); // getting reopen status from db
 			}
 
 		} catch (SQLException e) {
-			throw new CtdbException("Unable to retrieve closing out status for protocol: " + protocolId, e);
+			throw new CtdbException("Error in getting record from protocolclosingout" + e);
 		} finally {
 			this.close(rs);
 			this.close(stmt);
 		}
 
-		return closedout;
+		return protocolClosed;
+	}
+
+	public Long getProtocolClosedBricsUserId(int protocolId) throws CtdbException {
+
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		Long closingUserId = null;
+
+		try {
+			String sql = "select brics_userid from protocolclosingout where protocolId=?";
+
+			stmt = conn.prepareStatement(sql);
+			stmt.setInt(1, protocolId);
+			rs = stmt.executeQuery();
+			if (rs.next()) {
+				closingUserId = rs.getLong("brics_userid");
+			}
+
+		} catch (SQLException e) {
+			throw new CtdbException("Error in inserting protocol closing details into protocolclosingout ", e);
+		} finally {
+			this.close(rs);
+			this.close(stmt);
+		}
+
+		return closingUserId;
+	}
+
+	public void reopenClosedProtocol(ProtocolClosingOut pco) throws CtdbException {
+
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+
+		try {
+			String sql =
+					"insert into protocolclosingout (protocolclosingoutid, protocolid, brics_studyid, usrid, brics_userid, reopen, reopendate) "
+							+ " values (DEFAULT, ?, ?, ?, ?, ?, ?); ";
+
+			stmt = conn.prepareStatement(sql);
+			stmt.setInt(1, pco.getProtocolId());
+			stmt.setString(2, pco.getBricsStudyId());
+			stmt.setInt(3, pco.getClosingUserId());
+			stmt.setLong(4, pco.getClosingBricsUserId());
+			stmt.setBoolean(5, pco.getReopenStatus());
+			stmt.setTimestamp(6, new Timestamp(pco.getReopenDate().getTime()));
+			stmt.executeUpdate();
+
+		} catch (SQLException e) {
+			throw new CtdbException("Error in inserting protocol reopening details into protocolclosingout ", e);
+		} finally {
+			this.close(rs);
+			this.close(stmt);
+		}
+	}
+
+	public void updateEformsForProtocol(int protoId, Map<String, BasicEform> efMap) throws CtdbException {
+		PreparedStatement stmt = null;
+		String vtId = "";
+
+		try {
+			String sql = "update eform set name = ? where shortname = ? and protocolid = ?";
+			stmt = this.conn.prepareStatement(sql);
+
+			List<BasicEform> eFormListProto = this.getEformsForAllVisitTypes(protoId);
+			for (BasicEform bef : eFormListProto) {
+				String efShortName = bef.getShortName();
+				BasicEform efToUpdate = efMap.get(efShortName);
+				if (efToUpdate != null) {
+					stmt.setString(1, efToUpdate.getTitle());
+					stmt.setString(2, efShortName);
+					stmt.setInt(3, protoId);
+					int recordsUpdated = stmt.executeUpdate();
+
+					if (recordsUpdated == 0) {
+						throw new ObjectNotFoundException(
+								"The eform with short name: " + efShortName + " does not exist in the system.");
+					}
+				}
+			}
+		} catch (SQLException e) {
+			throw new CtdbException("Unable to update interval order.", e);
+		} catch (NumberFormatException nfe) {
+			throw new CtdbException("Unable to convert " + vtId + " to a number.", nfe);
+		} finally {
+			this.close(stmt);
+		}
+	}
+	
+	/*Check if a protocol has any randomization list uploaded */
+    public boolean checkIfProtoHasRandomization(int protocolId) throws CtdbException {
+    	boolean hasRandomization = false;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        
+        try {
+        	String sql = "select * from protocol_randomization where protocolid = ? ";
+            stmt = this.conn.prepareStatement(sql);
+            stmt.setInt(1, protocolId);
+            rs = stmt.executeQuery();
+            
+            if ( rs.next() ) {
+            	hasRandomization = true;
+            }
+        }
+        catch ( SQLException e ) {
+        	// Check the sql state
+			if ( e.getSQLState().contains("39000") ) {
+				throw new CtdbException("Column decryption failed: " + e.getMessage(), e);
+			}
+			else {
+				throw new CtdbException("Unable to retrieve protocol randomization list by protocolId: " + protocolId 
+						+ e.getMessage(), e);
+			}
+        }
+        finally {
+            this.close(rs);
+            this.close(stmt);
+        }
+        
+        return hasRandomization;
+    }
+    
+    public List<ProtocolRandomization> getProtoRandomizationListByProto(int protocolId) throws CtdbException {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        List<ProtocolRandomization> randomizationList = new ArrayList<ProtocolRandomization>();
+        
+        try {
+        	String sql = "select * from protocol_randomization where protocolid = ? order by sequence ";
+            stmt = this.conn.prepareStatement(sql);
+            stmt.setInt(1, protocolId);
+            rs = stmt.executeQuery();
+            
+            while ( rs.next() ) {
+            	ProtocolRandomization randomization = new ProtocolRandomization();
+            	randomization.setId(rs.getInt("protocol_randomization_id"));
+            	randomization.setProtocolId(protocolId);
+            	randomization.setSequence(rs.getLong("sequence"));
+            	randomization.setGroupName(rs.getString("groupname"));
+            	randomization.setGroupDescription(rs.getString("groupdescription"));
+            	randomizationList.add(randomization);
+            }
+        }
+        catch ( SQLException e ) {
+        	// Check the sql state
+			if ( e.getSQLState().contains("39000") ) {
+				throw new CtdbException("Column decryption failed: " + e.getMessage(), e);
+			}
+			else {
+				throw new CtdbException("Unable to retrieve protocol randomization list by protocolId: " + protocolId 
+						+ e.getMessage(), e);
+			}
+        }
+        finally {
+            this.close(rs);
+            this.close(stmt);
+        }
+        
+        return randomizationList;
+    }
+    
+	public int createProtoRandomization(ProtocolRandomization protoRandom) throws CtdbException {
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+
+		try {
+			String sql = "insert into protocol_randomization (protocol_randomization_id, protocolid, \"sequence\", groupname, groupdescription) " 
+						+ " values (DEFAULT, ?, ?, ?, ?); ";
+
+			stmt = conn.prepareStatement(sql);
+			stmt.setLong(1, protoRandom.getProtocolId());
+			stmt.setLong(2, protoRandom.getSequence());
+			stmt.setString(3, protoRandom.getGroupName());
+			stmt.setString(4, protoRandom.getGroupDescription());
+			stmt.executeUpdate();
+			protoRandom.setId(getInsertId(conn, "protocol_randomization_seq"));
+		} catch (SQLException e) {
+			throw new CtdbException("Unable to create new procedure.", e);
+		} finally {
+			this.close(stmt);
+			this.close(rs);
+		}
+
+		return protoRandom.getId();
 	}
 }

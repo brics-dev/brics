@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+
 import gov.nih.brics.cas.flow.BricsLoginHandler;
 import gov.nih.brics.cas.model.LimitedUser;
 import gov.nih.brics.cas.model.SessionLog;
@@ -36,6 +37,7 @@ public class SessionLogDbUtil {
 	private static final String SQL_USER_SESSIONS = "SELECT * FROM session_log WHERE username=? AND time_out IS NULL ORDER BY time_in";
 	private static final String SQL_TGT_SESSION = "SELECT * FROM session_log WHERE tgt=? ORDER BY time_in DESC LIMIT 1";
 	private static final String SQL_USER_DETAILS = "SELECT a.user_name as user_name, tu.first_name as first_name, tu.last_name as last_name, tu.email as email, a.id as account_id FROM account a LEFT JOIN tbi_user tu ON a.user_id = tu.id WHERE a.user_name = ?";
+	private static final String SQL_DELETE_TWO_FA = "DELETE FROM two_factor_authentication WHERE account_id = (SELECT account_id FROM session_log WHERE tgt = ? and time_out IS NULL)";
 	
 	/**
 	 * Get a session for a particular TGT. This allows calling code to verify a session exists
@@ -175,7 +177,7 @@ public class SessionLogDbUtil {
 	 * @return number of affected rows. 0 is an error condition
 	 */
 	public static final int endSession(JdbcTemplate template, String tgt) {
-		
+		SessionLogDbUtil.deleteTwoFa(template, tgt);
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("ending session in database for TGT " + tgt);
 		}
@@ -208,5 +210,30 @@ public class SessionLogDbUtil {
 		log.setTimeIn((Date) row.get(COLUMN_TIME_IN));
 		log.setTimeOut((Date) row.get(COLUMN_TIME_OUT));
 		return log;
+	}
+	
+	/**
+	 * Finds account id with the given TGT and delete records associated to this account in two_fa_authentication table.
+	 * 
+	 * @param template JDBC template that should be written to
+	 * @param tgt the Ticket Granting Ticket to end
+	 * @return number of affected rows. 0 is an error condition
+	 */
+	public static final int deleteTwoFa(JdbcTemplate template, String tgt) {
+		
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("delete two fa record for the account with tgt in session log when session ends" + tgt);
+		}
+		int output = 0;
+		try {
+			output = template.update(SQL_DELETE_TWO_FA, tgt);
+			// output should be 1 here.  A failure condition is an output of 0
+		}
+		catch(DataAccessException e) {
+			// log, fall through to return 0. There's no better handling for this
+			// until we get a notification system of some sort
+			LOGGER.error("failed to delete two factor for the acccount with TGT " + tgt, e);
+		}
+		return output;
 	}
 }

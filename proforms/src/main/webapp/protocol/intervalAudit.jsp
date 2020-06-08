@@ -36,7 +36,7 @@
 		</div>
 	</div>
 	<div class="formbutton">
-		<input type="button" value="<s:text name='button.Close'/>" id="bntCloseAudit" onClick="javascript:history.go(-1)" title= "Click to close"/> 
+		<input type="button" value="<s:text name='button.Close'/>" id="bntCloseAudit" onClick="javascript:window.close();" title= "Click to close"/> 
 	</div>
 </div>
 </body>

@@ -13,7 +13,8 @@ QT.DeSelectionListView = QT.SelectionListView.extend({
 		"click .numberSelectedPill .closeButton" : "clearSelection",
 		"click .textFilterPill .closeButton" : "clearTextFilter",
 		// the only one specific to DE tab
-		"click .selectDeButton" : "openSelectDeDialog"
+		"click .selectDeButton" : "openSelectDeDialog",
+		"click .selectionDeSearchReset" : "resetPane"
 	},
 	
 	render : function() {
@@ -37,11 +38,18 @@ QT.DeSelectionListView = QT.SelectionListView.extend({
 		// loop over SelectionDataElements
 		if (endingNumber > 0) {
 			var j = 0;
+			
+			var renderMethod = function(model, newValue) {
+	    		var view = new QT.DeSelectionListItemView({model: model});
+		        view.render($selectionItemsContainer, tabName);
+	    	};
+			
 			setTimeout(function deLoopFunction() {
 			    try {
-			    	var model = collection.at(j);
-			    	var view = new QT.DeSelectionListItemView({model: model});
-			        view.render($selectionItemsContainer, tabName);
+			    	for (var i = 0; i < 100 && j < endingNumber; i++) {
+			    		collection.at(j).once("change:isVisibleSelectionListDataElementsTab", renderMethod);
+				    	j++;
+			    	}
 			    }
 			    catch(e) {
 			        // handle any exception
@@ -77,13 +85,17 @@ QT.DeSelectionListView = QT.SelectionListView.extend({
 		EventBus.trigger("open:selectDeDialog");
 	},
 	
+	resetPane : function(){
+		EventBus.trigger("reset:selectDeDialog");
+		this.render();
+	},
+	
 	/**
 	 * Updates the filter which controls the visible list of data elements.
 	 * This works very different from the others, has no pill, and no associated
 	 * tile filter.
 	 */
 	updateElementVisiblity : function(visibleList) {
-		var currentVisible = this.model.collection.allVisible();
 		this.model.filters.setFilter("collection", new QT.Filters.DeHideShowFilter(this.model.collection, visibleList));
 		this.updateFilterCount(visibleList.length);
 	},
@@ -115,6 +127,13 @@ QT.DeSelectionListView = QT.SelectionListView.extend({
 			},
 			dataType: "json",
 			success : function(data) {
+				if (typeof data.status !== "undefined") {
+		         	if(data.status = "401") {
+		         		//redirect
+		         		window.location.href = "/query/logout";
+		         		return;
+		         	}
+		         }
 				var searchList = view.model.tilesCollection;
 				if (searchList.length == data.length) {
 					// show all

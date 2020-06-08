@@ -6,6 +6,7 @@ import gov.nih.tbi.account.ws.model.UserLogin;
 import gov.nih.tbi.account.ws.AbstractRestService;
 import gov.nih.tbi.commons.service.AccountManager;
 import gov.nih.tbi.commons.service.RepositoryManager;
+import gov.nih.tbi.commons.service.ServiceConstants;
 import gov.nih.tbi.commons.service.UserPermissionException;
 import gov.nih.tbi.commons.service.BadParameterException;
 import gov.nih.tbi.commons.ws.HashMethods;
@@ -28,6 +29,7 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
+import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -122,10 +124,15 @@ public class WebstartRepositoryWebService extends RepositoryRestService {
 	@GET
 	@Path("Study/getStudies")
 	@Produces("text/xml")
-	public Set<Study> getStudies(@HeaderParam("userName") String userName, @HeaderParam("pass") String password)
-			throws UnsupportedEncodingException {
+	public Set<Study> getStudies(@HeaderParam(ServiceConstants.USERNAME_PARAM) String userName, @HeaderParam(ServiceConstants.PASSWORD_PARAM) String password)
+			throws NotAuthorizedException, UnsupportedEncodingException {
 
 		requestedAccount = getRequestedAccount(userName, password);
+		if(requestedAccount == null) {
+			logger.error("Account is null");
+			throw new NotAuthorizedException("Account is null");
+			
+		}
 		return getStudies();
 	}
 

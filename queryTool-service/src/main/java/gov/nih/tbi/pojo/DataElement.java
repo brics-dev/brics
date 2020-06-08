@@ -1,12 +1,12 @@
 package gov.nih.tbi.pojo;
 
+import gov.nih.tbi.commons.model.DataType;
 import gov.nih.tbi.commons.model.InputRestrictions;
+import gov.nih.tbi.commons.model.RequiredType;
 import gov.nih.tbi.constants.QueryToolConstants;
-import gov.nih.tbi.dictionary.model.SmartStringComparator;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -18,7 +18,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement()
@@ -35,21 +34,22 @@ public class DataElement extends BaseResult implements Serializable {
 	private Integer position;
 	private String title;
 	private String description;
-	private String type;
+	private DataType type;
 
 	@XmlElementWrapper(name = "permissibleValues")
-	@XmlElement(name = "permissibleValue", type = String.class)
-	private List<String> permissibleValues;
+	@XmlElement(name = "permissibleValue", type = PermissibleValue.class)
+	private List<PermissibleValue> permissibleValues;
 
 	private Double minimumValue;
 	private Double maximumValue;
 	private InputRestrictions inputRestrictions;
 	private boolean selected;
+	private RequiredType requiredType;
 
 	public DataElement() {
 		this.uri = "";
 		this.name = "";
-		this.permissibleValues = new ArrayList<String>();
+		this.permissibleValues = new ArrayList<PermissibleValue>();
 		this.selected = true;
 	}
 
@@ -71,15 +71,16 @@ public class DataElement extends BaseResult implements Serializable {
 		this.description = clone.description;
 		this.inputRestrictions = clone.inputRestrictions;
 		this.type = clone.type;
-		this.permissibleValues = new ArrayList<String>(clone.permissibleValues);
+		this.permissibleValues = new ArrayList<PermissibleValue>(clone.permissibleValues);
 		this.maximumValue = clone.maximumValue;
 		this.minimumValue = clone.minimumValue;
 		this.selected = clone.selected;
+		this.requiredType = clone.requiredType;
 	}
 
 	public JsonObject toJsonBasic() {
 		JsonObject deJson = new JsonObject();
-		
+
 		deJson.addProperty("uri", uri);
 		deJson.addProperty("name", name);
 		deJson.addProperty("title", title);
@@ -92,21 +93,22 @@ public class DataElement extends BaseResult implements Serializable {
 	 */
 	public JsonObject toJsonDetails() {
 		JsonObject deJson = new JsonObject();
-		
+
 		deJson.addProperty("uri", uri);
 		deJson.addProperty("name", name);
 		deJson.addProperty("title", title);
 		deJson.addProperty("inputRestrictions", inputRestrictions.getValue());
-		deJson.addProperty("type", type);
+		deJson.addProperty("type", type.getValue());
 		deJson.addProperty("maximumValue", maximumValue);
 		deJson.addProperty("minimumValue", minimumValue);
-		
-		JsonArray pvJson = new JsonArray();
-		for (String pv : getPermissibleValues()) {
-			pvJson.add(new JsonPrimitive(pv));
+
+		JsonArray pvListJson = new JsonArray();
+		for (PermissibleValue pv : getPermissibleValues()) {
+			JsonObject pvJson = pv.toJson();
+			pvListJson.add(pvJson);
 		}
-		deJson.add("permissibleValues", pvJson);
-		
+		deJson.add("permissibleValues", pvListJson);
+
 		deJson.addProperty("selected", selected);
 		return deJson;
 	}
@@ -143,19 +145,14 @@ public class DataElement extends BaseResult implements Serializable {
 		this.description = description;
 	}
 
-	public List<String> getPermissibleValues() {
-
-		if (permissibleValues != null) {
-			Collections.sort(permissibleValues, new SmartStringComparator());
-		}
-
+	public List<PermissibleValue> getPermissibleValues() {
 		return permissibleValues;
 	}
 
-	public void setPermissibleValues(List<String> permissibleValues) {
+	public void setPermissibleValues(List<PermissibleValue> permissibleValues) {
 
 		if (this.permissibleValues == null) {
-			this.permissibleValues = new ArrayList<String>();
+			this.permissibleValues = new ArrayList<PermissibleValue>();
 		} else {
 			this.permissibleValues.clear();
 		}
@@ -186,13 +183,18 @@ public class DataElement extends BaseResult implements Serializable {
 		return QueryToolConstants.DATAELEMENT_URI;
 	}
 
-	public String getType() {
+	public DataType getType() {
 		return type;
 	}
 
-	public void setType(String type) {
+	public void setType(DataType type) {
 		this.type = type;
 	}
+
+	public void setType(String type) {
+		this.type = DataType.getByValue(type);
+	}
+
 
 	public boolean isSelected() {
 		return selected;
@@ -211,6 +213,14 @@ public class DataElement extends BaseResult implements Serializable {
 	@Override
 	public void setUri(String uri) {
 		this.uri = uri;
+	}
+
+	public RequiredType getRequiredType() {
+		return requiredType;
+	}
+
+	public void setRequiredType(RequiredType requiredType) {
+		this.requiredType = requiredType;
 	}
 
 	/**
@@ -268,7 +278,7 @@ public class DataElement extends BaseResult implements Serializable {
 	public void setInputRestrictions(String inputRestrictions) {
 		this.inputRestrictions = InputRestrictions.getByValue(inputRestrictions);
 	}
-	
+
 	public boolean hasPermissibleValues() {
 		return (permissibleValues != null && !permissibleValues.isEmpty());
 	}

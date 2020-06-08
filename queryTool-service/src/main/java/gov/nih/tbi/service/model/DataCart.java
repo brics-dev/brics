@@ -8,6 +8,7 @@ import gov.nih.tbi.service.cache.InstancedDataCache;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,8 +18,7 @@ import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 
 /**
- * Represents the Data Cart object saved in server session. NOTE: Keep it
- * lightweight!!!
+ * Represents the Data Cart object saved in server session. NOTE: Keep it lightweight!!!
  * 
  * @author jim3
  */
@@ -42,7 +42,7 @@ public class DataCart implements Serializable {
 	private InstancedDataTable instancedDataTable;
 
 	private CodeMapping codeMapping; // Maybe this can be removed, the only time we need it again is when expanding
-										// RG
+									 // RG
 
 	private InstancedDataCache instancedDataCache = new InstancedDataCache();
 
@@ -51,10 +51,17 @@ public class DataCart implements Serializable {
 	}
 
 	public void setSelectedFormUris(List<String> selectedFormUris) {
-		if (selectedFormUris != null) {
-			this.selectedFormUris = selectedFormUris;
-		} else {
-			this.selectedFormUris.clear();
+		if (this.selectedFormUris == null) {
+			this.selectedFormUris = new ArrayList<>();
+		}
+
+		List<String> synchronizedList = Collections.synchronizedList(this.selectedFormUris);
+
+		synchronized (synchronizedList) {
+			synchronizedList.clear();
+			if (selectedFormUris != null) {
+				synchronizedList.addAll(selectedFormUris);
+			}
 		}
 	}
 
@@ -128,14 +135,13 @@ public class DataCart implements Serializable {
 		}
 	}
 
-	public void clearSelectedForms() {
-		selectedFormUris.clear();
+	public synchronized void clearSelectedForms() {
 		instancedDataCache.clear();
 
 		// Clear any data table repeatable groups expand trackers and update the row
 		// count.
-		if (instancedDataTable != null && instancedDataTable.getRgExpandTrackers() != null) {
-			instancedDataTable.getRgExpandTrackers().clear();
+		if (instancedDataTable != null) {
+			instancedDataTable.clear();
 		}
 	}
 
@@ -149,7 +155,9 @@ public class DataCart implements Serializable {
 
 		for (String formUri : selectedFormUris) {
 			FormResult form = formsInCart.get(formUri);
-			selectedForms.add(form);
+			if (form != null) {
+				selectedForms.add(form);
+			}
 		}
 
 		return selectedForms;

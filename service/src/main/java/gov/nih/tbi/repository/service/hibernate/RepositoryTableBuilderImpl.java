@@ -5,8 +5,6 @@ import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.mail.MessagingException;
-
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -68,41 +66,24 @@ public class RepositoryTableBuilderImpl implements RepositoryTableBuilder {
 	/**
 	 * {@inheritDoc}
 	 */
-	public boolean createRepositoryStore(StructuralFormStructure dataStructure, String errorToEmail, Account account)
+	public void createRepositoryStore(StructuralFormStructure dataStructure, Account account)
 			throws SQLException, UserPermissionException {
-
-		boolean success = true;
 
 		if (!accountManager.hasRole(account, RoleType.ROLE_DICTIONARY_ADMIN)) {
 			throw new UserPermissionException("Only Users with Admin permission can publish Form Structure!");
 		}
 
-		try {
-			DataStoreInfo storeInfo = dataStoreInfoDao.getByDataStructureId(dataStructure.getId());
-			// Create and save metadata
-			if (storeInfo == null) {
-				storeInfo = dataStoreInfoDao.save(new DataStoreInfo(dataStructure.getId(), true, false));
-			}
-
-			// We need to create a table for each repeatable group
-			for (RepeatableGroup repeatableGroup : dataStructure.getRepeatableGroups()) {
-				createRepositoryTable(storeInfo, dataStructure, repeatableGroup);
-			}
-		} catch (Exception e) {
-			// If there is an error during this process, we want to just alert the admins that there
-			// was a problem
-			e.printStackTrace();
-			String htmlMessage = e.getMessage();
-
-			try {
-				mailEngine.sendMail("Error: Unable to publish Form Structure to repository database", htmlMessage,
-						"error", errorToEmail);
-			} catch (MessagingException e1) {
-				logger.error("Could not send email for createTableFromDataStructure ERROR!");
-			}
+		DataStoreInfo storeInfo = dataStoreInfoDao.getByDataStructureId(dataStructure.getId());
+		// Create and save metadata
+		if (storeInfo == null) {
+			storeInfo = dataStoreInfoDao.save(new DataStoreInfo(dataStructure.getId(), true, false));
 		}
 
-		return success;
+			// We need to create a table for each repeatable group
+		for (RepeatableGroup repeatableGroup : dataStructure.getRepeatableGroups()) {
+			createRepositoryTable(storeInfo, dataStructure, repeatableGroup);
+		}
+
 	}
 
 	private void createRepositoryTable(DataStoreInfo storeInfo, StructuralFormStructure dataStructure,
@@ -130,13 +111,10 @@ public class RepositoryTableBuilderImpl implements RepositoryTableBuilder {
 					.save(new DataStoreTabularColumnInfo(tableInfo, mapElement.getId(), columnName, columnType));
 		}
 
-		try {
-			dataStoreDao.createSequence(tableName + CoreConstants.SEQUENCE_SUFFIX);
-			dataStoreDao.createTable(tableName, columns);
-		} catch (SQLException e) {
-			// throw this shizzle up
-			throw e;
-		}
+		
+	    dataStoreDao.createSequence(tableName + CoreConstants.SEQUENCE_SUFFIX);
+		dataStoreDao.createTable(tableName, columns);
+
 	}
 
 	private String generateColumnName(MapElement mapElement) {

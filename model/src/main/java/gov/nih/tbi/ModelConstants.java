@@ -58,5 +58,25 @@ public class ModelConstants {
 
 	/********************* DOI CONSTANTS ************************************/
 	public static final String DOI_PUBLISHER_VAL = "Center for Information Technology (CIT)";
+	
+	//Biosample PDBP Visit Types
+	public static final String VISIT_TYPE_BASELINE = "Baseline";
+	public static final String VISIT_TYPE_SIX_MONTHS = "6 months";
+	public static final String VISIT_TYPE_TWELVE_MONTHS = "12 months";
+	public static final String VISIT_TYPE_EIGHTEEN_MONTHS = "18 months";
+	public static final String VISIT_TYPE_TWENTY_FOUR_MONTHS = "24 months";
+	public static final String VISIT_TYPE_THIRTY_MONTHS = "30 months";
+	public static final String VISIT_TYPE_THIRTY_SIX_MONTHS = "36 months";
+	public static final String VISIT_TYPE_FOURTY_TWO_MONTHS = "42 months";
+	public static final String VISIT_TYPE_FOURTY_EIGHT_MONTHS = "48 months";
+	public static final String VISIT_TYPE_FIFTY_FOUR_MONTHS = "54 months";
+	public static final String VISIT_TYPE_SIXTY_MONTHS = "60 months";
+	public static final String VISIT_TYPE_SEVENTY_TWO_MONTHS = "72 months";
+	public static final String VISIT_TYPE_SCREENING = "Screening";
+	public static final String VISIT_TYPE_RSONE = "RS1";
+	public static final String VISIT_TYPE_RSTWO = "RS2";
+	public static final String VISIT_TYPE_VTEN = "V10";
+	
+	
 
 }

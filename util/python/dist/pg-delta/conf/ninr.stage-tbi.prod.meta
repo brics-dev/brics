@@ -1,0 +1,17 @@
+[DB-SRC]
+host=fitbir-db-prod.cit.nih.gov
+database=tbi_prod
+schema=tbi_meta
+user=tbi_meta
+label=TBI-PROD
+
+[DB-TRG]
+host=ninr-db-stage.cit.nih.gov
+database=ninr_stage
+schema=ninr_metastg
+user=ninr_metastg
+label=NINR-STAGE
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\pgDelta\ninr.stage-tbi.prod-meta
+

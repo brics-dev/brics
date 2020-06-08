@@ -11,7 +11,7 @@ import javax.crypto.spec.SecretKeySpec;
 public class Encryption {
 	public static byte[] encrypt(String message) throws Exception {
         final MessageDigest md = MessageDigest.getInstance("md5");
-        final byte[] digestOfPassword = md.digest("REPLACED"
+        final byte[] digestOfPassword = md.digest("ABCD"
                         .getBytes("utf-8"));
         final byte[] keyBytes = Arrays.copyOf(digestOfPassword, 24);
         for (int j = 0, k = 16; j < 8;) {
@@ -31,7 +31,7 @@ public class Encryption {
 
 	public static String decrypt(byte[] message) throws Exception {
         final MessageDigest md = MessageDigest.getInstance("md5");
-        final byte[] digestOfPassword = md.digest("REPLACED"
+        final byte[] digestOfPassword = md.digest("ABCD"
                         .getBytes("utf-8"));
         final byte[] keyBytes = Arrays.copyOf(digestOfPassword, 24);
         for (int j = 0, k = 16; j < 8;) {

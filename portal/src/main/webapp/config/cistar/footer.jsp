@@ -9,27 +9,9 @@
 			<br />
 			<p>
 				<strong>National Institutes of Health</strong><br />
-				<!--   <strong>Center for Information Technology</strong><br /> 12
-				South Dr RM 2041<br /> Bethesda, MD 20892<br />-->
 			</p>
-			<!--  <p>
-				<strong>Phone: </strong>				
-				<s:property value="%{orgPhone}" />
-				<br /> <s:a href="%{modulesPublicURL}jsp/about/contact-us.jsp"><span>Contact Us</span></s:a> <br />
-			</p>-->
-
 		</div>
 		<div class="contact">
-			
-<!-- 
-			<h5>
-				National Institutes of Health<br /> Center for Information Technology
-			</h5>
-			<p>
-				Website: <a href="http://cit.nih.gov" class="ext-link reverse" title="Center for Information Technology, National Institutes of Health"
-					target="_blank">http://cit.nih.gov</a> 
-			</p> -->
-
 			<h5>
 				National Institutes of Health<br /> National Institute of Neurological Disorders &amp; Stroke
 			</h5>
@@ -41,8 +23,6 @@
 
 		<div class="contact">
 			<ul class="footer-links">
-				<!-- <li><s:a href="%{modulesPublicURL}jsp/general/privacy.jsp"><span>Privacy</span></s:a> |
-				<li><s:a href="%{modulesPublicURL}jsp/general/disclaimer.jsp"><span>Disclaimer</span></s:a> | -->
 				<li><a href="http://www.nih.gov/about/access.htm" target="_blank" class="ext-link reverse">Accessibility</a></li> |
 				<li><a href="http://www.nih.gov/icd/od/foia/index.htm" target="_blank" class="ext-link reverse">FOIA</a></li>
 			</ul>
@@ -65,11 +45,8 @@
 			</ul>
 		</div>
 
-		<div class="contact build-notes">
-            <p>Version: <s:property value="%{buildID}" />
-            <br>Repository ID: <s:property value="%{deploymentID}" />
-            <br>Last Deployed: <s:property value="%{lastDeployed}" /></p>
-        </div>
+		<!-- Include the release info section -->
+		<jsp:include page="/common/release-info.jsp" />
 	</div>
 </div>
 

@@ -150,12 +150,12 @@ public class StudyDocumentAction extends BaseAction {
 			} 
 			
 			if (!Utils.isBlank(getId())) {
-				am.updateAttachment(attachment);
+				am.updateAttachment(attachment, p.getId());
 				addActionMessage(getText(StrutsConstants.SUCCESS_EDIT_KEY, new String[]{"\"" + attachment.getName() + "\" document"}));
 			}
 			else {
 				attachment.setCreatedBy(u.getId());
-				am.createAttachment(attachment);
+				am.createAttachment(attachment, p.getId());
 				addActionMessage(getText(StrutsConstants.SUCCESS_ADD_KEY, new String[]{"\"" + attachment.getName() + "\" document"}));
 			}
 			

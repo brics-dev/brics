@@ -3,9 +3,14 @@ package gov.nih.tbi.repository.ws;
 
 import gov.nih.tbi.account.ws.RestAuthenticationProvider;
 import gov.nih.tbi.commons.model.PermissionType;
+import gov.nih.tbi.commons.model.StatusType;
 import gov.nih.tbi.commons.service.ServiceConstants;
+import gov.nih.tbi.commons.ws.HashMethods;
 import gov.nih.tbi.dictionary.model.UpdateFormStructureReferencePayload;
+import gov.nih.tbi.dictionary.model.hibernate.DictionarySupportingDocumentation;
+import gov.nih.tbi.dictionary.model.hibernate.FormStructure;
 import gov.nih.tbi.dictionary.model.hibernate.StructuralFormStructure;
+import gov.nih.tbi.dictionary.model.restful.CreateTableFromFormStructurePayload;
 import gov.nih.tbi.repository.model.hibernate.BasicStudy;
 import gov.nih.tbi.repository.model.hibernate.Dataset;
 import gov.nih.tbi.repository.model.hibernate.DatasetFile;
@@ -22,7 +27,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
+import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -33,7 +38,6 @@ import org.apache.commons.httpclient.methods.DeleteMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.cxf.jaxrs.client.WebClient;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
 
@@ -331,45 +335,26 @@ public class RestRepositoryProvider extends RestAuthenticationProvider {
 	}
 
 	/**
-	 * Creates a table in the database using a Data Structure. The Data Structure is a sent over by converting the
-	 * object to xml and sending it in the body of the POST request
+	 * Creates a table in the database using a Data Structure. 
 	 * 
 	 * @param datastructure
-	 * @return
 	 * @throws SQLException
-	 * @throws Exception
+	 * @throws UnsupportedEncodingException 
 	 */
-	public boolean createTableFromDataStructure(StructuralFormStructure datastructure) throws SQLException, Exception {
+	public void createTableFromDataStructure(StructuralFormStructure formStructure, String comment,String reasonApprove, Set<DictionarySupportingDocumentation> docList, 
+			StatusType statusType, Long diseaseId, String userName, String passWord, Long userId) throws SQLException, UnsupportedEncodingException {
 
 		ticketValid();
-		PostMethod postMethod;
-		Boolean archived;
-		final StringWriter stringWriter = new StringWriter();
-		JAXBContext jaxbContext = JAXBContext.newInstance(StructuralFormStructure.class);
-		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-		jaxbMarshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
-
-		jaxbMarshaller.marshal(datastructure, stringWriter);
-		StringBuilder postUrl = new StringBuilder();
-		postUrl.append(serverUrl).append(restServiceUrl).append("DataStructure/createTable");
-		if (!isProxyTicketNull() && !getTicketProperty().equals(ServiceConstants.EMPTY_STRING)) {
-			postUrl.append("?").append(getTicketProperty());
-		}
-
-		postMethod = new PostMethod(postUrl.toString());
-		postMethod.setRequestEntity(new StringRequestEntity(stringWriter.toString(), "application/xml", "UTF-8"));
-
-		try {
-			getClient().executeMethod(postMethod);
-			String newString = postMethod.getResponseBodyAsString();
-			byte[] responseBody = postMethod.getResponseBody();
-			archived = new Boolean(new String(responseBody));
-		} finally {
-
-		}
-
-		return archived;
-
+		
+		String authentication = HashMethods.getServiceAuthentication(userName, passWord);
+		
+		CreateTableFromFormStructurePayload payLoad = new CreateTableFromFormStructurePayload(formStructure,comment,reasonApprove,docList,statusType,diseaseId,userId);
+		
+		WebClient client = WebClient.create(serverUrl + restServiceUrl + "/DataStructure/createTable");
+		client.authorization(authentication);
+        client.type(MediaType.APPLICATION_XML).post(payLoad);
+        
+        cleanup();
 	}
 
 	/**

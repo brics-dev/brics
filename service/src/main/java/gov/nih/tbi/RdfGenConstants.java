@@ -36,6 +36,18 @@ public class RdfGenConstants {
 	@Value("#{applicationProperties['rdfgen.business.end.hour']}")
 	private Integer businessEndHour;
 
+	@Value("#{applicationProperties['rdfgen.mdsupdrsx.form.name']}")
+	private String mdsUpdrsXName;
+
+	public String getMdsUpdrsXName() {
+		
+		if(mdsUpdrsXName == null) {
+			return "MDS_UPDRS_X";
+		}
+		
+		return mdsUpdrsXName;
+	}
+
 	public Integer getThreadLimit() {
 		return threadLimit;
 	}

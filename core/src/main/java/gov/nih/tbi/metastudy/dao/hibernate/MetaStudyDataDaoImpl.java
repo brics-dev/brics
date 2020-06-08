@@ -41,4 +41,17 @@ public class MetaStudyDataDaoImpl extends GenericDaoImpl<MetaStudyData, Long> im
 		return count == 0;
 
 	}
+	
+	public boolean isQueryLinkedToMetaStudy(long savedQueryId) {
+		
+		CriteriaBuilder cb = getCriteriaBuilder();
+		CriteriaQuery<Long> query = cb.createQuery(Long.class);
+		Root<MetaStudyData> root = query.from(MetaStudyData.class);
+
+		query.where(cb.equal(root.join("savedQuery", JoinType.LEFT).get("id"), savedQueryId));
+
+		query.select(cb.count(root));
+		long count = createQuery(query).getSingleResult();
+		return count > 0;
+	}
 }

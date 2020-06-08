@@ -1,16 +1,19 @@
 package gov.nih.tbi.dictionary.service.hibernate;
 
 import java.beans.IntrospectionException;
-import java.io.BufferedWriter;
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -31,11 +34,15 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import javax.net.ssl.HttpsURLConnection;
+
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.cookie.DateParseException;
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -60,7 +67,6 @@ import gov.nih.tbi.commons.model.InputRestrictions;
 import gov.nih.tbi.commons.model.PermissionType;
 import gov.nih.tbi.commons.model.RepeatableType;
 import gov.nih.tbi.commons.model.RequiredType;
-import gov.nih.tbi.commons.model.RoleStatus;
 import gov.nih.tbi.commons.model.RoleType;
 import gov.nih.tbi.commons.model.SeverityLevel;
 import gov.nih.tbi.commons.model.StatusType;
@@ -933,6 +939,7 @@ public class DictionaryToolManagerImpl extends BaseManagerImpl implements Dictio
 		newFormStructure.setId(null);
 		newFormStructure.addAllInstancesRequiredFor(dataStructure.getInstancesRequiredFor());
 		newFormStructure.setStandardization(dataStructure.getStandardization());
+		newFormStructure.setFormLabelList(dataStructure.getFormLabelList());
 
 		if (SeverityLevel.NEW.equals(severityLevel)) {
 			newFormStructure.setPublicationDate(null);
@@ -1095,17 +1102,34 @@ public class DictionaryToolManagerImpl extends BaseManagerImpl implements Dictio
 			throw new IllegalArgumentException(ServiceConstants.NULL_STATUS);
 		}
 
-		dataStructure.setStatus(status);
-		dataStructure.setModifiedUserId(account.getUserId());
-		dataStructure.setModifiedDate(new Date());
+		//get formstructure from the database to make sure we are only changing the status
+		FormStructure formStructure = formStructureDao.getById(dataStructure.getId());
+
+		//we only want to set publish pending to draft or awaiting publication
+		//this might happen when the thread for creating repo tables and publishing fs finishes before 
+		//other changes we are making to the form structure
+		if(status==StatusType.PUBLISH_PENDING && formStructure.getStatus()== StatusType.PUBLISHED){
+			status = StatusType.PUBLISHED;
+		}
+		
+		formStructure.setStatus(status);
+		formStructure.setModifiedUserId(account.getUserId());
+		formStructure.setModifiedDate(new Date());
+		
+		//if publishing form structure, set the publication date here
+		if(status==StatusType.PUBLISHED) {
+			formStructure.setPublicationDate(new Date());
+		}
+		
+		
 
 		if (!(PermissionType.compare(permission, PermissionType.ADMIN) >= 0)) {
 			throw new UserPermissionException("Only Users with Admin permission can change Form Structure Status");
 		}
 
-		formStructureDao.save(dataStructure);
+		formStructureDao.save(formStructure);
 
-		return dataStructure;
+		return formStructure;
 	}
 	
 	public FormStructure editDataStructureStatusWithoutSave(Account account, PermissionType permission,
@@ -4635,5 +4659,120 @@ public class DictionaryToolManagerImpl extends BaseManagerImpl implements Dictio
 	public String getDEShortNameByNameIgnoreCases(String deName){
 		String result = dataElementDao.getDEShortNameFromVirtuosoIgnoreCases(deName);
 		return result;
+	}
+	
+	public JSONArray getBatteryItemsJsonArray(String batteryAapiUrl, String apiUrl, String formOID, String asciiEncoded) {
+		JSONArray batteryItems = new JSONArray();
+		URL url;
+		byte[] postData = "".getBytes();		
+		HttpURLConnection connection = null;
+		DataOutputStream writer = null;
+		String output;
+		
+		try {
+			url = new URL(batteryAapiUrl + formOID+".json");
+			connection = (HttpsURLConnection) url.openConnection();
+			connection.setDoOutput(true);
+			connection.setRequestMethod("POST");
+			connection.addRequestProperty("Authorization", "Basic "+asciiEncoded);
+			connection.addRequestProperty("Content-Length", "0");
+			connection.connect();
+			writer = new DataOutputStream(connection.getOutputStream());
+			writer.write(postData);
+			BufferedReader br = new BufferedReader(new InputStreamReader((connection.getInputStream())));
+			JSONObject batteryFormObj = new JSONObject();
+			while ((output = br.readLine()) != null) {
+				batteryFormObj = new JSONObject(output);
+			}
+			connection.disconnect();
+
+			JSONArray batteryFormArr =batteryFormObj.getJSONArray("Forms");
+			for(int i=0;i<batteryFormArr.length();i++) {	
+				JSONObject ob = (JSONObject) batteryFormArr.get(i);
+				String batteryFormOid = ob.getString("FormOID");
+						
+				url = new URL(apiUrl + batteryFormOid + ".json");
+				connection = (HttpsURLConnection) url.openConnection();
+				connection.setDoOutput(true);
+				connection.setRequestMethod("POST");
+				connection.addRequestProperty("Authorization", "Basic "+asciiEncoded);
+				connection.addRequestProperty("Content-Length", "0");
+				connection.connect();
+				writer = new DataOutputStream(connection.getOutputStream());
+				writer.write(postData);
+				JSONObject batteryItemObj = null;
+				BufferedReader batteryBr = new BufferedReader(new InputStreamReader((connection.getInputStream())));
+				while ((output = batteryBr.readLine()) != null) {
+					batteryItemObj = new JSONObject(output);
+				}
+				connection.disconnect();
+
+				JSONArray items = batteryItemObj.getJSONArray("Items");
+				for(int j = 0 ; j < items.length(); j++) {
+					batteryItems.put(items.get(j));
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return batteryItems;
+	}
+	
+	public List<String> getQuestionOIDListForBattery(String batteryAapiUrl, String formApiUrl, String formOID, String asciiEncoded) {
+		ArrayList<String> questionsOIDList = new ArrayList<String>();
+		URL url;
+		byte[] postData = "".getBytes();		
+		HttpURLConnection connection = null;
+		DataOutputStream writer = null;
+		String output;
+		try {
+			url = new URL(batteryAapiUrl + formOID + ".json");
+			connection = (HttpsURLConnection) url.openConnection();
+			connection.setDoOutput(true);
+			connection.setRequestMethod("POST");
+			connection.addRequestProperty("Authorization", "Basic "+asciiEncoded);
+			connection.addRequestProperty("Content-Length", "0");
+			connection.connect();
+			writer = new DataOutputStream(connection.getOutputStream());
+			writer.write(postData);
+			BufferedReader batteryBr = new BufferedReader(new InputStreamReader((connection.getInputStream())));
+			JSONObject batteryFormObj = new JSONObject();
+			while ((output = batteryBr.readLine()) != null) {
+				batteryFormObj = new JSONObject(output);
+			}
+			connection.disconnect();
+	
+			JSONArray batteryFormArr = batteryFormObj.getJSONArray("Forms");
+			for(int i=0;i<batteryFormArr.length();i++) {	
+				JSONObject ob = (JSONObject) batteryFormArr.get(i);
+				String batteryFormOid = ob.getString("FormOID");
+	
+				url = new URL(formApiUrl + batteryFormOid + ".json");
+				connection = (HttpsURLConnection) url.openConnection();
+				connection.setDoOutput(true);
+				connection.setRequestMethod("POST");
+				connection.addRequestProperty("Authorization", "Basic "+asciiEncoded);
+				connection.addRequestProperty("Content-Length", "0");
+				connection.connect();
+				writer = new DataOutputStream(connection.getOutputStream());
+				writer.write(postData);
+				JSONObject batteryItemObj = null;
+				BufferedReader batteryInFormBr = new BufferedReader(new InputStreamReader((connection.getInputStream())));
+				while ((output = batteryInFormBr.readLine()) != null) {
+					batteryItemObj = new JSONObject(output);
+				}
+				connection.disconnect();
+	
+				JSONArray items = batteryItemObj.getJSONArray("Items");
+				for(int j = 0; j < items.length(); j++) {
+					JSONObject item = items.getJSONObject(j);	
+					questionsOIDList.add(item.getString("FormItemOID"));
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return questionsOIDList;
 	}
 }

@@ -25,6 +25,8 @@ public class CtdbManager {
 	//@Autowired
 	private static DataSource dataSource;
 
+	private static DataSource btrisDataSource;
+
 	/**
 	 * Default constructor
 	 */
@@ -36,6 +38,14 @@ public class CtdbManager {
 
 	public static void setDataSource(DataSource dataSource) {
 		CtdbManager.dataSource = dataSource;
+	}
+
+	public static DataSource getBtrisDataSource() {
+		return btrisDataSource;
+	}
+
+	public static void setBtrisDataSource(DataSource btrisDataSource) {
+		CtdbManager.btrisDataSource = btrisDataSource;
 	}
 
 	/**
@@ -64,6 +74,14 @@ public class CtdbManager {
 		}
 		catch (SQLException sqle) {
 			throw new CtdbException("Unable to set Connection autoCommit : " + sqle.getMessage(), sqle);
+		}
+	}
+
+	protected static synchronized Connection getBtrisConnection() throws CtdbException {
+		try {
+			return btrisDataSource.getConnection();
+		} catch (SQLException e) {
+			throw new CtdbException("Unable to get btris connection: " + e.getMessage(), e);
 		}
 	}
 

@@ -233,6 +233,9 @@ QT.ResultPaneView = BaseView.extend({
 	},
 	
 	showTextPill : function(textFilter) {
+		if (textFilter.length >= 22) {
+			textFilter = textFilter.slice(0, 25) + "...";
+		}
 		var text = "Text: \"" + textFilter + "\"";
 		this.$(".textFilterPill .pillContent").text(text);
 		this.$(".textFilterPill").show();

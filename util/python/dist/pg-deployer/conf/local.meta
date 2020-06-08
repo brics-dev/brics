@@ -1,0 +1,10 @@
+[DB-TRG]
+host=localhost
+database=metadb
+schema=metasch
+user=metauser
+label=TARGET
+
+[FILE-SYS]
+workDir=D:\DEV\BRIX\pg-rev\meta
+logDir=D:\DEV\appdata\log\pgDeployer\local-meta

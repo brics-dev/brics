@@ -321,7 +321,7 @@
 					timeout : 10000,
 					async : false,
 					error : function() {
-						return 'REPLACED';
+						return 'password1!';
 					},
 					success : function(data) {
 						$('#accountDetailsForm\\.passwordString').val(data);
@@ -379,7 +379,7 @@
 					timeout : 10000,
 					async : false,
 					error : function() {
-						return 'REPLACED';
+						return 'password1!';
 					},
 					success : function(data) {
 						$('#accountDetailsForm\\.passwordString').val(data);

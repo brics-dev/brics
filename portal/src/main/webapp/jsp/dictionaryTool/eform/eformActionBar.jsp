@@ -65,7 +65,7 @@
 		</s:else>
 		<s:if test="(isDictionaryAdmin || hasWritePermission) && (!isPublished&& !isArchived)">
 			<li>
-				<a href="/portal/dictionary/eformDeleteAction!delete.action?eformId=<s:property value="sessionEform.basicEform.id" />" id="eformOps_delete">Delete</a>
+				<a href="javascript:checkForCollections()" id="eformOps_delete">Delete</a>
 			</li>
 		</s:if>
 	</ul>

@@ -55,6 +55,18 @@
 				}
 			});
 		}); 
+		 /*CISTAR-641:set table cell width to be 0 if no text in it*/
+		 $(".questionTextContainerTd").each(function(element) { 
+			 var $this = $(this); 
+			 var tblCellTxt = $this.find(".questionTextImmediateContainer").text();
+			 if (tblCellTxt.length == 0) { 
+				 $this.width(0); 
+			 } else if ($.trim(tblCellTxt).length == 0) { 
+				 //contains white spaces only, then reset width in percentage
+				 var widthPercent = tblCellTxt.length / $this.parent().width() * 100 + "%";
+				 $this.width(widthPercent);  
+			 }   
+		}); 
 	});
 		
 </script>

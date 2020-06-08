@@ -2,10 +2,9 @@
 package gov.nih.tbi.commons.model;
 
 public enum StatusType {
-	// The status MULTIPLE refers to the Multiple statuses, usually the combination of Awaiting Publication and
-	// Published.
+
 	DRAFT(0L, "Draft"), AWAITING_PUBLICATION(1L, "Awaiting Publication"), PUBLISHED(2L, "Published"),
-	ARCHIVED(3L, "Archived"), SHARED_DRAFT(5L, "Shared Draft"), UNKNOWN(999L, "Unknown");
+	ARCHIVED(3L, "Archived"), SHARED_DRAFT(5L, "Shared Draft"),UNKNOWN(999L, "Unknown"),PUBLISH_PENDING(6L,"Publication - Pending");
 
 	private Long id;
 	private String type;

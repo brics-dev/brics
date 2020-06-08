@@ -396,10 +396,10 @@ var FormRowCalculator = {
 						&& !$input.hasClass("noResize") && !$input.is("button")) {
 			var labelWidth = $label.outerWidth();
 			if ($label.hasClass("requiredInput")) {
-				labelWidth += 13;
+				labelWidth += 14;
 			}
 			else {
-				labelWidth += 20;
+				labelWidth += 21;
 			}
 
 			// in some cases, we have elements other than label and input in
@@ -975,3 +975,37 @@ function openPopup(url, name, specs) {
 	}
 	return wnd;
 }
+
+
+
+function showHideEformConfig() {
+	
+	var $hideElements = $(".eformConfigureHidden");
+
+		$hideElements.each(function() {
+			var $hideElement = $(this);
+			if(areElementsHidden) {
+				$hideElement.addClass("showHiddenElementBG");
+				//need to handle select/multi select dropdowns bc these options are not visible to user
+				if($hideElement.is("option")) {
+					$hideElement.parent().addClass("selectShowHideBorder");
+				}
+				$hideElement.show();	
+			}else {
+				//need to handle select/multi select dropdowns bc these options are not visible to user
+				if($hideElement.is("option")) {
+					$hideElement.parent().removeClass("selectShowHideBorder");
+				}
+				$hideElement.hide();	
+			}
+		});
+		
+		if(areElementsHidden) {
+			areElementsHidden = false;
+			$("#showHideConfig").prop('value', 'Hide hidden eForm elements');
+		}else {
+			areElementsHidden = true;
+			$("#showHideConfig").prop('value', 'Show hidden eForm elements');
+		}
+	
+	}

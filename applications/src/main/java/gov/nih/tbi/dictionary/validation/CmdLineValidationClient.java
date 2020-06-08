@@ -110,6 +110,8 @@ public class CmdLineValidationClient
     private static boolean loaded = false;
 
     private static ValidationController controller;
+    
+    private static final boolean IS_COMING_FROM_PROFORMS = false;
 
     public static void main(String[] args)
     {
@@ -187,6 +189,7 @@ public class CmdLineValidationClient
             // Get the password
             Console cons;
             char[] passwd;
+            // String rawPassword = "Pa$$word";
             String rawPassword = null;
             if (System.console() == null)
             {
@@ -247,7 +250,7 @@ public class CmdLineValidationClient
         outputLine(CONNECTING);
         try
         {
-            controller = new ValidationController(null, ddtUrl, bricsUrl, username, password);
+            controller = new ValidationController(null, ddtUrl, bricsUrl, username, password,IS_COMING_FROM_PROFORMS);
         }
         catch (Exception e)
         {
@@ -464,7 +467,7 @@ public class CmdLineValidationClient
             return TASK_PROMPT;
         }
         valid = false;
-        String errorMessage = controller.buildSubmission(rootDirectoryPath);
+        String errorMessage = controller.buildSubmission(rootDirectoryPath,true,null);
         if (!errorMessage.startsWith("A new submission", 0))
         {
             outputHardErrorLine(errorMessage);

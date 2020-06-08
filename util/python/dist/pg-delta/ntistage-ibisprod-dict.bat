@@ -1,0 +1,1 @@
+python pgDelta.py --props=.\conf\stage.nti-prod.ibis.dict

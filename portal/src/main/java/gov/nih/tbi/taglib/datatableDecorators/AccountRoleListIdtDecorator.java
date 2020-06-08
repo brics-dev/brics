@@ -6,6 +6,7 @@ import java.util.Date;
 import gov.nih.tbi.ModelConstants;
 import gov.nih.tbi.account.model.hibernate.AccountRole;
 import gov.nih.tbi.account.model.hibernate.PermissionGroupMember;
+import gov.nih.tbi.commons.model.AccountStatus;
 import gov.nih.tbi.commons.model.PermissionGroupStatus;
 import gov.nih.tbi.commons.model.RoleStatus;
 import gov.nih.tbi.commons.model.RoleType;
@@ -43,7 +44,7 @@ public class AccountRoleListIdtDecorator extends IdtDecorator {
 	public String getDecoratedStatus() {
 
 		AccountRole accountRole = (AccountRole) this.getObject();
-		if (accountRole.isExpired()) {
+		if (accountRole.isExpired() && accountRole.getAccount().getAccountStatus() != AccountStatus.RENEWAL_REQUESTED) {
 			return "Expired";
 		}
 

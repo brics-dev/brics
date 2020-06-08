@@ -59,6 +59,7 @@ import gov.nih.nichd.ctdb.form.util.FormCacheThread;
 import gov.nih.nichd.ctdb.form.util.FormDataStructureUtility;
 import gov.nih.nichd.ctdb.form.util.HtmlFormCache;
 import gov.nih.nichd.ctdb.protocol.domain.Protocol;
+import gov.nih.nichd.ctdb.protocol.manager.ProtocolManager;
 import gov.nih.nichd.ctdb.question.domain.AnswerType;
 import gov.nih.nichd.ctdb.question.domain.Group;
 import gov.nih.nichd.ctdb.question.domain.Question;
@@ -67,6 +68,7 @@ import gov.nih.nichd.ctdb.question.domain.QuestionType;
 import gov.nih.nichd.ctdb.question.domain.SkipRuleOperatorType;
 import gov.nih.nichd.ctdb.question.domain.SkipRuleType;
 import gov.nih.nichd.ctdb.question.manager.QuestionManager;
+import gov.nih.nichd.ctdb.response.manager.ResponseManager;
 import gov.nih.nichd.ctdb.security.domain.User;
 import gov.nih.nichd.ctdb.util.common.LookupResultControl;
 import gov.nih.nichd.ctdb.util.common.Message;
@@ -668,6 +670,11 @@ public class FormAction extends BaseAction {
 			Protocol protocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
 			form.setProtocolId(protocol.getId());
 			
+			//check to see if eform is configured
+			ProtocolManager protoMan = new ProtocolManager();
+			boolean isConfigured = protoMan.isEformConfigured(eformId);
+			request.setAttribute(CtdbConstants.IS_EFORM_CONFIGURED,isConfigured);
+			
 			String formDetail = null;
 			
 			String xsl = SysPropUtil.getProperty("form.xsl.display");
@@ -688,6 +695,13 @@ public class FormAction extends BaseAction {
 				request.setAttribute("showVersion", "true");
 				request.setAttribute("formVersion", request.getParameter("formVersion"));
 			}
+			
+			//need to check to see if there are any sections or questions that need to be hidden
+			ResponseManager rm = new ResponseManager();
+			List<String> hiddenSectionsQuestionsPVsElementIdsList = rm.getHiddenSectionsQuestionsPVsElementIds(protocol.getId(), eformId);
+			JSONArray jsonReturnArray = new JSONArray(hiddenSectionsQuestionsPVsElementIdsList);
+			String hiddenSectionsQuestionsPVsElementIdsJSON = jsonReturnArray.toString();
+			session.put(StrutsConstants.HIDDENIDS, hiddenSectionsQuestionsPVsElementIdsJSON);
 
 			return SUCCESS;
 		}catch (RuntimeException e) {

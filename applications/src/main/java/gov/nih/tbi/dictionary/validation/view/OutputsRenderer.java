@@ -3,6 +3,7 @@ package gov.nih.tbi.dictionary.validation.view;
 
 import gov.nih.tbi.dictionary.validation.model.ValidationOutput;
 
+import java.awt.Color;
 import java.awt.Component;
 
 import javax.swing.BorderFactory;
@@ -43,7 +44,7 @@ public class OutputsRenderer implements ListCellRenderer
             if (isSelected)
             {
                 label.setBackground(renderer.getBackgroundSelectionColor());
-                label.setForeground(renderer.getTextSelectionColor());
+                label.setForeground(Color.black);
             }
             else
             {

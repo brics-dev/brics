@@ -478,10 +478,8 @@ public class AccountDaoImpl extends GenericDaoImpl<Account, Long> implements Acc
 		// Do not return the "anonymous" account.
 		predicate = cb.and(predicate, cb.notEqual(root.get("userName"), CoreConstants.UNAUTHENTICATED_USER));
 		
-		predicate = cb.and(predicate, cb.and(root.join("accountRoleList", JoinType.LEFT).get("roleStatus").in(RoleStatus.EXPIRED,RoleStatus.EXPIRING_SOON)));
-	
+		predicate = cb.and(predicate, cb.and(root.join("accountRoleList", JoinType.LEFT).get("roleStatus").in(RoleStatus.EXPIRING_SOON,RoleStatus.EXPIRED)));
 		query.where(predicate).distinct(true);
-		
 		List<Account> out = createQuery(query).getResultList();
 		
 		for(Account account:out) {

@@ -123,7 +123,9 @@ public class AccountMessageTemplateManagerImpl extends BaseManagerImpl
 
 	@Override
 	public void contactUser(Account currentAccount, List<AccountMessageTemplate> accountMsgs,String orgName,String orgUrl,String orgEmail) {
-		
+		if(orgName.contains("_")) {
+			orgName = orgName.replaceAll("_", " ");
+		}
 		String accountRenewalSubject = String.format(ServiceConstants.ACCOUNT_RENEWAL_SUBJECT,orgName);
 		String accountRenewalEmailBody = buildAccountRenewalEmail(currentAccount,accountMsgs,orgName,orgUrl,orgEmail);
 		

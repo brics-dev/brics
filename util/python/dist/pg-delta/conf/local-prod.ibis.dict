@@ -1,0 +1,16 @@
+[DB-TRG]
+host=localhost
+database=dictdb
+schema=dictsch
+user=dictuser
+label=TRG-LOCAL
+
+[DB-SRC]
+host=ibis-db-prod.cit.nih.gov
+database=dictionary_prod
+schema=dictionary
+user=dictionary
+label=SRC-IBIS-PROD
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\pgDelta\local-prodibis-meta

@@ -1,0 +1,16 @@
+gov\nih\brics\submission\controller\BaseController.class
+gov\nih\brics\submission\model\ValidationPackage$OriginEnum.class
+META-INF\spring-configuration-metadata.json
+gov\nih\brics\submission\configuration\MultitenantConfiguration.class
+gov\nih\brics\submission\controller\ValidateApi.class
+gov\nih\brics\submission\model\ValidationPackage.class
+gov\nih\brics\submission\configuration\SwaggerConfiguration.class
+gov\nih\brics\submission\exception\MultiTenantSetupException.class
+gov\nih\brics\submission\model\ValidationErrorsWarning.class
+gov\nih\brics\submission\util\FileDataSourceUtil.class
+gov\nih\brics\submission\exception\NotFoundException.class
+gov\nih\brics\submission\configuration\CacheConfiguration.class
+gov\nih\brics\submission\configuration\SecurityConfiguration.class
+gov\nih\brics\submission\Application.class
+gov\nih\brics\submission\model\ValidationErrorsWarning$TypeEnum.class
+gov\nih\brics\submission\exception\JWTAuthenticationException.class

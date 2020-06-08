@@ -193,7 +193,7 @@
 		$("input.intervalClinicalChkBox").click(function() {
         	$('input[type=checkbox].intervalClinicalChkBox').not(this).prop('checked', false);
     	});
-		$("input.intervalProcedureChkBox").click(function() {console.log("here1");
+		$("input.intervalProcedureChkBox").click(function() {
 	        $('input[type=checkbox].intervalProcedureChkBox').not(this).prop('checked', false);
 	    });
 		$("input.intervalContactChkBox").click(function() {

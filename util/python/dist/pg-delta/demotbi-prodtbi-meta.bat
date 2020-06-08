@@ -1,0 +1,1 @@
+python pgDelta.py --props=.\conf\demo.tbi-prod.tbi.meta

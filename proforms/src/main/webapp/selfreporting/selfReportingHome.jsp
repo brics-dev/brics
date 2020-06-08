@@ -12,6 +12,7 @@
 	DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
 	String startDate = df.format(((Date)request.getAttribute("startDate")));
 	String endDate = df.format(((Date)request.getAttribute("endDate")));
+	String psrHeader = (String)request.getAttribute("psrHeader");
 %>
 
 <html>
@@ -43,7 +44,7 @@
 			},
 			
 			startTimer : function() {
-				this.timer = setTimeout(function(){LogoutWarning.openPopup();}, <s:property value="#systemPreferences.get('app.warningTimeout')"/>);
+				this.timer = setTimeout(function(){LogoutWarning.openPopup();}, <s:property value="#systemPreferences.get('app.warningTimeout')"/> * 60 * 1000 );
 			},
 			
 			cancelLogout : function() {
@@ -76,6 +77,15 @@
 	});
 	</script>
 
+	<div class="selfReportingPSRHeader">
+	<%
+		if(psrHeader != null) {%>
+			<%=psrHeader %>
+			<br><br>
+	<%	}
+	%>
+	</div>
+	
 	<div>
 	<s:text name="selfreporting.selfreportingHome.instruction">
 		<s:param><%=startDate%></s:param>

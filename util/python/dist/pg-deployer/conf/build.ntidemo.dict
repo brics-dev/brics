@@ -1,0 +1,7 @@
+[DB-TRG]
+host=nti-db-demo
+database=dictionary_demo
+schema=dictionarydemo
+user=dictionarydemo
+label=TARGET
+

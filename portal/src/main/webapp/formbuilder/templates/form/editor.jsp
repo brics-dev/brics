@@ -56,13 +56,26 @@
 				
 				<div class="tabcontainer" id="advanced">
                      <div class="row  clearfix">
-						<div class="col-md-2">
+						<div class="col-md-3">
 							<label for="form-copyrightedForm">Allow Multiple Instances</label>
 							<br/>
 							
 						</div>
 						<div class="col-md-2">
 							<input type="checkbox" class='advanced_chk' name="allowMultipleCollectionInstances" id="form-allowMultipleCollectionInstances" title="Allows multiple collection instances for the same combination of Subject, Form name, Visit type and Visit date" />
+						</div>
+					</div>
+					<div class="row  clearfix">
+						<div class="col-md-3">
+							<label for="form-copyrightedForm">Eform Category for Proforms</label>
+							<br/>
+							
+						</div>
+						<div class="col-md-2">
+							<select name="pfCategory" id="form-pfCategory">
+  								<option value="0">Normal</option>
+  								<option value="1">Adverse Event Report</option>
+							</select>
 						</div>
 					</div>
 					<div class="row clearfix" id="advanced_cat_msg">

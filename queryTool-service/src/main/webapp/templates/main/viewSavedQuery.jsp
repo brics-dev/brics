@@ -23,6 +23,14 @@
 		<div class="viewQuery_value" name="description">{{description}}</div>
 		<div class="clearfix"></div>
 
+		<div class="viewQuery_label">Created Date</div>
+		<div class="viewQuery_value" name="dateCreated">{{dateCreated}}</div>
+		<div class="clearfix"></div>
+
+		<div class="viewQuery_label">Last Updated Date</div>
+		<div class="viewQuery_value" name="lastUpdated">{{lastUpdated}}</div>
+		<div class="clearfix"></div>
+
 		<div class="viewQuery_label">Permissions</div>
 		<div class="viewQuery_value">
 			<table class="display-data">
@@ -43,6 +51,10 @@
 			</table>
 
 		</div>
+		<div class="clearfix"></div>
+
+		<div class="viewQuery_label">Query Logic</div>
+		<div class="viewQuery_value" name="queryLogic">loading...</div>
 		<div class="clearfix"></div>
 	</div>
 	

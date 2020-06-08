@@ -50,7 +50,7 @@ public class BaseRepositoryAction extends BaseAction {
 
 	@Autowired
 	protected SessionSupportDocList sessionSupportDocList;
-	
+
 	@Autowired
 	protected SessionUploadFile sessionUploadFile;
 
@@ -89,7 +89,7 @@ public class BaseRepositoryAction extends BaseAction {
 		}
 		return sessionSupportDocList;
 	}
-	
+
 	public SessionUploadFile getSessionUploadFile() {
 
 		if (sessionUploadFile == null) {
@@ -103,24 +103,33 @@ public class BaseRepositoryAction extends BaseAction {
 	@Override
 	public boolean getIsAdmin() {
 		Study study = getSessionStudy().getStudy();
-		
+
 		if (study != null && study.getId() != null) {
 			if (accountManager.getAccess(getAccount(), EntityType.STUDY, study.getId(), PermissionType.ADMIN)) {
 				return true;
 			}
 		}
-		return getIsPortalAdmin();
+		return getIsStudyAdmin();
 	}
 
 	/**
-	 * This method returns true if the login user is a study admin (not a gloabl admin! This function is poorly named).
+	 * This method returns true if the login user is a study admin.
 	 * 
 	 * @return : true if user has ROLE_STUDY_ADMIN (implicit or explicit)
 	 */
-	public boolean getIsPortalAdmin() {
+	public boolean getIsStudyAdmin() {
 		return accountManager.hasRole(getAccount(), RoleType.ROLE_STUDY_ADMIN);
 	}
-
+	
+	/**
+	 * This method returns true if the login user is a Global or Repository Admin.
+	 * 
+	 * @return : true if User has ROLE_REPOSITORY_ADMIN or ROLE_ADMIN
+	 */
+	public boolean getIsRepositoryAdmin() {
+		return accountManager.hasRole(getAccount(), RoleType.ROLE_REPOSITORY_ADMIN) || accountManager.hasRole(getAccount(), RoleType.ROLE_ADMIN);
+	}
+	
 	public boolean getHasWriteAccess() {
 
 		// If there is no user or we are not in a session then there is no write access to be had
@@ -147,9 +156,9 @@ public class BaseRepositoryAction extends BaseAction {
 		}
 		return accountManager.getAccess(getAccount(), EntityType.STUDY, getSessionStudy().getStudy().getId(),
 				PermissionType.OWNER);
-		
+
 	}
-	
+
 	/**
 	 * Returns true if user is in admin or studyAdmin namespace
 	 * 
@@ -157,10 +166,10 @@ public class BaseRepositoryAction extends BaseAction {
 	 */
 	public boolean getInAdmin() {
 
-		return (PortalConstants.NAMESPACE_ADMIN.equals(getNameSpace()) || PortalConstants.NAMESPACE_STUDYADMIN
-			.equals(getNameSpace()));
+		return (PortalConstants.NAMESPACE_ADMIN.equals(getNameSpace())
+				|| PortalConstants.NAMESPACE_STUDYADMIN.equals(getNameSpace()));
 	}
-	
+
 
 	/**
 	 * Gets the current study from parameter studyId
@@ -182,6 +191,7 @@ public class BaseRepositoryAction extends BaseAction {
 
 	/**
 	 * Gets the current study from parameter studyId, excluding the dataset records
+	 * 
 	 * @return Study
 	 * @throws UserPermissionException
 	 */
@@ -189,50 +199,49 @@ public class BaseRepositoryAction extends BaseAction {
 
 		String studyId = getRequest().getParameter(PortalConstants.STUDY_ID);
 		Study study = null;
+
 		if (StringUtils.isNumeric(studyId)) {
 			// studyId is just the ID, not prefix ID
-			try {
-				study = repositoryManager.getStudy(getAccount(), Long.decode(studyId));
-			} catch (UserPermissionException e) {
-				// do nothing, study is already null so the user will just see nothing
-			}
+			study = repositoryManager.getStudy(getAccount(), Long.decode(studyId));
 		} else {
 			study = repositoryManager.getStudyByPrefixedIdExcludingDataset(getAccount(), studyId);
 		}
-		
+
 		getDatasetCount(study);
-		
+
 		return study;
 	}
 
 	public void getDatasetCount(Study study) {
-		if(study != null && study.getId() != null) {
+		if (study != null && study.getId() != null) {
 			Long studyid = study.getId();
 			Set<Long> studyIds = new HashSet<Long>();
 			studyIds.add(studyid);
-			
+
 			List<Dataset> datasets = repositoryManager.getStudyDataset(studyIds);
-			if(datasets != null) {
+			if (datasets != null) {
 				study.setDatasetCount(new Long(datasets.size()));
-			}else {
+			} else {
 				study.setDatasetCount(new Long(0));
 			}
 		}
 	}
-	
+
 	/**
 	 * Gets list of Dataset records
+	 * 
 	 * @param studyIds, gets datasets from study ids passed
 	 * @return List<Dataset
 	 */
 	public List<Dataset> getDatasetForStudy(Set<Long> studyIds) {
 		List<Dataset> datasets = repositoryManager.getStudyDataset(studyIds);
 		return datasets;
-	}	
-	
-	
+	}
+
+
 	/**
 	 * Gets list of Dataset records
+	 * 
 	 * @param studyIds, gets datasets from study ids passed
 	 * @return List<Dataset
 	 */
@@ -240,11 +249,11 @@ public class BaseRepositoryAction extends BaseAction {
 		List<Dataset> datasets = repositoryManager.getDatasetById(datasetIds);
 		return datasets;
 	}
-	
+
 	public boolean updateDataset(Set<Dataset> dataset) {
 		repositoryManager.updateDatasets(dataset);
 		return true;
-	}	
+	}
 
 	public boolean canShowCreateDoiUi() {
 		Study currStudy = getSessionStudy().getStudy();
@@ -268,7 +277,7 @@ public class BaseRepositoryAction extends BaseAction {
 		JsonArray rtnJsonArr = null;
 
 		// Check if ProFoRMS is enabled on this instance.
-		if (modulesConstants.getModulesPFEnabled() && modulesConstants.getPfProtocolClosingoutEnable()) {
+		if (modulesConstants.getModulesPFEnabled()) {
 			try {
 				String proformsWsUrl = modulesConstants.getModulesPFURL(getDiseaseId());
 				rtnJsonArr = proformsWsProvider.getStudyAssoPfProtocols(proformsWsUrl, studyPrefixId);

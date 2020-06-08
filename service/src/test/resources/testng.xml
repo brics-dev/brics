@@ -3,8 +3,18 @@
 <suite name="Service-Suite" parallel="false">
 	<test name="Account">
 		<packages>
-			<package name="gov.nih.tbi.account.service.complex.*"/>
-			<package name="gov.nih.tbi.account.model.*"/>
+			<package name="gov.nih.tbi.account.service.complex.*" />
+			<package name="gov.nih.tbi.account.model.*" />
 		</packages>
+	</test>
+	<test name="RDFGen">
+		<packages>
+			<package name="gov.nih.tbi.repository.rdf.*" />
+		</packages>
+	</test>
+	<test name="AdvancedVisualization">
+		 <classes>
+			<class name="gov.nih.tbi.repository.service.hibernate.AdvancedVisualizationManagerTest" />
+		 </classes>
 	</test>
 </suite>

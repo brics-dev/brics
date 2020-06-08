@@ -28,6 +28,7 @@ public class AccountListIdtDecorator extends IdtDecorator {
 		switch(accountStatus) {
 			case REQUESTED:
 			case CHANGE_REQUESTED:
+			case RENEWAL_REQUESTED:
 			case PENDING:
 				return "<a href='/portal/accountAdmin/viewAccountRequest!viewAccountRequest.action?accountId="
 				+ account.getId() + "'>" + accountUserName + "</a>";

@@ -1,0 +1,7 @@
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\propPasswdUtil\prod-ninr-host
+passFile=D:\DATA\secur\.pgpass
+
+[DEPLOY]
+trgRoot=D:\DEV\workspace\conf\prod\ninr-host
+srcRoot=D:\DEV\BRIX\local\prop\prod\ninr-host

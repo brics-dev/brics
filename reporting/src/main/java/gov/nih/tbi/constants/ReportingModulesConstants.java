@@ -470,7 +470,7 @@ public class ReportingModulesConstants {
 	public String getModulesDevEmail() {
 
 		if (modulesDevEmail == null || modulesDevEmail.isEmpty()) {
-			return "REPLACED@mail.nih.gov";
+			return "FITBIR-DEV@mail.nih.gov";
 		} else {
 			return modulesDevEmail;
 		}

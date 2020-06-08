@@ -24,7 +24,7 @@ var SQViewProcessor = {
 		// sqObject is loaded in the JSP
 		this.savedQueryModel = new SavedQueryViewEngine.SavedQuery();
 		
-		var jsonText = $("#savedQueryData").text().replace(/%20/g, " ").replace(/&quot;/g, "\"").trim();
+		var jsonText = $("#savedQueryData").text().replace(/%20/g, " ").replace(/&quot;/g, "\"").replace(/&amp;/g, "&").trim();
 		var sqObject = $.parseJSON(jsonText);
 		
 		this.savedQueryModel.load(sqObject);
@@ -58,9 +58,11 @@ SavedQueryViewEngine.SavedQuery = BaseModel.extend({
 		name : "",
 		description : "",
 		lastUpdated : "",
+		dateCreated : "",
 		formCount : 0,
 		linkedUsers : null,
-		filtered: false
+		filtered: false,
+		filterExpression: ""
 	},
 	
 	/**
@@ -73,8 +75,10 @@ SavedQueryViewEngine.SavedQuery = BaseModel.extend({
 		this.set("name", sqObject.name);
 		this.set("description", sqObject.description);
 		this.set("lastUpdated", sqObject.lastUpdated);
+		this.set("dateCreated", sqObject.dateCreated);
 		this.set("formCount", sqObject.forms.length);
 		this.set("linkedUsers", sqObject.linkedUsers);
+		this.set("filterExpression", sqObject.filterExpression);
 		
 		var studies = sqObject.studies;
 		var forms = sqObject.forms;
@@ -244,7 +248,8 @@ SavedQueryViewEngine.SavedQueryForm = BaseModel.extend({
 		name : "",
 		id : 0,
 		filtered : false,
-		studyIds : []
+		studyIds : [],
+		filters: []
 	},
 	
 	addRg : function(repeatableGroup) {
@@ -275,10 +280,15 @@ SavedQueryViewEngine.SavedQueryForm = BaseModel.extend({
 			dateMin : "",
 			dateMax: "",
 			blank: false,
-			permissibleValues : []
+			permissibleValues : [],
+			filterName: "",
+			logicBefore: "",
+			groupingBefore: 0,
+			groupingAfter: 0
 		};
 		
 		var filters = dataObj.filters;
+		this.set("filters", filters);
 		if (filters.length > 0) {
 			this.set("filtered", true);
 			for (var j = 0; j < filters.length; j++) {
@@ -696,6 +706,17 @@ SavedQueryViewEngine.SavedQueryView  = BaseView.extend({
 	render : function(model) {
 		// closes all current views
 		EventBus.trigger("sqe:close:all");
+		
+		//format date
+		if(model.attributes.lastUpdated != undefined && model.attributes.lastUpdated != "") {
+			var lastUpdatedDate = new Date(model.attributes.lastUpdated);
+			model.attributes.lastUpdated = $.datepicker.formatDate('yy-mm-dd', lastUpdatedDate);
+		}
+		if(model.attributes.dateCreated != undefined && model.attributes.dateCreated != "") {
+			var dateCreatedDate = new Date(model.attributes.dateCreated);
+			model.attributes.dateCreated = $.datepicker.formatDate('yy-mm-dd', dateCreatedDate);
+		}
+		
 		this.$el.html(this.template(model.attributes));
 		
 		// start up the magic - by appending to the main container
@@ -708,6 +729,8 @@ SavedQueryViewEngine.SavedQueryView  = BaseView.extend({
 			studyView.render($container);
 		});
 		
+		// generate logic text
+		this.$('[name="queryLogic"]').text(this.generateLogicText(model));
 	},
 	
 	onOpenCloseQueryDetailsClick : function() {
@@ -726,6 +749,164 @@ SavedQueryViewEngine.SavedQueryView  = BaseView.extend({
 				.addClass("viewQuery_plus");
 			$container.show();
 		}
+	},
+	
+	generateLogicText : function(model) {
+		var allFilters = [];
+		model.forms.each(function(form) {
+			allFilters = allFilters.concat(form.get("filters"));
+		});
+		
+		if (allFilters.length == 0) {
+			return "none";
+		}
+		
+		var filterExpression = model.get("filterExpression");
+		if (!filterExpression) {
+			// old filter, doesn't use expression, so just evaluate the filters with &&
+			var filterTexts = [];
+			for (var j = 0; j < allFilters.length; j++) {
+				filterTexts.push(this.singleFilterExpression(allFilters[j]));
+			}
+			filterExpression = filterTexts.join(" && ");
+		}
+		else {
+			// new filter, uses expression so have to fill it in
+			var filterNames = filterExpression.match(/[^\(\)\|\&\s\!]+/g);
+			// keeps us from having to re-calculate a filter's innards
+			var filterCache = {};
+			for (var i = 0; i < filterNames.length; i++) {
+				var filterName = filterNames[i];
+				var filterText = "";
+				if (filterCache[filterName]) {
+					filterText = filterCache[filterName];
+				}
+				else {
+					filterText = this.singleFilterExpression(this.findFilterByName(allFilters, filterName));
+					filterCache[filterName] = filterText;
+				}
+				filterExpression = filterExpression.replace(filterName, filterText);
+			}
+		}
+		
+		filterExpression = filterExpression.replace(/\&\&/g, "AND");
+		filterExpression = filterExpression.replace(/\|\|/g, "OR");
+		
+		return filterExpression;
+	},
+	
+	findFilterByName : function(filters, name) {
+		for (var i = 0; i < filters.length; i++) {
+			var filter = filters[i];
+			if (filter.name == name) {
+				return filter;
+			}
+		}
+		return null;
+	},
+	
+	singleFilterExpression : function(filter) {
+		var filterType = filter.filterType;
+		// infer filter types for old filters that don't explicitly say it
+		if (!filterType) {
+			if (filter.freeFormValue) {
+				filterType = "FREE_FORM";
+			}
+			else if (filter.maximum && filter.minimum) {
+				filterType = "RANGED_NUMERIC";
+			}
+			else if (filter.dateMax && filter.dateMin) {
+				filterType = "DATE";
+			}
+			else if (filter.permissibleValues) {
+				filterType = "MULTI_SELECT";
+			}
+		}
+		
+		var filterName = filter.filterName || filter.name || this.generateFilterName(filter);
+		
+		var selectedPVs = filter.permissibleValues;
+		var combinedValues = "";
+		var numSelectedPVs;
+		if (filterType == "FREE_FORM") {
+			return filterName + " = \"" + filter.freeFormValue + "\"";
+		}
+		else if (filterType == "DELIMITED_MULTI_SELECT") {
+			return filterName + " = \"" + filter.freeFormValue + "\"";
+		}
+		else if (filterType == "RANGED_NUMERIC") {
+			return "(" + filterName + " >= " + filter.minimum + " AND " + filterName + " <= " + filter.maximum + ")";
+		}
+		else if (filterType == "DATE") {
+			return "(" + filterName + " >= " + filter.dateMin + " AND " + filterName + " <= " + filter.dateMax + ")";
+		}
+		else if (filterType == "MULTI_SELECT") {
+			var output = "";
+			var mode = filter.mode;
+			numSelectedPVs = (selectedPVs == null) ? 0 : selectedPVs.length;
+			if (mode == "exact") {
+				for (var j = 0; j < numSelectedPVs; j++) {
+					if (j != 0) {
+						combinedValues += " AND ";
+					}
+					combinedValues += filterName + " = \"" + selectedPVs[j] + "\"";
+				}
+				output = "(" + combinedValues + ")";
+			}
+			else {
+				for (var i = 0; i < numSelectedPVs; i++) {
+					if (i != 0) {
+						combinedValues += ", ";
+					}
+					combinedValues += "\"" + selectedPVs[i] + "\"";
+					if (i == 4) {
+						combinedValues += " ...";
+						break;
+					}
+				}
+				output = "(" + filterName + " IN (" + combinedValues + "))";
+			}
+			
+			if (filter.multiData) {
+				var multiDataOutput = "(" + filterName + ".size > 1)";
+				if (output != "") {
+					return "(" + output + " AND " + multiDataOutput + ")";
+				}
+				else {
+					return multiDataOutput;
+				}
+			}
+			return output;
+		}
+		else if (filterType == "SINGLE_SELECT" || filterType == "PERMISSIBLE_VALUE") {
+			numSelectedPVs = (selectedPVs == null) ? 0 : selectedPVs.length;
+			for (var k = 0; k < numSelectedPVs; k++) {
+				if (k != 0) {
+					combinedValues += ", ";
+				}
+				combinedValues += "\"" + selectedPVs[k] + "\"";
+				if (k == 4) {
+					combinedValues += " ...";
+					break;
+				}
+			}
+			return "(" + filterName + " IN (" + combinedValues + "))";
+		}
+	},
+	
+	/**
+	 * Generates a filter name when the filter doesn't have one explicitly assigned.
+	 * ONLY WORKS FOR OLD FILTERS THAT DON'T HAVE SUBFILTERS
+	 */
+	generateFilterName : function(filter) {
+		var formUri = filter.formUri || "form";
+		var elementUri = filter.elementUri || "element";
+		
+		var elementName = elementUri.substring(elementUri.lastIndexOf('/') + 1);
+		var formUriName = formUri.substring(formUri.lastIndexOf('/') + 1);
+		var name = formUriName + "_" + elementName;
+		name = name.replace("/\s/g", "$");
+		return name;
 	}
 	
 	

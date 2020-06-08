@@ -136,26 +136,6 @@ public class DataEntryInProgressDecorator extends ActionDecorator
     	//return "<a href=\""+this.getWebRoot()+"/response/dataEntry.do?action=edit_form&id="+form.getId()+"\">" + form.getForm().getName() + "</a>";
     }
     
-    public String getNumQuestionsAnswered()
-    {
-    	AdministeredForm form = (AdministeredForm) this.getObject();
-    	try {
-    		ResponseManager rm = new ResponseManager();
-    		List dataEntry1List = rm.getDataEntries(form.getForm().getId(), 1);
-    		DataEntryDraft dataEntry = (DataEntryDraft)dataEntry1List.get(0);
-	        //DataEntryDraft dataEntry = (DataEntryDraft)this.getObject();
-	        if (dataEntry.getNumQuestionsAnswered() == Integer.MIN_VALUE)
-	        {
-	            return "0";
-	        }
-	        else
-	        {
-	            return dataEntry.getNumQuestionsAnswered() + "";
-	        }
-    	}
-    	catch(Exception e) {
-    		return "0";
-    	}
-    }
+   
     
 }

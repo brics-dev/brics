@@ -1,12 +1,16 @@
 package gov.nih.nichd.ctdb.question.domain;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.FilenameUtils;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import gov.nih.nichd.ctdb.btris.domain.BtrisObject;
 import gov.nih.nichd.ctdb.common.CtdbDomainObject;
 import gov.nih.nichd.ctdb.common.CtdbException;
 import gov.nih.nichd.ctdb.common.ObjectNotFoundException;
@@ -14,6 +18,8 @@ import gov.nih.nichd.ctdb.common.TransformationException;
 import gov.nih.nichd.ctdb.common.Version;
 import gov.nih.nichd.ctdb.form.domain.CalculatedFormQuestionAttributes;
 import gov.nih.nichd.ctdb.form.domain.FormQuestionAttributes;
+import gov.nih.nichd.ctdb.util.common.SysPropUtil;
+import gov.nih.tbi.commons.util.EformFormViewXmlUtil;
 
 /**
  * Question DomainObject for the NICHD CTDB Application
@@ -57,8 +63,9 @@ public class Question extends CtdbDomainObject implements Comparable<Question>
 	protected String catOid;
 	protected String formItemOid;
 	protected String idText;
+	protected BtrisObject btrisObject = null;
 	
-	
+	public static final String EXTENSION_PDF = ".pdf";
 	
 	
 	
@@ -502,8 +509,9 @@ public class Question extends CtdbDomainObject implements Comparable<Question>
         Document document = super.newDocument();
         Element root = super.initXML(document, "question");
         
-        if ( (formQuestionAttributes != null) && formQuestionAttributes.isCalculatedQuestion() && (calculatedFormQuestionAttributes != null) ) {
+        if ( (formQuestionAttributes != null) && (formQuestionAttributes.isCalculatedQuestion() || formQuestionAttributes.isCountQuestion()) && (calculatedFormQuestionAttributes != null) ) {
         	root.setAttribute("type", "Calculated");
+        	root.setAttribute("isCount", Boolean.toString(calculatedFormQuestionAttributes.isCount()));
 	        root.setAttribute("calculation", calculatedFormQuestionAttributes.getCalculation());
 	        root.setAttribute("decimalPrecision", String.valueOf(formQuestionAttributes.getDecimalPrecision()));
 	        root.setAttribute("conditionalForCalc", Boolean.toString(calculatedFormQuestionAttributes.getConditionalForCalc().booleanValue()));
@@ -672,23 +680,69 @@ public class Question extends CtdbDomainObject implements Comparable<Question>
 
         if ( (images != null) && !images.isEmpty() )
         {
-            Element imagesNode = document.createElement("images");
-            Element fileNameNode = null;
+			Element imagesNode = null;
+			Element filesNode = null;
+			Element fileNameNode = null;
+			for (String fileName : images) {
+				String fileExtesion = FilenameUtils.getExtension(fileName);
+				if (EformFormViewXmlUtil.QUESTION_FILE_TYPES.contains(fileExtesion.toLowerCase())) {
+					filesNode = document.createElement("files");
+				} else {
+					imagesNode = document.createElement("images");
+				}
+			}
             
-            for ( String imageFileName : images )
+			for (String fileName : images)
             {
-                fileNameNode = document.createElement("filename");
-                fileNameNode.appendChild(document.createTextNode(imageFileName));
-                imagesNode.appendChild(fileNameNode);
+				fileNameNode = document.createElement("filename");
+				fileNameNode.appendChild(document.createTextNode(fileName));
+				String fileExtesion = FilenameUtils.getExtension(fileName);
+				if (EformFormViewXmlUtil.QUESTION_FILE_TYPES.contains(fileExtesion.toLowerCase())) {
+					try {
+						fileName = URLEncoder.encode(fileName, "UTF-8");
+					} catch (UnsupportedEncodingException e) {
+						e.printStackTrace();
+					}
+					String restfulDomain = SysPropUtil.getProperty("webservice.restful.ddt.domain");
+					String restfulUrl =
+							restfulDomain + "portal/ws/public/eforms/question/"
+							+ String.valueOf(this.getId())
+							+ SysPropUtil.getProperty("webservice.restful.eform.graphic.url2")
+							+ fileName;
+
+					fileNameNode.setAttribute("fileLink", restfulUrl);
+					filesNode.appendChild(fileNameNode);
+				} else {
+					imagesNode.appendChild(fileNameNode);
+				}
             }
-            
-            root.appendChild(imagesNode);
+			if (imagesNode != null) {
+				root.appendChild(imagesNode);
+			}
+			if (filesNode != null) {
+				root.appendChild(filesNode);
+			}
         }
+        
+        // BtrisMapping
+		if (this.btrisObject != null) {
+			root.setAttribute("hasBtrisMapping", "true");
+			Element btrisMappingNode = document.createElement("btrisMapping");
+			btrisMappingNode.setAttribute("btrisObservationName", this.btrisObject.getBtrisObservationName());
+			btrisMappingNode.setAttribute("btrisRedCode", this.btrisObject.getBtrisRedCode());
+			btrisMappingNode.setAttribute("btrisUnitOfMeasure", this.btrisObject.getBtrisUnitOfMeasure());
+			btrisMappingNode.setAttribute("btrisRange", this.btrisObject.getBtrisRange());
+			btrisMappingNode.setAttribute("btrisTable", this.btrisObject.getBtrisTable());
+			root.appendChild(btrisMappingNode);
+		} else {
+			root.setAttribute("hasBtrisMapping", "false");
+        }
+
 
         Document qAttrsDom = formQuestionAttributes.toXML();       
         
         root.appendChild(document.importNode(qAttrsDom.getDocumentElement(), true));
-        
+
         return document;
     }
 
@@ -780,6 +834,14 @@ public class Question extends CtdbDomainObject implements Comparable<Question>
 	 */
 	public void setCde(boolean cde) {
 		this.cde = cde;
+	}
+
+	public BtrisObject getBtrisObject() {
+		return this.btrisObject;
+	}
+
+	public void setBtrisObject(BtrisObject btrisObject) {
+		this.btrisObject = btrisObject;
 	}
 
 	@Override

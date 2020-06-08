@@ -13,11 +13,14 @@ import org.apache.log4j.Logger;
 
 import gov.nih.nichd.ctdb.common.BaseAction;
 import gov.nih.nichd.ctdb.common.CtdbConstants;
+import gov.nih.nichd.ctdb.form.domain.Form;
+import gov.nih.nichd.ctdb.form.util.FormDataStructureUtility;
 import gov.nih.nichd.ctdb.protocol.domain.Protocol;
 import gov.nih.nichd.ctdb.protocol.manager.ProtocolManager;
 import gov.nih.nichd.ctdb.selfreporting.form.SelfReportingLandingForm;
 import gov.nih.nichd.ctdb.selfreporting.form.SelfReportingProperties;
 import gov.nih.nichd.ctdb.selfreporting.manager.SelfReportingManager;
+import gov.nih.tbi.dictionary.model.hibernate.eform.BasicEform;
 
 public class SelfReportingHomeAction extends BaseAction {
 
@@ -28,6 +31,7 @@ public class SelfReportingHomeAction extends BaseAction {
 	private String token;
 	private List<SelfReportingLandingForm> selfReportingList;
 	public static final String PSR_ERROR = "psrError";
+	public static final String PSR_HEADER = "psrHeader";
 	
 	private Date startDate;
 	private Date endDate;
@@ -38,11 +42,11 @@ public class SelfReportingHomeAction extends BaseAction {
 				@Override
 				public int compare(SelfReportingLandingForm form1, SelfReportingLandingForm form2) {
 
-					if (form1 != null && form2 != null && form1.getFormName() != null && form2.getFormName() != null) {
+					if (form1 != null && form2 != null && form1.getShortName() != null && form2.getShortName() != null) {
 						if(form1.getLastUpdated() != null && form2.getLastUpdated() != null) {
 							int compare = form1.getLastUpdated().compareTo(form2.getLastUpdated());
 							if(compare == 0) {
-								return form1.getFormName().compareToIgnoreCase(form2.getFormName());
+								return form1.getShortName().compareToIgnoreCase(form2.getShortName());
 							}else {
 								return -(form1.getLastUpdated().compareTo(form2.getLastUpdated()));
 							}
@@ -51,7 +55,7 @@ public class SelfReportingHomeAction extends BaseAction {
 						}else if(form1.getLastUpdated() == null && form2.getLastUpdated() != null) {
 							return 1;
 						}else {
-							return form1.getFormName().compareToIgnoreCase(form2.getFormName());
+							return form1.getShortName().compareToIgnoreCase(form2.getShortName());
 						}
 						
 
@@ -80,6 +84,29 @@ public class SelfReportingHomeAction extends BaseAction {
 
 		try {
 			selfReportingList = srm.getSelfReportingList(token);
+			
+			
+			//get eform titles with web service call and set title
+			List<String> shortNames = new ArrayList<String>();
+			for (SelfReportingLandingForm form : selfReportingList) {
+				String shortName = form.getShortName();
+				shortNames.add(shortName);
+			}
+			FormDataStructureUtility fsUtil = new FormDataStructureUtility();
+			List<BasicEform> basicEforms = fsUtil.getBasicEforms(request, shortNames);
+			
+			for(BasicEform beForm : basicEforms) {
+				String beShortName = beForm.getShortName();
+				String beTitle = beForm.getTitle();
+				for (SelfReportingLandingForm form : selfReportingList) {
+					String shortName = form.getShortName();
+					if(shortName.equalsIgnoreCase(beShortName)) {
+						form.setFormTitle(beTitle);
+						break;
+					}
+				}
+			}
+			
 			SelfReportingProperties srp = srm.getSelfReportingDates(token);
 			
 			// set protocol into session
@@ -88,6 +115,10 @@ public class SelfReportingHomeAction extends BaseAction {
 			if (protocolId > 0) {
 				protocol = pm.getProtocol(protocolId);
 			}
+
+			if (null != protocol.getPsrHeader())
+				request.setAttribute(PSR_HEADER, protocol.getPsrHeader());
+
 			session.put(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY, protocol);
 			
 			Date psrScheduledVisitDate = srm.getScheduledVisitDate(token);

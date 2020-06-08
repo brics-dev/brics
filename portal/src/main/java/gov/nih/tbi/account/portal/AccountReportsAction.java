@@ -2,13 +2,10 @@ package gov.nih.tbi.account.portal;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Month;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -17,12 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.http.entity.ContentType;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.struts2.ServletActionContext;
 import org.apache.struts2.result.StreamResult;
 import org.joda.time.Days;
 import org.joda.time.LocalDate;
@@ -37,7 +30,6 @@ import gov.nih.tbi.account.model.AccountActionType;
 import gov.nih.tbi.account.model.AccountEmailReportFrequency;
 import gov.nih.tbi.account.model.AccountMessageTemplateType;
 import gov.nih.tbi.account.model.AccountReportType;
-import gov.nih.tbi.account.model.AccountType;
 import gov.nih.tbi.account.model.EmailReportType;
 import gov.nih.tbi.account.model.hibernate.Account;
 import gov.nih.tbi.account.model.hibernate.AccountEmailReportSetting;
@@ -56,7 +48,6 @@ import gov.nih.tbi.commons.service.ServiceConstants;
 import gov.nih.tbi.idt.ws.IdtInterface;
 import gov.nih.tbi.idt.ws.InvalidColumnException;
 import gov.nih.tbi.idt.ws.Struts2IdtInterface;
-import gov.nih.tbi.repository.service.util.AccessReportExportUtil;
 import gov.nih.tbi.taglib.datatableDecorators.AccountRenewalListIdtDecorator;
 import gov.nih.tbi.taglib.datatableDecorators.AccountReportingLogListIdtDecorator;
 import gov.nih.tbi.taglib.datatableDecorators.AccountRequestListIdtDecorator;
@@ -74,7 +65,7 @@ public class AccountReportsAction extends AccountAction {
 	private AccountEmailReportSetting currentEmailReportSetting;
 	private List<AccountMessageTemplate> accountMessageTemplates;
 	private String accountMessages;
-	private String expirationDate;
+	private String renewPrivilegesExpireDate;
 	private String renewPrivilegesComment;
 
 	private String filterStartDate;
@@ -156,8 +147,9 @@ public class AccountReportsAction extends AccountAction {
 
 		try {
 			IdtInterface idt = new Struts2IdtInterface();
-			ArrayList<Account> outputList = new ArrayList<Account>(accountManager.getAccountByStatuses(
-					AccountStatus.REQUESTED, AccountStatus.PENDING, AccountStatus.CHANGE_REQUESTED));
+			ArrayList<Account> outputList = new ArrayList<Account>(
+					accountManager.getAccountByStatuses(AccountStatus.REQUESTED, AccountStatus.PENDING,
+							AccountStatus.CHANGE_REQUESTED, AccountStatus.RENEWAL_REQUESTED));
 			idt.setList(outputList);
 			idt.setTotalRecordCount(outputList.size());
 			idt.setFilteredRecordCount(outputList.size());
@@ -328,45 +320,46 @@ public class AccountReportsAction extends AccountAction {
 
 	}
 
-	public StreamResult renewPrivileges() {
+	public String renewAccount() {
 
+		Account currentAccount = getCurrentAccount();
 		Date expireDate = null;
 
 		try {
-			if (expirationDate != null && !expirationDate.trim().equals("")) {
+			if (!StringUtils.isEmpty(renewPrivilegesExpireDate)) {
 				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-				expireDate = sdf.parse(expirationDate);
+				expireDate = sdf.parse(renewPrivilegesExpireDate);
 			}
 		} catch (ParseException e) {
 			logger.error("Invalid expiration date : " + e);
 		}
 
-		Set<AccountRole> expiringSoonRoles = getCurrentAccount().getExpiringSoonRoles();
-
-		for (AccountRole accountRole : expiringSoonRoles) {
-
-			// The date will not apply to the Accounts module
-			if (accountRole.getRoleType() != RoleType.ROLE_USER)
+		for (AccountRole accountRole : currentAccount.getAccountRoleList()) {
+			RoleStatus status = accountRole.getRoleStatus();
+			if (accountRole.getRoleType() != RoleType.ROLE_USER && (status == RoleStatus.EXPIRING_SOON
+					|| status == RoleStatus.EXPIRED || status == RoleStatus.PENDING)) {
 				accountRole.setExpirationDate(expireDate);
 
-			// If the date selected is more than 30 days away, the user account will be
-			// changed to status “Active”
-			if (expireDate == null || setAccountRoleActive(accountRole, expireDate)) {
-				accountRole.setRoleStatus(RoleStatus.ACTIVE);
+				// If the date selected is more than 30 days away, account status will be changed to “Active”
+				if (expireDate == null || setAccountRoleActive(accountRole, expireDate)) {
+					accountRole.setRoleStatus(RoleStatus.ACTIVE);
+				}
 			}
 		}
 
-		String actionTypeArguments = expirationDate;
-
-		AccountHistory renewRoleAccountHistory = new AccountHistory(getCurrentAccount(),
-				AccountActionType.PRIVILEGE_RENEWAL_COMMENT, actionTypeArguments, getRenewPrivilegesComment(),
+		if (currentAccount.getAccountStatus() == AccountStatus.RENEWAL_REQUESTED) {
+			currentAccount.setAccountStatus(AccountStatus.ACTIVE);
+		}
+		
+		AccountHistory renewRoleAccountHistory = new AccountHistory(currentAccount,
+				AccountActionType.PRIVILEGE_RENEWAL_COMMENT, renewPrivilegesExpireDate, getRenewPrivilegesComment(),
 				new Date(), getUser());
-		getCurrentAccount().setLastUpdatedDate(new Date());
-		getCurrentAccount().addAccountHistory(renewRoleAccountHistory);
+		currentAccount.setLastUpdatedDate(new Date());
+		currentAccount.addAccountHistory(renewRoleAccountHistory);
 
-		accountManager.saveAccount(getCurrentAccount());
+		accountManager.saveAccount(currentAccount);
 
-		return new StreamResult(new ByteArrayInputStream((SUCCESS).getBytes()));
+		return SUCCESS;
 	}
 
 	public EmailReportType getCheckedEmailReportType() {
@@ -457,12 +450,12 @@ public class AccountReportsAction extends AccountAction {
 		this.accountMessages = accountMessages;
 	}
 
-	public String getExpirationDate() {
-		return expirationDate;
+	public String getRenewPrivilegesExpireDate() {
+		return renewPrivilegesExpireDate;
 	}
 
-	public void setExpirationDate(String expirationDate) {
-		this.expirationDate = expirationDate;
+	public void setRenewPrivilegesExpireDate(String renewPrivilegesExpireDate) {
+		this.renewPrivilegesExpireDate = renewPrivilegesExpireDate;
 	}
 
 	public String getRenewPrivilegesComment() {

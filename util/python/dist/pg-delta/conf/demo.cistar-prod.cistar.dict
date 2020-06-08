@@ -1,0 +1,16 @@
+[DB-TRG]
+host=cistar-dbdictionary-demo.ninds.nih.gov
+database=dictionary_demo
+schema=dictionarydemo
+user=dictionarydemo
+label=TRG-DEMO-CISTAR
+
+[DB-SRC]
+host=cistar-dbdictionary-prod.ninds.nih.gov
+database=dictionary_prod
+schema=dictionary
+user=dictionary
+label=SRC-PROD-CISTAR
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\pgDelta\democistar-prodcistar.dict

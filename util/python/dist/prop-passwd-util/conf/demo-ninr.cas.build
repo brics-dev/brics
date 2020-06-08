@@ -1,0 +1,7 @@
+[FILE-SYS]
+logDir=/var/lib/brics/log/propPasswdUtil/demo-ninr-cas
+passFile=/home/buildman/.pgpass
+
+[DEPLOY]
+trgRoot=/var/lib/brics/remote/demo/ninr-cas
+srcRoot=/var/lib/brics/src/local/prop/demo/ninr-cas

@@ -14,6 +14,7 @@ public class DatasetIdtListDecorator extends IdtDecorator {
 	boolean inAdmin;
 	BasicDataset dataset;
 	EntityMap permission;
+	public static final int DATASET_NAME_LIMIT = 50;
 
 	public String initRow(Object obj, int viewIndex) {
 		String feedback = super.initRow(obj, viewIndex);
@@ -38,13 +39,25 @@ public class DatasetIdtListDecorator extends IdtDecorator {
 	}
 
 	public String getNameLink() {
-		if (inAdmin) {
-			return "<a href=\"/portal/studyAdmin/datasetAction!view.action?prefixedId=" + dataset.getPrefixedId()
-					+ "\">" + dataset.getName() + "</a>";
-		} else {
-			return "<a href=\"javascript:viewDataset('" + dataset.getPrefixedId() + "', 'false')\">" + dataset.getName()
-					+ "</a>";
-		}
+		if(inAdmin) {
+			if (dataset.getName().length() > DATASET_NAME_LIMIT) {
+				return "<span title=\"" + dataset.getName() + "\"><a href=\"/portal/studyAdmin/datasetAction!view.action?prefixedId=" + dataset.getPrefixedId() 
+						+ "\">"  + dataset.getName().substring(0,DATASET_NAME_LIMIT-1).concat("...") + "</a></span>";
+			} else {
+				return "<a href=\"/portal/studyAdmin/datasetAction!view.action?prefixedId=" + dataset.getPrefixedId()
+				+ "\">" + dataset.getName() + "</a>";
+				
+			}
+		}else {
+			if (dataset.getName().length() > DATASET_NAME_LIMIT) {
+				return "<span title=\"" + dataset.getName() + "\"><a href=\"javascript:viewDataset('" + dataset.getPrefixedId() + "', 'false')\">" + 
+						dataset.getName().substring(0,DATASET_NAME_LIMIT-1).concat("...")
+						+ "</a></span>";
+			} else {
+				return "<a href=\"javascript:viewDataset('" + dataset.getPrefixedId() + "', 'false')\">" + dataset.getName()
+						+ "</a>";
+			}
+		}	
 	}
 
 	public String getStudyLink() {

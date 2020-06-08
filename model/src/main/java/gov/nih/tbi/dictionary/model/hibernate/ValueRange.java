@@ -52,7 +52,7 @@ public class ValueRange implements Serializable, Comparable<ValueRange> {
 	@Transient
 	private String uri;
 
-	//@XmlTransient
+	// @XmlTransient
 	@XmlIDREF
 	@ManyToOne(targetEntity = StructuralDataElement.class)
 	@JoinColumn(name = "DATA_ELEMENT_ID")
@@ -67,11 +67,11 @@ public class ValueRange implements Serializable, Comparable<ValueRange> {
 	// added by Ching-Heng
 	@Column(name = "ITEM_RESPONSE_OID")
 	private String itemResponseOid;
-	
+
 	@Column(name = "ELEMENT_OID")
 	private String elementOid;
-	
-	
+
+
 	@OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "valueRange", targetEntity = SchemaPv.class, orphanRemoval = true)
 	private Set<SchemaPv> schemaPvs = new HashSet<SchemaPv>();
 
@@ -88,7 +88,7 @@ public class ValueRange implements Serializable, Comparable<ValueRange> {
 		this.valueRange = valueRange;
 		this.description = description;
 	}
-	
+
 	public ValueRange(String valueRange, String description, String elementOid, String itemResponseOid) {
 		super();
 		this.valueRange = valueRange;
@@ -113,8 +113,9 @@ public class ValueRange implements Serializable, Comparable<ValueRange> {
 		this.description = description;
 		this.outputCode = outputCode;
 	}
-	
-	public ValueRange(Long id, String valueRange, String description, Integer outputCode, String elementOid, String itemResponseOid) {
+
+	public ValueRange(Long id, String valueRange, String description, Integer outputCode, String elementOid,
+			String itemResponseOid) {
 
 		this.id = id;
 		this.valueRange = valueRange;
@@ -159,7 +160,7 @@ public class ValueRange implements Serializable, Comparable<ValueRange> {
 
 		return valueRange;
 	}
-	
+
 	public String getItemResponseOid() {
 		return itemResponseOid;
 	}
@@ -186,18 +187,18 @@ public class ValueRange implements Serializable, Comparable<ValueRange> {
 
 		NativeTypeConverter converter = null;
 
-		//Even though it kinda doesn't make sense, it is possible for a permissible value
-		//to not be associated with a data element, if it is loeaded from the semantic store.
-		//in that case, we just treat the value as String for comparison purposes
-		//even though it could be associate with a numeric data element
-		if(this.dataElement != null && this.dataElement.getType() != null) {
+		// Even though it kinda doesn't make sense, it is possible for a permissible value
+		// to not be associated with a data element, if it is loeaded from the semantic store.
+		// in that case, we just treat the value as String for comparison purposes
+		// even though it could be associate with a numeric data element
+		if (this.dataElement != null && this.dataElement.getType() != null) {
 			DataType type = this.dataElement.getType();
 			converter = type.getTypeConverter();
 		}
 
 		Comparable result;
 
-		if(converter != null) {
+		if (converter != null) {
 			result = converter.getNativeValue(this.valueRange);
 		} else {
 			result = this.valueRange.toUpperCase();
@@ -222,8 +223,11 @@ public class ValueRange implements Serializable, Comparable<ValueRange> {
 	}
 
 	public String getDescription() {
-
-		return description;
+		if(description == null) {
+			return "";
+		} else {
+			return description.replaceAll("\\n", " ");
+		}
 	}
 
 	public void setDescription(String description) {
@@ -357,7 +361,7 @@ public class ValueRange implements Serializable, Comparable<ValueRange> {
 		Map<String, String> schemaPvMap = new HashMap<String, String>();
 		for (SchemaPv currentSchemaPv : schemaPvs) {
 			if (currentSchemaPv.getSchema().getName() != null) { // no use putting it in the map of the schema name
-																	// doesn't exist
+																 // doesn't exist
 				schemaPvMap.put(currentSchemaPv.getSchema().getName(), currentSchemaPv.getPermissibleValue());
 			}
 		}

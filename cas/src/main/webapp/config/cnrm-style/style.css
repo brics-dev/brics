@@ -6509,7 +6509,8 @@ input.required {
 }
 
 #header .content {
-  background: url(../../images/layout/bkg-header.png) no-repeat 200px 0;
+  /*background: url(../../images/layout/bkg-header.png) no-repeat 200px 0;*/
+  background-color: white;
 }
 
 #header .content {
@@ -6517,7 +6518,8 @@ input.required {
 }
 
 #header {
-  background-color: #ececec;
+  /*background-color: #ececec;*/
+  background-color: white;
   border-color: white;
 }
 

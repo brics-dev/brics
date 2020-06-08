@@ -9,7 +9,10 @@ public class AdverseEventJson extends JSONObject {
 	   private int administeredformId;
 	    private String dataElementName;
 	    private String subject;
-
+	    /* subject */
+		private String guId;
+		private String mRN;
+		private String nRN;
 
 		private String aeStartDate;  //Date
 	    private String aeEndDate;
@@ -23,6 +26,10 @@ public class AdverseEventJson extends JSONObject {
 		aejson.setAdministeredformId(ae.getAdministeredformId());
 		aejson.setSubject(ae.getSubject());
 		aejson.setFormCompleteddate(ae.getFormCompleteddate());
+		/* subject */
+		aejson.setGuId(ae.getGuId());
+		aejson.setmRN(ae.getmRN());
+		aejson.setnRN(ae.getnRN());
 		return aejson;
 	}
 
@@ -50,6 +57,25 @@ public class AdverseEventJson extends JSONObject {
 	public void setSubject(String subject) {
 		this.subject = subject;
 	}
+	/* subject */
+	public String getGuId() {
+		return guId;
+	}
+	public void setGuId(String guId) {
+		this.guId = guId;
+	}
+	public String getmRN() {
+		return mRN;
+	}
+	public void setmRN(String mRN) {
+		this.mRN = mRN;
+	}
+	public String getnRN() {
+		return nRN;
+	}
+	public void setnRN(String nRN) {
+		this.nRN = nRN;
+	}	
 	
     public String getAeStartDate() {
 		return aeStartDate;
@@ -88,6 +114,11 @@ public class AdverseEventJson extends JSONObject {
 			obj.put("administeredformId", this.getAdministeredformId());
 			obj.put("subject", this.getSubject());
 			obj.put("formCompleteddate", this.getFormCompleteddate());
+			
+			/* subject */
+			obj.put("guId", this.getGuId());
+			obj.put("mRN",  this.getmRN());
+			obj.put("nRN",  this.getnRN());
 			return obj.toString();
 		}
 		catch(Exception e) {

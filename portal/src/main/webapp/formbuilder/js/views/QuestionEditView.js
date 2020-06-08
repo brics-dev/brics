@@ -571,13 +571,22 @@ var QuestionEditView = EditorView.extend({
 	finishQuestionAddEdit : function() {
 		// attach question to the form
 		var graphicJSON= JSON.parse(this.$('#graphicFr').contents().find('input#graphicJSON').val()) ;
-		
-		//alert("graphicJSON"+graphicJSON);
 		var graphicNames=graphicJSON.graphicNames;
-	
-		if(graphicNames=='unsupported_file_extension'){
+		
+		var permissibleTypes = Config.fileUpload.permissibleTypes;
+		var permissibleSize = Config.fileUpload.permissibleSize;
+		var unsupportedFileExtension = Config.fileUpload.unsupportedFileExtension;
+		var unsupportedFileSize = Config.fileUpload.unsupportedFileSize;
+		
+		if(graphicNames== unsupportedFileExtension+unsupportedFileSize){
 			$("#messageContainer").empty();
-			$.ibisMessaging("primary", "error", "Please upload file type GIF, JPG, JPEG, PNG.",{container: "#questionGraphicsMessageContainer"});
+			$.ibisMessaging("primary", "error", "Please upload file of type "+permissibleTypes+" and size less than "+permissibleSize+" MB",{container: "#questionGraphicsMessageContainer"});
+		}else if (graphicNames!=unsupportedFileExtension && (graphicNames==unsupportedFileSize)){
+			$("#messageContainer").empty();
+			$.ibisMessaging("primary", "error", "Please upload file with size less than "+permissibleSize+" MB",{container: "#questionGraphicsMessageContainer"});
+		}else if (graphicNames==unsupportedFileExtension && (graphicNames!=unsupportedFileSize)){
+			$("#messageContainer").empty();
+			$.ibisMessaging("primary", "error", "Please upload file of type "+permissibleTypes+".",{container: "#questionGraphicsMessageContainer"});
 		}
 		var userFileId=graphicJSON.userFileId;
 		this.model.set("graphicNames",graphicNames);

@@ -58,6 +58,9 @@ public class InstancedRow implements Serializable {
 	@XmlAttribute
 	private boolean doHighlight;
 
+	@XmlAttribute
+	private boolean inMdsUpdrsX;
+
 	@XmlJavaTypeAdapter(CellValueAdapter.class)
 	private LinkedHashMap<DataTableColumn, CellValue> cell;
 
@@ -75,7 +78,7 @@ public class InstancedRow implements Serializable {
 
 	public InstancedRow(String rowUri, String submissionId, Long datasetId, String readableDatasetId, String studyId,
 			String studyPrefixedId, String studyName, String datasetName, String isDerived, boolean doHighlight,
-			String guid, String formShortName) {
+			String guid, String formShortName, boolean inMdsUpdrsX) {
 
 		this.rowUri = rowUri;
 		this.submissionId = submissionId;
@@ -90,6 +93,15 @@ public class InstancedRow implements Serializable {
 		this.guid = guid;
 		this.formShortName = formShortName;
 		cell = new LinkedHashMap<DataTableColumn, CellValue>();
+		this.inMdsUpdrsX = inMdsUpdrsX;
+	}
+
+	public boolean isInMdsUpdrsX() {
+		return inMdsUpdrsX;
+	}
+
+	public void setInMdsUpdrsX(boolean inMdsUpdrsX) {
+		this.inMdsUpdrsX = inMdsUpdrsX;
 	}
 
 	public String getGuid() {

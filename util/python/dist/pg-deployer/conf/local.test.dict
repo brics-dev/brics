@@ -1,0 +1,9 @@
+[DB-TRG]
+host=ibis-db-test.cit.nih.gov
+database=dictionary_test
+schema=dictionarytest
+user=dictionarytest
+
+[FILE-SYS]
+queueDir=D:\DEV\BRIX\pg-rev\dict
+logDir=D:\DEV\appdata\log\pgDeployer\test-dict

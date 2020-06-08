@@ -7,19 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import gov.nih.tbi.commons.util.SparqlConstructionUtil;
-import gov.nih.tbi.constants.QueryToolConstants;
-import gov.nih.tbi.dao.DerivedDataDao;
-import gov.nih.tbi.dictionary.model.NameAndVersion;
-import gov.nih.tbi.query.model.DerivedDataKey;
-import gov.nih.tbi.query.model.DerivedDataRow;
-import gov.nih.tbi.query.model.RepeatableGroupDataElement;
-import gov.nih.tbi.semantic.model.DataElementRDF;
-import gov.nih.tbi.semantic.model.FormStructureRDF;
-import gov.nih.tbi.semantic.model.RepeatableGroupRDF;
-import gov.nih.tbi.service.RDFStoreManager;
-import gov.nih.tbi.util.InstancedDataUtil;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,12 +17,25 @@ import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.query.QuerySolution;
-import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.sparql.core.Var;
 import com.hp.hpl.jena.sparql.syntax.ElementGroup;
 import com.hp.hpl.jena.sparql.syntax.ElementTriplesBlock;
 import com.hp.hpl.jena.vocabulary.RDF;
 import com.hp.hpl.jena.vocabulary.RDFS;
+
+import gov.nih.tbi.commons.util.SparqlConstructionUtil;
+import gov.nih.tbi.constants.QueryToolConstants;
+import gov.nih.tbi.dao.DerivedDataDao;
+import gov.nih.tbi.dictionary.model.NameAndVersion;
+import gov.nih.tbi.pojo.QueryResult;
+import gov.nih.tbi.query.model.DerivedDataKey;
+import gov.nih.tbi.query.model.DerivedDataRow;
+import gov.nih.tbi.query.model.RepeatableGroupDataElement;
+import gov.nih.tbi.semantic.model.DataElementRDF;
+import gov.nih.tbi.semantic.model.FormStructureRDF;
+import gov.nih.tbi.semantic.model.RepeatableGroupRDF;
+import gov.nih.tbi.service.RDFStoreManager;
+import gov.nih.tbi.util.InstancedDataUtil;
 
 /**
  * This class is used to query Virtuoso for derived data. This is primarily called from the derivedDataManager
@@ -67,13 +67,11 @@ public class DerivedDataDaoImpl implements DerivedDataDao, Serializable {
 		// get the query to retrieve derived data
 		Query query = getDerivedDataQuery(formNameAndVersion, repeatableGroupDataElements, guids);
 
-		ResultSet resultSet = rdfStoreManager.querySelect(query);
+		QueryResult resultSet = rdfStoreManager.querySelect(query);
 
 		Map<DerivedDataKey, DerivedDataRow> derivedDataMap = new HashMap<DerivedDataKey, DerivedDataRow>();
 
-		while (resultSet.hasNext()) {
-			QuerySolution row = resultSet.next();
-
+		for(QuerySolution row:resultSet.getQueryData()) {
 			DerivedDataRow currentDataRow = new DerivedDataRow();
 			DerivedDataKey currentDataKey = new DerivedDataKey();
 

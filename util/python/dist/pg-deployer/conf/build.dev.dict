@@ -1,0 +1,6 @@
+[DB-TRG]
+host=ibis-db-dev.cit.nih.gov
+database=dictionary_dev
+schema=dictionarydev
+user=dictionarydev
+label=TARGET

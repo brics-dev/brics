@@ -3,28 +3,28 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
 <c:set var="hostname" value="${pageContext.request.serverName}"/>
 <c:choose>
-   <c:when test="${fn:contains(hostname, 'cnrm' )}">
+   <c:when test="${fn:contains(modulesConstants.modulesStyleKey, 'cnrm' )}">
   	<link href="<s:url value='/config/cnrm/style.css'/>" rel="stylesheet" type="text/css" media="all" />
    </c:when>
-   <c:when test="${fn:contains(hostname, 'pdbp' )}">
+   <c:when test="${fn:contains(modulesConstants.modulesStyleKey, 'pdbp' )}">
      	<link href="<s:url value='/config/pdbp/style.css'/>" rel="stylesheet" type="text/css" media="all" />
    </c:when>
-   <c:when test="${fn:contains(hostname, 'fitbir' )}">
+   <c:when test="${fn:contains(modulesConstants.modulesStyleKey, 'fitbir' )}">
    	<link href="<s:url value='/config/fitbir/style.css'/>" rel="stylesheet" type="text/css" media="all" />
    </c:when>
-   <c:when test="${fn:contains(hostname, 'ninds' )}">
+   <c:when test="${fn:contains(modulesConstants.modulesStyleKey, 'ninds' )}">
    	<link href="<s:url value='/config/ninds/style.css'/>" rel="stylesheet" type="text/css" media="all" />
    </c:when>
-    <c:when test="${fn:contains(hostname, 'cistar' )}">
+    <c:when test="${fn:contains(modulesConstants.modulesStyleKey, 'cistar' )}">
    	<link href="<s:url value='/config/cistar/style.css'/>" rel="stylesheet" type="text/css" media="all" />
    </c:when>
-   <c:when test="${fn:contains(hostname, 'eyegene' ) || fn:contains(hostname, 'nei' )}">
+   <c:when test="${fn:contains(modulesConstants.modulesStyleKey, 'eyegene' ) || fn:contains(modulesConstants.modulesStyleKey, 'nei' )}">
    	<link href="<s:url value='/config/eyegene/style.css'/>" rel="stylesheet" type="text/css" media="all" />
    </c:when>
-   <c:when test="${fn:contains(hostname, 'cdrns' )}">
+   <c:when test="${fn:contains(modulesConstants.modulesStyleKey, 'cdrns' )}">
    	<link href="<s:url value='/config/cdrns/style.css'/>" rel="stylesheet" type="text/css" media="all" />
    </c:when>
-   	<c:when test="${fn:contains(hostname, 'nti' )}">
+   	<c:when test="${fn:contains(modulesConstants.modulesStyleKey, 'nti' )}">
         <link href="<s:url value='/config/nti/style.css'/>" rel="stylesheet" type="text/css" media="all" />
  </c:when>
 </c:choose>

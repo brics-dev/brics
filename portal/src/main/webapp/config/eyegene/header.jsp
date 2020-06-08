@@ -4,8 +4,8 @@
 <div id="header">
 	<div class="content">
 		
-	<s:if test='modulesPublicURL != ""'>
-		<a id="logo" class="float-left" href='<s:url value="%{modulesPublicURL}"/>'>
+	<s:if test='templatePublicURL != ""'>
+		<a id="logo" target="_blank" class="float-left" href='<s:url value="%{templatePublicURL}"/>'>
 	</s:if>
 	<s:else>
 		<a id="logo" class="float-left" href='<s:url value="/"/>'>

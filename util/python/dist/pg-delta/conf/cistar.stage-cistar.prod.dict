@@ -1,0 +1,16 @@
+[DB-ONE]
+host=cistar-dbdictionary-stage.cit.nih.gov
+database=dictionary_stg
+schema=dictionarystg
+user=dictionarystg
+label=CISTAR-STAGE
+
+[DB-TWO]
+host=cistar-dbdictionary-prod.ninds.nih.gov
+database=dictionary_prod
+schema=dictionary
+user=dictionary
+label=PROD
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\pgDelta\cistarstage-cistarprod-dict

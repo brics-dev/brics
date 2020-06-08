@@ -21,11 +21,10 @@
 						src='<s:url value="/images/global/usagov_logo-bw.png"/>' width="100" height="31" border="0" alt="USA.gov"/></a></li>
 			</ul>
 		</div>	
-		<div class="build-notes clear-both line">
-			<p class="right">Build Version:<s:property value="%{deploymentVersion}" /></p>
-		</div>
+		
+		<!-- Include the release info section -->
+		<jsp:include page="/common/release-info.jsp" />
 	</div>
-
 </div>
 <!-- end #footer -->
 

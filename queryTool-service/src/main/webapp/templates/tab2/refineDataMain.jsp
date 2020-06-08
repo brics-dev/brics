@@ -1,17 +1,11 @@
 <script id="refineDataMain" type="text/x-handlebars-template">
 	<div class="filterPane fullHeight">
-		<a href="javascript:;" class="toggleFilterPane pe-is-i-angle-circle-left"></a>
+		<a href="javascript:;" class="toggleFilterPane pe-is-i-angle-circle-left" title="This button will show or hide the entire Data Cart pane. This includes the Data Cart and Filters"></a>
 		<div id="refineDataCartContainer"></div>
 		<div id="filterPaneContentContainer">
+			<a href="javascript:;" class="toggleCartPane pe-is-i-angle-circle-up" title="This button will toggle the data cart pane. This will show or hide your chosen forms"></a>
 			<div id="filterPaneHeader">
-				<div id="filterPaneHeaderTitle">
-					Filters
-					<span class="pe-is-i-sliders-flat"></span>
-				</div>
-				<a href="javascript:;" class="applyFilterButton buttonWithIcon disabled">
-					<span class="icon pe-is-i-sliders-flat"></span>
-					Apply Filter(s)
-				</a>
+				<div id="filterLogicBoxContainer"></div>
 				<div class="clearfix"></div>
 				<div class="filterErrorContainer"></div>
 			</div>
@@ -21,7 +15,7 @@
 	</div>
 	<div class="filterPaneHandle fullHeight">
 		<div class="filterPaneHandleContents fullHeight">
-			<a href="javascript:;" class="toggleFilterPane pe-is-i-angle-circle-right"></a>
+			<a href="javascript:;" class="toggleFilterPane pe-is-i-angle-circle-right" title="This button will toggle the entire Data Cart pane. This includes the Data Cart and Filters"></a>
 			<span class="pe-is-ec-cart-1 filterPaneHandleCart"></span>
 			<div class="filterPaneHandleTurn">
 				Data Cart

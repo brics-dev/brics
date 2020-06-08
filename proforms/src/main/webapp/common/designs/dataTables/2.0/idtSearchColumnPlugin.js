@@ -10,6 +10,8 @@
 
 	// main function here
 	$.fn.IdtSearchColumn = function(table, opts) {
+		var searchApplied = false;
+
 		// private methods here
 
 		function getColumns() {
@@ -22,8 +24,8 @@
 								var $header = $(this.header());
 								var text = $header.text();
 								var columnsName = api.settings().init().columns;
-								
-								if ($header.find(".idtNav").length === 0 && $header.text() !== ""
+								if (columnsName[index].bSearchable !== false && $header.find(".idtNav").length === 0
+												&& $header.text() !== ""
 												&& $header.find(".idt_selectAllSelector").length === 0) {
 									columns.columns.push({
 										index: this.index(),
@@ -62,7 +64,7 @@
 						var sear = $wrapper.find(".idt_searchInput").val().toLowerCase();
 						settings.clearCache = true;
 						$.extend(data.search, {
-							value : sear
+							value: sear
 						});
 						for (var i = 0, len = data.columns.length; i < len; i++) {
 							data.columns[i].searchable = (searchRowIndices.indexOf(data.columns[i].name) >= 0);
@@ -93,11 +95,17 @@
 			$widget.find('.idt_selectColumnCheckbox').on("click", callSearch);
 		}
 
+		function removeOldSearch($table) {
+			if (searchApplied) {
+				searchApplied = false;
+				table.dataTableExt.search.splice(-1, 1);
+			}
+		}
+
 		function openCloseDropdownCallback(event) {
 			event.stopPropagation();
 			// I don't use toggle here because we still have the hover
-			// controlled
-			// in CSS
+			// controlled in CSS
 			var $menu = $widget.find(".idt_selectColumnDrop");
 			// native JS because jquery doesn't have this
 			if ($menu[0].hasAttribute("style")) {
@@ -109,21 +117,24 @@
 		}
 
 		function search($element, event) {
-			table.dataTableExt.search.push(function(settings, data, dataIndex) {
-                if (table.attr("id") != settings.nTable.getAttribute('id')) {
-                    return true;
-                }
-                // get all selected checkboxes
-				for (var i = 0, len = data.length; i < len; i++) {
-					var sear = $element.val().toLowerCase();
-					if ($widget.find('.idt_selectColumnCheckbox[value="' + settings.aoColumns[i].name + '"]:checked').length > 0) {
-						if (~data[i].toLowerCase().indexOf(sear)) return true;
-					}
-				}
-				return false;
-			});
-			
+			removeOldSearch($element);
+			searchApplied = true;
+			table.dataTableExt.search
+							.push(function(settings, data, dataIndex) {
+								if (table.attr("id") != settings.nTable.getAttribute('id')) { return true; }
+								// get all selected checkboxes
+								for (var i = 0, len = data.length; i < len; i++) {
+									var sear = $element.val().toLowerCase();
+									if ($widget.find('.idt_selectColumnCheckbox[value="' + settings.aoColumns[i].name
+													+ '"]:checked').length > 0) {
+										if (~data[i].toLowerCase().indexOf(sear)) return true;
+									}
+								}
+								return false;
+							});
+
 			table.fnDraw();
+
 		}
 
 		/**

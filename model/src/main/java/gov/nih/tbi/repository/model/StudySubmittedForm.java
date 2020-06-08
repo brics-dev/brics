@@ -2,6 +2,7 @@ package gov.nih.tbi.repository.model;
 
 public class StudySubmittedForm {
 	
+	private Long studyId;
 	private String studyTitle;
 	private String fSTitle;
 	private String fSShortName;
@@ -10,13 +11,22 @@ public class StudySubmittedForm {
 	
 	
 	
-	public StudySubmittedForm(String studyTitle, String fSTitle, String fSShortName, String numberOfRecords, String datasetStatus) {
+	public StudySubmittedForm(Long studyId, String studyTitle, String fSTitle, String fSShortName, String numberOfRecords, String datasetStatus) {
 		super();
+		this.studyId = studyId;
 		this.studyTitle = studyTitle;
 		this.fSTitle = fSTitle;
 		this.fSShortName = fSShortName;
 		this.numberOfRecords = numberOfRecords;
 		this.datasetStatus = datasetStatus;
+	}
+	
+	public Long getStudyId() {
+		return studyId;
+	}
+	
+	public void setStudyId(Long studyId) {
+		this.studyId = studyId;
 	}
 	public String getStudyTitle() {
 		return studyTitle;

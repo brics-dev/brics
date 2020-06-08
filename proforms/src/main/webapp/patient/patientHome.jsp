@@ -6,6 +6,7 @@
 <%@ page import="gov.nih.nichd.ctdb.patient.common.PatientResultControl"%>
 <%@ page import="gov.nih.nichd.ctdb.protocol.domain.Protocol"%>
 <%@ page import="gov.nih.nichd.ctdb.security.domain.User"%>
+<%@ page import="gov.nih.nichd.ctdb.site.domain.Site"%>
 <%@ page import="java.util.List"%>
 <%@ taglib uri="/struts-tags" prefix="s"%>
 <%@ taglib uri="/WEB-INF/display.tld" prefix="display"%>
@@ -20,7 +21,7 @@
 	String SUBJECT_DISPLAY_LABEL = curProtocol.getPatientDisplayLabel();
 	Locale l = request.getLocale();
 	String selectGuidWithoutCollection = request.getParameter("selectGuidWithoutCollection");
-
+	Boolean protocolclosed = (Boolean)session.getAttribute(CtdbConstants.PROTOCOL_CLOSED_SESSION_KEY);
 %>
 
 <%-- CHECK PRIVILEGES --%>
@@ -172,8 +173,17 @@ $(document).ready(function() {
 
 	});
 	
-	
+	var hasRandomization = "<s:property value='hasAnyPatInRandomization' />" == "true"; //convert string to boolean
 	var basePath = "<s:property value='#webRoot'/>";
+
+	var exportColArr = [1,2,3,4,6,7,9];
+	if (hasRandomization) { 
+		exportColArr.push(10);
+		<security:hasProtocolPrivilege privilege="unblindedRandomization">
+		exportColArr.push(11);
+		</security:hasProtocolPrivilege> 
+	} 
+
 	$("#patientListTable").idtTable({
 		idtUrl: "<s:property value='#webRoot'/>/patient/getPatientList.action",
 		dom: 'Bfrtip',
@@ -194,7 +204,20 @@ $(document).ready(function() {
                 title: '<%=SUBJECT_DISPLAY_LABEL%>',
                 parameter: 'protocolConfiguredDisplay',
                 data: 'patientId'
-            },			       	
+            },
+            <%
+            if (SUBJECT_DISPLAY_TYPE != 1) {
+            %>
+            {
+        		name: 'nihRecordNo',
+                title: '<%=rs.getValue("subject.table.subjectID",l)%>',
+                parameter: 'subjectId',
+                data: 'nihRecordNo'
+        	},
+        	<%
+            }
+        	%>
+
         	<s:if test="#disallowingPII == 0">
 	        	{
 	                name: 'lastName',
@@ -234,6 +257,13 @@ $(document).ready(function() {
 	                data: 'formatValidated'
 	            },
 	            {
+	                name: 'formatValidator',
+	                title: '<%=rs.getValue("patient.validated",l)%>',
+	                parameter: 'formatValidator',
+	                data: 'formatValidator',
+	                visible:false
+	            },
+	            {
 	                name: 'protocols',
 	                title: '<%=rs.getValue("app.label.lcase.protocol",l)%>',
 	                parameter: 'protocols',
@@ -245,8 +275,29 @@ $(document).ready(function() {
 	                parameter: 'futureStudy',
 	                data: 'futureStudy',
 	                visible: false
-	            }	            
-	            
+	            }
+	     <s:if test="#disallowingPII == 0">
+	     		,{
+	                name: 'siteName',
+	                title: '<%=rs.getValue("study.site.name",l)%>',
+	                parameter: 'siteName',
+	                data: 'siteName'
+	            } 
+	            ,{
+	                name: 'patRandomizationGroupName',
+	                title: 'Randomzation Group Name',
+	                parameter: 'patRandomizationGroupName',
+	                data: 'patRandomizationGroupName'
+	            }
+	         <security:hasProtocolPrivilege privilege="unblindedRandomization">
+	            ,{
+	                name: 'patRandomizationGroupDescription',
+	                title: 'Randomzation Group Description',
+	                parameter: 'patRandomizationGroupDescription',
+	                data: 'patRandomizationGroupDescription'
+	            }
+	          </security:hasProtocolPrivilege>
+	      </s:if>	            
         ],
         buttons: [
         	<security:hasProtocolPrivilege privilege="addeditpatients">
@@ -392,6 +443,7 @@ $(document).ready(function() {
    				}
    			},   			
    			</security:hasProtocolPrivilege>
+   			<security:hasProtocolPrivilege privilege="downloadsubjects">
 			{
 				extend: "collection",
 				title: 'Subject_Report_'+now,
@@ -404,7 +456,19 @@ $(document).ready(function() {
 		                extension: '.csv',
 		                name: 'csv',
 		                exportOptions: {
-		                  orthogonal: 'export'
+		                  orthogonal: 'export',
+		              	<s:if test="#disallowingPII == 0">
+	                  	  columns: exportColArr,
+		              	</s:if>
+		            	<%
+	            		if (SUBJECT_DISPLAY_TYPE != 1) {
+	            		%>
+	            	  	columns:[1,2,3,4,6]
+	            		<%
+	            		}else {
+	            		%>
+	            		columns:[1,2,3,5]
+	            		<%}%>
 		                },
 		                enabled: true,
 		                action: IdtActions.exportAction()
@@ -414,14 +478,27 @@ $(document).ready(function() {
 		                className: 'btn btn-xs btn-primary p-5 m-0 width-35 assets-export-btn  buttons-excel',
 		                extension: '.xlsx',
 						exportOptions: {
-							orthogonal: 'export'
+							orthogonal: 'export',
+						<s:if test="#disallowingPII == 0">
+	                  	  columns: exportColArr,
+		              	</s:if>
+		            	<%
+		            	if (SUBJECT_DISPLAY_TYPE != 1) {
+		            	%>
+		            	  columns:[1,2,3,4,6]
+		            	<%
+		            	}else {
+		            	%>
+		            		columns:[1,2,3,5]
+		            	<%}%>
 						},
 						enabled: true,
 						action: IdtActions.exportAction()
 						
 					}				
 				]
-			}  			
+			}
+			</security:hasProtocolPrivilege>
         ],
         initComplete:function(settings) {
         	if($("select#inProtocol option:selected").val() != 'this'){
@@ -431,8 +508,21 @@ $(document).ready(function() {
         		$(".addToStudyBtn").hide();
         	}
         	var oTable = $("#patientListTable").idtApi("getTableApi");
+        	var protocolclosed = <%=protocolclosed.booleanValue()%>;
+
+        	// hide two randomization related columns(Randomization Group Name & Randomization Group Description)
+        	// if current protocol does not have randomization list, 
+        	if (!hasRandomization) { 
+        		oTable.columns([10,11]).visible(false);
+        	}
         	//check for rows status
         	oTable.on('select', function(e, dt, type, indexes) {
+        		if(protocolclosed){
+            		oTable.buttons(['.editPatientBtn']).disable();
+            		oTable.buttons(['.attachmentsBtn']).disable();
+            		oTable.buttons(['.scheduleVisitsBtn']).disable();
+            		oTable.buttons(['.deleteBtn']).disable();
+            	}
         		var selectedRowData = dt.rows(indexes).data()[0];
         		var selectedRowsList = $("#patientListTable").idtApi("getSelected");
         		if(selectedRowsList.length == 1) {
@@ -445,8 +535,24 @@ $(document).ready(function() {
         		}else {
         			oTable.buttons(['.addToStudyBtn']).disable();
         		}
+
+            	/*disable delete button if selected patient having been assigned to randomization group */
+            	for(var i = 0; i < selectedRowsList.length; i++){
+            		var selectedRow = oTable.row("#"+ selectedRowsList[i]).data();
+            		var selectedRowGrpName = selectedRow.patRandomizationGroupName;
+        			if(selectedRowGrpName.length > 0){
+        				oTable.buttons(['.deleteBtn']).disable();          			
+            			break;
+            		}
+            	}
         	})
         	oTable.on('deselect', function(e, dt, type, indexes) {
+        		if(protocolclosed){
+            		oTable.buttons(['.editPatientBtn']).disable();
+            		oTable.buttons(['.attachmentsBtn']).disable();
+            		oTable.buttons(['.scheduleVisitsBtn']).disable();
+            		oTable.buttons(['.deleteBtn']).disable();
+            	}
         		var selectedRowData = dt.rows(indexes).data()[0];
         		var selectedRowsList = $("#patientListTable").idtApi("getSelected");
         		if(selectedRowsList.length == 1) {
@@ -456,11 +562,33 @@ $(document).ready(function() {
         				oTable.buttons(['.addToStudyBtn']).disable();	
         			}else {
         				oTable.buttons(['.addToStudyBtn']).enable();
-        			}			
+        			}
+        			/*disable delete button if selected patient having been assigned to randomization group */
+                	var selectedRowGrpName = selectedRowData.patRandomizationGroupName;
+            		if(selectedRowGrpName.length > 0){
+                		oTable.buttons(['.deleteBtn']).disable();
+                	} else {
+                		oTable.buttons(['.deleteBtn']).enable();
+                	}
         		}else {
         			oTable.buttons(['.addToStudyBtn']).disable();
+                	/*disable delete button if selected patient having been assigned to randomization group */
+                	var selectedHasRandom = false;
+                	for(var i = 0; i < selectedRowsList.length; i++){
+                		var selectedRow = oTable.row("#"+ selectedRowsList[i]).data();;
+                		var selectedRowGrpName = selectedRow.patRandomizationGroupName;
+            			if(selectedRowGrpName.length > 0){
+            				selectedHasRandom = true;           			
+                			break;
+                		}
+                	}
+                	if (selectedHasRandom) {
+                		oTable.buttons(['.deleteBtn']).disable();
+                	} else if (selectedRowsList.length > 0){
+                		oTable.buttons(['.deleteBtn']).enable();
+                	}
         		}
-        	})	      
+        	})
         }
 	})	
 });

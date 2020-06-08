@@ -1,13 +1,15 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <artifactId>reporting</artifactId>
-  <packaging>war</packaging>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>reporting</artifactId>
+	<packaging>war</packaging>
 	<name>reporting-api-app</name>
 	<description>Reporting module implementation</description>
 	<parent>
 		<groupId>brics</groupId>
 		<artifactId>brics</artifactId>
-		<version>4.0.0</version>
+		<version>6.0.0</version>
 	</parent>
 
 	<dependencies>
@@ -15,8 +17,8 @@
 		<dependency>
 			<groupId>brics</groupId>
 			<artifactId>core</artifactId>
-			</dependency>
-				
+		</dependency>
+
 		<!-- Apache CXF for WS Endpoints -->
 		<dependency>
 			<groupId>org.apache.cxf</groupId>
@@ -57,7 +59,7 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-orm</artifactId>
 		</dependency>
-		
+
 		<!-- Junit for test cases -->
 		<dependency>
 			<groupId>junit</groupId>
@@ -103,11 +105,7 @@
 			<scope>provided</scope>
 		</dependency>
 		<!-- Jakarta Commons -->
-		<dependency>
-			<groupId>commons-fileupload</groupId>
-			<artifactId>commons-fileupload</artifactId>
-			</dependency>
-
+		
 		<!-- spring security -->
 		<dependency>
 			<groupId>org.springframework.security</groupId>
@@ -134,26 +132,27 @@
 			<artifactId>spring-security-cas</artifactId>
 			<version>${spring.security.version}</version>
 		</dependency>
-		
+
 		<!-- DATA SOURCE POOLING -->
- 		<dependency>
- 			<groupId>com.zaxxer</groupId>
- 			<artifactId>HikariCP</artifactId>
- 			<version>${hikaricp.version}</version>
- 		</dependency>
 		<dependency>
-		    <groupId>commons-beanutils</groupId>
-		    <artifactId>commons-beanutils</artifactId>
-		    <version>1.8.3</version>
+			<groupId>com.zaxxer</groupId>
+			<artifactId>HikariCP</artifactId>
+			<version>${hikaricp.version}</version>
 		</dependency>
- 		
+
+		<dependency>
+			<groupId>commons-beanutils</groupId>
+			<artifactId>commons-beanutils</artifactId>
+			<version>1.8.3</version>
+		</dependency>
+
 		<!-- GSON -->
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
 			<version>2.3.1</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>com.jcraft</groupId>
 			<artifactId>jsch</artifactId>
@@ -174,51 +173,57 @@
 			<artifactId>standard</artifactId>
 			<version>1.1.2</version>
 		</dependency>
-		
+
 		<!-- Fix for a Java Deserialization Vulnerability -->
 		<dependency>
 			<groupId>commons-collections</groupId>
 			<artifactId>commons-collections</artifactId>
 			<version>3.2.2</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-ehcache</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.ehcache</groupId>
 			<artifactId>ehcache</artifactId>
 		</dependency>
-		
+
 		<!-- JasperReports -->
 		<dependency>
 			<groupId>net.sf.jasperreports</groupId>
 			<artifactId>jasperreports</artifactId>
 			<version>6.6.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.lowagie</groupId>
+					<artifactId>itext</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
-    		<groupId>net.sf.jasperreports</groupId>
-    		<artifactId>jasperreports-fonts</artifactId>
-    		<version>6.0.0</version>
+			<groupId>net.sf.jasperreports</groupId>
+			<artifactId>jasperreports-fonts</artifactId>
+			<version>6.0.0</version>
 		</dependency>
 		<dependency>
-    		<groupId>org.apache.poi</groupId>
-    		<artifactId>poi</artifactId>
-    		<version>3.17</version>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>3.17</version>
 		</dependency>
 		<dependency>
-    		<groupId>com.lowagie</groupId>
-    		<artifactId>itext</artifactId>
-    		<version>2.1.7</version>
+			<groupId>com.lowagie</groupId>
+			<artifactId>itext</artifactId>
+			<version>2.1.7</version>
 		</dependency>
 	</dependencies>
-	
+
 	<properties>
 		<skip.tests>true</skip.tests>
 	</properties>
-	
+
 	<build>
 		<finalName>reporting</finalName>
 		<resources>
@@ -227,7 +232,7 @@
 				<filtering>true</filtering>
 			</resource>
 		</resources>
-		
+
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -249,18 +254,18 @@
 						</manifestEntries>
 					</archive>
 					<webResources>
-	                  <resource>
-	                    <directory>src/main/webapp/WEB-INF</directory>
-	                    <filtering>true</filtering>
-	                    <targetPath>WEB-INF</targetPath>
-	                  </resource>
-	                </webResources>
+						<resource>
+							<directory>src/main/webapp/WEB-INF</directory>
+							<filtering>true</filtering>
+							<targetPath>WEB-INF</targetPath>
+						</resource>
+					</webResources>
 				</configuration>
 			</plugin>
 		</plugins>
-		
+
 	</build>
-	
+
 	<profiles>
 		<profile>
 			<id>localhost</id>
@@ -275,17 +280,17 @@
 			<id>replace</id>
 		</profile>
 	</profiles>
-	
+
 	<distributionManagement>
 		<repository>
 			<id>tbi_artifactory_server</id>
 			<name>libs-release</name>
-			<url>http://REPLACED:8082/artifactory/libs-release-local</url>
+			<url>http://fitbir-dev-repo.cit.nih.gov:8082/artifactory/libs-release-local</url>
 		</repository>
 		<snapshotRepository>
 			<id>tbi_artifactory_server</id>
 			<name>libs-snapshot</name>
-			<url>http://REPLACED:8082/artifactory/libs-snapshot-local</url>
+			<url>http://fitbir-dev-repo.cit.nih.gov:8082/artifactory/libs-snapshot-local</url>
 		</snapshotRepository>
 	</distributionManagement>
 
@@ -296,7 +301,7 @@
 			</snapshots>
 			<id>tbi_artifactory_central</id>
 			<name>TBI libs-release</name>
-			<url>http://REPLACED:8082/artifactory/libs-release</url>
+			<url>http://fitbir-dev-repo.cit.nih.gov:8082/artifactory/libs-release</url>
 		</repository>
 		<repository>
 			<snapshots>
@@ -304,7 +309,7 @@
 			</snapshots>
 			<id>tbi_artifactory_snapshots</id>
 			<name>TBI libs-snapshot</name>
-			<url>http://REPLACED:8082/artifactory/libs-snapshot</url>
+			<url>http://fitbir-dev-repo.cit.nih.gov:8082/artifactory/libs-snapshot</url>
 		</repository>
 	</repositories>
 </project>

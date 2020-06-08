@@ -321,6 +321,13 @@ public class Dataset extends AbstractDataset implements Serializable {
 
 		this.datasetRequestStatus = datasetRequestStatus;
 	}
+	
+	public String getDatasetStatusWithRequestStatus() {
+		if(datasetRequestStatus != null) {
+			return datasetStatus.getName() + "--Requested " + datasetRequestStatus.getVerb();
+		}
+		return getDatasetStatus().getName();
+	}
 
 	/**
 	 * Returns the list of file types in this dataset as a single comma separated list ie- "Genomics, Clinical

@@ -54,8 +54,6 @@ QT.PageView = BaseView.extend({
 			'#filterPaneContentContainer': 	new QT.RefineDataFiltersView({model: this.model.get("query")})
 		});
 		
-		this.setUpDictionarySession();
-		
 		this.enableDisableStepTwo();
 		this.setupDialogs();
 		
@@ -113,17 +111,6 @@ QT.PageView = BaseView.extend({
 		this.model.set("sendToMetaStudyValidationDialog",sendToMetaStudyValidationDialog);
 	},
 	
-	setUpDictionarySession : function() {
-		//Initializes the dictionary session so we can grab FS and DE details
-		var $footer = $("#footer");
-		$footer.append('<iframe id="dictionarySession" style="display:none;height:0px;width:0px;"></iframe>');
-		$("#dictionarySession").load(function() {
-			//TODO: Right now keeping the IFRAME on the page isn't too much of a problem since it is hidden, removing it causes a problem on IE, will need to investigate a new solution
-			//$("#dictionarySession").remove();
-		});
-		$("#dictionarySession").attr("src", System.urls.dictionary + '/dictionary/listDataStructureAction!list.action');
-	},
-	
 	renderTabs : function() {
 		this.Tabs.init(this, this.model, this.$("#mainContent"));
 	},
@@ -147,6 +134,9 @@ QT.PageView = BaseView.extend({
 	
 	onSelectTab : function(ui) {
 		this.model.set("activeStepsTab", ui.newTab.attr("aria-controls"));
+		if(this.model.get("dataCartPaneOpen") == false){
+			EventBus.trigger("select:stepTabBack");
+		}
 	},
 	
 	onDataCartCountChange : function(dataCart) {
@@ -220,6 +210,13 @@ QT.PageView = BaseView.extend({
 	    jQuery.ajax({
 	        url: "service/accountInfo",
 	        success: function(accountInfoJson) {
+	        	if (typeof accountInfoJson.status !== "undefined") {
+	             	if(data.status = "401") {
+	             		//redirect
+	             		window.location.href = "/query/logout";
+	             		return;
+	             	}
+	             }
 
 	        	System.user.username = accountInfoJson.userName;
 	        	
@@ -353,13 +350,19 @@ QT.PageView = BaseView.extend({
 	},
 	
 	bannerHome : function() {
-		var publicUrl= System.urls.publicSite;
+		var publicUrl = "/";
+		if (window.location.hostname.indexOf("nei") > -1) {
+			publicUrl = System.urls.TemplatePublicURL;
+		 }else {
+			 publicUrl= System.urls.publicSite;
+		 }
+		
 
 		$(".bannerHome").prop("href",publicUrl);
 	},
 	
 	logout : function() {
-		var baseUrl= System.urls.base;
+		var baseUrl= System.urls.query;
 
 		$(".logout").prop("href", baseUrl + "/logout");
 	},
@@ -371,6 +374,13 @@ QT.PageView = BaseView.extend({
 			url: "service/savedQueries/view",
 			data: {id: queryId},
 			success: function(data) {
+				if (typeof data.status !== "undefined") {
+	             	if(data.status = "401") {
+	             		//redirect
+	             		window.location.href = "/query/logout";
+	             		return;
+	             	}
+	             }
 				var $dialogContainer = $(".viewQueryContainer");
 				if ($dialogContainer.length < 1) {
 					$(".viewQueryContainer").append('<div class="viewSavedQueryDialog" style="display:none"></div>');
@@ -380,8 +390,6 @@ QT.PageView = BaseView.extend({
 				// 80% of window height
 				var height = $(window).height() * 0.9;
 				
-				var template = TemplateManager.getTemplate("viewSavedQueryTemplate");
-				//$dialogContainer.html(TemplateManager.getTemplate(template()));
 				$("#savedQueryData").html(JSON.stringify(data));
 				$dialogContainer.dialog({
 					modal: true,
@@ -443,8 +451,7 @@ QT.PageView = BaseView.extend({
 					EventBus.trigger("select:stepTab", ui);
 					
 					if (ui.newTab.index() == 1) {
-						
-						EventBus.trigger("renderResults", ui);
+						EventBus.trigger("renderResults");
 					}
 				}
 			});

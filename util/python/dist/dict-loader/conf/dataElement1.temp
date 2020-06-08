@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<dataElement>
+    <StructuralDataElement>
+        <name>@NAME@</name>
+        <!-- <version>1.0</version> -->
+        <type>ALPHANUMERIC</type>
+        <restrictions>Single Pre-Defined Value Selected</restrictions>
+        <status>PUBLISHED</status>
+        <valueRangeList>
+            <valueRange>No</valueRange>
+            <dataElement>@NAME@</dataElement>
+            <description>No</description>
+            <outputCode>0</outputCode>
+        </valueRangeList>
+        <valueRangeList>
+            <valueRange>Skip this question</valueRange>
+            <dataElement>@NAME@</dataElement>
+            <description>Skip this question</description>
+            <outputCode>99</outputCode>
+        </valueRangeList>
+        <valueRangeList>
+            <valueRange>Yes</valueRange>
+            <dataElement>@NAME@</dataElement>
+            <description>Yes</description>
+            <outputCode>1</outputCode>
+        </valueRangeList>
+        <suggestedQuestion></suggestedQuestion>
+        <dateCreated></dateCreated>
+        <category>
+            <id>0</id>
+        </category>
+    </StructuralDataElement>
+    <SemanticDataElement>
+        <uri>http://ninds.nih.gov/dictionary/ibis/1.0/Element/@NAME@/1.0</uri>
+        <title>@NAME@ long title</title>
+        <description>@NAME@ description</description>
+        <shortDescription>@NAME@ short description</shortDescription>
+        <subDomainElementList>
+            <disease>
+                <name>General (For all diseases)</name>
+                <isActive>true</isActive>
+            </disease>
+            <domain>
+                <name>Participant/Subject Characteristics</name>
+                <isActive>true</isActive>
+            </domain>
+            <subDomain>
+                <name>Demographics</name>
+                <isActive>true</isActive>
+            </subDomain>
+        </subDomainElementList>
+        <subDomainElementList>
+            <disease>
+                <name>Traumatic Brain Injury</name>
+                <isActive>true</isActive>
+            </disease>
+            <domain>
+                <name>Participant/Subject Characteristics</name>
+                <isActive>true</isActive>
+            </domain>
+            <subDomain>
+                <name>Demographics</name>
+                <isActive>true</isActive>
+            </subDomain>
+        </subDomainElementList>
+        <population>
+            <name>Adult and Pediatric</name>
+        </population>
+        <classificationElementList>
+            <classification>
+                <name>Supplemental</name>
+                <isActive>true</isActive>
+                <canCreate>true</canCreate>
+            </classification>
+            <disease>
+                <name>General (For all diseases)</name>
+                <isActive>true</isActive>
+            </disease>
+            <subgroup>
+                <subgroupName>General (For all diseases)</subgroupName>
+            </subgroup>
+        </classificationElementList>
+        <classificationElementList>
+            <classification>
+                <name>Supplemental</name>
+                <isActive>true</isActive>
+                <canCreate>true</canCreate>
+            </classification>
+            <disease>
+                <name>Traumatic Brain Injury</name>
+                <isActive>true</isActive>
+            </disease>
+            <subgroup>
+                <subgroupName>Concussion/Mild TBI</subgroupName>
+            </subgroup>
+        </classificationElementList>
+        <classificationElementList>
+            <classification>
+                <name>Supplemental</name>
+                <isActive>true</isActive>
+                <canCreate>true</canCreate>
+            </classification>
+            <disease>
+                <name>Traumatic Brain Injury</name>
+                <isActive>true</isActive>
+            </disease>
+            <subgroup>
+                <subgroupName>Moderate/Severe TBI: Rehabilitation</subgroupName>
+            </subgroup>
+        </classificationElementList>
+        <classificationElementList>
+            <classification>
+                <name>Supplemental</name>
+                <isActive>true</isActive>
+                <canCreate>true</canCreate>
+            </classification>
+            <disease>
+                <name>Traumatic Brain Injury</name>
+                <isActive>true</isActive>
+            </disease>
+            <subgroup>
+                <subgroupName>Epidemiology</subgroupName>
+            </subgroup>
+        </classificationElementList>
+        <classificationElementList>
+            <classification>
+                <name>Supplemental</name>
+                <isActive>true</isActive>
+                <canCreate>true</canCreate>
+            </classification>
+            <disease>
+                <name>Traumatic Brain Injury</name>
+                <isActive>true</isActive>
+            </disease>
+            <subgroup>
+                <subgroupName>Acute Hospitalized</subgroupName>
+            </subgroup>
+        </classificationElementList>
+        <keywords>
+            <uri>http://ninds.nih.gov/dictionary/ibis/1.0/Keyword/care</uri>
+            <keyword>CARE</keyword>
+            <count>206</count>
+        </keywords>
+        <type>ALPHANUMERIC</type>
+        <category>
+            <name>Unique Data Element</name>
+            <shortName>UDE</shortName>
+        </category>
+        <dateCreated></dateCreated>
+        <createdBy>Niceley, Melissa</createdBy>
+        <status>PUBLISHED</status>
+        <valueRangeList>
+            <valueRange>Known</valueRange>
+            <uri>http://ninds.nih.gov/dictionary/ibis/1.0/PermissibleValue/@NAME@/known</uri>
+            <description>Known</description>
+        </valueRangeList>
+        <valueRangeList>
+            <valueRange>No</valueRange>
+            <uri>http://ninds.nih.gov/dictionary/ibis/1.0/PermissibleValue/@NAME@/no</uri>
+            <description>No</description>
+        </valueRangeList>
+        <valueRangeList>
+            <valueRange>Skip this question</valueRange>
+            <uri>http://ninds.nih.gov/dictionary/ibis/1.0/PermissibleValue/@NAME@/skip_this_question</uri>
+            <description>Skip this question</description>
+        </valueRangeList>
+        <valueRangeList>
+            <valueRange>Unknown</valueRange>
+            <uri>http://ninds.nih.gov/dictionary/ibis/1.0/PermissibleValue/@NAME@/unknown</uri>
+            <description>Unknown</description>
+        </valueRangeList>
+        <valueRangeList>
+            <valueRange>Yes</valueRange>
+            <uri>http://ninds.nih.gov/dictionary/ibis/1.0/PermissibleValue/@NAME@/yes</uri>
+            <description>YEs</description>
+        </valueRangeList>
+        <!-- <version>1.0</version> -->
+        <name>@NAME@</name>
+        <submittingOrgName>CARE</submittingOrgName>
+        <submittingContactName></submittingContactName>
+        <submittingContactInfo></submittingContactInfo>
+        <stewardOrgName>N/A</stewardOrgName>
+        <stewardContactName>LeVon Greer</stewardContactName>
+        <stewardContactInfo>levon.greer@nih.gov</stewardContactInfo>
+        <modifiedDate></modifiedDate>
+        <seeAlso></seeAlso>
+    </SemanticDataElement>
+</dataElement>

@@ -184,7 +184,7 @@ public class XMLManipulator {
 									SimpleDateFormat df = null;
 
 									switch (dataElementName) {
-									case "VisitDate":
+									case CtdbConstants.VISIT_DATE_DATA_ELEMENT:
 										if ( q.getFormQuestionAttributes().getAnswerType().equals(AnswerType.DATE) ) {
 											df = new SimpleDateFormat("yyyy-MM-dd");
 										} else if ( q.getFormQuestionAttributes().getAnswerType().equals(AnswerType.DATETIME) ) {
@@ -197,8 +197,8 @@ public class XMLManipulator {
 										}
 										break;
 
-									case "VisitType":
-									case "VisitTypPDBP":
+									case CtdbConstants.VISIT_TYPE_DATA_ELEMENT:
+									case CtdbConstants.VISIT_TYP_PDBP_DATA_ELEMENT:
 										if ( administeredForm.getInterval() == null ) {
 											prepopulationAnswer = "Other";
 										} else {
@@ -232,13 +232,13 @@ public class XMLManipulator {
 
 										break;
 
-									case "GUID":
+									case CtdbConstants.GUID_DATA_ELEMENT:
 										if( administeredForm.getPatient() != null && administeredForm.getPatient().getGuid() != null ) {
 											prepopulationAnswer = administeredForm.getPatient().getGuid();
 										}
 										break;
 
-									case "SiteName":
+									case CtdbConstants.SITE_NAME_DATA_ELEMENT:
 										if(administeredForm.getSiteName() == null) {
 											int protocolId = administeredForm.getForm().getProtocolId();
                                             Protocol protocol = protocolMan.getProtocol(protocolId);

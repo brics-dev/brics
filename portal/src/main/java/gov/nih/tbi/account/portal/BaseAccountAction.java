@@ -73,5 +73,12 @@ public class BaseAccountAction extends BaseAction {
 
 		accountManager.sendEmail(account, subject, bodyMsgText);
 	}
+	
+	public void sendAdminEmail(String emailId,String subjectMsg, String bodyMsgText )
+			throws MessagingException {
+
+
+		accountManager.sendMail(subjectMsg, bodyMsgText, null, emailId);
+	}
 
 }

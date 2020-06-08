@@ -1,5 +1,5 @@
 <script id="editQuestionGraphicTabLabel" type="text/x-handlebars-template">
-	<li><a href="#dialog_editQuestion_graphic">Graphic</a></li>
+	<li><a href="#dialog_editQuestion_graphic">File / Graphic </a></li>
 </script>
 
 

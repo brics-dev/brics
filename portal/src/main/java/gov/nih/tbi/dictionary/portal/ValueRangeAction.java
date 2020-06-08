@@ -1,17 +1,12 @@
 
 package gov.nih.tbi.dictionary.portal;
 
+import java.util.Iterator;
+
 import gov.nih.tbi.PortalConstants;
+import gov.nih.tbi.commons.model.DataType;
 import gov.nih.tbi.dictionary.model.hibernate.DataElement;
 import gov.nih.tbi.dictionary.model.hibernate.ValueRange;
-import gov.nih.tbi.commons.model.DataType;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
 
 public class ValueRangeAction extends DataElementAction
 {
@@ -113,7 +108,11 @@ public class ValueRangeAction extends DataElementAction
         
         getSessionDataElement().setDataElement(currentDataElement);
 
-        return PortalConstants.ACTION_VIEW;
+        permissibleValue = null;
+        valueDescription = null;
+        outputCode = null;
+        
+       return PortalConstants.ACTION_VIEW;
     }
 
     /**

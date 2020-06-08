@@ -175,7 +175,7 @@
 												name: "orcId",
 												parameter : "orcId",
 												render : function(data, type, row, full) {
-													return "<a href=https://orcid.org/" + data + ">"+data+"</a>";
+													return "<a target='_blank' href=https://orcid.org/" + data + ">"+data+"</a>";
 												}
 
 											}, 

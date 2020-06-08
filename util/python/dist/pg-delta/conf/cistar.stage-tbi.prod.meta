@@ -1,0 +1,17 @@
+[DB-ONE]
+host=cistar-db-stage.cit.nih.gov
+database=cistar_stage
+schema=tbi_metastg
+user=tbi_metastg
+label=CISTAR-STAGE
+
+[DB-TWO]
+host=fitbir-db-prod.cit.nih.gov
+database=tbi_prod
+schema=tbi_meta
+user=tbi_meta
+label=TBI-PROD
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\pgDelta\cistarstage-tbiprod-meta
+

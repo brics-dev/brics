@@ -745,13 +745,14 @@ $( document ).ready(function() {
 	            	title: 'CASE/CONTROL',
 	            	parameter: 'caseControl',
 	            	data: 'caseControl'
-	            },
+	            }
+	            <s:if test="isOrderManagerAdmin"> ,
 	            {
 	            	name: 'ageYrs',
 	            	title: 'AGE',
 	            	parameter: 'ageYrs',
 	            	data: 'ageYrs'
-	            }
+	            }</s:if>
 	        ],
 			buttons: [
 				{

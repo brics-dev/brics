@@ -31,6 +31,7 @@
 				<prop key="query.url">${query.url}</prop>
 				<prop key="reporting.url">${reporting.url}</prop>
 				<prop key="ops.email">${ops.email}</prop>
+				<prop key="template.public.url">${template.public.url}</prop>
 			</props>
 		</property>
 		<property name="ignoreResourceNotFound" value="true" />

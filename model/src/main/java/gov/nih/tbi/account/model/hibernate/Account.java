@@ -3,6 +3,7 @@ package gov.nih.tbi.account.model.hibernate;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -116,7 +117,7 @@ public class Account implements Serializable, PermissionAuthority {
 	private Set<AccountRole> accountRoleList;
 
 	@XmlTransient
-	@OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "account", targetEntity = PermissionGroupMember.class, orphanRemoval = true)
+	@OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.MERGE, mappedBy = "account", targetEntity = PermissionGroupMember.class, orphanRemoval = true)
 	private Set<PermissionGroupMember> permissionGroupMemberList;
 
 	@XmlTransient
@@ -133,6 +134,9 @@ public class Account implements Serializable, PermissionAuthority {
 
 	@OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "account", targetEntity = ElectronicSignature.class, orphanRemoval = true)
 	private Set<ElectronicSignature> electronicSignatures;
+
+	@OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "account", targetEntity = TwoFactorAuthentication.class, orphanRemoval = true)
+	private Set<TwoFactorAuthentication> twoFactorAuthentications;
 	
 	@XmlTransient
 	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "account", targetEntity = AccountReportingLog.class, orphanRemoval = true)
@@ -199,6 +203,7 @@ public class Account implements Serializable, PermissionAuthority {
 		accountRoleList = new HashSet<AccountRole>();
 		permissionGroupMemberList = new HashSet<PermissionGroupMember>();
 		electronicSignatures = new HashSet<ElectronicSignature>();
+		twoFactorAuthentications = new HashSet<TwoFactorAuthentication>();
 	}
 	
 	public Account(Long id, String userName, User user, AccountStatus accountStatus, String affiliatedInstitution,
@@ -497,15 +502,23 @@ public class Account implements Serializable, PermissionAuthority {
 
 			}
 		}
-
-
+		return false;
+	}
+	
+	public Boolean isRepositoryAdmin() {
+		Set<AccountRole> roles = getAccountRoleList();
+		for(AccountRole role : roles) {
+			if(role.getIsActive() && (role.getRoleType() == RoleType.ROLE_REPOSITORY_ADMIN || role.getRoleType() == RoleType.ROLE_ADMIN)) {
+				return true;
+			}
+		}
 		return false;
 	}
 	
 	public Boolean isAccountReviewer(){
 		Set<AccountRole> roles = getAccountRoleList();
 		for (AccountRole role : roles) {
-			if (role.getRoleType() == RoleType.ROLE_ACCOUNT_REVIEWER && role.getIsActive()) {
+			if (role.getIsActive() && role.getRoleType() == RoleType.ROLE_ACCOUNT_REVIEWER) {
 				return true;
 
 			}
@@ -704,7 +717,20 @@ public class Account implements Serializable, PermissionAuthority {
     
     public String getDisplayAccountRoleList() {
     	StringBuffer displayAccountRoleList = new StringBuffer("");
-    	Iterator<AccountRole> roles = getAccountRoleList().iterator();
+    	
+    	List<AccountRole> roleList = new ArrayList<>(getAccountRoleList());
+    	
+    	// Sort the role list by status name.
+    	Collections.sort(roleList, new Comparator<AccountRole>() {
+
+			@Override
+			public int compare(AccountRole o1, AccountRole o2) {
+				return o1.getRoleStatus().getName().compareTo(o2.getRoleStatus().getName());
+			}
+    		
+    	});
+    	
+    	Iterator<AccountRole> roles = roleList.iterator();
 		while (roles.hasNext()) {
 			AccountRole role = roles.next();
 			displayAccountRoleList.append(role.getRoleType().getName() + "(" + role.getRoleStatus().getName() + ")");
@@ -784,18 +810,19 @@ public class Account implements Serializable, PermissionAuthority {
 		}
 	}
 
-	public Set<AccountRole> getExpiringSoonRoles() {
+	public Set<AccountRole> getRolesWithStatus(List<RoleStatus> statuses) {
+
 
 		Set<AccountRole> accountRoleList = this.getAccountRoleList();
-		Set<AccountRole> expiringAccountRoles = new HashSet<AccountRole>();
+		Set<AccountRole> accountRolesReturnList = new HashSet<AccountRole>();
 
 		for (AccountRole accountRole : accountRoleList) {
-			if (accountRole.getRoleStatus() == RoleStatus.EXPIRING_SOON) {
-				expiringAccountRoles.add(accountRole);
+			if (statuses.contains(accountRole.getRoleStatus())) {
+				accountRolesReturnList.add(accountRole);
 			}
 		}
 
-		return expiringAccountRoles;
+		return accountRolesReturnList;
 	}
 	
 	/**
@@ -803,7 +830,7 @@ public class Account implements Serializable, PermissionAuthority {
 	 * @return
 	 */
 	public String getExpirationDate() {
-		Set<AccountRole> expiringAccountRoles = getExpiringSoonRoles();
+		Set<AccountRole> expiringAccountRoles = getRolesWithStatus(Arrays.asList(RoleStatus.EXPIRED,RoleStatus.EXPIRING_SOON));
 
 		if (!expiringAccountRoles.isEmpty()) {
 
@@ -858,6 +885,14 @@ public class Account implements Serializable, PermissionAuthority {
 	public void setElectronicSignatures(Set<ElectronicSignature> electronicSignatures) {
 		this.electronicSignatures = electronicSignatures;
 	}
+
+	public Set<TwoFactorAuthentication> getTwoFactorAuthentications() {
+		return twoFactorAuthentications;
+	}
+
+	public void setTwoFactorAuthentications(Set<TwoFactorAuthentication> twoFactorAuthentications) {
+		this.twoFactorAuthentications = twoFactorAuthentications;
+	}
 	
 	public void addElectronicSignature(ElectronicSignature signature) {
 		if (electronicSignatures == null) {
@@ -900,7 +935,36 @@ public class Account implements Serializable, PermissionAuthority {
 		}
 		return null;
 	}
+	
+	public void addTwoFactorAuthentication(TwoFactorAuthentication twoFa) {
+		if (twoFactorAuthentications == null) {
+			twoFactorAuthentications = new HashSet<TwoFactorAuthentication>();
+		}
+		twoFactorAuthentications.add(twoFa);
+	}
 
+	public boolean hasTwoFactorAuthentication() {
+		if (twoFactorAuthentications != null) {
+			for (TwoFactorAuthentication tfa : twoFactorAuthentications) {
+				if (tfa != null) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	public TwoFactorAuthentication getTwoFactorAuthentication() {
+		if (twoFactorAuthentications != null) {
+			for (TwoFactorAuthentication tfa : twoFactorAuthentications) {
+				if (tfa != null) {
+					return tfa;
+				}
+			}
+		}
+		return null;
+	}	
+	
 	public AccountType getAccountReportingType() {
 		return accountReportingType;
 	}

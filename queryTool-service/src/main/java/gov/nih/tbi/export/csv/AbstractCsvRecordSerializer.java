@@ -1,12 +1,17 @@
 package gov.nih.tbi.export.csv;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import gov.nih.tbi.commons.util.BRICSStringUtils;
+import gov.nih.tbi.pojo.FormResult;
 import gov.nih.tbi.pojo.InstancedDataTable;
+import gov.nih.tbi.repository.model.DataTableColumn;
 import gov.nih.tbi.repository.model.FormHeader;
 import gov.nih.tbi.repository.model.InstancedRecord;
+import gov.nih.tbi.util.InstancedDataUtil;
 
 public abstract class AbstractCsvRecordSerializer implements CsvRecordSerializer {
 	private static final String DELIMITER = ",";
@@ -15,12 +20,24 @@ public abstract class AbstractCsvRecordSerializer implements CsvRecordSerializer
 	protected List<FormHeader> headers;
 	protected String displayOption;
 	protected Iterator<InstancedRecord> recordIterator;
+	protected Set<DataTableColumn> visibleColumns;
+	protected boolean showAgeRange;
 
-	public AbstractCsvRecordSerializer(InstancedDataTable instancedDataTable) {
+	public AbstractCsvRecordSerializer(InstancedDataTable instancedDataTable, boolean showAgeRange) {
 		this.instancedDataTable = instancedDataTable;
 		this.headers = instancedDataTable.getHeaders();
 		this.displayOption = instancedDataTable.getDisplayOption();
 		this.recordIterator = instancedDataTable.getInstancedRecords().iterator();
+		this.showAgeRange = showAgeRange;
+		initVisibleColumns();
+	}
+
+
+	protected void initVisibleColumns() {
+		this.visibleColumns = new HashSet<>();
+		for (FormResult form : instancedDataTable.getForms()) {
+			this.visibleColumns.addAll(InstancedDataUtil.getVisibleColumns(form));
+		}
 	}
 
 	/**
@@ -37,7 +54,7 @@ public abstract class AbstractCsvRecordSerializer implements CsvRecordSerializer
 	@Override
 	public String serializeNext() {
 		InstancedRecord currentRecord = recordIterator.next();
-		return serializeRecord(currentRecord);
+		return serializeRecord(currentRecord, visibleColumns);
 	}
 
 	/**
@@ -65,10 +82,11 @@ public abstract class AbstractCsvRecordSerializer implements CsvRecordSerializer
 	 * @return
 	 */
 	protected String sanitizeCsvValue(String value) {
-		
+
 		String sanitizedValue = value.replaceAll("\"", "\"\"");
 		sanitizedValue = "\"" + sanitizedValue + "\"";
-		
+
 		return sanitizedValue;
 	}
+	
 }

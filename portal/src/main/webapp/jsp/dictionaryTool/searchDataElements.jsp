@@ -4,93 +4,118 @@
 <!-- mapped is used to indicate that the elements returned are MapElements (in the case of searching from a DataStructure)  -->
 <input type="hidden" id="mapped" name="mapped" value="${mappedList}" />
 <input type="hidden" id="public" name="public" value="${publicArea}" />
-<input type="hidden" id="hostName" name="hostName" value="${pageContext.request.serverName}" />
+<input type="hidden" id="hostName" name="hostName"
+	value="${pageContext.request.serverName}" />
+<input type="hidden" id="hostStyle" name="hostStyle"
+	value="${modulesConstants.modulesStyleKey}" />
 <input type="hidden" id="inAdmin" name="inAdmin" value="${inAdmin}" />
-<input type="hidden" id="grantedAccess" name="grantedAccess" value="${accessIdList}" />
-<input type="hidden" id="modulesDDTURL" name="modulesDDTURL" value="${modulesDDTURL}" />
-<input type="hidden" id="portalRoot" name="portalRoot" value="${portalRoot}" />
-<input type="hidden" id="requestedStatusChange" name="requestedStatusChange" value="${isRequestedStatusChange}"/>
-<input type="hidden" id="documentationLimit" name="documentationLimit" value= "${documentationLimit}" />
-<input type="hidden" id="actionName" name="actionName" value= "${actionName}" />
-<input type="hidden" name="currentAction" id="currentAction" value="dataElementAction"/>
+<input type="hidden" id="grantedAccess" name="grantedAccess"
+	value="${accessIdList}" />
+<input type="hidden" id="modulesDDTURL" name="modulesDDTURL"
+	value="${modulesDDTURL}" />
+<input type="hidden" id="portalRoot" name="portalRoot"
+	value="${portalRoot}" />
+<input type="hidden" id="requestedStatusChange"
+	name="requestedStatusChange" value="${isRequestedStatusChange}" />
+<input type="hidden" id="documentationLimit" name="documentationLimit"
+	value="${documentationLimit}" />
+<input type="hidden" id="actionName" name="actionName"
+	value="${actionName}" />
+<input type="hidden" name="currentAction" id="currentAction"
+	value="dataElementAction" />
 
 <div class="clear-float" id="advancedSearchDialog">
 	<jsp:include page="advancedSearch-lightbox.jsp"></jsp:include>
 </div>
 
 <style>
-	#dataElementResultsTable_wrapper .dt-buttons {
-		float: right; 
-		padding: 0;
+#dataElementResultsTable_wrapper .dt-buttons {
+	float: right;
+	padding: 0;
+}
 
-	}
-	.resetLink {
-		float: left;
-	}
-	#dataElementResultsTable .idt_selectAllItem:first-of-type {
-		display: none
-	}
+.resetLink {
+	float: left;
+}
 </style>
 
 <div class="clear-float">
-  <jsp:include page="dictionaryStatusChange.jsp"></jsp:include>
+	<jsp:include page="dictionaryStatusChange.jsp"></jsp:include>
 </div>
 
 
 <s:set var="mapped" value="mappedList" />
 
 <s:if test="inAdmin">
-  <title>Manage Data Elements</title></s:if>
+	<title>Manage Data Elements</title>
+</s:if>
 <s:else>
-  <title>Search Data Elements</title>
+	<title>Search Data Elements</title>
 </s:else>
 
 <c:if test="${mapped}">
-  <s:set var="repeatableGroup" value="repeatableGroup" />
+	<s:set var="repeatableGroup" value="repeatableGroup" />
 </c:if>
 
 
 
 <div class="border-wrapper">
 
-  <jsp:include page="../navigation/dataDictionaryNavigation.jsp" />
-  <c:if test="${!mapped }">
-    <s:if test="inAdmin"><h1 class="float-left">(Admin) Manage Data Elements</h1></s:if>
-    <s:else><h1 class="float-left">Search Data Elements</h1></s:else>
-  </c:if>
-  <c:if test="${mapped}">
-  <h1 class="float-left"><s:if test="inAdmin">(Admin)&nbsp;</s:if>Add Data Elements</h1>
-      <title>Add Data Elements</title>
-  </c:if>
-<div style="clear:both;"></div>
+	<jsp:include page="../navigation/dataDictionaryNavigation.jsp" />
+	<c:if test="${!mapped }">
+		<s:if test="inAdmin">
+			<h1 class="float-left">(Admin) Manage Data Elements</h1>
+		</s:if>
+		<s:else>
+			<h1 class="float-left">Search Data Elements</h1>
+		</s:else>
+	</c:if>
+	<c:if test="${mapped}">
+		<h1 class="float-left">
+			<s:if test="inAdmin">(Admin)&nbsp;</s:if>
+			Add Data Elements
+		</h1>
+		<title>Add Data Elements</title>
+	</c:if>
+	<div style="clear: both;"></div>
 
 
 
 
-<div id="main-content">
-<c:if test="${mapped}">
-      <s:if test="%{!sessionDataStructure.newStructure && !sessionDataStructure.draftCopy}">
-        <div id="breadcrumb">
-          <s:if test="inAdmin">
-            <s:a action="listDataStructureAction" method="list" namespace="/dictionaryAdmin">Manage Form Structures</s:a>
-          </s:if>
-          <s:else>
-            <s:a action="listDataStructureAction" method="list" namespace="/dictionary">Search Form Structures</s:a>
-          </s:else>&gt;
-          <s:url action="dataStructureAction" method="view" var="viewTag">
-            <s:param name="dataStructureId"><s:property value="currentDataStructure.id" /></s:param>
-          </s:url>
-          <a href="<s:property value="#viewTag" />"><s:property value="currentDataStructure.title" /></a> &gt; Edit Form Structure
-        </div>
-      </s:if>
+	<div id="main-content">
+		<c:if test="${mapped}">
+			<s:if
+				test="%{!sessionDataStructure.newStructure && !sessionDataStructure.draftCopy}">
+				<div id="breadcrumb">
+					<s:if test="inAdmin">
+						<s:a action="listDataStructureAction" method="list"
+							namespace="/dictionaryAdmin">Manage Form Structures</s:a>
+					</s:if>
+					<s:else>
+						<s:a action="listDataStructureAction" method="list"
+							namespace="/dictionary">Search Form Structures</s:a>
+					</s:else>
+					&gt;
+					<s:url action="dataStructureAction" method="view" var="viewTag">
+						<s:param name="dataStructureId">
+							<s:property value="currentDataStructure.id" />
+						</s:param>
+					</s:url>
+					<a href="<s:property value="#viewTag" />"><s:property
+							value="currentDataStructure.title" /></a> &gt; Edit Form Structure
+				</div>
+			</s:if>
 
-      <ndar:dataStructureChevron action="dataStructureValidationAction" chevron="Attach Elements" />
+			<ndar:dataStructureChevron action="dataStructureValidationAction"
+				chevron="Attach Elements" />
 
-    </c:if>
-<!-- Search Box -->
-<form>
-  <div style="width:150px; height:50px; float:left;">
-    <s:select id="dataElementLocationsSelect" name="dataElementLocationsSelect" multiple="true" list="#{
+		</c:if>
+		<!-- Search Box -->
+		<form>
+			<div style="width: 150px; height: 50px; float: left;">
+				<s:select id="dataElementLocationsSelect"
+					name="dataElementLocationsSelect" multiple="true"
+					list="#{
           'keywords':'Key Words',
           'description':'Definition',
           'permissibleValue':'Permissible Values',
@@ -99,112 +124,136 @@
           'externalId':'External IDs',
           'shortName':'Variable Name',
           'createdBy':'Created By'}"
-        value="%{{'keywords','description','permissibleValue','title','labels','externalId','shortName','createdBy'}}" />
-  </div>
+					value="%{{'keywords','description','permissibleValue','title','labels','externalId','shortName','createdBy'}}" />
+			</div>
 
-  <s:textfield cssStyle="width:450px; height:30px; float:left;" name="searchKey" id="searchKey" />
+			<s:textfield cssStyle="width:450px; height:30px; float:left;"
+				name="searchKey" id="searchKey" />
 
-  <div class="submit-container">
-    <input id="searchKeySubmit" type="submit" value="search submit button" class="submit submit-mag" />
-  </div>
-  <div id ="advancedSearchLink" style="float:left; width:150px; padding-left:6px; margin-top:7px; font-size: 14px">
-		<a href="javascript:advancedSearch()">Advanced Search</a>
-  </div><br/>
+			<div class="submit-container">
+				<input id="searchKeySubmit" type="submit"
+					value="search submit button" class="submit submit-mag" />
+			</div>
+			<div id="advancedSearchLink"
+				style="float: left; width: 150px; padding-left: 6px; margin-top: 7px; font-size: 14px">
+				<a href="javascript:advancedSearch()">Advanced Search</a>
+			</div>
+			<br />
 
-  <c:if test="${mapped}">
-  <div class="clear-both"></div>
+			<c:if test="${mapped}">
+				<div class="clear-both"></div>
 
-        <p>Search existing elements to attach to this form structure</p>
+				<p>Search existing elements to attach to this form structure</p>
 
-      </c:if>
-</form>
-<div style="clear:both;"></div>
+			</c:if>
+		</form>
+		<div style="clear: both;"></div>
 
-  <div style="width:18%; float:left; padding:10px 15px 0 0;">
-    <s:set value="pageSize" var="pageSizeDefault" />
-    <h3>Narrow your search</h3>
+		<div style="width: 18%; float: left; padding: 10px 15px 0 0;">
+			<s:set value="pageSize" var="pageSizeDefault" />
+			<h3>Narrow your search</h3>
 
-    <form id="searchForm" name="searchForm">
-		<%-- <s:hidden name="filterId" value=""/> --%>
-		<s:hidden id="publicArea" name="publicArea" />
-		<s:hidden name="searchLocations" value=""/>
-		<s:hidden id="filterDataElementLocations" name="dataElementLocations" value=""/>
-		<s:hidden id="filterSearchKey" name="searchKey" value=""/>
-		<s:hidden id="filterExactMatch" name="exactMatch" value=""/>
-		
-		<s:hidden id="filterPopulationSelection" name="populationSelection" value=""/>
-		<s:hidden id="filterSelectedDomains" name="selectedDomains" value=""/>
-		<s:hidden id="filterSelectedSubdomains" name="selectedSubdomains" value=""/>
-		<s:hidden id="filterSelectedClassifications" name="selectedClassifications" value=""/>
-		<s:hidden id="filterSelectedStatuses" name="selectedStatuses" value=""/>
-		<s:hidden id="filterSelectedElementTypes" name="selectedElementTypes" value=""/>
-		<s:hidden id="filterSelectedDiseases" name="selectedDiseases" value=""/>   
-    </form>
-  </div>
+			<form id="searchForm" name="searchForm">
+				<%-- <s:hidden name="filterId" value=""/> --%>
+				<s:hidden id="publicArea" name="publicArea" />
+				<s:hidden name="searchLocations" value="" />
+				<s:hidden id="filterDataElementLocations"
+					name="dataElementLocations" value="" />
+				<s:hidden id="filterSearchKey" name="searchKey" value="" />
+				<s:hidden id="filterExactMatch" name="exactMatch" value="" />
 
-  <div style="width:79%; float:left; padding-top:10px;">
-    
-    <div id="dataElementResultsContainer" class="idtTableContainer brics">
-      <table id='dataElementResultsTable' class="table table-striped table-bordered" width="100%"></table>
-    </div>
+				<s:hidden id="filterPopulationSelection" name="populationSelection"
+					value="" />
+				<s:hidden id="filterSelectedDomains" name="selectedDomains" value="" />
+				<s:hidden id="filterSelectedSubdomains" name="selectedSubdomains"
+					value="" />
+				<s:hidden id="filterSelectedClassifications"
+					name="selectedClassifications" value="" />
+				<s:hidden id="filterSelectedStatuses" name="selectedStatuses"
+					value="" />
+				<s:hidden id="filterSelectedElementTypes"
+					name="selectedElementTypes" value="" />
+				<s:hidden id="filterSelectedDiseases" name="selectedDiseases"
+					value="" />
+			</form>
+		</div>
 
-    <c:if test="${mapped}">
-      <div>
-        <div class="form-field">
-          <div class="button">
-            <input id="addElementsButton" type="button" value="Add Selected Elements" onClick="javascript: addElements(${repeatableGroup.id}) " />
-          </div>
-          <a class="form-link" href="dataStructureElementAction!moveToElements.action?groupElementId=${repeatableGroup.id}">Cancel</a>
-        </div>
-      </div>
-    </c:if>
-    <c:if test="${!mapped && inAdmin}">
-      <div>
-        <div class="form-field">
-          <div class="button">
-            <input id="bulkPublish" type="button" value="Publish Selected Elements" onClick="javascript: bulkPublish()" />
-          </div>
-        </div>
-      </div>
-      <div>
-        <div class="form-field">
-          <div class="button">
-            <input id="bulkAP" type="button" value="Awaiting Publication" onClick="javascript: bulkAP()" />
-          </div>
-        </div>
-      </div>
-    </c:if>
-  </div>
-  </div>
+		<div style="width: 79%; float: left; padding-top: 10px;">
+
+			<div id="dataElementResultsContainer" class="idtTableContainer brics">
+				<table id='dataElementResultsTable'
+					class="table table-striped table-bordered" width="100%"></table>
+			</div>
+
+			<c:if test="${mapped}">
+				<div>
+					<div class="form-field">
+						<div class="button">
+							<input id="addElementsButton" type="button"
+								value="Add Selected Elements"
+								onClick="javascript: addElements(${repeatableGroup.id}) " />
+						</div>
+						<a class="form-link"
+							href="dataStructureElementAction!moveToElements.action?groupElementId=${repeatableGroup.id}">Cancel</a>
+					</div>
+				</div>
+			</c:if>
+			<c:if test="${!mapped && inAdmin}">
+				<div>
+					<div class="form-field">
+						<div class="button">
+							<input id="bulkPublish" type="button"
+								value="Publish Selected Elements"
+								onClick="javascript: bulkPublish()" />
+						</div>
+					</div>
+				</div>
+				<div>
+					<div class="form-field">
+						<div class="button">
+							<input id="bulkAP" type="button" value="Awaiting Publication"
+								onClick="javascript: bulkAP()" />
+						</div>
+					</div>
+				</div>
+			</c:if>
+		</div>
+	</div>
 </div>
 
 <div id="overlay"></div>
 
 <!-- Search box for Diseases -->
 <div id="treeFilterContainer">
-  <h2 id="filterFocus">Diseases</h2>
-  <p>Use the diseases listed below to refine your search for domains and sub-domains</p>
-  <hr>
-  <!-- Disease List -->
-  <div id="columnOne" class="treeColumn"></div>
+	<h2 id="filterFocus">Diseases</h2>
+	<p>Use the diseases listed below to refine your search for domains
+		and sub-domains</p>
+	<hr>
+	<!-- Disease List -->
+	<div id="columnOne" class="treeColumn"></div>
 
-  <!-- Domains -->
-  <div id="columnTwo" class="treeColumn"></div>
+	<!-- Domains -->
+	<div id="columnTwo" class="treeColumn"></div>
 
 
-  <!-- Sub-Domains -->
-  <div id="columnThree" class="treeColumn"></div>
-  <div class="clear-both"></div>
-  <div class="button" style="margin:10px;">
-      &nbsp;<input type="button" value="Apply" class="float-left" onClick="javascript: saveTree();" />
-      &nbsp;<input type="button" value="Cancel" class="float-left" onClick="javascript: closeTree(); " />
-  </div>
+	<!-- Sub-Domains -->
+	<div id="columnThree" class="treeColumn"></div>
+	<div class="clear-both"></div>
+	<div class="button" style="margin: 10px;">
+		&nbsp;<input type="button" value="Apply" class="float-left"
+			onClick="javascript: saveTree();" /> &nbsp;<input type="button"
+			value="Cancel" class="float-left" onClick="javascript: closeTree(); " />
+	</div>
 </div>
 
-<script type="text/javascript" src="/portal/js/dataTables/2.0/idtCustomSearchPlugin.js"></script>
-<script type="text/javascript" src="/portal/js/statusChange/dictionaryStatusChange.js"></script>
-<script type="text/javascript" src="/portal/js/statusChange/bulkStatusChange.js"></script>
-<script type="text/javascript" src="/portal/js/common-source-files/jquery.qtip.js"></script>
+<script type="text/javascript"
+	src="/portal/js/dataTables/2.0/idtCustomSearchPlugin.js"></script>
+<script type="text/javascript"
+	src="/portal/js/statusChange/dictionaryStatusChange.js"></script>
+<script type="text/javascript"
+	src="/portal/js/statusChange/bulkStatusChange.js"></script>
+<script type="text/javascript"
+	src="/portal/js/common-source-files/jquery.qtip.js"></script>
 <script type="text/javascript">
 	var treeSelectedDisease = "";
 	var domainArray = new Array();
@@ -222,32 +271,11 @@ console.log(dataElementsMappingArray);
   // Load a search at the start
   $('document').ready(function() {
 	  
-	// Grab search variables from form elements
-	//var filterValue = $(".dataElementSelectedFilter")[0].id;
-	var hostName = $("#hostName").val();
-	var hostStyle = "brics-style";
-	
-	if(hostName.indexOf('pdbp') > -1 ){
-		hostStyle = "pdbp-style";		
-	}else if(hostName.indexOf('fitbir') > -1 ) {
-		hostStyle = "fitbir-style";
-	}else if(hostName.indexOf('eyegene') > -1 || hostName.indexOf('nei') > -1) {
-		hostStyle = "eyegene-style";
-	}else if(hostName.indexOf('cnrm') > -1 ) {
-		hostStyle = "cnrm-style";
-	}else if(hostName.indexOf('gsdr') > -1 ) {
-		hostStyle = "gsdr-style";
-	}else if(hostName.indexOf('ninds') > -1 ) {
-		hostStyle = "ninds-style";
-	}else if(hostName.indexOf('cistar') > -1 ) {
-		hostStyle = "cistar-style";
-	}else if(hostName.indexOf('cdrns') > -1 ) {
-		hostStyle = "cdrns-style";
-	}else if(hostName.indexOf('nia') > -1 ) {
-		hostStyle = "nia-style";
-	}else if(hostName.indexOf('grdr') > -1 ) {
-		hostStyle = "grdr-style";
-	}
+     var hostName = $("#hostName").val();
+     var hostStyle = $("#hostStyle").val();
+     if (typeof hostStyle === 'undefined') {
+         hostStyle = "brics-style";
+     }
 		
     // this is configs for search list to add into idtCustomSearch plugin
     var searchListConfigs = [
@@ -412,7 +440,7 @@ console.log(dataElementsMappingArray);
 		              name = "<s:property value='%{name}'/>";
 		              secondList += '<li><input type="checkbox"  name="'+ aName +'" id="'+ id +'" value="'+ name + '"/><label for="'+id+'">' + name + '</label></li>';
 		            </s:iterator>
-		            var list = form +'<div style="display: none;"><ul>' + secondList +  '</ul></div><a href="#diseaseSelections" class="more" onClick="javascript:showMore(this);" style="float: right; font-size: 10px;padding-right: 15px;">more</a>';
+		            var list = form +'<div style="display: none;"><ul>' + secondList +  '</ul></div><a href="#diseaseSelections" aria-label="click here to show more or less of the list of diseases" class="more" onClick="javascript:showMore(this);" style="float: right; font-size: 10px;padding-right: 15px;">more</a>';
 		            ($input).find('ul').wrap('<div id="diseaseSelections" class="diseaseSelections" style="max-height:200px;overflow:scroll;"></div>')
 		                      .append(list);
 		            return arr;
@@ -614,7 +642,7 @@ console.log(dataElementsMappingArray);
 		             { "sWidth": !($('#mapped').val() || $('#inAdmin').val() === 'true') ? "8%"  : "12%" , "aTargets": [2] }         			
            		],
            		drawCallback: function( oSettings ) {
-	   	    	  	$('.downloadResultsBtn span').html('Download All ' + oSettings._iRecordsTotal + ' Results<i class="fa fa-caret-down" aria-hidden="true" style="font-size: 15px;position: relative;top: 2px;padding-left: 4px;"></i>');
+	   	    	  	$('.downloadResultsBtn span').html('Download All ' + oSettings.fnRecordsDisplay() + ' Results<i class="fa fa-caret-down" aria-hidden="true" style="font-size: 15px;position: relative;top: 2px;padding-left: 4px;"></i>');
 	   	    		var test = '<div id=downloadLinks class=btn-downarrow-options style=top:28px;><p>Data Element Results:&nbsp;&nbsp;<a href=javascript:exportDataElements("XML")>XML</a>&nbsp;<a href=javascript:exportDataElements("CSV")>ZIP</a><br />REDCap Format:&nbsp;&nbsp;<a href=javascript:exportDataElements("REDCap")>CSV</a></p></div>';
 				  
 	   	 			$("#dataElementResultsTable_wrapper .dt-buttons").append(test);

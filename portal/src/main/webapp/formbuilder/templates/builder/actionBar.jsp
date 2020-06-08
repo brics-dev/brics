@@ -2,7 +2,7 @@
 		<div id="actionBar_left" class="col-md-2">			
 			<div id="formTitle" style="width:500px; word-wrap: break-word;">
 				<div>
-					<span name="name">{{name}}</span>
+					<span name="truncatedTitle"></span>
 				</div>
 			</div>
 			<div id="formSubtitle">

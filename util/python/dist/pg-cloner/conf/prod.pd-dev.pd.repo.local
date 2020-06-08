@@ -1,0 +1,16 @@
+[DB-SRC]
+host=pdbp-db-prod.cit.nih.gov
+database=pd_prod
+schema=tbi_repos
+user=tbi_repos
+label=SOURCE
+
+[DB-TRG]
+host=pdbp-db-dev.cit.nih.gov
+database=pd_dev
+schema=tbi_reposdev
+user=tbi_reposdev
+label=TARGET
+
+[FILE-SYS]
+logDir=D:\\DEV\\appdata\\log\\pgCloner\\prodpd-devpd-repo

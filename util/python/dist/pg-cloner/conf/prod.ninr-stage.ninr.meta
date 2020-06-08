@@ -1,0 +1,17 @@
+[DB-SRC]
+host=ninr-db-prod.cit.nih.gov
+database=ninr_prod
+schema=ninr_meta
+user=ninr_meta
+label=SOURCE
+
+[DB-TRG]
+host=ninr-db-stage.cit.nih.gov
+database=ninr_stage
+schema=ninr_metastg
+user=ninr_metastg
+label=TARGET
+
+[FILE-SYS]
+logDir=/var/lib/brics/log/pgCloner/prodninr-stageninr-meta
+workDir=/var/lib/brics/data/pgCloner/prodninr-stageninr-meta

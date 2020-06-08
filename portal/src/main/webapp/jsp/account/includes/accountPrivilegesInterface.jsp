@@ -282,7 +282,7 @@
 	
 	$('document').ready(function() {
 		
-		if(accountType.includes("DSR")){
+		if(accountType.indexOf("DSR") > -1){
 			if(hasProforms == "true"){
 				$('#dataSubmitterWithProforms').not(this).prop('checked', true);
 			}
@@ -291,7 +291,7 @@
 			}
 		}
 		
-		if(accountType.includes("DAR")){
+		if(accountType.indexOf("DAR") > -1){
 			$('#dataAccessor').not(this).prop('checked', true);
 		}
 		

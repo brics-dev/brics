@@ -1,0 +1,1 @@
+propBuilder.py --props=.\conf\brics.portal --env=%1

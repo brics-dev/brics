@@ -358,6 +358,16 @@ var Section = BaseModel.extend({
 			}
 		});
 		return flag;
+	},
+	
+	hasCountQuestion : function() {
+		var flag = false;
+		this.questions.forEach(function(question){
+			if(question.get("countFlag")){
+				flag = true;
+			}
+		});
+		return flag;
 	}
 	
 });

@@ -192,13 +192,12 @@ public class FileDownloadAction extends BaseAction
 					while(iter.hasNext()) {
 						UserFile userFile = iter.next();
 						InputStream data = repositoryManager.getFileStream(userFile);
-						
 						ZipEntry entry = new ZipEntry(userFile.getName());
 						zos.putNextEntry(entry);
-						byte[] buffer = new byte[256];
-					    int bytesRead = 0;
+						byte[] buffer = new byte[4096];
+					    int bytesRead;
 					    while ((bytesRead = data.read(buffer)) != -1) {
-					    	zos.write(buffer);
+					    	zos.write(buffer,0,bytesRead);
 					    }
 						zos.closeEntry();
 					}

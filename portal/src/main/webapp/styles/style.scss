@@ -614,6 +614,17 @@ a {
 
 .form-field, .form-output, .upload-field, .sub-field { color:$dark-gray;}
 
+.form-align {
+  -webkit-box-align: end;
+  -webkit-align-items: flex-end;
+  -ms-flex-align: end;
+  align-items: flex-end;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
 .form-field.long { width: 710px; }
 
 .form-field.full-length { width: 100%; }
@@ -662,10 +673,13 @@ form span.required {color: $error;}
         color: $lightest;
       }
     }
+    /*
+    Because MM doesn't want a secondary button style in GUID
     
     &.secondary {
     	@include gradient($btn-color3, $btn-color2, $btn-color3);
     }
+    */
 }
   
 .inline-right-button {

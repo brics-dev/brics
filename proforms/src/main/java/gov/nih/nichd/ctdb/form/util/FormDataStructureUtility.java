@@ -25,7 +25,9 @@ import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXBException;
 
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 
+import gov.nih.nichd.ctdb.btris.domain.BtrisObject;
 import gov.nih.nichd.ctdb.common.CasProxyTicketException;
 import gov.nih.nichd.ctdb.common.CtdbConstants;
 import gov.nih.nichd.ctdb.common.CtdbException;
@@ -53,11 +55,15 @@ import gov.nih.nichd.ctdb.util.common.SysPropUtil;
 import gov.nih.tbi.commons.model.DataElementStatus;
 import gov.nih.tbi.commons.model.StatusType;
 import gov.nih.tbi.dictionary.model.DictionaryRestServiceModel.DataStructureList;
+import gov.nih.tbi.dictionary.model.EformPfCategory;
+import gov.nih.tbi.dictionary.model.EformRestServiceModel.BasicEformList;
 import gov.nih.tbi.dictionary.model.EformRestServiceModel.EformList;
+import gov.nih.tbi.dictionary.model.hibernate.BtrisMapping;
 import gov.nih.tbi.dictionary.model.hibernate.FormStructure;
 import gov.nih.tbi.dictionary.model.hibernate.MapElement;
 import gov.nih.tbi.dictionary.model.hibernate.RepeatableGroup;
 import gov.nih.tbi.dictionary.model.hibernate.StructuralDataElement;
+import gov.nih.tbi.dictionary.model.hibernate.eform.BasicEform;
 import gov.nih.tbi.dictionary.model.hibernate.eform.Eform;
 import gov.nih.tbi.dictionary.model.hibernate.eform.EmailTriggerValue;
 import gov.nih.tbi.dictionary.model.hibernate.eform.QuestionAnswerOption;
@@ -108,6 +114,32 @@ public class FormDataStructureUtility {
 	    form = transformBricsEform(eform);
 
 		return form;
+	}
+	
+	
+	
+	
+	/**
+	 * Gets the BasicEform list given list of short names
+	 * @param request
+	 * @param shortNames
+	 * @return
+	 * @throws CasProxyTicketException
+	 * @throws WebApplicationException
+	 */
+	public List<BasicEform> getBasicEforms(HttpServletRequest request, List <String> shortNames) throws CasProxyTicketException, WebApplicationException {
+		String restfulDomain = SysPropUtil.getProperty("webservice.restful.ddt.domain");
+		String restfulUrl = restfulDomain + SysPropUtil.getProperty("webservice.restful.eform.ddt.url")+ "/getBasicEForms";
+		
+		Client client = ClientBuilder.newClient();
+		WebTarget wt = client.target(restfulUrl);
+
+		JSONArray arr = new JSONArray(shortNames);
+		Entity<String> entity = Entity.entity(arr.toString(), MediaType.APPLICATION_JSON);
+		BasicEformList basicEformList = wt.request(MediaType.APPLICATION_XML, MediaType.TEXT_XML).post(entity, BasicEformList.class);
+		List<BasicEform> basicEforms = basicEformList.getList();
+		
+		return basicEforms;
 	}
 	
 	public List<Form> getEformsForShortnamesFromBrics(HttpServletRequest request, String shortNames) throws CasProxyTicketException, WebApplicationException {
@@ -188,9 +220,14 @@ public class FormDataStructureUtility {
 		Form form = new Form();
 		HashMap<String,Question> questionMap = new HashMap<String,Question>();
 		HashMap<Integer,Section> sectionMap = new HashMap<Integer,Section>();
+		Set<String> calcRuleQuestions = new HashSet<String>();
+		Set<String> calcRuleDependentQuestions = new HashSet<String>();
+		Set<String> skipRuleQuestions = new HashSet<String>();
+		Set<String> skipRuleDependentQuestions = new HashSet<String>();
 		ArrayList<Section> orderedSectionList = new ArrayList<Section>();
 		//this will get done after form is returned
 		////////////////////////////////form.setId(rs.getInt("formid"));
+		HashMap<String, Question> btrisQuestionMap = new HashMap<String, Question>();
 
 		String name = eform.getTitle();
 		form.setName(name);
@@ -223,6 +260,9 @@ public class FormDataStructureUtility {
 
 		String dataStructureName = eform.getFormStructureShortName();
 		form.setDataStructureName(dataStructureName);
+		
+		EformPfCategory pfCategory = eform.getPfCategory();
+		form.setPfCategory(pfCategory);
 
 		FormHtmlAttributes formHtmlAttributes = new FormHtmlAttributes();
 
@@ -378,9 +418,10 @@ public class FormDataStructureUtility {
 
 					@Override
 					public int compare(gov.nih.tbi.dictionary.model.hibernate.eform.SectionQuestion sq1, gov.nih.tbi.dictionary.model.hibernate.eform.SectionQuestion sq2) {
-						if(sq1.getQuestionOrder() == sq2.getQuestionOrder()) {
+
+						if(sq1.getQuestionOrder() != sq2.getQuestionOrder()) {
 							return sq1.getQuestionOrder().compareTo(sq2.getQuestionOrder());
-						}else {
+						} else {
 							return sq1.getQuestionOrderColumn().compareTo(sq2.getQuestionOrderColumn());
 						}
 						
@@ -388,7 +429,6 @@ public class FormDataStructureUtility {
 
 				});
 			
-		
 			List<Question> qList = new ArrayList<Question>();
 			//while(sqIter.hasNext()) {
 			for(SectionQuestion eformSQ:eformSectionQuestionList){
@@ -464,9 +504,9 @@ public class FormDataStructureUtility {
 		     				
 				List<Answer> answers = new ArrayList<Answer>();
 				for(QuestionAnswerOption eformOption: orderedSectionQuestions){
-					//int answerId = eformOption.getId().intValue();
+					int answerId = eformOption.getId().intValue();
 					Answer answer = new Answer();
-			        //answer.setId(answerId);
+			        answer.setId(answerId);
 			        String display = eformOption.getDisplay();
 			        answer.setPvd(display);
 			        
@@ -485,6 +525,7 @@ public class FormDataStructureUtility {
 			            answer.setItemResponseOid(eformOption.getItemResponseOid());
 			        }
 			        
+			        answer.setIdText("S_" + sectionId + "_Q_" + questionId + "_" + answerId);
 			        answers.add(answer);	
 				}
 				proformsQuestion.setAnswers(answers);
@@ -508,20 +549,83 @@ public class FormDataStructureUtility {
 		        int questionOrder = eformSQ.getQuestionOrder().intValue();
 		        proformsQuestion.setQuestionOrder(questionOrder);
 		        int questionOrderCol = eformSQ.getQuestionOrderColumn().intValue();
-		        proformsQuestion.setQuestionOrderCol(questionOrderCol);	      
+				proformsQuestion.setQuestionOrderCol(questionOrderCol);
+
+				// BtrisMapping
+				BtrisMapping eformBtrisMapping = eformQuestion.getBtrisMapping();
+				if (eformBtrisMapping != null) {
+					BtrisObject proformsBO = new BtrisObject();
+
+					proformsBO.setBtrisObservationName(eformBtrisMapping.getBtrisObservationName());
+					proformsBO.setBtrisSpecimenType(eformBtrisMapping.getBtrisSpecimenType());
+					proformsBO.setBtrisRedCode(eformBtrisMapping.getBtrisRedCode());
+					proformsBO.setBtrisTable(eformBtrisMapping.getBtrisTable());
+					proformsQuestion.setBtrisObject(proformsBO);
+					form.setHasBtrisMappingQuestion(true);
+					String key = "S_" + sectionId + "_Q_" + questionId;
+					btrisQuestionMap.put(key, proformsQuestion);
+				}
 		     
 		        //question attributes
 		        FormQuestionAttributes questionAttributes = new FormQuestionAttributes();
 		        
 		        gov.nih.tbi.dictionary.model.hibernate.eform.QuestionAttribute eformQuestionAttribute = eformQuestion.getQuestionAttribute();
-		        boolean calQuestion = false;
 		        boolean calculatedFlag = false;
+		        boolean countFlag = false;
+		        
+		        if(eformQuestionAttribute.getCountFlag()!= null) {
+		        	countFlag = eformQuestionAttribute.getCountFlag().booleanValue();
+		        }
+		        
+		        if (countFlag == true) {
+
+					calcRuleQuestions.add(proformsQuestion.getIdText());
+					CalculatedFormQuestionAttributes calculatedFormQuestionAttributes = new CalculatedFormQuestionAttributes();
+					//String calculation = eformQuestionAttribute.getCalculation();
+					String countFormula = eformSQ.getCountFormula();
+					calculatedFormQuestionAttributes.setCalculation(countFormula);
+					calculatedFormQuestionAttributes.setIsCount(true);
+					
+					List<gov.nih.tbi.dictionary.model.hibernate.eform.CountQuestion> eformsCountQuestions = eformSQ.getCountQuestion();
+					List<Question> questionsToCalculate = new ArrayList<Question>();
+					
+					for (gov.nih.tbi.dictionary.model.hibernate.eform.CountQuestion eformCountQuestion : eformsCountQuestions) {
+						gov.nih.tbi.dictionary.model.hibernate.eform.CountQuestionPk eformCountQuestionPk = eformCountQuestion.getCountQuestionCompositePk();
+						int eformCountSectionId = eformCountQuestionPk.getCountSection().getId().intValue();
+						gov.nih.tbi.dictionary.model.hibernate.eform.Question eformQuestionUsedInCount = eformCountQuestionPk.getCountQuestion();
+						int eformQuestionId = eformQuestionUsedInCount.getId().intValue();
+						Question countQuestion = new Question();
+						countQuestion.setSectionId(eformCountSectionId);
+						countQuestion.setParentSectionName(sectionName);
+						countQuestion.setId(eformQuestionId);
+						countQuestion.setIdText("S_" + eformCountSectionId + "_Q_" + eformQuestionId); 
+						countQuestion.setVersion(new Version(1));
+						countQuestion.setName(eformQuestionUsedInCount.getName());
+						countQuestion.setText(eformQuestionUsedInCount.getText());
+						countQuestion.setType(QuestionType.getByValue(eformQuestionUsedInCount.getType().getValue()));
+
+						countQuestion.getFormQuestionAttributes().setAnswerType(AnswerType.getByValue(eformQuestionUsedInCount.getQuestionAttribute().getAnswerType().getValue()));
+						calcRuleDependentQuestions.add(countQuestion.getIdText());
+						questionsToCalculate.add(countQuestion);						
+						
+					}
+					calculatedFormQuestionAttributes.setAnswerType(AnswerType.getByValue(eformQuestionAttribute.getAnswerType().getValue()));
+					calculatedFormQuestionAttributes.setQuestionsToCalculate(questionsToCalculate);
+					int dtConversionFactor = eformQuestionAttribute.getDtConversionFactor().intValue();
+					calculatedFormQuestionAttributes.setConversionFactor(ConversionFactor.getByValue(dtConversionFactor));
+					proformsQuestion.setCalculatedFormQuestionAttributes(calculatedFormQuestionAttributes);
+					calculatedFormQuestionAttributes.setConditionalForCalc(eformQuestionAttribute.getConditionalForCalc());
+				}
+		        
+		        
+		        
+		        
 		        if(eformQuestionAttribute.getCalculatedFlag() != null) {
 		        	calculatedFlag = eformQuestionAttribute.getCalculatedFlag().booleanValue();
 		        }
 		        if (calculatedFlag == true) {
 
-					calQuestion = true; 
+					calcRuleQuestions.add(proformsQuestion.getIdText());
 					CalculatedFormQuestionAttributes calculatedFormQuestionAttributes = new CalculatedFormQuestionAttributes();
 					//String calculation = eformQuestionAttribute.getCalculation();
 					String calculation = eformSQ.getCalculation();
@@ -540,6 +644,7 @@ public class FormDataStructureUtility {
 						calcQuestion.setSectionId(eformCalcSectionId);
 						calcQuestion.setParentSectionName(sectionName);
 						calcQuestion.setId(eformQuestionId);
+						calcQuestion.setIdText("S_" + eformCalcSectionId + "_Q_" + eformQuestionId); 
 						calcQuestion.setVersion(new Version(1));
 						calcQuestion.setName(eformQuestionUsedInCalc.getName());
 						calcQuestion.setText(eformQuestionUsedInCalc.getText());
@@ -578,6 +683,7 @@ public class FormDataStructureUtility {
 						}
 						calcQuestion.setAnswers(calcAnswers); 
 						calcQuestion.getFormQuestionAttributes().setAnswerType(AnswerType.getByValue(eformQuestionUsedInCalc.getQuestionAttribute().getAnswerType().getValue()));
+						calcRuleDependentQuestions.add(calcQuestion.getIdText());
 						questionsToCalculate.add(calcQuestion);						
 						
 					}
@@ -635,7 +741,8 @@ public class FormDataStructureUtility {
 				String conversionFactor = eformQuestionAttribute.getConversionFactor();
 				questionAttributes.setUnitConversionFactor(conversionFactor);
 				
-				questionAttributes.setIsCalculatedQuestion(calQuestion);
+				questionAttributes.setIsCalculatedQuestion(calculatedFlag);
+				questionAttributes.setIsCountQuestion(countFlag);
 				//int qaID = eformQuestionAttribute.getId().intValue();
 				//questionAttributes.setId(qaID);
 						
@@ -656,6 +763,7 @@ public class FormDataStructureUtility {
 
 				
 				if (skipRule) {
+					skipRuleQuestions.add(proformsQuestion.getIdText());
 					int skipRuleType = eformQuestionAttribute.getSkipRuleType().getValue();
 					questionAttributes.setSkipRuleType(SkipRuleType.getByValue(skipRuleType));
 					int skipRuleOperatorType = eformQuestionAttribute.getSkipRuleOperatorType().getValue();
@@ -679,11 +787,11 @@ public class FormDataStructureUtility {
 						skipQuestion.setText(eformQuestionUsedInSkip.getText());
 						skipQuestion.setType(QuestionType.getByValue(eformQuestionUsedInSkip.getType().getValue()));
 						skipQuestion.setSectionId(sectionId);
+						
 						skipQuestion.setParentSectionName(sectionName);
 						skipQuestion.setSkipSectionId(eformSkipSectionId);
-						
-						//dont think i need to set answers for skip
-						
+						skipQuestion.setIdText("S_" + eformSkipSectionId + "_Q_" + eformQuestionId);
+						skipRuleDependentQuestions.add(skipQuestion.getIdText());
 						questionsToSkip.add(skipQuestion);
 					}
 
@@ -752,6 +860,9 @@ public class FormDataStructureUtility {
 				
 				if (eformEmailTrigger != null) { 
 					EmailTrigger et = new EmailTrigger();
+					if (eformEmailTrigger.getId() != null) {
+						et.setId(eformEmailTrigger.getId().intValue());
+					}
 					String toEmailAddress = eformEmailTrigger.getToEmailAddress();
 					et.setToEmailAddress(toEmailAddress);
 					String ccEmailAddress = eformEmailTrigger.getCcEmailAddress();
@@ -761,14 +872,18 @@ public class FormDataStructureUtility {
 					String emailBody = eformEmailTrigger.getBody();
 					et.setBody(emailBody);
 					Set<EmailTriggerValue> emailTriggerValueSet = eformEmailTrigger.getTriggerValues();
-					List<String> triggerAnswers = new ArrayList<String>();
-					
-					for (EmailTriggerValue emailTriggerValue : emailTriggerValueSet) {
-						String answer = emailTriggerValue.getAnswer();
-						triggerAnswers.add(answer);
+					// List<String> triggerAnswers = new ArrayList<String>();
+					Set<gov.nih.nichd.ctdb.emailtrigger.domain.EmailTriggerValue> emailTriggerValueSetPF =
+							new HashSet<gov.nih.nichd.ctdb.emailtrigger.domain.EmailTriggerValue>();
+					for (gov.nih.tbi.dictionary.model.hibernate.eform.EmailTriggerValue emailTriggerValueDD : emailTriggerValueSet) {
+						gov.nih.nichd.ctdb.emailtrigger.domain.EmailTriggerValue emailTriggerValuePf =
+								new gov.nih.nichd.ctdb.emailtrigger.domain.EmailTriggerValue(
+										emailTriggerValueDD.getAnswer(), emailTriggerValueDD.getTriggerCondition());
+						emailTriggerValueSetPF.add(emailTriggerValuePf);
 					}
 							
-					et.setTriggerAnswers(triggerAnswers);
+					// et.setTriggerAnswers(triggerAnswers);
+					et.setTriggerValues(emailTriggerValueSetPF);
 					questionAttributes.setEmailTrigger(et);
 				}
 
@@ -804,6 +919,7 @@ public class FormDataStructureUtility {
 			while(qListIter.hasNext()) {
 				Question qListQ = qListIter.next();
 				boolean isReq = qListQ.getFormQuestionAttributes().isRequired();
+				boolean hasSkip =  qListQ.getFormQuestionAttributes().hasSkipRule();
 				if(isReq) {
 					hasAnyRequiredQuestions = true;
 					break;
@@ -834,6 +950,11 @@ public class FormDataStructureUtility {
 	    form.setQuestionMap(questionMap); 
 	    form.setSectionMap(sectionMap);
 	    form.setOrderedSectionList(orderedSectionList);
+	    form.setBtrisQuestionMap(btrisQuestionMap);
+	    form.setCalcRuleQuestions(calcRuleQuestions);
+	    form.setCalcRuleDependentQuestions(calcRuleDependentQuestions);
+	    form.setSkipRuleQuestions(skipRuleQuestions);
+	    form.setSkipRuleDependentQuestions(skipRuleDependentQuestions);
 	    
 		return form;
 	}

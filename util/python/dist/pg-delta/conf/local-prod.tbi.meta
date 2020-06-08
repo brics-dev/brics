@@ -1,0 +1,16 @@
+[DB-TRG]
+host=localhost
+database=metadb
+schema=metasch
+user=metauser
+label=TRG-LOCAL
+
+[DB-SRC]
+host=fitbir-db-prod.cit.nih.gov
+database=tbi_prod
+schema=tbi_meta
+user=tbi_meta
+label=SRC-TBI-PROD
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\pgDelta\local-prodtbi-meta

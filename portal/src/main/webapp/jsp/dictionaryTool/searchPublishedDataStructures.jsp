@@ -49,7 +49,7 @@ width:100% !important;
 			
 	<div id="dataStructureRequiredOptions" class="filter facet-form-field">
 					<fieldset>
-				<legend><strong><s:property value="%{orgName}" /></strong></legend>
+				<legend id="orgName"><strong><s:property value="%{orgName}" /></strong></legend>
 					<ul>
 					<li><input type="radio" name="selectedRequiredOptions" id="reqByAll" checked="checked"  value="" onclick="javascript:refreshSearch();" />
 							<label for="reqByAll">All</label>
@@ -125,6 +125,42 @@ width:100% !important;
 				</s:iterator>   
 				</ul></fieldset>
 			</div>
+			
+	<s:if test="formLabelOptions.size() > 0">
+		<div class="filter facet-form-field">
+		<fieldset>
+			<legend><strong>Labels</strong></legend>
+			<div id="formLabelSelections" class="formLabelSelections" style="max-height:200px;"> 
+				<ul>
+				<s:iterator value="formLabelOptions" status="stat">
+					<s:if test="#stat.index < 5">
+						<li>
+							<s:checkbox id="label%{id}" name="selectedFormLabelOptions" fieldValue="%{id}" onclick="javascript:refreshSearch();" /> 
+							<s:label for="label%{id}" value="%{label}" />
+						</li>
+					</s:if>
+				</s:iterator>
+				</ul>
+				<div style="display: none">	
+					<ul>
+						<s:iterator value="formLabelOptions" status="stat2">
+							<s:if test="#stat2.index >= 5">
+								<li>
+									<s:checkbox id="label%{id}" name="selectedFormLabelOptions" fieldValue="%{id}" onclick="javascript:refreshSearch();" /> 
+									<s:label for="label%{id}" value="%{label}" />
+								</li>
+							</s:if>
+						</s:iterator>	
+					</ul>
+				</div>
+				<s:if test="formLabelOptions.size() > 5">
+					<a href="#formLabelSelections" class="more" style="float:right; font-size:10px;">more</a>
+				</s:if>
+		 	</div> 
+		</fieldset>
+		</div>
+	</s:if>
+			
 		<div id="dataStructureFilterOptions" class="filter facet-form-field">
 			<fieldset>
 				<legend><strong>Status</strong></legend><br>
@@ -213,7 +249,7 @@ width:100% !important;
 		</ul>
 		 			</div> 
 		
-		<a href="#diseaseSelections" class="more" style="float: right; font-size: 10px;">more</a>
+		<a href="#diseaseSelections" aria-label="click here to show more or less of the list of diseases" class="more" style="float: right; font-size: 10px;">more</a>
 		</li>
 		</ul>
 		</div>
@@ -252,9 +288,19 @@ width:100% !important;
 	// This loads the ALL filter to begin and sets results to page 1
 	$('document').ready(function() {
 		showStandardizationTooltips();
+		
+		// This is for eyegene with orgName as "NEI_BRICS", we don't to show on the view the orgName with the undrscore.
+		var orgName = $("#orgName").html();
+		$("#orgName").html(orgName.replace(/_/g, ' '));
 
 		//set scroll bar styles
 		$(".diseaseSelections").mCustomScrollbar({
+			theme:"inset-dark",
+		    scrollButtons:{ enable: true },
+		    autoHideScrollbar: true
+		});
+		
+		$("#formLabelSelections").mCustomScrollbar({
 			theme:"inset-dark",
 		    scrollButtons:{ enable: true },
 		    autoHideScrollbar: true
@@ -305,6 +351,11 @@ width:100% !important;
 				}
 			});
 			$(".diseaseSelections").find("input").each(function() {
+				if($(this).is(':checked')){
+					$(this).prop('checked', false);
+				}
+			});
+			$("#formLabelSelections").find("input").each(function() {
 				if($(this).is(':checked')){
 					$(this).prop('checked', false);
 				}

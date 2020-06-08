@@ -215,5 +215,46 @@ public class RangeValidator extends CellValidator {
 		}
 		return duplicatesList;
 	}
+	
+	/**
+	 * This method is used to check which values out of permissible values are outside of the numeric range
+	 * 
+	 * @param data , a semicolon separated list of values 
+	 * @param iElement
+	 * @return String that contains the message details for values that aren't within the ValueRange
+	 */
+	public String pvOutsideRange(String data, StructuralDataElement iElement) {
+
+		List<String> dataList = new ArrayList<String>(Arrays.asList(data.split(";")));
+		String valuesOutsideRange = "";
+		for (String value : dataList) {
+			
+			if (!InputRestrictions.FREE_FORM.equals(iElement.getRestrictions())) {
+				boolean foundInData = false;
+
+				for (ValueRange vr : iElement.getValueRangeList()) {
+					if (vr.getValueRange().equalsIgnoreCase(value.trim())) {
+						foundInData = true;
+						break;
+					}
+				}
+
+				if (!foundInData) {
+					valuesOutsideRange = valuesOutsideRange.concat(", "+ value);
+				}
+			}
+
+		}
+
+		if(!valuesOutsideRange.isEmpty()) {
+			if(valuesOutsideRange.indexOf(',') == valuesOutsideRange.lastIndexOf(',')) {
+				return "The value " + valuesOutsideRange.substring(valuesOutsideRange.indexOf(',')) + " ";
+			} else {
+				return "The set of values" + valuesOutsideRange + " ";
+			}
+		} else {
+			return "No values within the set ";
+		}
+	}
 
 }

@@ -18,7 +18,6 @@ import gov.nih.nichd.ctdb.common.CtdbConstants;
 import gov.nih.nichd.ctdb.common.CtdbDao;
 import gov.nih.nichd.ctdb.common.CtdbException;
 import gov.nih.nichd.ctdb.common.util.Utils;
-import gov.nih.nichd.ctdb.response.domain.AdverseEvent;
 import gov.nih.nichd.ctdb.workspace.domain.DashboardChartFilter;
 import gov.nih.nichd.ctdb.workspace.domain.DashboardDataCollectionStatus;
 import gov.nih.nichd.ctdb.workspace.domain.DashboardOverallStatus;
@@ -261,42 +260,6 @@ public class DashboardReportingDao extends CtdbDao {
 		return protocolEformCollStatusList;
 	}
 
-	public List<AdverseEvent> getAEListBySelectedStudy(long studyId) throws CtdbException {
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
-		List<AdverseEvent> list = new ArrayList<AdverseEvent>();
-
-		try {
-			String sql = "select af.administeredformid as afid, p.guid, def.completeddate, ef.data_structure_name \r\n"
-					+ "from eform ef, administeredform af, patient p, dataentrydraft def \r\n"
-					+ "where ef.eformid=af.eformid \r\n" + "and af.patientid=p.patientid\r\n"
-					+ "and af.administeredformid=def.administeredformid\r\n" + "and def.coll_status='Completed' \r\n"
-					+ "--and def.coll_status='Locked' \r\n" + "and ef.protocolid=? \r\n"
-					+ "and upper(ef.data_structure_name) like upper('%AdverseEvents%')\r\n"
-					+ "order by af.administeredformid;";
-
-			stmt = this.conn.prepareStatement(sql);
-			stmt.setLong(1, studyId);
-			rs = stmt.executeQuery();
-
-			while (rs.next()) {
-				AdverseEvent ae = new AdverseEvent();
-				ae.setAdministeredformId(rs.getInt("afid"));
-				ae.setSubject(rs.getString("guid"));
-				ae.setFormCompleteddate(rs.getString("completeddate"));
-
-				list.add(ae);
-			}
-		} catch (SQLException sqle) {
-			throw new CtdbException("Unable to get \"Adverse Event Log\".", sqle);
-		} finally {
-			this.close(rs);
-			this.close(stmt);
-		}
-
-		return list;
-	}
-
 	public List<String> getEFormNameListByCollectionStatus(DashboardChartFilter chartFilter, String visitTypeName,
 			String collStatus) throws CtdbException {
 		List<String> eFormNameList = new ArrayList<String>();
@@ -315,7 +278,7 @@ public class DashboardReportingDao extends CtdbDao {
 			Integer protocolId = chartFilter.getCurrentStudyId();
 
 			if (protocolId != null) {
-				int startingParamNum = 0;
+				int startingParamNum = 1;
 				Map<String, Integer> stmtParamMap = new HashMap<String, Integer>();
 				String sql_status_where = getWhereClauseForChartFilters(chartFilter, visitTypeName, collStatus,
 						startingParamNum, stmtParamMap);
@@ -361,7 +324,7 @@ public class DashboardReportingDao extends CtdbDao {
 					+ "SELECT ef.name FROM patientprotocol pp "
 					+ "INNER JOIN administeredform af ON af.patientid = pp.patientid "
 					+ "INNER JOIN interval v  ON  af.intervalid=v.intervalid "
-					+ "INNER JOIN dataentrydraft ded ON af.administeredformid=ded.administeredformid"
+					+ "INNER JOIN dataentrydraft ded ON af.administeredformid=ded.administeredformid "
 					+ "INNER JOIN eform ef ON af.eformid=ef.eformid "
 					+ "INNER JOIN patient p ON p.patientid = pp.patientid ";
 
@@ -595,17 +558,16 @@ public class DashboardReportingDao extends CtdbDao {
 		List<DashboardOverallStatus> list = new ArrayList<DashboardOverallStatus>();
 
 		try {
-			String sql = "select i.name Visittype, sum(CASE WHEN ded.coll_status = 'Completed' "
-					+ "THEN 1 ELSE 0 END) Completed, sum(CASE WHEN i.intervalid is not null and "
-					+ "ded.administeredformid is null THEN 1 ELSE 0 END) Incomplete, sum(CASE WHEN "
-					+ "ded.coll_status = 'In Progress' THEN 1 ELSE 0 END) Inprogress, sum(CASE WHEN "
-					+ "ef.data_structure_name in ('AdverseEvents', 'ProtocolDeviations') THEN 1 ELSE 0 "
-					+ "END) Deviation from administeredform a JOIN interval i on a.intervalid = i.intervalid "
-					+ "LEFT OUTER JOIN  dataentrydraft ded on  a.administeredformid = ded.administeredformid "
-					+ "LEFT OUTER JOIN eform ef on a.eformid = ef.eformid JOIN patient p on a.patientid = p.patientid "
+			String sql = "select i.name Visittype, sum(CASE WHEN ded.coll_status = 'Completed' THEN 1 ELSE 0 END) Completed, " 
+					+ "sum(CASE WHEN ded.coll_status = 'Locked' THEN 1 ELSE 0 END) Lockedforms, " 
+					+ "sum(CASE WHEN ded.coll_status = 'In Progress' THEN 1 ELSE 0 END) Inprogress, " 
+					+ "sum(CASE WHEN ef.data_structure_name in ('AdverseEvents', 'ProtocolDeviations') THEN 1 ELSE 0 END) Deviation " 
+					+ "from administeredform a JOIN interval i on a.intervalid = i.intervalid "
+					+ "LEFT OUTER JOIN  dataentrydraft ded on a.administeredformid = ded.administeredformid " 
+					+ "LEFT OUTER JOIN eform ef on a.eformid = ef.eformid JOIN patient p on a.patientid = p.patientid " 
 					+ "JOIN protocol pr on ef.protocolid = pr.protocolid JOIN patientprotocol pp on "
-					+ "p.patientid = pp.patientid and pr.protocolid = pp.protocolid JOIN site s on pp.siteid = s.siteid "
-					+ "where pr.protocolid = ? group by i.name ";
+					+ "p.patientid = pp.patientid and pr.protocolid = pp.protocolid JOIN site s on pp.siteid = s.siteid \r\n"  
+					+ "where pr.protocolid = ? group by i.name";
 
 			stmt = this.conn.prepareStatement(sql);
 			stmt.setInt(1, protocolId);
@@ -615,7 +577,7 @@ public class DashboardReportingDao extends CtdbDao {
 				DashboardOverallStatus status = new DashboardOverallStatus();
 				status.setAssessmentType(rs.getString("visitType"));
 				status.setCompleteVal(rs.getString("completed"));
-				status.setInCompleteVal(rs.getString("inComplete"));
+				status.setLockedVal(rs.getString("Lockedforms"));
 				status.setInProgressVal(rs.getString("inProgress"));
 				status.setDeviationsVal(rs.getString("deviation"));
 

@@ -63,6 +63,7 @@ public class AccountDetailService implements UserDetailsService, AuthenticationU
 	 */
 	private static final long serialVersionUID = 2628156955029307389L;
 	private static final String ROLE_UNSIGNED = "ROLE_UNSIGNED";
+	private static final String ROLE_GUEST = "ROLE_GUEST";
 
 	@Autowired
 	protected AccountManager accountManager;
@@ -247,7 +248,18 @@ public class AccountDetailService implements UserDetailsService, AuthenticationU
 		return authorities;
 	}
 
-	
+	/**
+	 * Convenience method to convert AccountRoles into GrantedAuthorities
+	 * 
+	 * @param accountRoleList
+	 * @return
+	 */
+	public static Collection<GrantedAuthority> getTwoFaAuthorities(Account account) {
+		Set<GrantedAuthority> authorities = new HashSet<GrantedAuthority>();
+		authorities.add(new SimpleGrantedAuthority(ROLE_GUEST));
+		return authorities;
+	}
+
 	/**
 	 * Method used by the spring security background to clear failed login attempts
 	 */

@@ -1,0 +1,7 @@
+[DB-TRG]
+host=fitbir-db-test.cit.nih.gov
+database=tbi_test
+schema=tbi_metatest
+user=tbi_metatest
+label=TARGET
+

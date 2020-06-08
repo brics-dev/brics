@@ -238,6 +238,23 @@ function generalInit() {
 function displayExportLegacyFormError() {
 	$.ibisMessaging("dialog", "warning", "This form is a legacy form and cannot be exported.", {container: "body"});
 }
+
+
+function checkForCollections() {
+	var url = "eformDeleteAction!checkForCollectionsAndEformsInVT.ajax";
+		$.get(url, function(response) {
+			var data = JSON.parse(response);
+			var areAnyDataCollectionsOrEformsInVT = data.areAnyDataCollectionsOrEformsInVT;
+			var email = data.email;
+			var message = data.message;
+			if(areAnyDataCollectionsOrEformsInVT == true) {
+				$.ibisMessaging("dialog", "warning", message + " " + email, {container: "body"});
+			}else {
+				submitForm('eformDeleteAction!delete.action');
+			}
+		});
+
+}
 </script>
 </body>
 </html>

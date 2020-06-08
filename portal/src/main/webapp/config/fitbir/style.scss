@@ -74,7 +74,8 @@ $nav-hover1: $footer-bg1;
 
 /* Import BRICS Styles */
  
-@import "../../styles/common.scss";   
+@import "../../styles/common.scss";
+@import "../../styles/bootstrap.scss";  
 @import "../../styles/style.scss";   
 @import "../../styles/fancybox.scss"; 
 @import "../../styles/icon.scss";

@@ -32,9 +32,9 @@
 				<div class="col-md-12" >
 						<table>
 							<tr width="100%">
-								<td colspan="5" width="100%">
+								<td colspan="9" width="100%">
 									<a href="javascript:void(0)" id="calcBackspace"><img border="0" src="<s:property value="#webRoot"/>/images/calc_backspace.png"></a>
-						            <a href="javascript:void(0)" id="calcClear"><img border="0" src="<s:property value="#webRoot"/>/images/calc_clear.png"></a>
+						            <a href="javascript:void(0)" id="calcClear"><img border="0" src="<s:property value="#webRoot"/>/images/calc_clear.png" ></a>
 								</td>
 							</tr>
 						    <tr>
@@ -42,7 +42,10 @@
 								<td><a href="javascript:void(0)" id="calc8"><img border="0" src="<s:property value="#webRoot"/>/images/calc_eight.png"></a></td>
 								<td><a href="javascript:void(0)" id="calc9"><img border="0" src="<s:property value="#webRoot"/>/images/calc_nine.png"></a></td>
 								<td><a href="javascript:void(0)" id="calcDivide"><img border="0" src="<s:property value="#webRoot"/>/images/calc_divide.png"></a></td>
-								<td><a href="javascript:void(0)" id="calcSqrt"><img border="0" src="<s:property value="#webRoot"/>/images/calc_sqrt.png"></a></td>
+								<td><a href="javascript:void(0)" id="calcSqrt"><img border="0" src="<s:property value="#webRoot"/>/images/calc_sqrt.png"></a></td>								
+								<td><a href="javascript:void(0)" id="calcEqualEqual"><img border="0" src="<s:property value="#webRoot"/>/images/calc_equal_equal.png"></a></td>
+								<td><a href="javascript:void(0)" id="calcNotEqual"><img border="0" src="<s:property value="#webRoot"/>/images/calc_not_equal.png"></a></td>
+								<td colspan="2"><a href="javascript:void(0)" id="calcIf"><img border="0" src="<s:property value="#webRoot"/>/images/calc_if.png"></a></td>								
 							</tr>
 							<tr>
 								<td><a href="javascript:void(0)" id="calc4"><img border="0" src="<s:property value="#webRoot"/>/images/calc_four.png"></a></td>
@@ -50,6 +53,9 @@
 								<td><a href="javascript:void(0)" id="calc6"><img border="0" src="<s:property value="#webRoot"/>/images/calc_six.png"></a></td>
 								<td><a href="javascript:void(0)" id="calcMult"><img border="0" src="<s:property value="#webRoot"/>/images/calc_multiply_star.png"></a></td>
 								<td><a href="javascript:void(0)" id="calcPercent"><img border="0" src="<s:property value="#webRoot"/>/images/calc_percent.png"></a></td>
+								<td><a href="javascript:void(0)" id="calcGreater"><img border="0" src="<s:property value="#webRoot"/>/images/calc_greater.png"></a></td>
+								<td><a href="javascript:void(0)" id="calcGreaterEqual"><img border="0" src="<s:property value="#webRoot"/>/images/calc_greater_equal.png"></a></td>
+								<td colspan="2"><a href="javascript:void(0)" id="calcElse"><img border="0" src="<s:property value="#webRoot"/>/images/calc_else.png"></a></td>								
 							</tr>
 							<tr>
 								<td><a href="javascript:void(0)" id="calc1"><img border="0" src="<s:property value="#webRoot"/>/images/calc_one.png"></a></td>
@@ -57,6 +63,9 @@
 								<td><a href="javascript:void(0)" id="calc3"><img border="0" src="<s:property value="#webRoot"/>/images/calc_three.png"></a></td>
 								<td><a href="javascript:void(0)" id="calcSubt"><img border="0" src="<s:property value="#webRoot"/>/images/calc_minus.png"></a></td>
 								<td><a href="javascript:void(0)" id="calcAdd"><img border="0" src="<s:property value="#webRoot"/>/images/calc_plus.png"></a></td>
+								<td><a href="javascript:void(0)" id="calcLesser"><img border="0" src="<s:property value="#webRoot"/>/images/calc_lesser.png"></a></td>
+								<td><a href="javascript:void(0)" id="calcLesserEqual"><img border="0" src="<s:property value="#webRoot"/>/images/calc_lesser_equal.png"></a></td>
+								<td colspan="2"><a href="javascript:void(0)" id="calcElseIf"><img border="0" src="<s:property value="#webRoot"/>/images/calc_else_if.png"></a></td>
 							</tr>
 							<tr>
 								<td><a href="javascript:void(0)" id="calcFlip"><img border="0" src="<s:property value="#webRoot"/>/images/calc_plus_minus.png"></a></td>
@@ -64,6 +73,9 @@
 								<td><a href="javascript:void(0)" id="calcDot"><img border="0" src="<s:property value="#webRoot"/>/images/calc_decimal.png"></a></td>
 								<td><a href="javascript:void(0)" id="calcLeftP"><img border="0" src="<s:property value="#webRoot"/>/images/calc_paren_left.png"></a></td>
 								<td><a href="javascript:void(0)" id="calcRightP"><img border="0" src="<s:property value="#webRoot"/>/images/calc_paren_right.png"></a></td>
+								<td><a href="javascript:void(0)" id="calcAnd"><img border="0" src="<s:property value="#webRoot"/>/images/calc_and.png"></a></td>
+								<td><a href="javascript:void(0)" id="calcOr"><img border="0" src="<s:property value="#webRoot"/>/images/calc_or.png"></a></td>
+								<td colspan="2"><a href="javascript:void(0)" id="calcOpenBrac"><img border="0" src="<s:property value="#webRoot"/>/images/calc_open_brac.png"></a><a href="javascript:void(0)" id="calcCloseBrac"><img border="0" src="<s:property value="#webRoot"/>/images/calc_close_brac.png"></a></td>
 							</tr>
 						</table>
 				</div>

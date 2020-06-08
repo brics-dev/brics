@@ -152,7 +152,7 @@
 									},
 									{
 										value: "errors",
-										label: "Status: Errors"
+										label: "Status: Error During Load"
 									},
 									{
 										value: "uploading",

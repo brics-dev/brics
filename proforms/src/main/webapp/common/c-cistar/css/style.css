@@ -73,6 +73,10 @@
   position: relative;
   top: -50px; }
 
+.build-notes {
+  float: left;
+  margin: 20px; }
+
 /* Import Stylesheets */
 /*----------------------------------------------------------
   ProForms Styles  
@@ -2025,7 +2029,7 @@ body {
   top: 300px;
   width: 10px;
   height: 2px;
-  font-family: ∩┐╜Trebuchet MS∩┐╜, Helvetica, sans-serif;
+  font-family: �Trebuchet MS�, Helvetica, sans-serif;
   font-size: 12px;
   font-weight: normal;
   text-shadow: 0px 0px 1px #333;
@@ -2169,6 +2173,9 @@ table.dataTable th {
     background: linear-gradient(to bottom, #362f2d 0%, #b00836 80%);
     /* W3C */ }
 
+@media print {
+  .no-print, .no-print * {
+    display: none !important; } }
 #footer .content {
   border-bottom: none;
   border-left: none;
@@ -2190,10 +2197,7 @@ table.dataTable th {
 h1 {
   line-height: 1.2em; }
   
-@media print {    
-   .no-print, .no-print * {
-       display: none !important;
-   }
-}
+.selfReportingPSRHeader ol{
+	padding-left: 15px; }
 
 /*# sourceMappingURL=style.css.map */

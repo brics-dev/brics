@@ -1,0 +1,7 @@
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\propPasswdUtil\demo-cistar-cas
+passFile=D:\DATA\secur\.pgpass
+
+[DEPLOY]
+trgRoot=D:\DEV\workspace\conf\demo\cistar-cas
+srcRoot=D:\DEV\BRIX\local\prop\demo\cistar-cas

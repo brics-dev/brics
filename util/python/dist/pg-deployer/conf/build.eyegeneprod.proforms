@@ -1,0 +1,6 @@
+[DB-TRG]
+host=eyegene-db-prod.cit.nih.gov
+database=eyegene_data
+schema=proforms_app_prod
+user=proforms_app_prod
+label=TARGET

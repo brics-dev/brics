@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<formStructure>
+    <StructuralFormStructure>
+        <repeatableGroups>
+            <id>-1</id>
+            <name>Main</name>
+            <type>EXACTLY</type>
+            <threshold>1</threshold>
+            <position>0</position>
+            <mapElements>
+                <repeatableGroup>Main</repeatableGroup>
+                <dataElement>
+                    <id>22073</id>
+                    
+                </dataElement>
+                <position>1</position>
+                <requiredTypeId>REQUIRED</requiredTypeId>
+            </mapElements>
+            <mapElements>
+                <repeatableGroup>Main</repeatableGroup>
+                <dataElement>
+                    <id>26199</id>
+                    
+                </dataElement>
+                <position>2</position>
+                <requiredTypeId>REQUIRED</requiredTypeId>
+            </mapElements>
+            <mapElements>
+                <repeatableGroup>Main</repeatableGroup>
+                <dataElement>
+                    <id>22506</id>
+                   
+                </dataElement>
+                <position>3</position>
+                <requiredTypeId>REQUIRED</requiredTypeId>
+            </mapElements>
+            <mapElements>
+                <repeatableGroup>Main</repeatableGroup>
+                <dataElement>
+                    <id>22085</id>
+                   
+                </dataElement>
+                <position>4</position>
+                <requiredTypeId>RECOMMENDED</requiredTypeId>
+            </mapElements>
+            <mapElements>
+                <repeatableGroup>Main</repeatableGroup>
+                <dataElement>
+                    <id>13704</id>
+                    
+                </dataElement>
+                <position>5</position>
+                <requiredTypeId>RECOMMENDED</requiredTypeId>
+            </mapElements>
+        </repeatableGroups>
+        <diseaseList>
+            <disease>
+                <id>8</id>
+
+            </disease>
+        </diseaseList>
+        <id></id>
+        <shortName>@NAME@</shortName>
+        <version>1.0</version>
+        <title>@NAME@</title>
+        <description>@NAME@</description>
+        <status>DRAFT</status>
+        <organization>@NAME@ ORG</organization>
+        <fileType>CLINICAL</fileType>
+        <isCopyrighted>false</isCopyrighted>
+    </StructuralFormStructure>
+    <SemanticFormStructure>
+        <version>1.0</version>
+        <title>@NAME@</title>
+        <shortName>@NAME@</shortName>
+        <description>@NAME@</description>
+        <modifiedDate>2016-11-02T16:57:54.039-04:00</modifiedDate>
+        <dateCreated>2016-11-02T16:55:46.157-04:00</dateCreated>
+        <modifiedAccount>2</modifiedAccount>
+        <diseases>
+            <id>8</id>
+            <name>Traumatic Brain Injury</name>
+            <isActive>true</isActive>
+            <isMajor>true</isMajor>
+        </diseases>
+        <organization>@NAME@ ORG</organization>
+        <submissionType>CLINICAL</submissionType>
+        <status>DRAFT</status>
+        <createdBy>Admin, Portal</createdBy>
+        <standardization>NINDSNOTSTANDARD</standardization>
+    </SemanticFormStructure>
+</formStructure>

@@ -81,31 +81,35 @@ QT.FilterDataTileView = BaseView.extend({
 	addRemoveAllSubElements : function() {
 		if (this.isAvailable()) {
 			var subList = this.model[this.config.tiles.subElementList];
+			var thisUri = this.model.get("uri");
 			var event = "addToDataCart";
 			if (this.isSelected()) {
-				event = "removeFromDataCart";
-			}
-			
-			var thisUri = this.model.get("uri");
-			for (var i = 0; i < subList.length; i++) {
-				var subItem = subList.at(i);
-				var subItemUri = subItem.get("uri");
-				if (QueryTool.page.isAvailable(thisUri, subItemUri)) {
-					if (this.model instanceof QT.Form) {
-						EventBus.trigger(event, thisUri, subItemUri);
-					}
-					else {
-						EventBus.trigger(event, subItemUri, thisUri);
-					}
+				//event = "removeFromDataCart";
+				if (this.model instanceof QT.Form) {
+					//sends a list of studies, and form uri
+					EventBus.trigger("removeAllStudiesFromDataCart", thisUri);
 					
 				}
-			}
-			
-			if (event == "addToDataCart") {
-				this.expandSubTiles();
-			}
-			else {
+				else {
+					//sends a list of forms, and study uri
+					EventBus.trigger("removeAllFormsFromDataCart", thisUri, subList);
+				}
 				this.collapseSubTiles();
+			} else {
+				for (var i = 0; i < subList.length; i++) {
+					var subItem = subList.at(i);
+					var subItemUri = subItem.get("uri");
+					if (QueryTool.page.isAvailable(thisUri, subItemUri)) {
+						if (this.model instanceof QT.Form) {
+							EventBus.trigger(event, thisUri, subItemUri);
+						}
+						else {
+							EventBus.trigger(event, subItemUri, thisUri);
+						}
+						
+					}
+				}
+				this.expandSubTiles();
 			}
 		}
 	},

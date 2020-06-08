@@ -55,6 +55,7 @@ public class CoreConstants
     public static final String META_FACTORY = "metaFactory";
     public static final String GUID_FACTORY = "metaFactory";
     public static final String REPOS_FACTORY = "reposFactory";
+    public static final String PF_FACTORY = "proformsFactory";
     public static final String RDF_FACTORY = "rdfFactory";
     public static final String QUOTE = "\"";
     public static final String SINGLE_QUOTE = "'";

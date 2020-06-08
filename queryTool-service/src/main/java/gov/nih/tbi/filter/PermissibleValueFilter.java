@@ -2,38 +2,37 @@ package gov.nih.tbi.filter;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.hp.hpl.jena.sparql.expr.Expr;
-import com.hp.hpl.jena.sparql.expr.ExprVar;
-import com.hp.hpl.jena.sparql.syntax.ElementFilter;
-
-import gov.nih.tbi.commons.model.InputRestrictions;
-import gov.nih.tbi.constants.QueryToolConstants;
-import gov.nih.tbi.exceptions.FilterException;
 import gov.nih.tbi.pojo.DataElement;
-import gov.nih.tbi.pojo.FilterType;
 import gov.nih.tbi.pojo.FormResult;
+import gov.nih.tbi.pojo.PermissibleValue;
 import gov.nih.tbi.pojo.RepeatableGroup;
-import gov.nih.tbi.util.InstancedDataUtil;
 
-public class PermissibleValueFilter extends DataElementFilter implements Filter, Serializable {
+public abstract class PermissibleValueFilter extends DataElementFilter implements Filter, Serializable {
 	private static final long serialVersionUID = -3671349123391539540L;
 
-	private static final String REGEX_FORMAT = ".*%s.*|";
 	private List<String> values;
 	private String freeFormValue;
+	private HashMap<String, String> valueToDescription = new HashMap<String, String>();
+	private HashMap<String, String> descriptionToValue = new HashMap<String, String>();
 
-	public PermissibleValueFilter(FormResult form, RepeatableGroup group, DataElement element, boolean blank,
-			List<String> values, String freeFormValue) {
-		super(form, group, element, blank);
+	public PermissibleValueFilter(FormResult form, RepeatableGroup group, DataElement element, List<String> values,
+			String freeFormValue, String name, String logicBefore, Integer groupingBefore, Integer groupingAfter) {
+		super(form, group, element, name, logicBefore, groupingBefore, groupingAfter);
 		this.values = values;
 		this.freeFormValue = freeFormValue;
+
+		if (element.getPermissibleValues() != null) {
+			for (PermissibleValue pv : element.getPermissibleValues()) {
+				valueToDescription.put(pv.getValueLiteral().toLowerCase(), pv.getValueDescription().toLowerCase());
+				descriptionToValue.put(pv.getValueDescription().toLowerCase(), pv.getValueLiteral().toLowerCase());
+			}
+		}
 	}
 
 	public List<String> getValues() {
@@ -52,15 +51,25 @@ public class PermissibleValueFilter extends DataElementFilter implements Filter,
 		this.freeFormValue = freeFormValue;
 	}
 
+	public HashMap<String, String> getValueToDescription() {
+		return valueToDescription;
+	}
+
+	public void setValueToDescription(HashMap<String, String> valueToDescription) {
+		this.valueToDescription = valueToDescription;
+	}
+
+	public HashMap<String, String> getDescriptionToValue() {
+		return descriptionToValue;
+	}
+
+	public void setDescriptionToValue(HashMap<String, String> descriptionToValue) {
+		this.descriptionToValue = descriptionToValue;
+	}
+
 	@Override
 	public JsonObject toJson() {
-		JsonObject filterJson = new JsonObject();
-
-		filterJson.addProperty("groupUri", getGroup().getUri());
-		filterJson.addProperty("elementUri", getElement().getUri());
-		filterJson.addProperty("blank", isBlank());
-
-		filterJson.addProperty("filterType", getFilterType().name());
+		JsonObject filterJson = super.toJson();
 
 		if (values != null) {
 			JsonArray pvJson = new JsonArray();
@@ -75,54 +84,6 @@ public class PermissibleValueFilter extends DataElementFilter implements Filter,
 		}
 
 		return filterJson;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public ElementFilter toElementFilter(String variable) {
-		if (isEmpty()) {
-			return null;
-		}
-
-		ExprVar var = new ExprVar(variable);
-
-		InputRestrictions inputRestriction = getElement().getInputRestrictions();
-		String elementType = getElement().getType();
-
-
-		List<String> finalValues = getCombinedValues();
-
-
-		Expr filterExpression = null;
-
-		switch (inputRestriction) {
-			case SINGLE:
-			case FREE_FORM:
-				if (QueryToolConstants.NUMERIC_DE_TYPE.equals(elementType)) {
-					filterExpression = InstancedDataUtil.isOneOfNumeric(var, finalValues);
-				} else {
-					filterExpression = InstancedDataUtil.isOneOfString(var, finalValues);
-				}
-
-				break;
-			case MULTIPLE:
-				filterExpression = InstancedDataUtil.multiRegexFilter(var, finalValues);
-				break;
-			default:
-				throw new FilterException(
-						"Permissible value filter must be single-select, multi-select, or free-form (other, specify).");
-		}
-
-		ElementFilter elementFilter = new ElementFilter(filterExpression);
-
-		return applyIsBlank(var, elementFilter);
-	}
-
-	@Override
-	public FilterType getFilterType() {
-		return FilterType.PERMISSIBLE_VALUE;
 	}
 
 	@Override
@@ -179,69 +140,5 @@ public class PermissibleValueFilter extends DataElementFilter implements Filter,
 		}
 
 		return combinedValues;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public boolean evaluate(String cellValue) {
-		List<String> combinedValues = getCombinedValues();
-
-		// if no permissible value is selected, show everything.
-		if (combinedValues == null || combinedValues.isEmpty()) {
-			return true;
-		}
-
-		if (cellValue == null || cellValue.isEmpty()) {
-			if (isBlank()) {
-				return true;
-			} else {
-				return false;
-			}
-		}
-
-		InputRestrictions inputRestriction = getElement().getInputRestrictions();
-
-		switch (inputRestriction) {
-			case SINGLE:
-			case FREE_FORM:
-
-				for (String value : combinedValues) {
-					if (cellValue.equalsIgnoreCase(value)) {
-						return true;
-					}
-				}
-
-				return false;
-			case MULTIPLE:
-				Pattern p = compileRegexPattern();
-				Matcher m = p.matcher(cellValue);
-				return m.matches();
-			default:
-				throw new FilterException(
-						"Permissible value filter must be single-select, multi-select, or free-form (other, specify).");
-		}
-	}
-
-	/**
-	 * Compiles the regex pattern based on the values. End result should be something like '.*VALUE1.*|.*VALUE2.*|...'
-	 * 
-	 * @return
-	 */
-	protected Pattern compileRegexPattern() {
-		List<String> combinedValues = getCombinedValues();
-
-		StringBuffer sb = new StringBuffer();
-		String regexFormatter = REGEX_FORMAT;
-
-		for (String value : combinedValues) {
-			sb = sb.append(String.format(regexFormatter, value));
-		}
-
-		sb = sb.replace(sb.length() - 1, sb.length(), "");
-
-		Pattern p = Pattern.compile(sb.toString(), Pattern.CASE_INSENSITIVE);
-
-		return p;
 	}
 }

@@ -8,6 +8,7 @@ import gov.nih.tbi.commons.model.DatasetFileStatus;
 import gov.nih.tbi.commons.service.ServiceConstants;
 import gov.nih.tbi.dictionary.validation.view.ValidationClient;
 import gov.nih.tbi.repository.model.SubmissionDataFile;
+import gov.nih.tbi.repository.model.SubmissionPackage;
 import gov.nih.tbi.repository.model.SubmissionTicket;
 import gov.nih.tbi.repository.model.hibernate.BasicStudy;
 import gov.nih.tbi.repository.model.hibernate.Dataset;
@@ -67,7 +68,7 @@ public class UploadManagerController {
 	private static AppConfig config = AppConfig.getInstance();
 
 	private static SubmissionTicket submissionTicket = new SubmissionTicket();
-	private static Dataset myDataset = new Dataset();
+	private static List<Dataset> myDatasets = new ArrayList<Dataset>();
 	// stores the list of upload items loaded
 	//private static List<UploadItem> uploadList = new ArrayList<UploadItem>();
 	private static LinkedBlockingQueue <UploadItem> uploadList = new LinkedBlockingQueue<UploadItem>();
@@ -273,26 +274,28 @@ public class UploadManagerController {
 	 * @throws IOException
 	 * @throws JAXBException
 	 */
-	public static Dataset processSubmissionTicket(SubmissionTicket submissionTicket) throws IOException, JAXBException {
+	public static List<Dataset> processSubmissionTicket(SubmissionTicket submissionTicket) throws IOException, JAXBException {
 
 		String sftpBaseDir = config.getProperty("SFTP_BASEDIR");
+		List<Dataset> allResults = new ArrayList<Dataset>();
+		List<SubmissionPackage> allPackages = submissionTicket.getSubmissionPackages();
+		for (SubmissionPackage currentPackage : allPackages) {
+			StringBuffer serverPathBuffer = new StringBuffer(sftpBaseDir);
+			String studyPrefixId = UploadManager.getSelectedStudy().getPrefixedId();
+			serverPathBuffer.append(studyPrefixId);
+			// correct spelling would be nice
+			serverPathBuffer.append(ServiceConstants.FILE_SEPARATER);
+			String datasetName = currentPackage.getDatasets().get(0).getName();
+			serverPathBuffer.append(datasetName);
+			serverPathBuffer.append(ServiceConstants.FILE_SEPARATER);
+			String serverPath = serverPathBuffer.toString();
+			Dataset result = UploadManager.provider.processSubmissionTicket(submissionTicket, getDirectoryPath(),
+					serverPath, UploadManager.getSelectedStudy().getTitle(),
+					datasetName);
 
-		StringBuffer serverPathBuffer = new StringBuffer(sftpBaseDir);
-
-		String studyPrefixId = UploadManager.getSelectedStudy().getPrefixedId();
-		serverPathBuffer.append(studyPrefixId);
-		//correct spelling would be nice
-		serverPathBuffer.append(ServiceConstants.FILE_SEPARATER);
-		String datasetName = UploadManager.getDatasetName();
-		serverPathBuffer.append(datasetName);
-		serverPathBuffer.append(ServiceConstants.FILE_SEPARATER);
-
-		String serverPath = serverPathBuffer.toString();
-
-		Dataset result = UploadManager.provider.processSubmissionTicket(submissionTicket, getDirectoryPath(), serverPath,
-				UploadManager.getSelectedStudy().getTitle(), UploadManager.getDatasetName());
-
-		return result;
+			allResults.add(result);
+		}
+		return allResults;
 	}
 
 	/**
@@ -304,7 +307,7 @@ public class UploadManagerController {
 
 		Set<Dataset> datasets = null;
 		try {
-			datasets = UploadManager.provider.getDatasets(UploadManager.getSelectedStudy().getTitle());
+			datasets = UploadManager.provider.getDatasets(UploadManager.getStudyField());
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -312,8 +315,11 @@ public class UploadManagerController {
 
 		if (datasets != null && !datasets.isEmpty()) {
 			for (Dataset dataset : datasets) {
-				if (dataset != null && UploadManager.getDatasetName().equals(dataset.getName())) {
-					return false;
+				for (SubmissionPackage packages : submissionTicket.getSubmissionPackages()) {
+					for (SubmissionDataFile packageSet : packages.getDatasets())
+						if (dataset != null && packageSet.getName().equals(dataset.getName())) {
+							return false;
+						}
 				}
 			}
 		}
@@ -398,38 +404,39 @@ public class UploadManagerController {
 	public static boolean validateTicketCrc(SubmissionTicket submissionTicket) throws NoSuchAlgorithmException,
 			IOException {
 
-		try {
-			// validate submission ticket CRC
-			if (!validateFileCrc(getDirectoryPath() + submissionTicket.getSubmissionPackage().getName() + ".xml",
-					submissionTicket.getSubmissionPackage().getCrcHash())) {
-				return false;
-			}
-
-			List<SubmissionDataFile> datasetFiles = submissionTicket.getSubmissionPackage().getDatasets();
-			List<SubmissionDataFile> associatedFiles = submissionTicket.getSubmissionPackage().getAssociatedFiles();
-
-			// validate dataset files
-			for (SubmissionDataFile datasetFile : datasetFiles) {
-				if (!validateFileCrc(datasetFile.getPath(), datasetFile.getCrcHash())) {
+		for (SubmissionPackage s : submissionTicket.getSubmissionPackages()) {
+			try {
+				// validate submission ticket CRC
+				if (!validateFileCrc(getDirectoryPath() + s.getName() + ".xml", s.getCrcHash())) {
 					return false;
 				}
-			}
 
-			// validate associated files
-			for (SubmissionDataFile associatedFile : associatedFiles) {
-				if (!validateFileCrc(associatedFile.getPath(), associatedFile.getCrcHash())) {
-					return false;
+				List<SubmissionDataFile> datasetFiles = s.getDatasets();
+				List<SubmissionDataFile> associatedFiles = s.getAssociatedFiles();
+
+				// validate dataset files
+				for (SubmissionDataFile datasetFile : datasetFiles) {
+					if (!validateFileCrc(datasetFile.getPath(), datasetFile.getCrcHash())) {
+						return false;
+					}
 				}
-			}
 
-			return true;
-		} catch (FileNotFoundException e) {
-			throw new FileNotFoundException(e.getMessage());
-		} catch (NoSuchAlgorithmException e) {
-			throw new NoSuchAlgorithmException(e.getMessage());
-		} catch (IOException e) {
-			throw new IOException(e.getMessage());
+				// validate associated files
+				for (SubmissionDataFile associatedFile : associatedFiles) {
+					if (!validateFileCrc(associatedFile.getPath(), associatedFile.getCrcHash())) {
+						return false;
+					}
+				}
+
+			} catch (FileNotFoundException e) {
+				throw new FileNotFoundException(e.getMessage());
+			} catch (NoSuchAlgorithmException e) {
+				throw new NoSuchAlgorithmException(e.getMessage());
+			} catch (IOException e) {
+				throw new IOException(e.getMessage());
+			}
 		}
+		return true;
 	}
 
 	/**
@@ -542,6 +549,7 @@ public class UploadManagerController {
 		for (Dataset dataset : datasets) {
 			for (DatasetFile datasetFile : dataset.getDatasetFileSet()) {
 				if (DatasetFileStatus.PENDING.equals(datasetFile.getDatasetFileStatus())) {
+				
 					UploadItem item =
 							new UploadItem(tableIndex, dataset, datasetFile, dataset.getStudy().getTitle(),
 									UploadStatus.QUEUED, dataset.getStudy().getPrefixedId());
@@ -658,7 +666,9 @@ public class UploadManagerController {
 			((UploadTableModel) UploadManager.getTable().getModel()).removeRow(upload.getTableIndex());
 			tableIndex--;
 		}
-		uploadList = new LinkedBlockingQueue<UploadItem>();
+		uploadList.clear();
+		uploadQueue.clear();
+		myDatasets.clear();
 	}
 
 	/**
@@ -683,6 +693,9 @@ public class UploadManagerController {
 
 		for (UploadItem upload : toBeRemoved) {
 			((UploadTableModel) UploadManager.getTable().getModel()).removeRow(upload.getTableIndex());
+			uploadList.remove(upload);
+			uploadQueue.remove(upload);
+			tableIndex--;
 		}
 	}
 
@@ -781,9 +794,9 @@ public class UploadManagerController {
 
 	//check status
 	
-	public static UploadStatus invokeUpload() throws InterruptedException, ExecutionException {
+	public static UploadStatus invokeUpload() throws InterruptedException, ExecutionException, IOException, JAXBException {
 		//UploadManager.setUploadStatusReady(false);
-		UploadManagerController.addToQueue(myDataset);
+		UploadManagerController.addToQueue(myDatasets);
 		UploadStatus status = UploadStatus.QUEUED;
 		UploadExecutor  = getUploadExecutor();
 		ExecutorCompletionService completionService = new ExecutorCompletionService<String >(UploadExecutor); 
@@ -868,16 +881,24 @@ public class UploadManagerController {
 		else if (datasetName == null || datasetName.equals(ServiceConstants.EMPTY_STRING)) {
 			return SubmissionQCStatus.EMPTY_DATASET;
 		} 
-		else if (datasetName.length() > ApplicationsConstants.MAX_DATASET_NAME_LENGTH){
-			return SubmissionQCStatus.INVALID_DATASET_LENGTH;
-		}
 		else if (!UploadManagerController.isDatasetUnique()) {
 			return SubmissionQCStatus.DUPLICATE_DATASET;
 		}			
 		else{
-			myDataset = UploadManagerController.processSubmissionTicket(submissionTicket);
-			if (myDataset == null || myDataset.getDatasetFileSet().isEmpty() ){
-				return SubmissionQCStatus.INVALID_TICKET_FORMAT;
+			myDatasets.clear();
+			for (Dataset dataset : UploadManagerController.processSubmissionTicket(submissionTicket)) {
+				if (dataset == null || dataset.getDatasetFileSet().isEmpty()) {
+					return SubmissionQCStatus.INVALID_TICKET_FORMAT;
+				}
+				else {
+					for(DatasetFile df : dataset.getDatasetFileSet()) {
+						String userFileName = df.getUserFile().getName();
+						if(userFileName.contains("\\")){
+							df.getUserFile().setName(userFileName.substring(userFileName.lastIndexOf("\\")+1));
+						}
+					}
+					myDatasets.add(dataset);
+				}
 			}
 		}
 		return SubmissionQCStatus.PASSED;
@@ -887,10 +908,11 @@ public class UploadManagerController {
 	 * Convert the submission ticket XML doc to dataset object
 	 */
 	public static boolean convertTicketToDataset() throws Exception {
-		myDataset = UploadManagerController.processSubmissionTicket(submissionTicket);
-		if (myDataset == null || myDataset.getDatasetFileSet().isEmpty() ){
-			return false; // Message for display: SubmissionQCStatus.INVALID_TICKET_FORMAT;
-		}	
+		for (Dataset myDataset : UploadManagerController.processSubmissionTicket(submissionTicket)) {
+			if (myDataset == null || myDataset.getDatasetFileSet().isEmpty()) {
+				return false;
+			}
+		}
 		return true;
 	}	
 /*	

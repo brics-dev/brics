@@ -1,0 +1,1 @@
+dependencyAnalyzer.py --props=.\conf\proforms.conf

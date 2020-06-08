@@ -2,7 +2,7 @@
 <%@page import="gov.nih.tbi.PortalConstants"%>
 
 <div class="form-output">
-	<div class="label">Title : </div>
+	<div class="label">Title: </div>
 	<div class="readonly-text"><s:property value="currentStudy.title" /></div>
 </div>
 
@@ -19,18 +19,18 @@
 --%>
 
 <div class="form-output">
-	<div class="label">Study ID : </div>
+	<div class="label">Study ID: </div>
 	<div class="readonly-text"><s:property value="currentStudy.prefixedId" /></div>
 </div>
 
 <div class="form-output">
-	<div class="label">Study ID Source : </div>
+	<div class="label">Study ID Source: </div>
 	<div class="readonly-text"><%=PortalConstants.BRICS_SYSTEM_GENERATED%></div>
 </div>
 
 <s:if test="%{isDoiEnabled}">
 	<div class="form-output">
-		<div class="label">Study DOI : </div>
+		<div class="label">Study DOI: </div>
 		<div id="studyDoiDisplay" class="readonly-text">
 			<s:if test="%{currentStudy.doi != null && !currentStudy.doi.isEmpty()}">
 				<a href="<s:property value="getDoiResolverUrl()" /><s:property value="currentStudy.doi" />">
@@ -41,7 +41,7 @@
 	</div>
 	
 	<div class="form-output">
-		<div class="label">Study DOI Source : </div>
+		<div class="label">Study DOI Source: </div>
 		<div id="studyDoiSourceDisplay" class="readonly-text">
 			<s:if test="%{currentStudy.doi != null && !currentStudy.doi.isEmpty()}">
 				DataCite
@@ -52,12 +52,12 @@
 
 <s:if test="%{isPrivate && !inAdmin}">
 	<div class="form-output">
-		<div class="label">Visibility : </div>
+		<div class="label">Visibility: </div>
 		<div class="readonly-text">Private</div>
 	</div>
 </s:if>
 <div id="visibility" class="form-output">
-	<div class="label">Visibility : </div>
+	<div class="label">Visibility: </div>
 	<div id="publicStatus" class="visibilityDisplay">
 		<div class="readonly-text">Public</div>
 	</div>
@@ -79,21 +79,21 @@
 </div>
 
 <div class="form-output">
-	<div class="label">Recruitment Status : </div>
+	<div class="label">Recruitment Status: </div>
 	<div class="readonly-text">
 		<s:property value="currentStudy.recruitmentStatus.name" />
 	</div>
 </div>
 
 <div class="form-output">
-	<div class="label">Study Type : </div>
+	<div class="label">Study Type: </div>
 	<div class="readonly-text">
 		<s:property value="currentStudy.studyType.name" />
 	</div>
 </div>
 
 <div class="form-output">
-	<div class="label">Study URL : </div>
+	<div class="label">Study URL: </div>
 	<div class="readonly-text">
 		<s:property value="currentStudy.studyUrl" />
 	</div>
@@ -148,14 +148,14 @@
 
 
 <div class="form-output">
-	<div class="label">Abstract : </div>
+	<div class="label">Abstract: </div>
 	<div class="readonly-text">
 		<s:property value="currentStudy.abstractText" />
 	</div>
 </div>
 
 <div class="form-output">
-	<div class="label">Study Aims : </div>
+	<div class="label">Study Aims: </div>
 	<div class="readonly-text">
 		<s:property value="currentStudy.goals" />
 	</div>
@@ -195,7 +195,7 @@
 
 <c:if test="${not empty currentStudy.clinicalTrialSet}">
 	<div class="form-output">
-		<div class="label">Clinical Trial ID(s) :</div>
+		<div class="label">Clinical Trial ID(s):</div>
 		<div class="readonly-text">
 			<c:forEach var="clinicalId" items="${currentStudy.clinicalTrialSet}">
 				<a href="javascript:viewClinicalTrial('${clinicalId.clinicalTrialId}')">${clinicalId.clinicalTrialId}</a>&nbsp;&nbsp;
@@ -206,7 +206,7 @@
 
 <c:if test="${not empty currentStudy.grantSet}">
 	<div class="form-output">
-		<div class="label" style="white-space:nowrap;">Grant/Project ID(s) :</div>
+		<div class="label" style="white-space:nowrap;">Grant/Project ID(s):</div>
 		<div class="readonly-text">
 			<c:forEach var="grant" items="${currentStudy.grantSet}">
 				<a href="javascript:viewGrantInfo('${grant.grantId}')" ><c:out value="${grant.grantId}" /></a>&nbsp;&nbsp;
@@ -216,32 +216,32 @@
 </c:if>
 
 <div class="form-output">
-	<div class="label">Start Date : </div>
+	<div class="label">Start Date: </div>
 	<div class="readonly-text"><s:property value="currentStudy.startDate" /></div>
 </div>
 
 <div class="form-output">
-	<div class="label">End Date : </div>
+	<div class="label">End Date: </div>
 	<div class="readonly-text"><s:property value="currentStudy.endDate" /></div>
 </div>
 
 <div class="form-output">
-	<div class="label">Duration : </div>
+	<div class="label">Duration: </div>
 	<div class="readonly-text"><s:property value="currentStudy.studyDuration" /></div>
 </div>
 
 <div class="form-output">
-	<div class="label">Primary Funding Source : </div>
+	<div class="label">Primary Funding Source: </div>
 	<div class="readonly-text"><s:property value="currentStudy.fundingSource.name" /></div>
 </div>
 
-<div class="form-output">
-	<div class="label">Estimated Number of Subjects : </div>
+<div class="form-output form-align">
+	<div class="label">Estimated Number of Subjects: </div>
 	<div class="readonly-text"><s:property value="currentStudy.numberOfSubjects" /></div>
 </div>
 
 <div class="form-output">
-	<div class="label">Study Research Management : </div>
+	<div class="label">Study Research Management: </div>
 	<div id="resMgmtTable" class="readonly-text idtTableContainer"  style="width:700px">
 		<div id="dialog"></div>
 		<table id="resMgmtTableTable" class="table table-striped table-bordered" width="100%"></table>
@@ -283,7 +283,7 @@
 </div>
 
 <div class="form-output">
-	<div class="label">Study Site : </div>
+	<div class="label">Study Site: </div>
 	<div id="studySiteTable" class="readonly-text idtTableContainer"  style="width:700px">
 		<div id="dialog"></div>
 		<table id="studySiteTableTable" class="table table-striped table-bordered" width="100%"></table>
@@ -336,7 +336,7 @@
 </div>
 <s:if test="%{assoPfProtoVisible}">
 <div class="form-output" id="studyPfProtocolDiv">
-	<div class="label">Study Associated Proforms Protocols : </div>
+	<div class="label">Study Associated ProFoRMS Protocols: </div>
 	<div id="studyPfProtocolTableContainer" class="readonly-text idtTableContainer"  style="width:700px">
 		<div id="dialog"></div>
 		<table id="studyPfProtocolTable" class="table table-striped table-bordered" width="100%"></table>
@@ -374,9 +374,12 @@
 						"data": "closingOutDate",
 						"title": "Close Date",
 						"name": "Close Date",
-						"parameter": "closingOutDate"
+						"parameter": "closingOutDate",
+						"width": "15%",
+						"render": IdtActions.formatDate()
 					}
-				]
+				],
+				fixedColumns: true
 			});
 		});
 	</script>
@@ -421,7 +424,7 @@
 	function viewGrantInfo(grantId) {
 		
 	    var f = $("<form target='_blank' method='POST' style='display:none;'></form>").attr({
-	        action: "<s:property value='@gov.nih.tbi.PortalConstants@FEDERAL_REPORTER_SEARCH_URL' />"
+	        action: '<c:out value="${PortalConstants.FEDERAL_REPORTER_SEARCH_URL}"/>'
 	    }).appendTo(document.body);
 
 	    $('<input type="hidden" />').attr({

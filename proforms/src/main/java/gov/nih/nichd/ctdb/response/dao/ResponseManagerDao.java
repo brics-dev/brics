@@ -1,5 +1,6 @@
 package gov.nih.nichd.ctdb.response.dao;
 
+import java.sql.Array;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -19,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -62,6 +65,7 @@ import gov.nih.nichd.ctdb.response.domain.FormCollectionDisplay;
 import gov.nih.nichd.ctdb.response.domain.FormInterval;
 import gov.nih.nichd.ctdb.response.domain.PatientCalendarCellResponse;
 import gov.nih.nichd.ctdb.response.domain.Response;
+import gov.nih.nichd.ctdb.response.domain.SummaryQueryPF;
 import gov.nih.nichd.ctdb.response.form.DataCollectionLandingForm;
 import gov.nih.nichd.ctdb.response.form.DataEntryInProgressForm;
 import gov.nih.nichd.ctdb.response.form.DataEntrySetupForm;
@@ -87,6 +91,11 @@ public class ResponseManagerDao extends CtdbDao {
 	private static final StringBuffer SQL_UPDATE_DATA_ENTRY_ASSIGNMENT;
 	private static final StringBuffer SQL_NEW_DATA_ENTRY_ASSIGNMENT;
 	private static final StringBuffer SQL_RETRIEV_DATA_ENTRY_DRAFT;
+	private static final StringBuffer SQL_RETRIEV_EFORMID;
+	private static final StringBuffer SQL_RETRIEV_AFORM_COUNT;
+	private static final StringBuffer SQL_RETRIEV_EFORM_INTERVAL_COUNT;
+	private static final String SQL_RETRIEV_SUMMARY_QUERY;
+
 	private static Logger logger = Logger.getLogger(ResponseManagerDao.class);
 	
 	static {
@@ -146,6 +155,19 @@ public class ResponseManagerDao extends CtdbDao {
 				.append("WHERE ur.usrid = dd.dataenteredby AND af.formid = ? ");
 		SQL_RETRIEV_DATA_ENTRY_DRAFT
 				.append("AND af.administeredformid = dd.administeredformid");
+		
+		SQL_RETRIEV_EFORMID = new StringBuffer();
+		SQL_RETRIEV_EFORMID.append("select eformid from eform where shortname = ?");
+		
+		
+		SQL_RETRIEV_AFORM_COUNT = new StringBuffer();
+		SQL_RETRIEV_AFORM_COUNT.append("select count(*) as count from administeredform where eformid  = ?");
+		
+		SQL_RETRIEV_EFORM_INTERVAL_COUNT = new StringBuffer();
+		SQL_RETRIEV_EFORM_INTERVAL_COUNT.append("select count(*) as count from form_interval where eformid  = ?");
+		
+		SQL_RETRIEV_SUMMARY_QUERY = "select * from summary_query where shortname = ? ";
+		
 
 	}
 
@@ -641,46 +663,64 @@ public class ResponseManagerDao extends CtdbDao {
 	}
 
 	/**
-	 * Method to get patient visit dates from patient module to data collection
-	 * module
+	 * Method to get patient visit dates from patient module to data collection by site module
 	 * 
 	 * @param dataForm
 	 * @param dcrc
 	 * @return
 	 * @throws ObjectNotFoundException
 	 * @throws CtdbException
+	 * @throws SQLException
 	 */
-	public List getPatientViewDataForLandingPage(
-			DataCollectionLandingForm dataForm, int protocolId, Map<String,String> searchOptions)
-			throws ObjectNotFoundException, CtdbException {
+	public List getPatientViewDataForLandingPageBySites(DataCollectionLandingForm dataForm, int protocolId,
+			Map<String, String> searchOptions, List<Integer> siteIds)
+			throws ObjectNotFoundException, CtdbException, SQLException {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		List dataFormList = new ArrayList();
 		DataCollectionLandingForm dataFormResult = new DataCollectionLandingForm();
+		Array siteIdsArr = null;
 
 		try {
 			StringBuffer sql = new StringBuffer(200);
-			sql.append("select i.name iname,pv.intervalid intervalName,pv.visitdateid visitDateId,p.guid guid,pv.patientid as pvPatientId,to_char (pv.visitdate, 'YYYY-MM-DD HH24:MI' ) as pvVisitDate, (" + 
-					getDecryptionFunc("p.firstname")+"   ||' ' ||"+getDecryptionFunc("p.lastname")+ ") as  pvPatientName,p.firstname as patientFirstName, p.lastname as   patientLastName,pp.subjectid as subjectid, " + getDecryptionFunc("p.mrn") + " as mrn, pp.subjectnumber subjectNumber ");
+			sql.append(
+					"select i.name iname,pv.intervalid intervalName,pv.visitdateid visitDateId,p.guid guid,pv.patientid as pvPatientId,to_char (pv.visitdate, 'YYYY-MM-DD HH24:MI' ) as pvVisitDate, ("
+							+ getDecryptionFunc("p.firstname") + "   ||' ' ||" + getDecryptionFunc("p.lastname")
+							+ ") as  pvPatientName,p.firstname as patientFirstName, p.lastname as   patientLastName,pp.subjectid as subjectid, "
+							+ getDecryptionFunc("p.mrn") + " as mrn, pp.subjectnumber subjectNumber ");
 			sql.append("from patientvisit pv ");
 			sql.append("join patient p on p.patientid = pv.patientid ");
-			sql.append("left outer join patientprotocol pp on pv.patientid = pp.patientid and pv.protocolid = pp.protocolid ");
+			sql.append(
+					"left outer join patientprotocol pp on pv.patientid = pp.patientid and pv.protocolid = pp.protocolid ");
 			sql.append("left outer join interval i on pv.intervalid = i.intervalid ");
-			sql.append("where p.deleteflag = false and pv.protocolid =?");
+			sql.append("where p.deleteflag = false and pv.protocolid = ?");
 
-			if((searchOptions.get(CtdbConstants.DATA_COLLECTION_VISIT_DATE)!= null)){
-				sql.append(" and cast(pv.visitdate as date)  = "+ "'" + searchOptions.get(CtdbConstants.DATA_COLLECTION_VISIT_DATE) + "'");
+			if (siteIds != null) {
+				Integer[] arrSiteIds = (Integer[]) siteIds.toArray(new Integer[siteIds.size()]);
+				siteIdsArr = this.conn.createArrayOf("BIGINT", arrSiteIds);
+				sql.append(" and pp.siteid = ANY (?)");
 			}
-			
-			if((searchOptions.get(CtdbConstants.DATA_COLLECTION_SUBJECT_GUID)!= null)){
-				sql.append(" and p.guid  = "+ "'" + searchOptions.get(CtdbConstants.DATA_COLLECTION_SUBJECT_GUID) + "'");
+
+			if ((searchOptions.get(CtdbConstants.DATA_COLLECTION_VISIT_DATE) != null)) {
+				sql.append(" and cast(pv.visitdate as date)  = " + "'"
+						+ searchOptions.get(CtdbConstants.DATA_COLLECTION_VISIT_DATE) + "'");
 			}
-			
-			//sql.append(dcrc.getPatientViewSearchClause());
+
+			if ((searchOptions.get(CtdbConstants.DATA_COLLECTION_SUBJECT_GUID) != null)) {
+				sql.append(
+						" and p.guid  = " + "'" + searchOptions.get(CtdbConstants.DATA_COLLECTION_SUBJECT_GUID) + "'");
+			}
+
+			// sql.append(dcrc.getPatientViewSearchClause());
 			sql.append("order by pv.visitdate ASC");
 
 			stmt = this.conn.prepareStatement(sql.toString());
 			stmt.setLong(1, protocolId);
+
+			if (siteIds != null) {
+				stmt.setArray(2, siteIdsArr);
+			}
+
 			rs = stmt.executeQuery();
 
 			while (rs.next()) {
@@ -689,13 +729,15 @@ public class ResponseManagerDao extends CtdbDao {
 				if (rs.getString("pvPatientName") != null) {
 					dataFormResult.setPvPatientName(rs.getString("pvPatientName"));
 				}
+
 				if (rs.getString("pvPatientId") != null) {
 					dataFormResult.setPvPatientId(rs.getInt("pvPatientId"));
 				}
-				
+
 				if (rs.getString("patientFirstName") != null) {
 					dataFormResult.setPatientFirstName(rs.getString("patientFirstName"));
 				}
+
 				if (rs.getString("patientLastName") != null) {
 					dataFormResult.setPatientLastName(rs.getString("patientLastName"));
 				}
@@ -703,36 +745,42 @@ public class ResponseManagerDao extends CtdbDao {
 				if (rs.getString("pvVisitDate") != null) {
 					dataFormResult.setPvVisitDate(rs.getString("pvVisitDate"));
 				}
+
 				if (rs.getString("subjectid") != null) {
 					dataFormResult.setSubjectId(rs.getString("subjectid"));
 				}
+
 				if (rs.getString("mrn") != null) {
 					dataFormResult.setMrn(rs.getString("mrn"));
 				}
+
 				if (rs.getString("guid") != null) {
 					dataFormResult.setPvGuid(rs.getString("guid"));
 				}
+
 				if (rs.getString("visitDateId") != null) {
-					dataFormResult
-							.setPvVisitDateId(rs.getString("visitDateId"));
+					dataFormResult.setPvVisitDateId(rs.getString("visitDateId"));
 				}
+
 				if (rs.getString("intervalName") != null) {
 					dataFormResult.setPvInterval(rs.getString("intervalName"));
 				}
+
 				if (rs.getString("iname") != null) {
 					dataFormResult.setPvIntervalName(rs.getString("iname"));
 				}
+
 				dataFormList.add(dataFormResult);
 			}
-			return dataFormList;
+
 		} catch (SQLException e) {
-			throw new CtdbException(
-					"Error occur while getting the data entry draft ID : "
-							+ e.getMessage(), e);
+			throw new CtdbException("Error occur while getting the data entry draft ID : ", e);
 		} finally {
 			this.close(rs);
 			this.close(stmt);
 		}
+
+		return dataFormList;
 	}
 
 	/**
@@ -761,7 +809,7 @@ public class ResponseManagerDao extends CtdbDao {
 			sql.append(" and pr.protocolid = ?");
 			
 			if((searchOptions.get(CtdbConstants.DATA_COLLECTION_EFORMS_NAME)!= null)){
-				sql.append(" and ef.name = " + "'" + searchOptions.get(CtdbConstants.DATA_COLLECTION_EFORMS_NAME) + "'");
+				sql.append(" and ef.shortName = " + "'" + searchOptions.get(CtdbConstants.DATA_COLLECTION_EFORMS_NAME) + "'");
 			}
 			
 			if((searchOptions.get(CtdbConstants.DATA_COLLECTION_FORM_LAST_UPDATED)!= null)){
@@ -1351,248 +1399,253 @@ public class ResponseManagerDao extends CtdbDao {
 	 * @return adminForm List
 	 * @throws CtdbException
 	 */
-	public List<AdministeredForm> myCollectionsList(int protocolId, int userId,Map<String,String> searchOptions, PaginationData pageData, String key) throws CtdbException {
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
-		StringBuffer sql = new StringBuffer(200);
+		public List<AdministeredForm> myCollectionsListBySiteIds(int protocolId, int userId,Map<String,String> searchOptions, PaginationData pageData, String key,List<Integer> siteIds) throws CtdbException {
+			PreparedStatement stmt = null;
+			ResultSet rs = null;
+			StringBuffer sql = new StringBuffer(200);
+			Array siteIdsArr = null;
+			
+			try {
 
-		try {
-
-			sql.append(" select distinct af.administeredformid administeredformid,af.finallockby finallockby,af.finallockdate finallockdate,af.visitdate visitdate,"
-					+ "to_char (af.visitdate , 'YYYY-MM-DD HH24:MI') as pVisitDate, to_char(af.scheduledvisitdate , 'YYYY-MM-DD HH24:MI') as sVisitDate, ef.eformid eformId,pat.version patientversion,pat.patientid patientid,pat.guid, " 
-					+CtdbDao.getDecryptionFunc("pat.mrn") + " as mrn, ef.name formName,pp.subjectid, ");
-					sql.append(" ef.shortname shortName, i.name as intervalname,ded.coll_status coll_status,ded.lockdate,ded.updateddate,"
-							+ "ded.dataenteredby dataenteredby,u.lastname lastname,u.firstname firstname,u.username username,i.name as visitType,"
-							+ "i.intervalid intervalid ");
-					sql.append("  from administeredform af LEFT OUTER JOIN interval i ON (af.intervalid = i.intervalid)  "
-							+ "JOIN  patient pat on pat.patientid=af.patientid JOIN patientprotocol pp ON pat.patientid=pp.patientid ");
-					sql.append(" JOIN eform ef ON ef.eformid=af.eformid JOIN protocol p  ON p.protocolid=pp.protocolid "
-							+ "JOIN dataentrydraft ded ON ded.administeredformid=af.administeredformid JOIN usr u ON ded.dataenteredby = u.usrid ");
-					sql.append("   WHERE   pat.deleteflag = false and dataentryflag=1 ");
-					sql.append(" and pp.protocolid =" + protocolId);
-					sql.append(" and ef.protocolid =" + protocolId);
-					if(searchOptions.get(StrutsConstants.SUBJECT_COLLECTING_DATA)!=null&& !searchOptions.get(StrutsConstants.SUBJECT_COLLECTING_DATA).isEmpty()){
-						sql.append(" and pat.patientid = " + searchOptions.get(StrutsConstants.SUBJECT_COLLECTING_DATA));
-					}
-					if((searchOptions.get("formId")!= null)){
-					sql.append(" and ef.eformid = " + searchOptions.get("formId"));
-					}
-					
-					if((searchOptions.get(CtdbConstants.DATA_COLLECTION_EFORMS_NAME)!= null)){
-						sql.append(" and ef.name = " + "'" + searchOptions.get(CtdbConstants.DATA_COLLECTION_EFORMS_NAME) + "'");
-					}
-					
-					
-					if((searchOptions.get(CtdbConstants.SUBJECT_GUID_DISPLAY)!= null)){
-					sql.append(" and pat.guid = " + "'" + searchOptions.get(CtdbConstants.SUBJECT_GUID_DISPLAY) + "'");
-					}
-					if((searchOptions.get(CtdbConstants.SUBJECT_VISIT_DATE)!= null)){
-					sql.append(" and to_char (af.visitdate , 'YYYY-MM-DD') = " + "'" + searchOptions.get(CtdbConstants.SUBJECT_VISIT_DATE) + "'");
-					//sql.append(" and to_char (af.visitdate , 'YYYY-MM-DD HH24:MI') < " + "'" + searchOptions.get("pVisitDate") +  "'");
-					}	
-					
-					if((searchOptions.get(CtdbConstants.SUBJECT_INTERVAL_NAME)!= null)){
-						if(!(searchOptions.get(CtdbConstants.SUBJECT_INTERVAL_NAME).equals("all"))) {
-							sql.append(" and i.name = " + "'" + searchOptions.get(CtdbConstants.SUBJECT_INTERVAL_NAME) + "'");
-						}
-					}
-					
-					
-					if((searchOptions.get(CtdbConstants.SEARCH_STATUS_MyCollection)!= null)){
+				sql.append(" select distinct af.administeredformid administeredformid,af.finallockby finallockby,af.finallockdate finallockdate,af.visitdate visitdate,"
+						+ "to_char (af.visitdate , 'YYYY-MM-DD HH24:MI') as pVisitDate, to_char(af.scheduledvisitdate , 'YYYY-MM-DD HH24:MI') as sVisitDate, ef.eformid eformId,pat.version patientversion,pat.patientid patientid,pat.guid, " 
+						+CtdbDao.getDecryptionFunc("pat.mrn") + " as mrn, ef.name formName,pp.subjectid, ");
+						sql.append(" ef.shortname shortName, i.name as intervalname,ded.coll_status coll_status,ded.lockdate,ded.updateddate,"
+								+ "ded.dataenteredby dataenteredby,u.lastname lastname,u.firstname firstname,u.username username,i.name as visitType,"
+								+ "i.intervalid intervalid ");
+						sql.append("  from administeredform af LEFT OUTER JOIN interval i ON (af.intervalid = i.intervalid)  "
+								+ "JOIN  patient pat on pat.patientid=af.patientid JOIN patientprotocol pp ON pat.patientid=pp.patientid ");
+						sql.append(" JOIN eform ef ON ef.eformid=af.eformid JOIN protocol p  ON p.protocolid=pp.protocolid "
+								+ "JOIN dataentrydraft ded ON ded.administeredformid=af.administeredformid JOIN usr u ON ded.dataenteredby = u.usrid ");
+						sql.append("   WHERE   pat.deleteflag = false and dataentryflag=1 ");
+						sql.append(" and pp.protocolid =" + protocolId);
 						
-						if(searchOptions.get(CtdbConstants.SEARCH_STATUS_MyCollection).equals("1")) {
-							sql.append(" and ded.coll_status = '"+CtdbConstants.COLLECTION_STATUS_LOCKED+ "'");
-						}else if(searchOptions.get(CtdbConstants.SEARCH_STATUS_MyCollection).equals("2")) {
-							sql.append(" and ded.coll_status = '"+CtdbConstants.COLLECTION_STATUS_INPROGRESS+ "'");
-						}else if(searchOptions.get(CtdbConstants.SEARCH_STATUS_MyCollection).equals("3")) {
-							sql.append(" and ded.coll_status <> '"+CtdbConstants.COLLECTION_STATUS_LOCKED+ "' and ded.coll_status <>'"+CtdbConstants.COLLECTION_STATUS_INPROGRESS+ "'");
-							
-						}else {
-							//Show all result don't filer anything on status
+						if(siteIds != null) {
+							Integer[] arrSiteIds = (Integer[]) siteIds.toArray(new Integer[siteIds.size()]);
+							siteIdsArr = this.conn.createArrayOf("BIGINT", arrSiteIds);
+							sql.append(" and pp.siteid = ANY (?)");
 						}
 						
-					}
-					
-					
-					
-				
-					//Search on Subject identifier
-					if((searchOptions.get(CtdbConstants.SUBJECT_GUID_DISPLAY)!= null)){
+						sql.append(" and ef.protocolid =" + protocolId);
+						if(searchOptions.get(StrutsConstants.SUBJECT_COLLECTING_DATA)!=null&& !searchOptions.get(StrutsConstants.SUBJECT_COLLECTING_DATA).isEmpty()){
+							sql.append(" and pat.patientid = " + searchOptions.get(StrutsConstants.SUBJECT_COLLECTING_DATA));
+						}
+						if((searchOptions.get("formId")!= null)){
+						sql.append(" and ef.eformid = " + searchOptions.get("formId"));
+						}
+						
+						if((searchOptions.get(CtdbConstants.DATA_COLLECTION_EFORMS_NAME)!= null)){
+							sql.append(" and ef.name = " + "'" + searchOptions.get(CtdbConstants.DATA_COLLECTION_EFORMS_NAME) + "'");
+						}
+						
+						
+						if((searchOptions.get(CtdbConstants.SUBJECT_GUID_DISPLAY)!= null)){
 						sql.append(" and pat.guid = " + "'" + searchOptions.get(CtdbConstants.SUBJECT_GUID_DISPLAY) + "'");
-					}
-					
-					
-					if((searchOptions.get(CtdbConstants.SUBJECT_MRN_DISPLAY)!= null)){
+						}
+						if((searchOptions.get(CtdbConstants.SUBJECT_VISIT_DATE)!= null)){
+						sql.append(" and to_char (af.visitdate , 'YYYY-MM-DD') = " + "'" + searchOptions.get(CtdbConstants.SUBJECT_VISIT_DATE) + "'");
+						//sql.append(" and to_char (af.visitdate , 'YYYY-MM-DD HH24:MI') < " + "'" + searchOptions.get("pVisitDate") +  "'");
+						}	
 						
-						sql.append(" and "+CtdbDao.getDecryptionFunc("pat.mrn")+" = " + "'" + searchOptions.get(CtdbConstants.SUBJECT_MRN_DISPLAY) + "'");
-					}
-					
-					if((searchOptions.get(CtdbConstants.PATIENTID_DISPLAY)!= null)){
-						sql.append(" and pp.subjectid = " + "'" + searchOptions.get(CtdbConstants.PATIENTID_DISPLAY) + "'");
-					}
-					if(key != null && !key.isEmpty()) {
-		
-						String[] SORT_COLUMNS = { "guid", "to_char (af.visitdate , 'YYYY-MM-DD HH24:MI')", "subjectid", "i.name", "ef.name", "ded.coll_status", "u.lastname", "u.firstname", CtdbDao.getDecryptionFunc("pat.mrn"), "to_char (af.finallockdate , 'YYYY-MM-DD HH24:MI')" };
-						StringBuffer filterQueryBuffer = new StringBuffer(" AND (");
-						
-						for(String currentColumn:SORT_COLUMNS) {
-							filterQueryBuffer.append(currentColumn).append(" ilike '%").append(key).append("%' OR ");
+						if((searchOptions.get(CtdbConstants.SUBJECT_INTERVAL_NAME)!= null)){
+							if(!(searchOptions.get(CtdbConstants.SUBJECT_INTERVAL_NAME).equals("all"))) {
+								sql.append(" and i.name = " + "'" + searchOptions.get(CtdbConstants.SUBJECT_INTERVAL_NAME) + "'");
+							}
 						}
 						
-						filterQueryBuffer = filterQueryBuffer.replace(filterQueryBuffer.length() - 4, filterQueryBuffer.length(), "");
-						filterQueryBuffer.append(")");
-						
-						if(SORT_COLUMNS.length > 0) {
-							sql.append(filterQueryBuffer.toString());
+						if((searchOptions.get(CtdbConstants.SEARCH_STATUS_MyCollection)!= null)){
+							
+							if(searchOptions.get(CtdbConstants.SEARCH_STATUS_MyCollection).equals("1")) {
+								sql.append(" and ded.coll_status = '"+CtdbConstants.COLLECTION_STATUS_LOCKED+ "'");
+							}else if(searchOptions.get(CtdbConstants.SEARCH_STATUS_MyCollection).equals("2")) {
+								sql.append(" and ded.coll_status = '"+CtdbConstants.COLLECTION_STATUS_INPROGRESS+ "'");
+							}else if(searchOptions.get(CtdbConstants.SEARCH_STATUS_MyCollection).equals("3")) {
+								sql.append(" and ded.coll_status <> '"+CtdbConstants.COLLECTION_STATUS_LOCKED+ "' and ded.coll_status <>'"+CtdbConstants.COLLECTION_STATUS_INPROGRESS+ "'");
+								
+							}else {
+								//Show all result don't filer anything on status
+							}
+							
 						}
-					}
-					
-					if(pageData != null) {
-						if(pageData.getAscending() != null) {
-							sql.append(" ORDER BY ").append(pageData.getSort()).append(" ").append(pageData.getAscending()?"asc":"desc");
+				
+						//Search on Subject identifier
+						if((searchOptions.get(CtdbConstants.SUBJECT_GUID_DISPLAY)!= null)){
+							sql.append(" and pat.guid = " + "'" + searchOptions.get(CtdbConstants.SUBJECT_GUID_DISPLAY) + "'");
 						}
-						sql.append(" LIMIT ").append(pageData.getPageSize()).append(" OFFSET ").append((pageData.getPage() - 1) * pageData.getPageSize());
 						
-					}
-					
+						if((searchOptions.get(CtdbConstants.SUBJECT_MRN_DISPLAY)!= null)){
+							
+							sql.append(" and "+CtdbDao.getDecryptionFunc("pat.mrn")+" = " + "'" + searchOptions.get(CtdbConstants.SUBJECT_MRN_DISPLAY) + "'");
+						}
+						
+						if((searchOptions.get(CtdbConstants.PATIENTID_DISPLAY)!= null)){
+							sql.append(" and pp.subjectid = " + "'" + searchOptions.get(CtdbConstants.PATIENTID_DISPLAY) + "'");
+						}
+						if(key != null && !key.isEmpty()) {
 			
-			stmt = this.conn.prepareStatement(sql.toString());
-
-			rs = stmt.executeQuery();
-			List<AdministeredForm> admForms = new ArrayList<AdministeredForm>();		
-			AdministeredForm admForm;
-			while (rs.next()) {
-				//admForm = this.rsToAdministeredFormInProgress(rs);
-				admForm = new AdministeredForm();
-				if(Integer.valueOf(rs.getInt("administeredformid"))!=null){
-					admForm.setId(rs.getInt("administeredformid"));
-				}
-				
-				//set form id and form name
-				Form form = new Form();
-				if (Integer.valueOf(rs.getInt("eformId")) != null) {
-					form.setId(rs.getInt("eformId"));
-				}
-				if (rs.getString("formName") != null) {
-					form.setName(rs.getString("formName"));
-				}
-				if (rs.getString("shortName") != null) {
-					form.setShortName(rs.getString("shortName"));
-				}
-				admForm.setForm(form);
+							String[] SORT_COLUMNS = { "guid", "to_char (af.visitdate , 'YYYY-MM-DD HH24:MI')", "subjectid", "i.name", "ef.name", "ded.coll_status", "u.lastname", "u.firstname", CtdbDao.getDecryptionFunc("pat.mrn"), "to_char (af.finallockdate , 'YYYY-MM-DD HH24:MI')" };
+							StringBuffer filterQueryBuffer = new StringBuffer(" AND (");
+							
+							for(String currentColumn:SORT_COLUMNS) {
+								filterQueryBuffer.append(currentColumn).append(" ilike '%").append(key).append("%' OR ");
+							}
+							
+							filterQueryBuffer = filterQueryBuffer.replace(filterQueryBuffer.length() - 4, filterQueryBuffer.length(), "");
+							filterQueryBuffer.append(")");
+							
+							if(SORT_COLUMNS.length > 0) {
+								sql.append(filterQueryBuffer.toString());
+							}
+						}
 						
-				//Set subject related fields
-				Patient patient = new Patient();
-				if(Integer.valueOf(rs.getInt("patientid"))!=null){
-					patient.setId(rs.getInt("patientid"));
-				}
-				
-				if(Integer.valueOf(rs.getInt("patientversion"))!=null){
-					patient.setVersion(new Version(rs.getInt("patientversion")));
-				}
-				admForm.setPatient(patient);
-				
-				if(rs.getString("subjectid")!=null){
-					admForm.getPatient().setSubjectId(rs.getString("subjectid"));
-				}
-				
-				if(rs.getString("mrn")!=null){
-					admForm.getPatient().setMrn(rs.getString("mrn"));
-				}
-				if(rs.getString("lastname")!=null){
-					admForm.getPatient().setLastName(rs.getString("lastname"));
-				}
-				if(rs.getString("firstname")!=null){
-					admForm.getPatient().setFirstName(rs.getString("firstname"));
-				}
-				if(rs.getString("guid")!=null){
-					admForm.getPatient().setGuid(rs.getString("guid"));
+						if(pageData != null) {
+							if(pageData.getAscending() != null) {
+								sql.append(" ORDER BY ").append(pageData.getSort()).append(" ").append(pageData.getAscending()?"asc":"desc");
+							}
+							sql.append(" LIMIT ").append(pageData.getPageSize()).append(" OFFSET ").append((pageData.getPage() - 1) * pageData.getPageSize());
+							
+						}
+			
+				stmt = this.conn.prepareStatement(sql.toString());
+				if(siteIds != null) {
+					stmt.setArray(1, siteIdsArr);
 				}
 
-				
-				//set visitType related fields
-				Interval interval = new Interval();
-				if (rs.getInt("intervalid") == 0) {
-					interval.setId(-1);
-				} else {
-					interval.setId(rs.getInt("intervalid"));
-				}
-				
-				admForm.setInterval(interval);
-				if(rs.getString("visitType") != null){
-				admForm.getInterval().setName(rs.getString("visitType"));
-				}
-
-
-
-				int finalLockBy = rs.getInt("finallockby");
-				if (finalLockBy != 0) {
-					admForm.setFinalLockBy(finalLockBy);
-				}
-				Timestamp finalLockDate = rs.getTimestamp("finallockdate");
-				if (finalLockDate != null) {
-					admForm.setFinalLockDate(finalLockDate);
-				}
-				Timestamp visitDate = rs.getTimestamp("visitdate");
-				if (visitDate != null) {
-					admForm.setVisitDate(visitDate);
-				}
-
-
-
-				admForm.getForm().setAttachFiles(false);
-
-
-				if (rs.getString("dataenteredby") != null) {
-					admForm.setUserOneEntryId(rs.getInt("dataenteredby"));
-				}
-
-
-				admForm.setKeySingleDouble(CtdbConstants.SINGLE_ENTRY_FORM);
-
-				if (rs.getString("username") != null) {
-					admForm.setUser1(rs.getString("username"));
-					if(rs.getString("dataenteredby").equals("-1")) {
-						admForm.setUser1LastNameFirstNameDisplay(rs.getString("username"));
-					}else {
-						admForm.setUser1LastNameFirstNameDisplay(rs.getString("lastname") + ", " + rs.getString("firstname"));
+				rs = stmt.executeQuery();
+				List<AdministeredForm> admForms = new ArrayList<AdministeredForm>();		
+				AdministeredForm admForm;
+				while (rs.next()) {
+					//admForm = this.rsToAdministeredFormInProgress(rs);
+					admForm = new AdministeredForm();
+					if(Integer.valueOf(rs.getInt("administeredformid"))!=null){
+						admForm.setId(rs.getInt("administeredformid"));
 					}
 					
-				}
+					//set form id and form name
+					Form form = new Form();
+					if (Integer.valueOf(rs.getInt("eformId")) != null) {
+						form.setId(rs.getInt("eformId"));
+					}
+					if (rs.getString("formName") != null) {
+						form.setName(rs.getString("formName"));
+					}
+					if (rs.getString("shortName") != null) {
+						form.setShortName(rs.getString("shortName"));
+					}
+					admForm.setForm(form);
+							
+					//Set subject related fields
+					Patient patient = new Patient();
+					if(Integer.valueOf(rs.getInt("patientid"))!=null){
+						patient.setId(rs.getInt("patientid"));
+					}
+					
+					if(Integer.valueOf(rs.getInt("patientversion"))!=null){
+						patient.setVersion(new Version(rs.getInt("patientversion")));
+					}
+					admForm.setPatient(patient);
+					
+					if(rs.getString("subjectid")!=null){
+						admForm.getPatient().setSubjectId(rs.getString("subjectid"));
+					}
+					
+					if(rs.getString("mrn")!=null){
+						admForm.getPatient().setMrn(rs.getString("mrn"));
+					}
+					if(rs.getString("lastname")!=null){
+						admForm.getPatient().setLastName(rs.getString("lastname"));
+					}
+					if(rs.getString("firstname")!=null){
+						admForm.getPatient().setFirstName(rs.getString("firstname"));
+					}
+					if(rs.getString("guid")!=null){
+						admForm.getPatient().setGuid(rs.getString("guid"));
+					}
 
-				if (rs.getString("pVisitDate") != null) {
-					admForm.setpVisitDate(rs.getString("pVisitDate"));
-				}
-				
-				if (rs.getString("sVisitDate") != null) {
-					admForm.setsVisitDate(rs.getString("sVisitDate"));
-				} else {
-					admForm.setsVisitDate("");
-				}
-				
-				if (rs.getString("guid") != null) {
-					admForm.setSummaryGuid(rs.getString("guid"));
-				}
-				
-				if (rs.getString("coll_status") != null){
-					admForm.setEntryOneStatus(rs.getString("coll_status"));
-				}
+					
+					//set visitType related fields
+					Interval interval = new Interval();
+					if (rs.getInt("intervalid") == 0) {
+						interval.setId(-1);
+					} else {
+						interval.setId(rs.getInt("intervalid"));
+					}
+					
+					admForm.setInterval(interval);
+					if(rs.getString("visitType") != null){
+					admForm.getInterval().setName(rs.getString("visitType"));
+					}
 
-				admForms.add(admForm);
+					int finalLockBy = rs.getInt("finallockby");
+					if (finalLockBy != 0) {
+						admForm.setFinalLockBy(finalLockBy);
+					}
+					Timestamp finalLockDate = rs.getTimestamp("finallockdate");
+					if (finalLockDate != null) {
+						admForm.setFinalLockDate(finalLockDate);
+					}
+					Timestamp visitDate = rs.getTimestamp("visitdate");
+					if (visitDate != null) {
+						admForm.setVisitDate(visitDate);
+					}
+
+					admForm.getForm().setAttachFiles(false);
+
+					if (rs.getString("dataenteredby") != null) {
+						admForm.setUserOneEntryId(rs.getInt("dataenteredby"));
+					}
+
+					admForm.setKeySingleDouble(CtdbConstants.SINGLE_ENTRY_FORM);
+
+					if (rs.getString("username") != null) {
+						admForm.setUser1(rs.getString("username"));
+						if(rs.getString("dataenteredby").equals("-1")) {
+							admForm.setUser1LastNameFirstNameDisplay(rs.getString("username"));
+						}else {
+							admForm.setUser1LastNameFirstNameDisplay(rs.getString("lastname") + ", " + rs.getString("firstname"));
+						}
+						
+					}
+
+					if (rs.getString("pVisitDate") != null) {
+						admForm.setpVisitDate(rs.getString("pVisitDate"));
+					}
+					
+					if (rs.getString("sVisitDate") != null) {
+						admForm.setsVisitDate(rs.getString("sVisitDate"));
+					} else {
+						admForm.setsVisitDate("");
+					}
+					
+					if (rs.getString("guid") != null) {
+						admForm.setSummaryGuid(rs.getString("guid"));
+					}
+					
+					if (rs.getString("coll_status") != null){
+						admForm.setEntryOneStatus(rs.getString("coll_status"));
+					}
+
+					admForms.add(admForm);
+				}
+				
+				return admForms;
 			}
-			
-			return admForms;
+			catch (SQLException e) {
+	         	// Check the sql state
+	 			if ( e.getSQLState().contains("39000") ) {
+	 				logger.error("Column decryption failed: " + e.getMessage(), e);
+	 				throw new CtdbException("Column decryption failed: " + e.getMessage(), e);
+	 			}
+	 			else {
+	 				logger.error("Unable to retrieve subjects for subject home: " + e.getMessage(), e);
+	 				throw new CtdbException("Unable to retrieve subjects for subject home: " + e.getMessage(), e);
+	 			}
+	         }
+	         finally {
+	        	 this.close(rs);
+	        	 this.close(stmt);
+	         }
 		}
-		catch (SQLException e) {
-			e.printStackTrace();
-			throw new CtdbException("Unable to get administered forms for My Collections page: " + e.getMessage(), e);
-		}
-		finally {
-			this.close(rs);
-			this.close(stmt);
-			sql.delete(0, sql.length());
-		}
-	}
 
 	public int countMyCollectionsList(int protocolId, int userId,Map<String,String> searchOptions, String key) throws CtdbException {
 		PreparedStatement stmt = null;
@@ -1653,7 +1706,6 @@ public class ResponseManagerDao extends CtdbDao {
 					if((searchOptions.get(CtdbConstants.DATA_COLLECTION_EFORMS_NAME)!= null)){
 						sql.append(" and ef.name = " + "'" + searchOptions.get(CtdbConstants.DATA_COLLECTION_EFORMS_NAME) + "'");
 					}
-					
 					
 					if((searchOptions.get(CtdbConstants.SUBJECT_MRN_DISPLAY)!= null)){
 						
@@ -2689,8 +2741,8 @@ public void deleteVisibleAdministeredSection (int sectionId) throws CtdbExceptio
 			// create answers archive
 			sql = new StringBuffer(200);
 			sql.append("insert into RESPONSEEDIT (administeredformid, dict_questionid, questionversion, responseeditversion, ");
-			sql.append("previousanswer, editreason, updateddate, updatedby, dict_sectionId) ");
-			sql.append("values (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?, ?) ");
+			sql.append("previousanswer, editreason, updateddate, updatedby, dict_sectionId,coll_status) ");
+			sql.append("values (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?, ?, ?) ");
 			stmt = this.conn.prepareStatement(sql.toString());
 			stmt.setLong(1, admFormId);
 			stmt.setLong(2, response.getQuestion().getId());
@@ -2699,6 +2751,11 @@ public void deleteVisibleAdministeredSection (int sectionId) throws CtdbExceptio
 			stmt.setString(6, response.getEditReason());
 			stmt.setLong(7, response.getEditedBy());
 			stmt.setLong(8, response.getQuestion().getSectionId());
+			if(useFinalAnswers) {
+				stmt.setString(9, CtdbConstants.COLLECTION_STATUS_LOCKED);
+			}else {
+				stmt.setString(9, CtdbConstants.COLLECTION_STATUS_COMPLETED);
+			}
 
 			if (!previousAnswers.isEmpty()) {
 				for (String previousAnswer : previousAnswers) {
@@ -2732,7 +2789,82 @@ public void deleteVisibleAdministeredSection (int sectionId) throws CtdbExceptio
 			this.close(stmt);
 		}
 	}
+	
+	/* Audit Comment */
+	public void createAuditCommentArchive(int admFormId, Response response, boolean useFinalAnswers, String inprog)
+			throws DuplicateObjectException, CtdbException {
+		PreparedStatement stmt = null;
 
+		try {
+			int responseId = response.getId();
+			List<String> previousAnswers;
+			if(useFinalAnswers) {
+				if(response.getQuestion().isDisplayPV()) {
+					previousAnswers = this.getFinalSubmitAnswers(responseId);
+				}else {
+					previousAnswers = this.getFinalAnswers(responseId);
+				}
+			} else {
+				if(response.getQuestion().isDisplayPV()) {
+					previousAnswers = this.getDraftCompletedSubmitAnswers(responseId);
+				} else {
+					previousAnswers = this.getDraftCompletedAnswers(responseId);
+				}
+			}
+			
+			int version = this.getLastAnswerVersion(admFormId,response.getQuestion());
+
+			StringBuffer sql = new StringBuffer(200);
+
+			// create answers archive
+			sql = new StringBuffer(200);
+			sql.append("insert into RESPONSEEDIT (administeredformid, dict_questionid, questionversion, responseeditversion, ");
+			sql.append("previousanswer, editauditcomment, auditstatus, updateddate, updatedby, dict_sectionId, in_progress_data_flag ) ");
+			sql.append("values (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?, ?, ?) ");
+			stmt = this.conn.prepareStatement(sql.toString());
+			stmt.setLong(1, admFormId);
+			stmt.setLong(2, response.getQuestion().getId());
+			stmt.setInt(3, response.getQuestion().getVersion().getVersionNumber());
+			stmt.setInt(4, ++version);
+			stmt.setString(6, response.getEditAuditComment());
+			stmt.setString(7, response.getAuditStatus());
+			stmt.setLong(8, response.getEditedBy());
+			stmt.setLong(9, response.getQuestion().getSectionId());
+			stmt.setString(10, inprog);
+
+			if (!previousAnswers.isEmpty()) {
+				for (String previousAnswer : previousAnswers) {
+					stmt.setString(5, previousAnswer);
+					stmt.executeUpdate();
+				}
+			}
+			else {
+				stmt.setString(5, null);
+				stmt.executeUpdate();
+			}
+		}
+		catch (PSQLException e) {
+			if (e.getSQLState()
+					.equals(SysPropUtil.getProperty("postgres_database.unique_constraint_sqlstate"))) {
+				throw new DuplicateObjectException("An audit comment already exists: " + e.getMessage(), e);
+			}
+			else {
+				throw new CtdbException("Unable to create audit comment archive: " + e.getMessage(), e);
+			}
+		}
+		catch (SQLException e) {
+			if (e.getErrorCode() == Integer.parseInt(SysPropUtil.getProperty("database.unique_constraint_error.code"))) {
+				throw new DuplicateObjectException("An audit comment already exists: " + e.getMessage(), e);
+			}
+			else {
+				throw new CtdbException("Unable to create audit comment archive: " + e.getMessage(), e);
+			}
+		}
+		finally {
+			this.close(stmt);
+		}
+	}
+	
 	/**
 	 * Creates the audit records in RESPONSEEDIT.
 	 * 
@@ -2752,10 +2884,18 @@ public void deleteVisibleAdministeredSection (int sectionId) throws CtdbExceptio
 			int responseId = response.getId();
 			List<String> previousAnswers;
 			
-			if (useFinalAnswers) {
-				previousAnswers = this.getFinalAnswers(responseId);
+			if(useFinalAnswers) {
+				if(response.getQuestion().isDisplayPV()) {
+					previousAnswers = this.getFinalSubmitAnswers(responseId);
+				}else {
+					previousAnswers = this.getFinalAnswers(responseId);
+				}
 			} else {
-				previousAnswers = this.getDraftCompletedAnswers(responseId);
+				if(response.getQuestion().isDisplayPV()) {
+					previousAnswers = this.getDraftCompletedSubmitAnswers(responseId);
+				} else {
+					previousAnswers = this.getDraftCompletedAnswers(responseId);
+				}
 			}
 			
 			int version = this.getLastAnswerVersion(admFormId, response.getQuestion());
@@ -3452,6 +3592,44 @@ public void deleteVisibleAdministeredSection (int sectionId) throws CtdbExceptio
 		}
 		
 		return admForm;
+	}
+	
+	/**
+	 * Gets the number of collections for a given eform shortname and visit type id
+	 * 
+	 * @param eformShortName
+	 * @param visistTypeId
+	 * @return
+	 * @throws CtdbException
+	 */
+	public int getNumAdminFormsForEformAndVisitType(String eformShortName, int visistTypeId) throws CtdbException {
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+
+		try {
+			StringBuffer sql = new StringBuffer(50);
+			sql.append("select count(af.*) from administeredform af, eform ef where ");
+			sql.append("af.eformid = ef.eformid and ");
+			sql.append("ef.shortname = ? and ");
+			sql.append("af.intervalid = ?");
+			stmt = this.conn.prepareStatement(sql.toString());
+
+			stmt.setString(1, eformShortName);
+			stmt.setLong(2, visistTypeId);
+
+			rs = stmt.executeQuery();
+			int count = 0;
+			if (rs.next()) {
+				count = rs.getInt(1);
+			}
+			return count;
+
+		} catch (SQLException e) {
+			throw new CtdbException("Unable to get count of administered forms: " + e.getMessage(), e);
+		} finally {
+			this.close(rs);
+			this.close(stmt);
+		}
 	}
 
 
@@ -7205,235 +7383,159 @@ public void deleteVisibleAdministeredSection (int sectionId) throws CtdbExceptio
 		}
 	}
 
+	
+	
+	
+	
+	
 	/**
-	 * Retrieves all data entries for the data entry 1 or 2. The list includes
-	 * the reassign information and data entry lock information. This is for
-	 * View Audit for who has the View Data Entry Audit Trail privilege.
-	 * 
-	 * @param admFormId
-	 *            The administered form ID for retrieving the data entry.
-	 * @param dataEntryFlag
-	 *            data entry 1 or 2
-	 * @return List the list of data entry information including the reassign
-	 *         info and lock info.
-	 * @throws CtdbException
-	 *             thrown if any errors occur
-	 */
-	public List<DataEntryDraft> getDataEntries(int admFormId, int dataEntryFlag) throws CtdbException {
-		List<DataEntryDraft> dataEntries = null;
-		PreparedStatement stmt = null;
-		PreparedStatement stmt2 = null;
-		ResultSet rs = null;
-		ResultSet rs2 = null;
+     * Retrieves all data entries for the data entry 1 or 2. The list includes
+     * the reassign information and data entry lock information. This is for
+     * View Audit for who has the View Data Entry Audit Trail privilege.
+     * 
+      * @param admFormId
+     *            The administered form ID for retrieving the data entry.
+     * @param dataEntryFlag
+     *            data entry 1 or 2
+     * @return List the list of data entry information including the reassign
+     *         info and lock info.
+     * @throws CtdbException
+     *             thrown if any errors occur
+     */
+     public List<DataEntryDraft> getDataEntries(int admFormId, int dataEntryFlag) throws CtdbException {
+                    PreparedStatement stmt = null;
+                    PreparedStatement stmt2 = null;
+                    PreparedStatement stmt3 = null;
+                    ResultSet rs = null;
+                    ResultSet rs2 = null;
+                    ResultSet rs3 = null;
 
-		try {
-			String sql = "select count(rd.dict_questionid) as totquestions from responsedraft rd, dataentrydraft dd "
-					+ "where rd.dataentrydraftid = dd.dataentrydraftid and dd.administeredformid = ? ";
+                    try {
 
-			// For Total number of questions
-			stmt = this.conn.prepareStatement(sql);
-			stmt.setLong(1, admFormId);
-			rs = stmt.executeQuery();
-			
-			String totQues = null;
-			if (rs.next()) {
-				totQues = rs.getString("totquestions");
-			}
+                    	// check for Reassign info
+                    	List<DataEntryDraft> dataEntries = this.getReassignInfo(admFormId, dataEntryFlag);
 
-			rs.close();
-			stmt.close();
+                    	StringBuffer sql = new StringBuffer(200);
+                    	sql.append("select d.*, u.firstname, u.lastname from dataentrydraft d, usr u ");
+                    	sql.append("where d.administeredformid = ?");
+                    	sql.append(" and d.dataentryflag = ?");
+                    	sql.append(" and d.dataenteredby = u.usrid ");
 
-			// Check for Reassign info
-			dataEntries = this.getReassignInfo(admFormId, dataEntryFlag);
+                    	stmt = this.conn.prepareStatement(sql.toString());
+                    	stmt.setLong(1, admFormId);
+                    	stmt.setInt(2, dataEntryFlag);
+                    	rs = stmt.executeQuery();
 
-			sql = "select d.*, u.lastname || ', ' || u.firstname as userfullname, u.username from dataentrydraft d, "
-					+ "usr u where d.administeredformid = ? and d.dataentryflag = ? and d.dataenteredby = u.usrid ";
+                    	DataEntryDraft dataEntry = new DataEntryDraft();
+                    	//String lockByUsername = null;
+                    	if (rs.next()) {
 
-			stmt = this.conn.prepareStatement(sql);
-			stmt.setLong(1, admFormId);
-			stmt.setInt(2, dataEntryFlag);
-			rs = stmt.executeQuery();
+                    		int dataEnteredBy = rs.getInt("dataenteredby");
+                    		String userFullName = "";
+                    		if(dataEnteredBy == -1) {
+                    			userFullName = CtdbConstants.SUBJECT_TITLE_DISPLAY;
+                    		}else {
+                    			userFullName = rs.getString("lastname") + ", "+ rs.getString("firstname");
+                    		}
+                    		
+                    		dataEntry.setDataEnteredByName(userFullName);
+                    		//dataEntry.setStatus(CtdbConstants.DATACOLLECTION_STATUS_STARTED);
+                    		dataEntry.setCreatedDate(rs.getTimestamp("createddate"));
+                    		//lockByUsername = rs.getString("username");
+                    		dataEntries.add(dataEntry);
 
-			if (rs.next()) {
-				DataEntryDraft dataEntry = new DataEntryDraft();
-				String usersFullName = rs.getString("userfullname");
+                    		// if there are some reassign info, need to get the correct
+                    		// start date/time
+                    		if (!dataEntries.isEmpty() && dataEntries.size() > 1) {
+                    			int i = 0;
+                    			Date deDraftDate = null;
+                    			for (Iterator it = dataEntries.iterator(); it.hasNext();) {
+                    				i++;
+                    				DataEntryDraft deDraft = (DataEntryDraft) it.next();
+                    				if (i == 1) {
+                    					deDraftDate = deDraft.getCreatedDate();
+                    					deDraft.setCreatedDate(rs.getTimestamp("createddate"));
+                    					deDraft.setStatus(CtdbConstants.DATACOLLECTION_STATUS_STARTED);
+                    				} else {
+                    					Date temp = deDraft.getCreatedDate();
+                    					deDraft.setCreatedDate(deDraftDate);
+                    					deDraft.setStatus(CtdbConstants.DATACOLLECTION_STATUS_REASSIGNED);
+                    					deDraftDate = temp;
+                    				}
+                    			}
+                    		}else if(!dataEntries.isEmpty()) { //only 1 entry
+                    			dataEntries.get(0).setStatus(CtdbConstants.DATACOLLECTION_STATUS_STARTED); 
+                    		}
 
-				if (!Utils.isBlank(usersFullName)) {
-					dataEntry.setDataEnteredByName(usersFullName);
-				} else {
-					dataEntry.setDataEnteredByName(rs.getString("username"));
-				}
+                    		
 
-				dataEntry.setCreatedDate(rs.getTimestamp("createddate"));
-				dataEntries.add(dataEntry);
 
-				// if there are some reassign info, need to get the correct
-				// start date/time
-				if (!dataEntries.isEmpty() && dataEntries.size() > 1) {
-					Date deDraftDate = null;
-					for (DataEntryDraft deDraft : dataEntries) {
-						if (deDraftDate == null) {
-							deDraftDate = deDraft.getCreatedDate();
-							deDraft.setCreatedDate(rs.getTimestamp("createddate"));
-						} else {
-							Date temp = deDraft.getCreatedDate();
-							deDraft.setCreatedDate(deDraftDate);
-							deDraftDate = temp;
-						}
-					}
-				}
-				
-				boolean isFirst = true;
-				for (Iterator<DataEntryDraft> it = dataEntries.iterator(); it.hasNext();) {
-					DataEntryDraft deDraft = (DataEntryDraft) it.next();
-					if (isFirst) {
-						deDraft.setStatus(CtdbConstants.DATACOLLECTION_STATUS_STARTED);
-						isFirst = false;
-					} else {
-						deDraft.setStatus(CtdbConstants.DATACOLLECTION_STATUS_REASSIGNED);
-					}
-				}
 
-				// for completed info
-				if (rs.getDate("completeddate") != null && rs.getLong("completedby") > 0) {
-					sql = "select (u.lastname || ', ' || u.firstname) as userfullname, u.username, d.completeddate, "
-							+ "count(distinct re.dict_questionid) as usercount from responseedit re join "
-							+ "dataentrydraft d on re.administeredformid = d.administeredformid join usr u on "
-							+ "d.completedby = u.usrid where re.in_progress_data_flag = 'Y' and "
-							+ "d.administeredformid = ? group by userfullname, u.username, d.completeddate ";
+                    		// for Lock info
+                    		if (rs.getDate("completeddate") != null && rs.getInt("completedby")!=0) {
+                    			dataEntry = new DataEntryDraft();
+                    			int completedById = rs.getInt("completedby");
+                    			StringBuffer sql2 = new StringBuffer(200);
+                    			sql2.append("select firstname, lastname from usr where usrid = ?");
+                    			stmt2 = this.conn.prepareStatement(sql2.toString());
+                    			stmt2.setLong(1, completedById);
+                    			rs2 = stmt2.executeQuery();
 
-					stmt2 = this.conn.prepareStatement(sql);
-					stmt2.setLong(1, admFormId);
-					rs2 = stmt2.executeQuery();
-					
-					if (rs2.next()) {
-						dataEntry = new DataEntryDraft();
-						usersFullName = rs2.getString("userfullname");
-						
-						if (!Utils.isBlank(usersFullName)) {
-							dataEntry.setDataEnteredByName(usersFullName);
-						} else {
-							dataEntry.setDataEnteredByName(rs2.getString("username"));
-						}
-						
-						dataEntry.setCreatedDate(rs2.getTimestamp("completeddate"));
-						dataEntry.setStatus(CtdbConstants.DATACOLLECTION_STATUS_COMPLETED);
-						dataEntry.setQuestionCompleted(rs2.getString("usercount") + " / " + totQues);
-						dataEntries.add(dataEntry);
-					}
-					
-					rs2.close();
-					stmt2.close();
-					
-					StringBuffer sql2 = new StringBuffer(200);
-					sql2.append("select u.lastname || ', ' || u.firstname as userfullname, u.username, ");
-					sql2.append("d.completeddate, count(distinct re.dict_questionid) as usercount from ");
-					sql2.append("responseedit re join usr u on re.updatedby = u.usrid join dataentrydraft d ");
-					sql2.append("on re.administeredformid = d.administeredformid ");
-					sql2.append("where re.in_progress_data_flag is null and re.administeredformid = ? ");
+                    			if (rs2.next()) {
 
-					if (rs.getDate("lockdate") != null) {
-						sql2.append("and re.updateddate between d.completeddate and d.lockdate ");
-					} else {
-						sql2.append("and re.updateddate > d.completeddate and d.lockdate is null ");
-					}
+                    				String completedByUsername = "";
+                    				if(completedById == -1) {
+                    					completedByUsername = CtdbConstants.SUBJECT_TITLE_DISPLAY;
+                            		}else {
+                            			completedByUsername = rs2.getString("lastname") + ", "+ rs2.getString("firstname");
+                            		}
+                    				dataEntry.setDataEnteredByName(completedByUsername);
+                    				dataEntry.setCreatedDate(rs.getTimestamp("completeddate"));
+                    				dataEntry.setStatus(CtdbConstants.DATACOLLECTION_STATUS_COMPLETED);
+                    				//dataEntry.setNumQuestionsAnswered(this.getNumOfQuestionsAnsweredForDataEntry(admFormId,dataEntryFlag));
+                    				dataEntries.add(dataEntry);
+                    			}
+                    		}
 
-					sql2.append("group by userfullname, u.username, d.completeddate ");
-					
-					stmt2 = this.conn.prepareStatement(sql2.toString());
-					stmt2.setLong(1, admFormId);
-					rs2 = stmt2.executeQuery();
-					
-					while (rs2.next()) {
-						DataEntryDraft dataEntry1 = new DataEntryDraft();
-						usersFullName = rs2.getString("userfullname");
+                    		// for Lock info
+                    		if (rs.getDate("lockdate") != null) {
+                    			dataEntry = new DataEntryDraft();
+                    			int lockedById = rs.getInt("lockedby");
+                    			StringBuffer sql3 = new StringBuffer(200);
+                    			sql3.append("select firstname, lastname from usr where usrid = ?");
+                    			stmt3 = this.conn.prepareStatement(sql3.toString());
+                    			stmt3.setLong(1, lockedById);
+                    			rs3 = stmt3.executeQuery();
 
-						if (!Utils.isBlank(usersFullName)) {
-							dataEntry1.setDataEnteredByName(rs2.getString("userfullname"));
-						} else {
-							dataEntry1.setDataEnteredByName(rs2.getString("username"));
-						}
+                    			if (rs3.next()) {
+                    				String lockedByUsername = "";
+                    				if(lockedById == -1) {
+                    					lockedByUsername = CtdbConstants.SUBJECT_TITLE_DISPLAY;
+                            		}else {
+                            			lockedByUsername = rs3.getString("lastname") + ", "+ rs3.getString("firstname");
+                            		}
+                    				dataEntry.setDataEnteredByName(lockedByUsername);
+                    				dataEntry.setCreatedDate(rs.getTimestamp("lockdate"));
+                    				dataEntry.setStatus(CtdbConstants.DATACOLLECTION_STATUS_LOCKED);
+                    				dataEntry.setNumQuestionsAnswered(this.getNumOfQuestionsAnsweredLocked(admFormId));
+                    				dataEntries.add(dataEntry);
+                    			}
+                    		}
+                    	}
+                    	return dataEntries;
+                    } catch (SQLException e) {
+                    	throw new CtdbException("Unable to get the data entry list: "
+                    			+ e.getMessage(), e);
+                    } finally {
+                    	this.close(rs);
+                    	this.close(rs2);
+                    	this.close(rs3);
+                    	this.close(stmt);
+                    	this.close(stmt2);
+                    	this.close(stmt3);
+                    }
+     }
 
-						dataEntry1.setCreatedDate(rs2.getTimestamp("completeddate"));
-						dataEntry1.setStatus(CtdbConstants.DATACOLLECTION_STATUS_COMPLETED);
-						dataEntry1.setQuestionCompleted(rs2.getString("usercount") + " / " + totQues);
-						dataEntries.add(dataEntry1);
-					}
-
-					rs2.close();
-					stmt2.close();
-				}
-				
-				// for Lock info
-				if (rs.getDate("lockdate") != null) {
-					sql = "select u.lastname || ', ' || u.firstname as userfullname, u.username, a.finallockdate, "
-							+ "count(distinct re.dict_questionid) as usercount from responseedit re join administeredform a "
-							+ "on re.administeredformid = a.administeredformid join usr u on a.finallockby = u.usrid "
-							+ "where re.updateddate <= a.finallockdate and a.administeredformid = ? "
-							+ "group by userfullname, u.username, a.finallockdate ";
-
-					stmt2 = this.conn.prepareStatement(sql);
-					stmt2.setLong(1, admFormId);
-					rs2 = stmt2.executeQuery();
-					
-					if (rs2.next()) {
-						DataEntryDraft dataEntryLk = new DataEntryDraft();
-						usersFullName = rs2.getString("userfullname");
-
-						if (!Utils.isBlank(usersFullName)) {
-							dataEntryLk.setDataEnteredByName(rs2.getString("userfullname"));
-						} else {
-							dataEntryLk.setDataEnteredByName(rs2.getString("username"));
-						}
-
-						dataEntryLk.setCreatedDate(rs2.getTimestamp("finallockdate"));
-						dataEntryLk.setStatus(CtdbConstants.DATACOLLECTION_STATUS_LOCKED);
-						dataEntryLk.setQuestionCompleted(rs2.getString("usercount") + " / " + totQues);
-						dataEntries.add(dataEntryLk);
-					}
-					
-					rs2.close();
-					stmt2.close();
-
-					sql = "select u.lastname || ', ' || u.firstname as userfullname, u.username, a.finallockdate, "
-							+ "count(distinct re.dict_questionid) as usercount from responseedit re join "
-							+ "administeredform a on re.administeredformid = a.administeredformid join usr u on "
-							+ "re.updatedby = u.usrid where re.in_progress_data_flag is null and "
-							+ "re.updateddate > a.finallockdate and re.administeredformid = ? "
-							+ "group by userfullname, u.username, a.finallockdate ";
-
-					stmt2 = this.conn.prepareStatement(sql);
-					stmt2.setLong(1, admFormId);
-					rs2 = stmt2.executeQuery();
-
-					while (rs2.next()) {
-						DataEntryDraft dataEntry2 = new DataEntryDraft();
-						usersFullName = rs2.getString("userfullname");
-
-						if (!Utils.isBlank(usersFullName)) {
-							dataEntry2.setDataEnteredByName(rs2.getString("userfullname"));
-						} else {
-							dataEntry2.setDataEnteredByName(rs2.getString("username"));
-						}
-
-						dataEntry2.setCreatedDate(rs2.getTimestamp("finallockdate"));
-						dataEntry2.setStatus(CtdbConstants.DATACOLLECTION_STATUS_LOCKED);
-						dataEntry2.setQuestionCompleted(rs2.getString("usercount") + " / " + totQues);
-						dataEntries.add(dataEntry2);
-					}
-				}
-			}
-		} catch (SQLException e) {
-			throw new CtdbException("Unable to get the data entry list.", e);
-		} finally {
-			this.close(rs);
-			this.close(rs2);
-			this.close(stmt);
-			this.close(stmt2);
-		}
-
-		return dataEntries;
-	}
 
 	/**
 	 * Gets the list of reassign data entry info for the data entry 1 or 2.
@@ -7469,7 +7571,7 @@ public void deleteVisibleAdministeredSection (int sectionId) throws CtdbExceptio
 			while (rs.next()) {
 				DataEntryDraft dataEntry = new DataEntryDraft();
 				dataEntry.setCreatedDate(rs.getTimestamp("assigneddate"));
-				dataEntry.setDataEnteredByName(this.getUsername(rs.getInt("previousby")));
+				dataEntry.setDataEnteredByName(this.getUserLastNameFirstName(rs.getInt("previousby")));
 				reassigns.add(dataEntry);
 			}
 		} catch (SQLException e) {
@@ -7511,6 +7613,10 @@ public void deleteVisibleAdministeredSection (int sectionId) throws CtdbExceptio
 	
 	
 	public String getUserLastNameFirstName(int userId) throws CtdbException {
+		if(userId == -1) {
+			return CtdbConstants.SUBJECT_TITLE_DISPLAY;
+		}
+		
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 
@@ -7538,8 +7644,7 @@ public void deleteVisibleAdministeredSection (int sectionId) throws CtdbExceptio
 	}
 
 	/**
-	 * Gets the number of questions completed after the lock by the user for
-	 * data entry 1 or 2 for the form id.
+	 * Gets the number of questions answered in draft/completed
 	 * 
 	 * @param formId
 	 *            the administered form id
@@ -7578,6 +7683,50 @@ public void deleteVisibleAdministeredSection (int sectionId) throws CtdbExceptio
 					"Unable to get number of questions answered for data entry "
 							+ dataEntry + " with administered form ID "
 							+ formId + " : " + e.getMessage(), e);
+		} finally {
+			this.close(rs);
+			this.close(stmt);
+		}
+	}
+	
+	
+	
+	
+	
+	/**
+	 * Gets the number of questions answered in draft/completed
+	 * 
+	 * @param formId
+	 *            the administered form id
+	 * @return int the number of question completed after the lock
+	 * @throws CtdbException
+	 *             thrown if any errors occur while processing
+	 */
+	public int getNumOfQuestionsAnsweredLocked(int aformId)
+			throws CtdbException {
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+
+		try {
+			int numQuestions = 0;
+
+			StringBuffer sql = new StringBuffer(200);
+			sql.append("select count(distinct c.responseid) ");
+			sql.append("from administeredform a, response c, patientresponse d ");
+			sql.append("where a.administeredformid = ? ");
+			sql.append("and a.administeredformid = c.administeredformid ");
+			sql.append("and c.responseid = d.responseid ");
+
+			stmt = this.conn.prepareStatement(sql.toString());
+			stmt.setLong(1, aformId);
+			rs = stmt.executeQuery();
+
+			if (rs.next()) {
+				numQuestions = rs.getInt(1);
+			}
+			return numQuestions;
+		} catch (SQLException e) {
+			throw new CtdbException("Unable to get number of questions loccked");
 		} finally {
 			this.close(rs);
 			this.close(stmt);
@@ -7837,25 +7986,29 @@ public void deleteVisibleAdministeredSection (int sectionId) throws CtdbExceptio
 		List<EditAnswerDisplay> edits = new ArrayList<EditAnswerDisplay>();
 
 		try {
-
+			//note: "and editreason is not null"
 			if(isFinalLocked) {
 				String sql = 
 						"select * 																																						 "
-								+ "from (select userfullname, username, updateddate, administeredformid,dict_sectionid,dict_questionid,responseeditversion, prevanswer, editreason,           			"
-								+ "				LEAD(prevanswer, 1, null) OVER (PARTITION by administeredformid,dict_sectionid,dict_questionid ORDER BY responseeditversion NULLS LAST) AS curranswer   "
+								+ "from (select userfullname, username, updateddate, administeredformid,dict_sectionid,dict_questionid,responseeditversion, prevanswer, editreason,  coll_status,         			"
+								+ "				LEAD(prevanswer, 1, null) OVER (PARTITION by administeredformid,dict_sectionid,dict_questionid ORDER BY responseeditversion NULLS LAST) AS curranswer,  "
+								+ "             LEAD(prevsubmitanswer, 1, null) OVER (PARTITION by administeredformid,dict_sectionid,dict_questionid ORDER BY responseeditversion NULLS LAST) AS currentsubmitanswer "
 								+ "		 from (select u.lastname||', '||u.firstname as userfullname, u.username, re.updateddate, re.administeredformid,re.dict_questionid,                        		"
-								+ "					 re.dict_sectionid, re.editreason, STRING_AGG(re.previousanswer, ', '  ) as prevanswer,re.responseeditversion                                		"
+								+ "					 re.dict_sectionid, re.editreason, STRING_AGG(re.previousanswer, ', '  ) as prevanswer, STRING_AGG(re.previousanswer, ', '  ) as prevsubmitanswer,  "
+								+ "					 re.responseeditversion, re.coll_status                                 																			"
 								+ "			   from responseedit re, usr u                                                                                                                        		"
-								+ "			   where re.in_progress_data_flag is null and re.updatedby = u.usrid group by u.lastname, u.firstname, u.username, re.updateddate,                    		"
-								+ "					re.administeredformid,re.dict_questionid, re.dict_sectionid, re.editreason, re.responseeditversion                                               	"
+								+ "			   where re.in_progress_data_flag is null and re.updatedby = u.usrid and re.auditstatus is null 															"
+								+ "			   group by u.lastname, u.firstname, u.username, re.updateddate,                    																		"
+								+ "					re.administeredformid,re.dict_questionid, re.dict_sectionid, re.editreason, re.responseeditversion, re.coll_status                                  "
 								+ "	           union all                                                                                                                                          		"
 								+ "	           select  u.lastname||', '||u.firstname as userfullname, u.username, r.updateddate, r.administeredformid, r.dict_questionid, r.dict_sectionid, null, 		"
-								+ "					STRING_AGG(pr.answer, ', ' ) as currentanswer ,null from patientresponse pr, response r, usr u                                                   	"
+								+ "					STRING_AGG(pr.answer, ', ' ) as currentanswer, STRING_AGG(pr.submitanswer, ', ' ) as currentsubmitanswer, null, null 								"
+								+ "            from patientresponse pr, response r, usr u                                                   															"
 								+ "			   where pr.responseid = r.responseid and r.updatedby = u.usrid                                                                                       		"
 								+ "			   group by u.lastname, u.firstname, u.username, r.updateddate, r.administeredformid,r.dict_questionid, r.dict_sectionid                              		"
 								+ "			  ) b                                                                                                                                                		"
 								+ "	    ) a                                                                                                                                                         	"
-								+ "where administeredformid = ? and responseeditversion is not null                                                                                          	 		"
+								+ "where administeredformid = ? and responseeditversion is not null  and editreason is not null                                                                         "
 								+ "order by administeredformid,dict_sectionid,dict_questionid, responseeditversion                                                                               		";
 				stmt = this.conn.prepareStatement(sql);
 				stmt.setLong(1, admFormId);
@@ -7906,22 +8059,37 @@ public void deleteVisibleAdministeredSection (int sectionId) throws CtdbExceptio
 					
 					ead.setQuestionType(QuestionType.getByValue(type).toString());
 					ead.setPrevAnswer(rs.getString("prevanswer"));
-					ead.setEditAnswer(rs.getString("curranswer"));
+					// if the question have the setting to show PV, get the submitanswer instead of answer from
+					// patientresponse table
+					if (question.isDisplayPV()) {
+						ead.setEditAnswer(rs.getString("currentsubmitanswer"));
+					} else {
+						ead.setEditAnswer(rs.getString("curranswer"));
+					}
+					if(rs.getString("coll_status") != null) {
+						ead.setCollStatus(rs.getString("coll_status"));
+					}else {
+						ead.setCollStatus("");
+					}
+					
+					
 					edits.add(ead);
 				}
 			} else {
 				String sql =
 						"select * 																																						"
-								+ "from (select userfullname, username, updateddate, administeredformid,dict_sectionid,dict_questionid,responseeditversion, prevanswer, editreason,             	  	"
-								+ "				LEAD(prevanswer, 1, null) OVER (PARTITION by administeredformid,dict_sectionid,dict_questionid ORDER BY responseeditversion NULLS LAST) AS curranswer 	"
-								+ "	  	 from ( select u.lastname||', '||u.firstname as userfullname, u.username, re.updateddate, re.administeredformid,re.dict_questionid,                        		"
-								+ "   				re.dict_sectionid, re.editreason, STRING_AGG(re.previousanswer, ', '  ) as prevanswer,re.responseeditversion from responseedit re, usr u    		"
-								+ "	  			where re.in_progress_data_flag is null and re.updatedby = u.usrid                                                                                       "
-								+ "	  			group by u.lastname, u.firstname, u.username, re.updateddate, re.administeredformid,                                                                    "
-								+ "						re.dict_questionid, re.dict_sectionid, re.editreason, re.responseeditversion                                                                    "
+								+ "from (select userfullname, username, updateddate, administeredformid,dict_sectionid,dict_questionid,responseeditversion, prevanswer, editreason, coll_status,            	  		"
+								+ "				LEAD(prevanswer, 1, null) OVER (PARTITION by administeredformid,dict_sectionid,dict_questionid ORDER BY responseeditversion NULLS LAST) AS curranswer, 					"
+								+ "             LEAD(prevsubmitanswer, 1, null) OVER (PARTITION by administeredformid,dict_sectionid,dict_questionid ORDER BY responseeditversion NULLS LAST) AS currentsubmitanswer 	"
+								+ "	  	 from ( select u.lastname||', '||u.firstname as userfullname, u.username, re.updateddate, re.administeredformid,re.dict_questionid,                        						"
+								+ "   				re.dict_sectionid, re.editreason, STRING_AGG(re.previousanswer, ', '  ) as prevanswer, STRING_AGG(re.previousanswer, ', '  ) as prevsubmitanswer,   				"
+								+ "					re.responseeditversion, re.coll_status  from responseedit re, usr u    																								"
+								+ "	  			where re.in_progress_data_flag is null and re.updatedby = u.usrid and re.auditstatus is null                                                                            "
+								+ "	  			group by u.lastname, u.firstname, u.username, re.updateddate, re.administeredformid,                                                                    				"
+								+ "						re.dict_questionid, re.dict_sectionid, re.editreason, re.responseeditversion, re.coll_status                                                                    "
 								+ "	  			union all                                                                                                                                               "
 								+ "	  			select  u.lastname||', '||u.firstname as userfullname, u.username, d.updateddate, d.administeredformid, rd.dict_questionid,                             "
-								+ "					rd.dict_sectionid, null, STRING_AGG(pd.answer, ', ' ) as currentanswer ,null                                                                        "
+								+ "					rd.dict_sectionid, null, STRING_AGG(pd.answer, ', ' ) as currentanswer, STRING_AGG(pd.submitanswer, ', ' ) as currentsubmitanswer, null, null       "
 								+ "	  			from patientresponsedraft pd, responsedraft rd, dataentrydraft d, usr u                                                                                 "
 								+ "	  			where pd.responsedraftid = rd.responsedraftid and d.dataentrydraftid = rd.dataentrydraftid                                                              "
 								+ "					and d.dataenteredby = u.usrid                                                                                                                       "
@@ -7978,7 +8146,18 @@ public void deleteVisibleAdministeredSection (int sectionId) throws CtdbExceptio
 					
 					ead.setQuestionType(QuestionType.getByValue(type).toString());
 					ead.setPrevAnswer(rs.getString("prevanswer"));
-					ead.setEditAnswer(rs.getString("curranswer"));
+					// if the question have the setting to show PV, get the submitanswer instead of answer from
+					// patientresponsedraft table
+					if (question.isDisplayPV()) {
+						ead.setEditAnswer(rs.getString("currentsubmitanswer"));
+					} else {
+						ead.setEditAnswer(rs.getString("curranswer"));
+					}
+					if(rs.getString("coll_status") != null) {
+						ead.setCollStatus(rs.getString("coll_status"));
+					}else {
+						ead.setCollStatus("");
+					}
 					edits.add(ead);
 				}
 			}
@@ -7990,9 +8169,529 @@ public void deleteVisibleAdministeredSection (int sectionId) throws CtdbExceptio
 			this.close(stmt);
 		}
 	}
+	
+    /** Audit Comment on "view audit" page.
+     */
+	public List<EditAnswerDisplay> getEditArchivesForAuditComment(Form form, int admFormId,boolean isFinalLocked) 
+																					throws CtdbException {
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+
+		try {
+			StringBuffer sql = new StringBuffer(100);
+
+			sql.append("select re.*,  u.username, u.lastname||', '||u.firstname as userfullname  ");
+			sql.append(" from responseedit re, usr u ");
+			sql.append(" where re.administeredformid = ? ");
+			sql.append(" and re.editauditcomment is not null ");
+			sql.append(" and re.updatedby = u.usrid ");
+			sql.append(" order by re.administeredformid, re.dict_sectionid, re.dict_questionid, re.responseeditversion  ");
+
+			stmt = this.conn.prepareStatement(sql.toString());
+			stmt.setLong(1, admFormId);
+			rs = stmt.executeQuery();
+			ArrayList<EditAnswerDisplay> edits = new ArrayList<EditAnswerDisplay>();
+			int questionid = Integer.MIN_VALUE;
+			int questionVersion = Integer.MIN_VALUE;
+			int editversion = Integer.MIN_VALUE;
+			
+			HashMap<String,Question> questionMap = form.getQuestionMap();
+			HashMap<Integer,Section> sectionMap = form.getSectionMap();
+			
+			
+			
+			
+			
+			for (int i = 0; rs.next();) {
+				if (rs.getInt("dict_questionid") == questionid && editversion == rs.getInt("responseeditversion")) {
+					// this row is the same as the last, meaning its a multiple
+					// choice question
+					((EditAnswerDisplay) edits.get(i - 1)).getPreviousAnswer().add(rs.getString("previousanswer"));
+
+				} else {
+					// it's a new edit
+					EditAnswerDisplay ead = new EditAnswerDisplay();
+					ead.setEditDate(rs.getTimestamp("updateddate"));
+//					
+//					if(useFinalAnswers) { //FL
+//						previousAnswers = this.getFinalAnswers(responseId);
+//					}else { //Completed or In Progress
+//						previousAnswers = this.getDraftCompletedAnswers(responseId);
+//					}
+					String inprog=rs.getString("in_progress_data_flag");
+					String lastPreAnswer ="";
+					if(CtdbConstants.YES.equalsIgnoreCase(inprog)) {
+						lastPreAnswer = getLastPreAnswerForInprogress(admFormId, rs.getInt("dict_sectionid"), rs.getInt("dict_questionid"), rs.getInt("responseeditversion"));
+					}else { //FL or Completed
+						lastPreAnswer = getLastPreAnswer(admFormId, rs.getInt("dict_sectionid"), rs.getInt("dict_questionid"), rs.getInt("responseeditversion"));
+					}
+					
+					if (lastPreAnswer==null) {lastPreAnswer="";}
+					ead.getPreviousAnswer().add(lastPreAnswer);					
+					String previousAnswer = rs.getString("previousAnswer");
+					if (previousAnswer==null) {previousAnswer="";}
+					//ead.getPreviousAnswer().add(previousAnswer);
+					
+					int reQuestionId = rs.getInt("dict_questionid");
+					int reSectionId = rs.getInt("dict_sectionid");
+					String questionMapKey = "S_" + reSectionId + "_Q_" + reQuestionId;
+					Question question = questionMap.get(questionMapKey);
+					Section section = sectionMap.get(reSectionId);
+					
+					
+					
+					ead.setQuestionId(reQuestionId);
+					ead.setSectionId(reSectionId);
+					
+					
+					String name = question.getName();
+					ead.setQuestionName(name);
+					
+					String text = question.getText();
+					ead.setQuestionText(text);
+					
+					FormQuestionAttributes questionAttribute = question.getFormQuestionAttributes();
+					
+					String sectionName = section.getName();
+					ead.setSectionName(sectionName);
+					
+					
+					String dataElementName = questionAttribute.getDataElementName();
+					ead.setDataElementName(dataElementName); 
+					
+					
+					int type = question.getType().getValue();
+					
+					ead.setQuestionType(QuestionType.getByValue(type).toString());
+					//ead.setReasonForEdit(rs.getString("editreason"));
+					ead.setAuditcommentForEdit(rs.getString("editauditcomment"));
+					ead.setAuditStatus(rs.getString("auditstatus"));
+					ead.setUsername(rs.getString("userfullname"));
+					ead.setAdministeredformId(rs.getInt("administeredformid"));
+					ead.getEditedAnswer().add(previousAnswer);  
+
+					i++;
+					questionid = rs.getInt("dict_questionid");
+					questionVersion = rs.getInt("questionversion");
+					editversion = rs.getInt("responseeditversion");
+					edits.add(ead);
+
+				}
+			}
+			return edits;
+		} catch (SQLException e) {
+			throw new CtdbException(
+					"Unable to get the response edit archive list: "
+							+ e.getMessage(), e);
+		} finally {
+			this.close(rs);
+			this.close(stmt);
+		}
+	}
+	
+	/* Audit Comment on VQ-view queries */
+	public List<EditAnswerDisplay> getEditArchivesForVq(HttpServletRequest request, int protocolId,boolean isFinalLocked) //int admFormId
+																throws CtdbException {
+		PreparedStatement stmt = null;
+		PreparedStatement displayTypeQueryPrepStmt = null;
+		ResultSet rs = null;
+		ResultSet rsType = null;
+        FormDataStructureUtility fsUtil = new FormDataStructureUtility();
+        Form form = null;
+
+		try {
+        	//Get subject display type
+        	String displayTypeQuery = "select patientdisplaytype from protocol where protocolid = ?";
+        	displayTypeQueryPrepStmt = conn.prepareStatement(displayTypeQuery);
+        	displayTypeQueryPrepStmt.setLong(1, protocolId);
+        	rsType = displayTypeQueryPrepStmt.executeQuery();
+        	int subjectDisplayType = 0;
+        	while ( rsType.next() ){
+        		subjectDisplayType = rsType.getInt("patientdisplaytype");
+        	}
+        	
+			StringBuffer sql = new StringBuffer(100);
+            /*max responseeditversion by dict_questionid at a form; responseeditversion is inserted by qid without sid. */
+			sql.append(" select resp.*, rv.afid, rv.afname, rv.afshortname ,rv.guid ");
+			sql.append("		,rv.d_mrn ,rv.d_nrn ,rv.patientid "); //, u.username, resp.responseeditversion
+			sql.append(" from responseedit resp, "); // usr u,
+			sql.append("	(select max(re.responseeditversion) responseeditversion ");
+			sql.append("			,re.administeredformid as afid, ef.name as afname ");
+			sql.append("			,ef.shortname as afshortname ");
+			sql.append("        	,re.dict_sectionid, re.dict_questionid ");
+			sql.append("			,p.guid ,p.mrn as d_mrn ,pr.subjectid as d_nrn ,p.patientid ");
+			sql.append("	from  eform ef, administeredform af, responseedit re ,patient p ,patientprotocol pr ");
+			sql.append("	where ef.eformid=af.eformid and af.administeredformid=re.administeredformid "); //and re.administeredformid = 26 --28
+			sql.append("		  and ef.protocolid=? and re.editauditcomment is not null ");
+			sql.append("		  and p.patientid=af.patientid and p.patientid = pr.patientid ");
+			sql.append("		  and p.deleteflag=false and pr.protocolid=? ");
+			sql.append("	group by re.administeredformid, ef.name, ef.shortname ");
+			sql.append("			 ,re.dict_sectionid,  re.dict_questionid ");
+			sql.append("		     ,p.guid, p.mrn ,pr.subjectid ,p.patientid ) as rv ");			 
+			sql.append(" where resp.responseeditversion=rv.responseeditversion and resp.administeredformid=rv.afid ");
+			sql.append(" 	   and resp.dict_sectionid=rv.dict_sectionid and resp.dict_questionid=rv.dict_questionid "); // and resp.updatedby = u.usrid
+			sql.append(" order by rv.afid, rv.afname, rv.afshortname, resp.dict_sectionid, resp.dict_questionid ");
+			sql.append("		 ,rv.guid ,rv.d_mrn ,rv.d_nrn ,rv.patientid; "); //,resp.responseeditversion desc; ,resp.updateddate
+
+			stmt = this.conn.prepareStatement(sql.toString());
+			stmt.setLong(1, protocolId); //stmt.setLong(1, admFormId);
+			stmt.setLong(2, protocolId);
+			rs = stmt.executeQuery();
+			ArrayList<EditAnswerDisplay> edits = new ArrayList<EditAnswerDisplay>();
+			int questionid = Integer.MIN_VALUE;
+			int questionVersion = Integer.MIN_VALUE;
+			int editversion = Integer.MIN_VALUE;
+			
+	        String shortName = "";
+	        String shortNameTemp = "";
+			HashMap<String,Question> questionMap = null;
+			HashMap<Integer,Section> sectionMap  = null;
+			
+			/*subjectId*/
+        	String guid;
+        	String mrn;
+        	String nrn;
+        	int patientid;
+        	
+			for (int i = 0; rs.next();) {
+		        shortName = rs.getString("afshortname");
+		        if(shortName!=null && !shortName.isEmpty() && !shortName.equalsIgnoreCase(shortNameTemp))
+		        {
+		        	form = fsUtil.getEformFromBrics(request, shortName);
+		        	questionMap = form.getQuestionMap();
+		        	sectionMap = form.getSectionMap();
+		        	shortNameTemp=shortName;
+		        }
+
+				if (rs.getInt("dict_questionid") == questionid && editversion == rs.getInt("responseeditversion")) {
+					// this row is the same as the last, meaning its a multiple
+					// choice question
+					((EditAnswerDisplay) edits.get(i - 1)).getPreviousAnswer().add(rs.getString("previousanswer"));
+
+				} else {
+					// it's a new edit
+					EditAnswerDisplay ead = new EditAnswerDisplay();
+					ead.setEditDate(rs.getTimestamp("updateddate"));
+					String previousAnswer = rs.getString("previousAnswer");
+					ead.getPreviousAnswer().add(previousAnswer);
+					int reQuestionId = rs.getInt("dict_questionid");
+					int reSectionId = rs.getInt("dict_sectionid");
+					String questionMapKey = "S_" + reSectionId + "_Q_" + reQuestionId;
+					Question question = questionMap.get(questionMapKey);
+					Section section = sectionMap.get(reSectionId);
+					
+					
+					
+					ead.setQuestionId(reQuestionId);
+					ead.setSectionId(reSectionId);
+					
+					
+					String name = question.getName();
+					ead.setQuestionName(name);
+					
+					String text = question.getText();
+					ead.setQuestionText(text);
+					
+					FormQuestionAttributes questionAttribute = question.getFormQuestionAttributes();
+					
+					String sectionName = section.getName();
+					ead.setSectionName(sectionName);
+					
+					
+					String dataElementName = questionAttribute.getDataElementName();
+					ead.setDataElementName(dataElementName); 
+					
+					
+					int type = question.getType().getValue();
+					
+					ead.setQuestionType(QuestionType.getByValue(type).toString());
+					ead.setAuditcommentForEdit(rs.getString("editauditcomment"));
+					ead.setAuditStatus(rs.getString("auditstatus"));
+					//ead.setUsername(rs.getString("username")); //TODO
+					ead.setAdministeredformId(rs.getInt("administeredformid"));
+					ead.setAdministeredformName(rs.getString("afname"));
+					ead.getEditedAnswer().add(previousAnswer);
+
+					i++;
+					questionid = rs.getInt("dict_questionid");
+					questionVersion = rs.getInt("questionversion");
+					editversion = rs.getInt("responseeditversion");
+					
+					/* subject */
+	        		guid = rs.getString("guid");
+	        		mrn = rs.getString("d_mrn");
+	        		nrn = rs.getString("d_nrn");
+	        		patientid = rs.getInt("patientid");
+	        		if(subjectDisplayType==CtdbConstants.PATIENT_DISPLAY_ID){
+	        			ead.setnRN(nrn);
+	        			ead.setSubject(nrn);
+	        		}
+					if(subjectDisplayType==CtdbConstants.PATIENT_DISPLAY_GUID){						
+						ead.setGuId(guid);
+						ead.setSubject(guid);
+				    }
+					if(subjectDisplayType==CtdbConstants.PATIENT_DISPLAY_MRN){
+						ead.setmRN(mrn);
+						ead.setSubject(mrn);
+					}
+					
+					edits.add(ead);
+
+				}
+			}
+			return edits;
+		} catch (SQLException e) {
+			throw new CtdbException(
+					"Unable to get the response edit archive list for VQ: "
+							+ e.getMessage(), e);
+		} catch(Exception e) {
+        	// getting 401: unauthorized
+        	//e.printStackTrace();
+			throw new CtdbException(
+					"Unable to get the response edit archive list for VQ: "
+							+ e.getMessage(), e);
+        } finally {
+			this.close(rs);
+			this.close(stmt);
+		}
+	}
+	
+    /* Audit Comment  */
+	public List<EditAnswerDisplay> getEditArchivesByQId(Form form, int admFormId,
+									 int dict_sectionId, int dict_questionId,
+									 boolean isFinalLocked) 
+														throws CtdbException {
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+
+		try {
+			StringBuffer sql = new StringBuffer(100);
+
+			sql.append("select re.*,  u.username, u.lastname||', '||u.firstname as userfullname  ");
+			sql.append(" from responseedit re, usr u ");
+			sql.append(" where re.administeredformid = ? ");
+			sql.append(" and re.dict_sectionid=? and dict_questionid= ? ");
+			sql.append(" and re.editauditcomment is not null ");
+			sql.append(" and re.updatedby = u.usrid ");
+			sql.append(" order by re.responseeditversion desc; ");
+			//sql.append(" order by  re.updateddate ");
 
 
+			stmt = this.conn.prepareStatement(sql.toString());
+			stmt.setLong(1, admFormId);
+			stmt.setLong(2, dict_sectionId);
+			stmt.setLong(3, dict_questionId);
+			rs = stmt.executeQuery();
+			ArrayList<EditAnswerDisplay> edits = new ArrayList<EditAnswerDisplay>();
+			int questionid = Integer.MIN_VALUE;
+			int questionVersion = Integer.MIN_VALUE;
+			int editversion = Integer.MIN_VALUE;
+			
+			HashMap<String,Question> questionMap = form.getQuestionMap();
+			HashMap<Integer,Section> sectionMap = form.getSectionMap();
+			
+			
+			
+			
+			
+			for (int i = 0; rs.next();) {
+				if (rs.getInt("dict_questionid") == questionid && editversion == rs.getInt("responseeditversion")) {
+					// this row is the same as the last, meaning its a multiple
+					// choice question
+					((EditAnswerDisplay) edits.get(i - 1)).getPreviousAnswer().add(rs.getString("previousanswer"));
 
+				} else {
+					// it's a new edit
+					EditAnswerDisplay ead = new EditAnswerDisplay();
+					
+					String lastPreAnswer = getLastPreAnswer(admFormId, rs.getInt("dict_sectionid"), rs.getInt("dict_questionid"), rs.getInt("responseeditversion"));
+					if (lastPreAnswer==null) {lastPreAnswer="";}
+					ead.getPreviousAnswer().add(lastPreAnswer);					
+					ead.setEditDate(rs.getTimestamp("updateddate"));
+					String previousAnswer = rs.getString("previousAnswer");
+					if (previousAnswer==null) {previousAnswer="";}
+					//ead.getPreviousAnswer().add(previousAnswer);
+					
+					int reQuestionId = rs.getInt("dict_questionid");
+					int reSectionId = rs.getInt("dict_sectionid");
+					String questionMapKey = "S_" + reSectionId + "_Q_" + reQuestionId;
+					Question question = questionMap.get(questionMapKey);
+					Section section = sectionMap.get(reSectionId);
+					
+					
+					
+					ead.setQuestionId(reQuestionId);
+					ead.setSectionId(reSectionId);
+					
+					
+					String name = question.getName();
+					ead.setQuestionName(name);
+					
+					String text = question.getText();
+					ead.setQuestionText(text);
+					
+					FormQuestionAttributes questionAttribute = question.getFormQuestionAttributes();
+					
+					String sectionName = section.getName();
+					ead.setSectionName(sectionName);
+					
+					
+					String dataElementName = questionAttribute.getDataElementName();
+					ead.setDataElementName(dataElementName); 
+					
+					
+					int type = question.getType().getValue();
+					
+					ead.setQuestionType(QuestionType.getByValue(type).toString());      
+					ead.setAuditcommentForEdit(rs.getString("editauditcomment"));
+					ead.setAuditStatus(rs.getString("auditstatus"));
+					ead.setUsername(rs.getString("userfullname"));
+					ead.setAdministeredformId(rs.getInt("administeredformid"));
+					ead.getEditedAnswer().add(previousAnswer);
+
+					i++;
+					questionid = rs.getInt("dict_questionid");
+					questionVersion = rs.getInt("questionversion");
+					editversion = rs.getInt("responseeditversion");
+					edits.add(ead);
+
+				}
+			}
+			return edits;
+		} catch (SQLException e) {
+			throw new CtdbException(
+					"Unable to get the response edit archive list: "
+							+ e.getMessage(), e);
+		} finally {
+			this.close(rs);
+			this.close(stmt);
+		}
+	}
+	/* Audit Comment */
+	public List getLastAuditComment(int admFormId, int sectionId,int questionId) //User loggedInUser)
+												 throws CtdbException {
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		String editauditcomment = "";
+		String auditstatus = "";
+		ArrayList auditpair = new ArrayList();
+		
+		try {
+			StringBuffer sql = new StringBuffer(50);
+			
+			sql.append("select editauditcomment, auditstatus from responseedit ");
+			sql.append("where administeredformid = ? ");
+			sql.append(" and dict_sectionid = ? and dict_questionid = ? and editauditcomment is not null");
+			sql.append(" order by responseeditversion desc LIMIT 1 ");
+
+			stmt = this.conn.prepareStatement(sql.toString());
+			stmt.setLong(1, admFormId);
+			stmt.setLong(2, sectionId);
+			stmt.setLong(3, questionId);
+			stmt.executeQuery();
+
+			rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				editauditcomment = rs.getString("editauditcomment");
+				auditstatus = rs.getString("auditstatus");
+				//ArrayList auditpair = new ArrayList();
+				auditpair.add(editauditcomment);
+				auditpair.add(auditstatus);
+			}
+			return auditpair;
+
+		} catch (SQLException e) {
+			throw new CtdbException(
+					"Unable to get the last response final editauditcomment: "
+							+ e.getMessage(), e);
+		} finally {
+			this.close(rs);
+			this.close(stmt);
+		}
+	}
+	/* Audit Comment table at "audit view" for FL and Completed eform status */ 
+	public String getLastPreAnswer(int admFormId, int sectionId,int questionId, int responseeditversion) //User loggedInUser)
+												 throws CtdbException {
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		String previousAnswer = "";
+		
+		try {
+			StringBuffer sql = new StringBuffer(50);
+			
+			sql.append("select * from responseedit ");
+			sql.append("where administeredformid = ? ");
+			sql.append(" and dict_sectionid = ? and dict_questionid = ? and editreason is not null ");
+			sql.append(" and responseeditversion <? ");
+			sql.append(" order by responseeditversion desc LIMIT 1 ");
+
+			stmt = this.conn.prepareStatement(sql.toString());
+			stmt.setLong(1, admFormId);
+			stmt.setLong(2, sectionId);
+			stmt.setLong(3, questionId);
+			stmt.setLong(4, responseeditversion);
+			stmt.executeQuery();
+
+			rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				previousAnswer = rs.getString("previousAnswer");
+			}
+			return previousAnswer;
+
+		} catch (SQLException e) {
+			throw new CtdbException(
+					"Unable to get the last response final editreason: "
+							+ e.getMessage(), e);
+		} finally {
+			this.close(rs);
+			this.close(stmt);
+		}
+	}
+	/* Audit Comment table at "audit view" for In Progress eform status */ 
+	public String getLastPreAnswerForInprogress(int admFormId, int sectionId,int questionId, int responseeditversion) //User loggedInUser)
+												 throws CtdbException {
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		String previousAnswer = "";
+		
+		try {
+			StringBuffer sql = new StringBuffer(50);
+			
+			sql.append("select * from responseedit ");
+			sql.append("where administeredformid = ? ");
+			sql.append(" and dict_sectionid = ? and dict_questionid = ? ");
+			//sql.append(" and editreason is null and editauditcomment is null  ");
+			sql.append(" and editauditcomment is null and in_progress_data_flag=? ");
+			sql.append(" and responseeditversion <? ");
+			sql.append(" order by responseeditversion desc LIMIT 1 ");
+
+			stmt = this.conn.prepareStatement(sql.toString());
+			stmt.setLong(1, admFormId);
+			stmt.setLong(2, sectionId);
+			stmt.setLong(3, questionId);
+			stmt.setString(4, CtdbConstants.YES);
+			stmt.setLong(5, responseeditversion);
+			stmt.executeQuery();
+
+			rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				previousAnswer = rs.getString("previousAnswer");
+			}
+			return previousAnswer;
+
+		} catch (SQLException e) {
+			throw new CtdbException(
+					"Unable to get the last response final editreason: "
+							+ e.getMessage(), e);
+		} finally {
+			this.close(rs);
+			this.close(stmt);
+		}
+	}
+	
 	/**
 	 * Retrieves all final answers.
 	 * 
@@ -9130,7 +9829,7 @@ public void deleteVisibleAdministeredSection (int sectionId) throws CtdbExceptio
 		ArrayList<Integer> results = new ArrayList<Integer>();
 		
 		try {
-			stmt = conn.prepareStatement("select dict_sectionid from psr_hidden_elements where protocolid = ? and eformId = ? and is_question = false");
+			stmt = conn.prepareStatement("select dict_sectionid from psr_hidden_elements where protocolid = ? and eformId = ? and is_question = false and is_pv = false");
 
 			stmt.setLong(1, protocolId);
 			stmt.setLong(2, eformId);
@@ -9194,12 +9893,44 @@ public void deleteVisibleAdministeredSection (int sectionId) throws CtdbExceptio
 		return results;
 	}
 	
-	
-	
-	
-	
-	
-	
+	/**
+	 * Gets the hidden pv ids in secid_quesid_pvid format
+	 * @param protocolId
+	 * @param eformId
+	 * @return
+	 * @throws CtdbException
+	 */
+	public List<String> getHiddenPVList(int protocolId, int eformId) throws CtdbException {
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		ArrayList<String> results = new ArrayList<String>();
+		
+		try {
+			stmt = conn.prepareStatement("select dict_sectionid, dict_questionid, dict_pvid from psr_hidden_elements where protocolid = ? and eformId = ? and is_pv = true");
+			
+			stmt.setLong(1, protocolId);
+			stmt.setLong(2, eformId);
+			
+			rs = stmt.executeQuery();
+			
+			while (rs.next()) {
+				int dict_section_id = rs.getInt("dict_sectionid");
+				int dict_question_id = rs.getInt("dict_questionid");
+				int dict_pv_id = rs.getInt("dict_pvid");
+				String sectionQuestionPv = dict_section_id + "_" + dict_question_id + "_" + dict_pv_id;
+				results.add(sectionQuestionPv);
+			}
+		}
+		catch (SQLException sqle) {
+			throw new CtdbException(" Failure getting hidden question list " + sqle.getMessage(), sqle);
+		}
+		finally {
+			this.close(rs);
+			this.close(stmt);
+		}
+		
+		return results;
+	}
 	
 	/**
 	 * method that gets the max repeated number of sections open for list of aforms for a particular repeatable group
@@ -10198,15 +10929,17 @@ public void deleteVisibleAdministeredSection (int sectionId) throws CtdbExceptio
 			final String sql =
 					"select * 																																						"
 							+ "from (select userfullname, username, updateddate, administeredformid,dict_sectionid,dict_questionid,responseeditversion, prevanswer,                            "
-							+ "			LEAD(prevanswer, 1, null) OVER (PARTITION by administeredformid,dict_sectionid,dict_questionid ORDER BY responseeditversion NULLS LAST) AS curranswer  "
+							+ "			LEAD(prevanswer, 1, null) OVER (PARTITION by administeredformid,dict_sectionid,dict_questionid ORDER BY responseeditversion NULLS LAST) AS curranswer, "
+							+ "         LEAD(prevsubmitanswer, 1, null) OVER (PARTITION by administeredformid,dict_sectionid,dict_questionid ORDER BY responseeditversion NULLS LAST) AS currentsubmitanswer "
 							+ "	  	 from ( select u.lastname||', '||u.firstname as userfullname, u.username, re.updateddate, re.administeredformid,                                           "
-							+ "   				re.dict_questionid, re.dict_sectionid, STRING_AGG(re.previousanswer, ', '  ) as prevanswer,re.responseeditversion                              "
+							+ "   				re.dict_questionid, re.dict_sectionid, STRING_AGG(re.previousanswer, ', '  ) as prevanswer, 												   "
+							+ "					STRING_AGG(re.previousanswer, ', '  ) as prevsubmitanswer, re.responseeditversion                              								   "
 							+ "			    from responseedit re, usr u                                                                                                                        "
-							+ "	     		where re.in_progress_data_flag = 'Y' and re.updatedby = u.usrid                                                                                    "
+							+ "	     		where re.in_progress_data_flag = 'Y' and re.updatedby = u.usrid and re.auditstatus is null                         								   "
 							+ "		 		group by u.lastname, u.firstname, u.username, re.updateddate, re.administeredformid,re.dict_questionid, re.dict_sectionid, re.responseeditversion  "
 							+ "		 		union all                                                                                                                                          "
 							+ "		 		select  u.lastname||', '||u.firstname as userfullname, u.username, d.updateddate, d.administeredformid,                                            "
-							+ "					rd.dict_questionid, rd.dict_sectionid,STRING_AGG(pd.answer, ', ' ) as currentanswer ,null                                                      "
+							+ "					rd.dict_questionid, rd.dict_sectionid,STRING_AGG(pd.answer, ', ' ) as currentanswer, STRING_AGG(pd.submitanswer, ', ' ) as currentsubmitanswer, null "
 							+ "		 		from patientresponsedraft pd, responsedraft rd, dataentrydraft d, usr u                                                                            "
 							+ "		 		where pd.responsedraftid = rd.responsedraftid and d.dataentrydraftid = rd.dataentrydraftid                                                         "
 							+ "					and d.dataenteredby = u.usrid                                                                                                                  "
@@ -10265,7 +10998,14 @@ public void deleteVisibleAdministeredSection (int sectionId) throws CtdbExceptio
 				
 				ead.setQuestionType(QuestionType.getByValue(type).toString());
 				ead.setPrevAnswer(rs.getString("prevanswer"));
-				ead.setEditAnswer(rs.getString("curranswer"));
+
+				// if the question have the setting to show PV, get the submitanswer instead of answer from
+				// patientresponsedraft table
+				if (question.isDisplayPV()) {
+					ead.setEditAnswer(rs.getString("currentsubmitanswer"));
+				} else {
+					ead.setEditAnswer(rs.getString("curranswer"));
+				}
 				edits.add(ead);
 			}
 		} catch (SQLException e) {
@@ -10277,4 +11017,213 @@ public void deleteVisibleAdministeredSection (int sectionId) throws CtdbExceptio
 
 		return edits;
 	}
+	
+	
+	
+		/**
+		 * Checks to see if there are any data collections for a given eform shortname in all protocols
+		 * @param eformShortName
+		 * @return
+		 * @throws CtdbException
+		 */
+		public boolean areThereDataCollectionsInAnyProtocol(String eformShortName) throws CtdbException {
+			
+			PreparedStatement stmt = null;
+			ResultSet rs = null;
+
+			PreparedStatement stmt2 = null;
+			ResultSet rs2 = null;
+
+			
+			boolean areThereDataCollection = false;
+
+			try {
+
+				stmt = this.conn.prepareStatement(SQL_RETRIEV_EFORMID.toString());
+				stmt.setString(1, eformShortName);
+
+				rs = stmt.executeQuery();
+
+				while(rs.next()) {
+
+					
+					int eformid = rs.getInt("eformid");
+					
+					stmt2 = this.conn.prepareStatement(SQL_RETRIEV_AFORM_COUNT.toString());
+					stmt2.setInt(1, eformid);
+					
+					rs2 = stmt2.executeQuery();
+					
+					int count = 0;
+					if (rs2.next()) {
+						count = rs2.getInt("count");
+					}
+					
+					if(count > 0) {
+						areThereDataCollection = true;
+						break;
+					}
+					
+				}
+
+				return areThereDataCollection;
+				
+			}catch (SQLException e) {
+				throw new CtdbException("unable to determine if there are any collections",e);
+			} finally {
+				this.close(rs);
+				this.close(stmt);
+				this.close(rs2);
+				this.close(stmt2);
+			}
+			
+			
+		}
+		
+		/**
+		 * Get the query from summary_query table for the given chartName
+		 * 
+		 * @param chartName
+		 * @return SummaryQuery
+		 * @throws CtdbException thrown if any errors occur while processing
+		 */
+		
+		public SummaryQueryPF getSummaryQuery(String chartName) throws CtdbException {
+			//get the query from summaryQuery Table
+			SummaryQueryPF query = new SummaryQueryPF();
+			PreparedStatement stmt = null;
+			ResultSet rs = null;
+
+			try {
+				stmt = this.conn.prepareStatement(SQL_RETRIEV_SUMMARY_QUERY);
+				stmt.setString(1, chartName);
+				rs = stmt.executeQuery();
+				while(rs.next()) {
+					query.setId(rs.getInt("id"));
+					query.setQuery(rs.getString("query"));
+					query.setShortname(rs.getString("shortname"));
+					query.setRequiresNumber(rs.getBoolean("requires_number"));
+					query.setRequiresPostgres(rs.getBoolean("requires_postgres"));
+					query.setRequiresSparql(rs.getBoolean("requires_sparql"));
+					query.setRequiresProforms(rs.getBoolean("requires_proforms"));
+					query.setRequiresText(rs.getBoolean("requires_text"));
+					query.setRequiresSite(rs.getBoolean("requires_site"));
+					query.setRequiresStudy(rs.getBoolean("requires_study"));
+				}
+				
+			}
+			catch (SQLException e) {
+				throw new CtdbException("Unable to get query for chartName " + chartName + " : " + e.getMessage(), e);
+			}
+			finally {
+				this.close(rs);
+				this.close(stmt);
+			}
+			
+			return query;
+		}
+		
+		/**
+		 * Returns collection for the given query from summary_query table 
+		 * 
+		 * @param chartName
+		 * @return HashMap
+		 * @throws CtdbException thrown if any errors occur while processing
+		 */
+		public HashMap<String, String> getSummaryDataResult(String chartName) throws CtdbException {
+			//get the query from SummaryQuery
+			SummaryQueryPF query = getSummaryQuery(chartName);
+			HashMap<String, String> summaryResults = new HashMap<String, String>();
+			PreparedStatement stmt = null;
+			ResultSet rs = null;
+			//Run the query and return the result
+			try {
+				
+				stmt = this.conn.prepareStatement(query.getQuery());
+				rs = stmt.executeQuery();
+				while(rs.next()) {
+					String category = ((String) rs.getString("category"));
+					String count =  ((String) rs.getString("count"));
+					summaryResults.put(category,count);
+
+				}
+				
+			}
+			catch (SQLException e) {
+				throw new CtdbException("Unable to get query for chartName " + chartName + " : " + e.getMessage(), e);
+			}
+			finally {
+				this.close(rs);
+				this.close(stmt);
+			}
+			
+			
+			return summaryResults;
+		}
+		
+		
+		
+		
+		
+		
+		
+		/**
+		 * Checks to see if for a givien eform shortname if it is attached to any visittype in all protocols 
+		 * @param eformShortName
+		 * @return
+		 * @throws CtdbException
+		 */
+		public boolean areThereEformsAttachedToAnyVisitType(String eformShortName) throws CtdbException {
+			
+			PreparedStatement stmt = null;
+			ResultSet rs = null;
+
+			PreparedStatement stmt2 = null;
+			ResultSet rs2 = null;
+
+			
+			boolean areThereEforms = false;
+
+			try {
+
+				stmt = this.conn.prepareStatement(SQL_RETRIEV_EFORMID.toString());
+				stmt.setString(1, eformShortName);
+
+				rs = stmt.executeQuery();
+
+				while(rs.next()) {
+
+					
+					int eformid = rs.getInt("eformid");
+					
+					stmt2 = this.conn.prepareStatement(SQL_RETRIEV_EFORM_INTERVAL_COUNT.toString());
+					stmt2.setInt(1, eformid);
+					
+					rs2 = stmt2.executeQuery();
+					
+					int count = 0;
+					if (rs2.next()) {
+						count = rs2.getInt("count");
+					}
+					
+					if(count > 0) {
+						areThereEforms = true;
+						break;
+					}
+					
+				}
+
+				return areThereEforms;
+				
+			}catch (SQLException e) {
+				throw new CtdbException("unable to determine if there are any collections",e);
+			} finally {
+				this.close(rs);
+				this.close(stmt);
+				this.close(rs2);
+				this.close(stmt2);
+			}
+			
+			
+		}
 }

@@ -67,7 +67,8 @@
 	
 	<body id="cas">
 		<c:set var="portalUrl"><spring:eval expression="@applicationProperties.getProperty('portal.url')" /></c:set>
-    	
+		 <!-- this is specific for NEI since the public URL is different -->
+    	<c:set var="neilUrl"><spring:eval expression="@applicationProperties.getProperty('template.public.url')" /></c:set>
 		
     	<div id="page-container">
             <div id="header" class="flc-screenNavigator-navbar fl-navbar fl-table">
@@ -95,7 +96,7 @@
 							<a href="${portalUrl}" id="logo" class="float-left"><em class="alt">Global Stroke Data Repository</em></a>
 			           </c:when>
 			           <c:when test="${fn:contains(styleKey, 'eyegene' ) || fn:contains(styleKey, 'nei' )}">
-							<a href="<c:out value="${portalUrl}" />" id="logo" class="float-left"><em class="alt">NEI BRICS</em></a>
+							<a href="<c:out value="${neilUrl}" />" id="logo" class="float-left" target="_blank"><em class="alt">NEI BRICS</em></a>
 			           </c:when>
 			            <c:when test="${fn:contains(styleKey, 'cdrns' )}">
 							<a href="<c:out value="${portalUrl}" />" id="logo" class="float-left"><em class="alt"> Common Data Repository for Nursing Science (cdRNS)</em></a>

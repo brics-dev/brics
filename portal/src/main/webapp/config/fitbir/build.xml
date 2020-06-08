@@ -4,9 +4,8 @@
         <property name="global.dir" value="../../styles" />
         <property name="output.dir" value="." />
 
-        <apply executable="C:\Ruby23\bin\sass.bat" dest="${output.dir}" verbose="true" force="true" failonerror="true">
+        <apply executable="C:\Ruby\bin\sass.bat" dest="${output.dir}" verbose="true" force="true" failonerror="true">
           <arg value="--unix-newline" />
-          <arg value="--compass" />
           <srcfile />
           <targetfile />
           <fileset dir="${source.dir}" includes="**/*.scss,**/*.sass" excludes="**/_*" />
@@ -15,6 +14,5 @@
             <globmapper from="*.scss" to="*.css" />
           </firstmatchmapper>
         </apply>
-        <eclipse.refreshLocal resource="portal/src" depth="infinite"/>
     </target>
 </project>

@@ -24,6 +24,7 @@ public class CalculatedFormQuestionAttributes extends FormQuestionAttributes {
     private List<String> questionIdsToCalculate;
     private String calculation;
     private Boolean conditionalForCalc;
+    private boolean isCount = false;
     
     public CalculatedFormQuestionAttributes()
     {
@@ -113,6 +114,16 @@ public class CalculatedFormQuestionAttributes extends FormQuestionAttributes {
 
 	public void setConditionalForCalc(Boolean conditionalForCalc) {
 		this.conditionalForCalc = conditionalForCalc;
+	}
+	
+	
+
+	public boolean isCount() {
+		return isCount;
+	}
+
+	public void setIsCount(boolean isCount) {
+		this.isCount = isCount;
 	}
 
 	public boolean equals(Object o) {

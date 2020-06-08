@@ -72,6 +72,7 @@ public class ServiceConstants {
 	public final static int DATA_STRUCTURE_LIMIT = 1000;
 	public final static int EFORM_IMPORT_LIMIT = 1;
 	public final static String STATIC_MANAGER = "staticManager";
+	public final static String DICTIONARY_SERVICE = "dictionaryService";
 	public final static String ACCOUNT_MANAGER = "accountManager";
 	public static final String DATABASE_NAME_REGEX = "[A-Za-z][A-Za-z0-9_]*";
 	public static final String USERNAME__REGEX = "^[A-Za-z]{1}[A-Za-z0-9@\\._-]{2,44}$";
@@ -268,6 +269,9 @@ public class ServiceConstants {
 
 	public final static String CREATION_DATE = "creation date";
 	public final static String LAST_CHANGE_DATE = "last change date";
+	public final static String CHANGED_FORMAT_DATE = "2020-02-27";
+	public final static String DEFAULT_FORMAT_DATE = "yyyy-MM-dd";
+	public final static String UNIVERSAL_FORMAT_DATE = "yyyy-MM-dd HH:mm:ss.S";
 	public final static String ADMINISTRATIVE_STATUS = "administrative status";
 	public final static String SUBDOMAIN = "subdomain";
 	public final static String SUBDOMAIN_READABLE = "Sub-Domain";
@@ -605,6 +609,33 @@ public class ServiceConstants {
 		EXPORT_SCHEMA_PV_CSV_HEADERS = Collections.unmodifiableList(csvHeaders);
 	}
 
+	/* BTRIS Mapping */
+	public static final String BTRIS_MAPPING_BRICS_DE_SHORTNAME = "Brics Data Element Short Name";
+	public static final String BTRIS_MAPPING_BRICS_PV_VALUE = "Brics PV Value";
+	public static final String BTRIS_MAPPING_OBSERVATION_NAME = "Btris Observation Name";
+	public static final String BTRIS_MAPPING_RED_CONCEPT_CODE = "Btris Red Concept Code";
+	public static final String BTRIS_MAPPING_SPECIMEN_TYPE = "Btris Specimen Type";
+	public static final String BTRIS_MAPPING_TABLE = "Table in Btris";
+
+	public static final String ERROR_BTRIS_OBSERVATION_NAME_MISSING =
+			"The BTRIS Mapping is missing an observation name for one of its mappings.";
+	public static final String ERROR_BTRIS_SPECIMEN_TYPE =
+			"The BTRIS Mapping is missing a specimen type for one of its mappings.";
+	public static final String ERROR_DUPLICATE_OBSERVATION_NAME =
+			"The data element %s in BRICS already has a mapped BTRIS value \"%s\".";
+
+	public static final List<String> EXPORT_BTRIS_MAPPING_CSV_HEADERS;
+	static {
+		ArrayList<String> csvHeaders = new ArrayList<String>();
+		csvHeaders.add(BTRIS_MAPPING_BRICS_DE_SHORTNAME);
+		csvHeaders.add(BTRIS_MAPPING_BRICS_PV_VALUE);
+		csvHeaders.add(BTRIS_MAPPING_OBSERVATION_NAME);
+		csvHeaders.add(BTRIS_MAPPING_RED_CONCEPT_CODE);
+		csvHeaders.add(BTRIS_MAPPING_SPECIMEN_TYPE);
+		csvHeaders.add(BTRIS_MAPPING_TABLE);
+		EXPORT_BTRIS_MAPPING_CSV_HEADERS = Collections.unmodifiableList(csvHeaders);
+	}
+
 	/************************ Exception Messages *************************************/
 
 	public static final String EXCEPTION_NULL_USER = "curUser cannot be null.";
@@ -811,4 +842,21 @@ public class ServiceConstants {
 	public static final String ACCOUNT_RENEWAL_COMMENT_DELIMITER = "/";
 	
 	public static final int META_STUDY_BACTH_SIZE = 100;
+	
+	public static final String USERNAME_PARAM = "abcd";
+	public static final String PASSWORD_PARAM = "abcd";
+	
+	public static final String DUC_EXPIRATION_SUBJECT_PROPERTY = "ducExpiration.subject";
+	public static final String DUC_EXPIRATION_MESSAGE_BODY_PROPERTY = "ducExpiration.body";
+	public static final String DUC_EXPIRED_OPS_SUBJECT_PROPERTY = "ducExpiredOps.subject";
+	public static final String DUC_EXPIRED_OPS_MESSAGE_BODY_PROPERTY = "ducExpiredOps.body";
+	
+	public static final String UNABLE_TO_DELETE_EFORM_BC_OF_COLLECTIONS = "This eform has data collected against it and cannot be deleted. If you have any questions please reach out to the operations team.";
+	public static final String UNABLE_TO_DELETE_EFORM_BC_OF_EFORMS_IN_VT = "This eform is attached to one or more Visit Types and cannot be deleted. If you have any questions please reach out to the operations team.";
+	
+	/*************************** Visualization and Summary Constants **************************************/
+	public static final String SUMMARY_DATA_GEN_FAILED_SUBJECT = "summaryDataGenFailed.subject";
+	public static final String SUMMARY_DATA_GEN_FAILED_BODY = "summaryDataGenFailed.body";
+	public static final String SUMMARYDATA_LOG_PATH = "/opt/apache-tomcat-portal/logs/summaryData.log";
+
 }

@@ -78,7 +78,7 @@ public class AccountUserDetails implements UserDetails
     public Collection<GrantedAuthority> getAuthorities()
     {
 
-        return AccountDetailService.getAuthorities(account.getAccountRoleList());
+        return AccountDetailService.getAuthorities(account);
     }
 
     /**
@@ -228,13 +228,13 @@ public class AccountUserDetails implements UserDetails
             return false;
         }
 
-        if (!(AccountStatus.ACTIVE.equals(account.getAccountStatus()) || (AccountStatus.CHANGE_REQUESTED.equals(account
-                .getAccountStatus()))))
-        {
-            return false;
-        }
+		if (!(AccountStatus.ACTIVE.equals(account.getAccountStatus())
+				|| AccountStatus.CHANGE_REQUESTED.equals(account.getAccountStatus())
+				|| AccountStatus.RENEWAL_REQUESTED.equals(account.getAccountStatus()))) {
+			return false;
+		}
 
-        return true;
+		return true;
     }
 
     @Override

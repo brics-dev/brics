@@ -77,6 +77,9 @@
 							<li id='importFormStructureLink' name="nav_import_form_structures" class="long-text">
 								<s:a href="%{modulesDDTURL}dictionaryAdmin/importDataElementAction!adminFormStructureImport.action">Import</s:a>
 							</li>						
+							<li id='manageFormLabelsLink' name="nav_manage_form_labels" class="long-text">
+								<s:a href="%{modulesDDTURL}dictionaryAdmin/formLabelAction!listFormLabels.action">Manage Labels</s:a>
+							</li>						
 						</ul></li>
 						<li style="font-weight: bold; font-size: 110%;">
 							<s:a href="%{modulesDDTURL}dictionaryAdmin/searchDataElementAction!list.action">Data Elements</s:a>
@@ -88,6 +91,11 @@
 							<li id='importDataElementSchemaLink' name="nav_import_data_elements_schema" class="long-text">
 								<s:a href="%{modulesDDTURL}dictionaryAdmin/schemaMappingAction!adminDataElementSchemaImport.action">Import Schema</s:a>
 							</li>
+							<s:if test='modulesWithPII == "true"'>
+								<li id='importBtrisMappingLink' name="nav_import_btris_mapping" class="long-text">
+									<s:a href="%{modulesDDTURL}dictionaryAdmin/btrisMappingAction!adminBtrisMappingImport.action">Import BTRIS Mapping</s:a>
+								</li>
+							</s:if>
 							<!-- <li id='bulkDeleteDataElementsLink' name="nav_bulk_delete_data_elements" class="long-text">
 								<s:a href="%{modulesDDTURL}dictionaryAdmin/deleteDataElementAction!delete.action">Delete</s:a>
 							</li> -->

@@ -1,0 +1,16 @@
+[DB-SRC]
+host=pdbp-db-uat.cit.nih.gov
+database=pd_uat
+schema=tbi_metauat
+user=tbi_metauat
+label=UAT-SRC
+
+[DB-TRG]
+host=pdbp-db-prod.cit.nih.gov
+database=pd_prod
+schema=tbi_meta
+user=tbi_meta
+label=PROD-TRG
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\pgDelta\uatpd-prodpd-meta

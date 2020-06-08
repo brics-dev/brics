@@ -2,5 +2,5 @@
 <%@taglib prefix="s" uri="/struts-tags"%>
 
 <div class="action-button">
-	<a href="/portal/baseAction!landing.action">Log In</a>
+	<a id="loginActionBtn" href="/portal/baseAction!landing.action">Log In</a>
 </div>

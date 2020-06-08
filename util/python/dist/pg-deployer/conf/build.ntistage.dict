@@ -1,0 +1,7 @@
+[DB-TRG]
+host=nti-db-stage
+database=dictionary_stg
+schema=dictionarystg
+user=dictionarystg
+label=TARGET
+

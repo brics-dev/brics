@@ -23,7 +23,7 @@ public class RDFSesameTest extends TestCase// extends BaseHibernateTestCase
 
     static Logger logger = Logger.getLogger(RDFSesameTest.class);
 
-    private static String sesameServer = "http://REPLACED:8080/";
+    private static String sesameServer = "http://brics-exhibit-dev.cit.nih.gov:8080/";
     private static String sesameApp = "openrdf-sesame";
     private static String repositoryID = "BRICSDemo";
     // private String exportLocation = "D:\\RDFExport\\GeoffManley\\";

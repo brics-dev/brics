@@ -155,6 +155,16 @@ The following changes will result in a major change to the Form Structure. Pleas
 			</div>
 			
 			<div class="form-output">
+				<div class="label">Labels:</div>
+				<div class="readonly-text">
+					<s:iterator var="formLabel" value="currentDataStructure.formLabelList" status="labelStatus">
+						<c:out value="${formLabel.label}" />
+						<s:if test="!#labelStatus.last">, </s:if>
+					</s:iterator>
+				</div>
+			</div>
+				
+			<div class="form-output">
 				<div class="label">Form Type:</div>
 				<div class="readonly-text">
 					<s:property value="currentDataStructure.fileType.type" />

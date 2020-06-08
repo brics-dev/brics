@@ -16,8 +16,8 @@ public abstract class StatelessRestProvider {
 
 	protected final int RECEIVE_TIMEOUT_MS = 0;
 	protected final int CONNECTION_TIMEOUT_MS = 0;
-	protected final String USER_NAME = "REPLACED";
-	protected final String PASS = "REPLACED";
+	protected final String USER_NAME = "userName";
+	protected final String PASS = "pass";
 	
 	public String getServerUrl() {
 		return serverUrl;

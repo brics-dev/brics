@@ -11,6 +11,8 @@ public class FormInterval extends CtdbDomainObject {
 	private int formId;
 	private String formNameLink;
 	private String formName;
+	private String formNameLeftNav;
+	private String formNameLinkLeftNav;
 	private String dataCollectionStatus;
 	private String required;
 	private int intervalOrder;
@@ -61,6 +63,22 @@ public class FormInterval extends CtdbDomainObject {
 	}
 	public void setRequired(String required) {
 		this.required = required;
+	}
+
+	public String getFormNameLeftNav() {
+		return formNameLeftNav;
+	}
+
+	public void setFormNameLeftNav(String formNameLeftNav) {
+		this.formNameLeftNav = formNameLeftNav;
+	}
+
+	public String getFormNameLinkLeftNav() {
+		return formNameLinkLeftNav;
+	}
+
+	public void setFormNameLinkLeftNav(String formNameLinkLeftNav) {
+		this.formNameLinkLeftNav = formNameLinkLeftNav;
 	}
 
 	public Document toXML() throws TransformationException {

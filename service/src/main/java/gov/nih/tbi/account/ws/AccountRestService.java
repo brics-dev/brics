@@ -532,6 +532,15 @@ public class AccountRestService extends AbstractRestService {
 			accountManager.registerEntity(accountManager.getAccount(requestingAccount.getUser(), acctId), entityType,
 					entityId, permissionType);
 		}
+		
+		//This condition is required for fitbir/pd shared dictionary
+		//requestingAccount will be null for one of the instances that didn't initiate the webservice call
+		//This resulted in lost ownership (PS-5013)
+		if (acctId != 0L) {
+			
+			logger.debug(" Entity Info to be registered : user " + accountDao.get(acctId).getUserName()+ " entityId: "+entityId + " permissiontype:"+permissionType );
+			accountManager.registerEntity(accountDao.get(acctId),entityType,entityId, permissionType);
+		}
 		if (pgId != 0L) {
 			accountManager.registerEntity(accountManager.getPermissionGroupById(pgId), entityType, entityId,
 					permissionType);
@@ -1123,22 +1132,25 @@ public class AccountRestService extends AbstractRestService {
 	 */
 	@GET
 	@Path("keepAlive")
-	@Produces("text/xml")
+	@Produces(MediaType.TEXT_PLAIN)
 	public Response keepSessionAlive() {
 
 		try {
 			Account requestingAccount = getAuthenticatedAccount();
+			
+			if (requestingAccount == null) {
+				return Response.status(Response.Status.UNAUTHORIZED).build();
+			} else {
+				return Response.ok().build();
+			}
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			logger.error("error in keepSessionAlive" + Response.ok().status(200).build());
 			e.printStackTrace();
+
+			String msg = "error in keepSessionAlive ";
+			logger.error(msg);
+			Response errRes = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(msg).build();
+			throw new ForbiddenException(errRes);
 		}
-
-
-
-		return Response.ok().status(200).build();
-		// TODO Auto-generated catch block
-
 	}
 
 	/**

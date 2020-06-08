@@ -1,7 +1,6 @@
 package gov.nih.tbi.dictionary.portal;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -34,7 +33,6 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
 import org.apache.commons.httpclient.HttpException;
-import org.apache.http.impl.cookie.DateParseException;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -50,7 +48,6 @@ import gov.nih.tbi.commons.model.EntityType;
 import gov.nih.tbi.commons.model.PermissionType;
 import gov.nih.tbi.commons.service.ServiceConstants;
 import gov.nih.tbi.dictionary.model.DataStructureExport;
-import gov.nih.tbi.dictionary.model.hibernate.DataElement;
 import gov.nih.tbi.dictionary.model.hibernate.DiseaseStructure;
 import gov.nih.tbi.dictionary.model.hibernate.FormStructure;
 import gov.nih.tbi.dictionary.model.hibernate.formstructure.export.DataElementExport;
@@ -284,7 +281,7 @@ public class DataStructureImportAction extends BaseDictionaryAction {
 				byte[] encodedBytes = Base64.getEncoder().encode(token.getBytes());
 				Charset ascii = Charset.forName("US-ASCII");
 				String asciiEncoded = new String(encodedBytes, ascii);			
-				url = new URL(apiUrl+formOID+".json");
+				url = new URL(apiUrl + formOID + ".json");
 				connection = (HttpsURLConnection) url.openConnection();
 				connection.setDoOutput(true);
 				connection.setRequestMethod("POST");
@@ -295,13 +292,21 @@ public class DataStructureImportAction extends BaseDictionaryAction {
 				BufferedReader br = new BufferedReader(new InputStreamReader((connection.getInputStream())));
 				while ((output = br.readLine()) != null) {
 					formObj = new JSONObject(output);
-				}	
-				// Questions
-				JSONArray items =formObj.getJSONArray("Items");
-				for(int i = 0; i<items.length(); i++) {
-					JSONObject item = items.getJSONObject(i);	
-					questionsOIDList.add(item.getString("FormItemOID"));
-				}				
+				}
+				if(!formObj.has("Error")) {
+					// Questions
+					JSONArray items = formObj.getJSONArray("Items");
+					for(int i = 0; i<items.length(); i++) {
+						JSONObject item = items.getJSONObject(i);	
+						questionsOIDList.add(item.getString("FormItemOID"));
+					}
+				} else { //get info from batter form
+					String batteryAapiUrl = hmProperties.getProperty("healthMeasurement.api.batteries.url");
+					String formApiUrl = hmProperties.getProperty("healthMeasurement.api.url");		
+					
+					questionsOIDList.addAll(dictionaryManager.getQuestionOIDListForBattery(batteryAapiUrl, formApiUrl, formOID, asciiEncoded));
+				}
+				
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

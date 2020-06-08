@@ -174,11 +174,33 @@ function showWarningMsg(prePopArray, prePopsToSave) {
 }
 
 // Show a the self-reporting link dialog when a link is clicked in the table.
-function showTokenLink(guid, link) {
-	var msg = "To allow the subject to self-report, send this URL to the subject with GUID " + guid + ": <textarea>" + link + "</textarea>";
-	var dialogId = $.ibisMessaging("dialog", "info", msg, {modal: true});
-	
-	$("#" + dialogId).find("textarea").select();
+function showTokenLink(guid, patientEmail, selectedClinicPntId, link) {
+	var msg = "To allow the subject to self-report, send this URL to the subject with GUID " + guid + ": <textarea class=\"psrLinkTextarea\">" + link + "</textarea>";
+	var dialogId = $.ibisMessaging(
+						"dialog", 
+						"info", 
+						msg, {
+						buttons: {
+							<s:if test="#displayClinicalPoint">
+								"Send Email": function() {
+									var url = basePath + '/patient/sendEmailPSR.action?token=' + link + '&patientEmail='+patientEmail + '&selectedClinicPntId='+selectedClinicPntId;
+									redirectWithReferrer(url);
+								},
+							</s:if>
+								"Copy": function() {
+									var copyText = $(this).find(".psrLinkTextarea");
+									copyText.select();
+									document.execCommand("copy");
+								},
+								"Cancel": function() {
+									$(this).dialog("close");
+								}
+						},
+						open : function() {
+							$(this).find(".psrLinkTextarea").select();
+						},
+						width: 600
+						});
 }
 
 function initPrePopHashTable(prePopArray) {
@@ -300,6 +322,9 @@ function updatePatientVisitPage(patientId, dlgId) {
 			$("#intervalChartContainer").html(data);
 			//close the dialog
 			if(dlgId.length > 0){
+				if(dlgId.length > 1) {
+					$("#"+dlgId).eq(0).remove();
+				}
 				$.ibisMessaging("close", {id: dlgId});
 			}			
 		}
@@ -500,7 +525,7 @@ $(document).ready(function() {
 						<s:textfield name="visitDateStr" cssClass="dateTimeField validateMe" id="calId2"/>
 					</div>
 					<div class="formrow_1">
-						<label for="visitTypeId" ><s:text name="response.label.interval"/></label>
+						<label for="visitTypeId" class="requiredInput"><s:text name="response.label.interval"/></label>
 						<s:select name="visitTypeId" id="visitTypeSelect" list="#session.intervalOptions" listKey="id" listValue="name" 
 								headerKey="%{@java.lang.Integer@MIN_VALUE}" headerValue="-----"/>
 					</div>
@@ -596,7 +621,7 @@ $(document).ready(function() {
 					<%if (SUBJECT_DISPLAY_TYPE  == CtdbConstants.PATIENT_DISPLAY_GUID) {%>
 			        	{
 			                name: 'patientId',
-			                title: '<%=rs.getValue("subject.table.GUID",l) %>',
+			                title: '<%=rs.getValue("response.resolveHome.tableHeader.subjectGUID",l) %>',
 			                parameter: 'guidDisplay',
 			                data: 'patientId'
 			            },
@@ -614,7 +639,7 @@ $(document).ready(function() {
 					<%if (SUBJECT_DISPLAY_TYPE  == CtdbConstants.PATIENT_DISPLAY_GUID) {%>
 			        	{
 			                name: 'patientId',
-			                title: '<%=rs.getValue("subject.table.GUID",l) %>',
+			                title: '<%=rs.getValue("response.resolveHome.tableHeader.subjectGUID",l) %>',
 			                parameter: 'guidDisplay',
 			                data: 'patientId'
 			            },

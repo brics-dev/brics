@@ -34,8 +34,28 @@
 			<result name="myCollections" type="redirectAction">collectDataPreviousHome</result>
 			<result name="dataCollection" type="redirectAction">dataCollectingLandingSearch</result>
 			<!--  <result name="dataCollectionPSR">dataCollection_patientSelfReporting.jsp</result> -->
+			<allowed-methods>auditComment,clearAform</allowed-methods>
 		</action>
-
+		
+		<action name="btrisQuestionDTListAction" class="gov.nih.nichd.ctdb.response.action.BtrisDataCollectionAction">
+			<allowed-methods>getMappedBtrisQuestionDTList</allowed-methods>
+		</action>
+		<action name="getBtrisDataAction" class="gov.nih.nichd.ctdb.response.action.BtrisDataCollectionAction">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonString</param>
+			</result>
+			<result name="badRequest" type="httpheader">
+				<param name="error">400</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<allowed-methods>getBtrisDataForSelectedQ</allowed-methods>
+		</action>
 		<action name="viewForm" class="gov.nih.nichd.ctdb.response.action.ViewFormAction">
 			<result name="success">viewForm.jsp</result>
 			<result name="exception">viewForm.jsp</result>
@@ -43,6 +63,16 @@
 		<action name="viewEditedAnswer" class="gov.nih.nichd.ctdb.response.action.ViewEditedAnswerAction">
 			<result name="success">viewEditedAnswer.jsp</result>
 		</action>
+		<action name="printPdfCollectionAuditTrail" class="gov.nih.nichd.ctdb.response.action.AuditCollectionPdfGenerator">
+			<result name="success">viewEditedAnswer.jsp</result>
+			<result name="pdfSuccess" type="stream">
+		        <param name="inputName">inputStream</param>
+		        <param name="contentType">application/pdf</param>
+		        <param name="contentDisposition">attachment;filename="AuditCollectionList.pdf"</param>
+		        <param name="bufferSize">1024</param>
+		    </result>
+			<allowed-methods>getChunckedData,downloadGuidResults,combinedSearchIdt,downloadPdf</allowed-methods>
+		</action>			
 		<action name="getDataEntryList" class="gov.nih.nichd.ctdb.response.action.ViewEditedAnswerAction" method="getDataEntryList">
 			<result name="success" type="json">
 				<param name="noCache">true</param>
@@ -56,6 +86,24 @@
 			</result>
 		</action>
 		<action name="getEditArchivesList" class="gov.nih.nichd.ctdb.response.action.ViewEditedAnswerAction" method="getEditArchivesList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>
+		<action name="getListEditedAnswersByQId" class="gov.nih.nichd.ctdb.response.action.ViewEditedAnswerAction" method="getListEditedAnswersByQId">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>
+		<action name="getEditArchivesListByQId" class="gov.nih.nichd.ctdb.response.action.ViewEditedAnswerAction" method="getEditArchivesListByQId">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>
+		<action name="getEditArchivesListForAuditComment" class="gov.nih.nichd.ctdb.response.action.ViewEditedAnswerAction" method="getEditArchivesListForAuditComment">
 			<result name="success" type="json">
 				<param name="noCache">true</param>
 				<param name="excludeNullProperties">true</param>
@@ -96,6 +144,13 @@
 		<action name="dataCollectionExport" class="gov.nih.nichd.ctdb.response.action.DataCollectionExportAction" method="exportDataCollection">
 			<result name="success" type="redirectAction">collectDataPreviousHome</result>
 			<result name="exception" type="redirectAction">collectDataPreviousHome</result>
+		</action>
+		
+		<action name="dataCollectionExportValidation" class="gov.nih.nichd.ctdb.response.action.DataCollectionExportAction" method="validateExportDataCollection">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
 		</action>
 		
 		<action name="getInitialDataEntryList" class="gov.nih.nichd.ctdb.response.action.ViewEditedAnswerAction" method="getInitialDataEntryList">

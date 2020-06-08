@@ -200,7 +200,20 @@ public class PatientEditValidator {
         		}
 
         		if (p.getSiteId() != pp.getSiteId()) {
-        			pct.getChangedFields().put("Site ID", new String [] {Integer.toString(p.getSiteId()), Integer.toString( pp.getSiteId()) });
+        			String oldSiteName = "";
+        			String newSiteName = "";
+        			SiteManager sm = new SiteManager();
+        			try {
+        				oldSiteName = sm.getSite(p.getSiteId()).getName();
+        			}catch(CtdbException e) {
+        				//do nothing...keep oldSiteId empty
+        			}
+        			try {
+        				newSiteName = sm.getSite(pp.getSiteId()).getName();
+        			}catch(CtdbException e) {
+        				//do nothing...keep newSiteId empty
+        			}
+        			pct.getChangedFields().put("Site Name", new String [] {oldSiteName, newSiteName});
         		}
 
         		if (p.getStatus() != null  && pp.getStatus()!= null){
@@ -216,9 +229,7 @@ public class PatientEditValidator {
         							(pp.getGroupId() >0 ) ? Integer.toString(pp.getGroupId()) : ""}); 
         		}
         		
-        		if (!doesEqual(p.getBiorepositoryId(), pp.getBiorepositoryId())) {
-        			pct.getChangedFields().put("Biorepository ID", new String [] {p.getBiorepositoryId(),pp.getBiorepositoryId() });
-        		}
+
         		
         		if (p.isFutureStudy() != pp.isFutureStudy() ) {
         			pct.getChangedFields().put("Consent to Future Study", new String [] {Boolean.toString(p.isFutureStudy()), Boolean.toString(pp.isFutureStudy()) });

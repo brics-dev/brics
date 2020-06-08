@@ -44,20 +44,20 @@ public class EFormSkipClacRulesExtractor {
 		DriverManagerDataSource dataSource_dd = new DriverManagerDataSource();
 		dataSource_dd.setDriverClassName("org.postgresql.Driver");
 		// dataSource.setUrl("jdbc:postgresql://ibis-db-stage.cit.nih.gov:5432/dictionary_stage");
-		// dataSource.setUsername("REPLACED");
-		// dataSource.setPassword("REPLACED");
+		// dataSource.setUsername("dictionarystg");
+		// dataSource.setPassword("abcd");
 		dataSource_dd.setUrl(
 				"jdbc:postgresql://ibis-db-uat.cit.nih.gov:5432/dictionary_uat");
-		dataSource_dd.setUsername("REPLACED");
-		dataSource_dd.setPassword("REPLACED");
+		dataSource_dd.setUsername("dictionaryuat");
+		dataSource_dd.setPassword("abcd");
 		JdbcTemplate jdbcTemplate_dd = new JdbcTemplate(dataSource_dd);
 
 
 
 		String url = "jdbc:postgresql://proforms-uat-db.cit.nih.gov:5432/pdbp_data";
 		Properties props = new Properties();
-		props.setProperty("user", "REPLACED");
-		props.setProperty("password", "REPLACED");
+		props.setProperty("user", "proforms_app_uat");
+		props.setProperty("password", "abcd");
 		Connection conn =null;
 		PreparedStatement preparedStatement1 = null;
 		PreparedStatement preparedStatement2 = null;

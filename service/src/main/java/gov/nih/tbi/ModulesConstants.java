@@ -1,11 +1,22 @@
 package gov.nih.tbi;
 
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +32,7 @@ public class ModulesConstants {
 	// return null if server url is not defined
 	private static final String DEFAULT_SERVER_URL = "";
 	private static final String ORG_EMAIL_DELIMITER = ";";
-
+	
 	public static final String NIH_PASSWORD_HINT_URL_PROPERTY = "renewPassword.passwordHints";
 	public static final String RENEW_PASSWORD_SUBJECT_PROPERTY = "renewPassword.subject";
 	public static final String RENEW_ACCOUNT_ROLE_SUBJECT_PROPERTY = "renewRole.subject";
@@ -29,7 +40,7 @@ public class ModulesConstants {
 	public static final String RENEW_ACCOUNT_ROLE_CONTENT_FOR_FITBIR_PROPERTY = "renewRole.contentForFitbir";
 	public static final String RENEW_PASSWORD_URL_PROPERTY = "renewPassword.url";
 	public static final String RENEW_PASSWORD_MESSAGE_BODY_PROPERTY = "renewPassword.body";
-
+	
 	public static final String QUERY_ROOT = "query";
 	public static final String REPORTING = "reporting";
 	
@@ -38,6 +49,10 @@ public class ModulesConstants {
 	public static final String NTRR = "NTRR";
 	public static final String CISTAR = "CISTAR";
 
+	public static final String DEFAULT_JVM_ARG = "768";
+	
+	public static final Date DEFAULT_SUMMARY_DATE = new Date();
+	public final static String UNIVERSAL_FORMAT_DATE = "yyyy-MM-dd HH:mm:ss.S";
 	// Pulls from property file stored on file system (via context.xml)
 
 	// Module Properties
@@ -53,7 +68,10 @@ public class ModulesConstants {
 	private String modulesOrgPhone;
 	@Value("#{applicationProperties['modules.dev.email']}")
 	private String modulesDevEmail;
-
+	@Value("#{applicationProperties['modules.ops.email']}")
+	private String opsEmailID;
+	
+	
 	// Describes if functionality is on or off
 	@Value("#{applicationProperties['modules.pf.enabled']}")
 	private String modulesPFEnabled;
@@ -95,6 +113,8 @@ public class ModulesConstants {
 	// Describer what URL to use for the functionality
 	@Value("#{applicationProperties['modules.public.url.server']}")
 	private String modulesPublicURL;
+	@Value("#{applicationProperties['template.public.url']}")
+	private String templatePublicURL;
 	@Value("#{applicationProperties['modules.pf.url.server']}")
 	private String modulesPFURL;
 	@Value("#{applicationProperties['modules.ddt.url.server']}")
@@ -170,6 +190,9 @@ public class ModulesConstants {
 
 	@Value("#{applicationProperties['webstart.portal.root']}")
 	private String webstartPortalRoot;
+	
+	@Value("#{applicationProperties['webstart.submissionTool.vmargs.Xmx']}")
+	private String webstart64BitJVMArgs;
 
 	@Value("#{applicationProperties['modules.style.key']}")
 	private String modulesStyleKey;
@@ -200,12 +223,32 @@ public class ModulesConstants {
 
 	@Value("#{applicationProperties['ImportService.datadrop.location']}")
 	private String importServiceDatadropLocation;
+	
+	@Value("#{applicationProperties['modules.importrestful.webservice.url']}")
+	private String importRestfulUrl;
     
 	@Value("#{applicationProperties['brics.data.processor.email.sender']}")
 	private String dataProcessorEmailSender;
 	
-	@Value("#{applicationProperties['Last-Deployed']}")
-	private String lastDeployedTimeStamp;
+	@Value("#{applicationProperties['modules.microservices.domain']}")
+	private String microserviceDomain;
+	
+	//BIOSAMPLE
+	@Value("#{applicationProperties['modules.biosample.server']}")
+	private String biosampleServer;
+
+	@Value("#{applicationProperties['modules.biosample.username']}")
+	private String biosampleUsername;
+
+	@Value("#{applicationProperties['modules.biosample.password']}")
+	private String biosamplePassword;
+	
+	@Value("#{applicationProperties['modules.biosample.fileName']}")
+	private String biosampleFilename;
+	
+	@Value("#{applicationProperties['modules.summary.newjson.date']}")
+	private String summaryNewJsonDate;
+	
 
 	// Mappings of disease types to URLS. Only entering one URL is possible
 	private Map<Long, String> modulesOrgNameMap;
@@ -232,6 +275,40 @@ public class ModulesConstants {
 	private Map<Long, String> guidInvPrefixMap;
 	private Map<Long, String> modulesStylingMap;
 	private Map<Long, String> saltedPasswordMap;
+	
+	private static SecretKeySpec SECRET_KEY;
+    private static byte[] KEY;
+    private static final String KEY_WORD = "Xp2s5v8x/A?D(G+KbPeShVmYq3t6w9z$B&E)H@McQfTjWnZr4u7x!A%D*F-JaNdR";
+    
+    public static void setKey(String propKey) {
+    	MessageDigest msgdig = null;
+    	try {
+    		KEY = propKey.getBytes("UTF-8");
+    		msgdig = MessageDigest.getInstance("SHA-1");
+    		KEY = msgdig.digest(KEY);
+    		KEY = Arrays.copyOf(KEY, 16);
+    		SECRET_KEY = new SecretKeySpec(KEY,"AES");
+    	} catch(NoSuchAlgorithmException e){
+    		e.printStackTrace();
+    	} catch(UnsupportedEncodingException e) {
+    		e.printStackTrace();
+    	}
+    }
+    
+    public static String encryptSftpProperty(String property, String keyWord) {
+    	try
+        {
+            setKey(keyWord);
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, SECRET_KEY);
+            return Base64.getEncoder().encodeToString(cipher.doFinal(property.getBytes("UTF-8")));
+        } 
+        catch (Exception e) 
+        {
+            System.out.println("Error while encrypting property: ".concat(property).concat(e.toString()));
+        }
+        return null;
+    }
 
 	public static Map<String, String> GLOBAL_XSL_PARAMETER_MAP = new HashMap<String, String>();
 
@@ -297,17 +374,46 @@ public class ModulesConstants {
 	private String guidSysUserLastname;
 	@Value("#{applicationProperties['guid.systemuser.organization']}")
 	private String guidSysUserOrg;
+
+	//Two Factor Authentication
+	@Value("#{applicationProperties['modules.twoFa.enabled']}")
+	private Boolean isTwoFaEnabled;
+	@Value("#{applicationProperties['modules.twoFa.codeExpiresInMinutes']}")
+	private Long twoFaCodeExpiresInMinutes;
+	@Value("#{applicationProperties['modulee.twoFa.applyToAdminAccount']}")
+	private Boolean twoFaApplyToAdmin;
 	
+	public Boolean getIsTwoFaEnabled() {
+		if (isTwoFaEnabled == null) {
+			return false;
+		}
+		return isTwoFaEnabled;
+	}
+	public Long getTwoFaCodeExpiresInMinutes() {
+		if (twoFaCodeExpiresInMinutes == null || twoFaCodeExpiresInMinutes<=0L) {
+			return 0L;
+		} else {
+			return	twoFaCodeExpiresInMinutes;
+		}
+	}	
+	public Boolean getTwoFaApplyToAdmin() {
+		if (twoFaApplyToAdmin == null) {
+			return false;
+		}
+		return twoFaApplyToAdmin;
+	}
 	
 	//Account Reporting Module
 	@Value("#{applicationProperties['modules.accountReporting.rootFilePath']}")
 	private String accountReportingRootFilePath;
 	
-	// PF protocol closingout
-	@Value("#{applicationProperties['proforms.protocol.closingout.enable']}")
-	private String pfProtocolClosingoutEnable;
+	@Value("#{applicationProperties['webstart.submissionTool.extraValidation']}")
+	private String performExtraValidationForSubmissionTool;
+	
+	@Value("#{applicationProperties['modules.with.pii']}")
+	private String modulesWithPII;
 
-
+	
 	public Boolean getEraseUnsusedAccounts() {
 		if (eraseUnsusedAccounts == null) {
 			return false;
@@ -518,9 +624,19 @@ public class ModulesConstants {
 	public String getModulesDevEmail() {
 
 		if (modulesDevEmail == null || modulesDevEmail.isEmpty()) {
-			return "REPLACED@mail.nih.gov";
+			return "FITBIR-DEV@mail.nih.gov";
 		} else {
 			return modulesDevEmail;
+		}
+	}
+	
+
+
+	public String getOpsEmailID() {
+		if (opsEmailID == null || opsEmailID.isEmpty()) {
+			return "CISTAR-ops@mail.nih.gov";
+		}else {
+			return opsEmailID;
 		}
 	}
 
@@ -1457,6 +1573,10 @@ public class ModulesConstants {
 	public void setModulesGuidRenewUrl(String modulesGuidRenewUrl) {
 		this.modulesGuidRenewUrl = modulesGuidRenewUrl;
 	}
+	
+	protected static SecretKeySpec getKey() {
+    	return SECRET_KEY;
+    }
 
 	public String getWebstartSftpBasedir() {
 
@@ -1520,6 +1640,60 @@ public class ModulesConstants {
 			throw new MissingPropertyException("Modules property webstart.portal.root missing");
 		}
 	}
+	
+	public String getHashedSftpPassword() {
+		
+		if(!StringUtils.isBlank(this.webstartSftpPasswd)) {
+			return encryptSftpProperty(this.webstartSftpPasswd, KEY_WORD);
+		} else {
+			throw new MissingPropertyException("Modules property webstart.sftp.passwd missing");
+		}
+	}
+	
+	public String getHashedSftpBasedir() {
+
+		if(!StringUtils.isBlank(this.webstartSftpBasedir)) {
+			return encryptSftpProperty(this.webstartSftpBasedir, KEY_WORD);
+		} else {
+			throw new MissingPropertyException("Modules property webstart.sftp.basedir missing");
+		}
+	}
+
+	public String getHashedSftpName() {
+
+		if(!StringUtils.isBlank(this.webstartSftpName)) {
+			return encryptSftpProperty(this.webstartSftpName, KEY_WORD);
+		} else {
+			throw new MissingPropertyException("Modules property webstart.sftp.name missing");
+		}
+	}
+
+	public String getHashedSftpPort() {
+
+		if(!StringUtils.isBlank(this.webstartSftpPort)) {
+			return encryptSftpProperty(this.webstartSftpPort, KEY_WORD);
+		} else {
+			throw new MissingPropertyException("Modules property webstart.sftp.port missing");
+		}
+	}
+
+	public String getHashedSftpUrl() {
+
+		if(!StringUtils.isBlank(this.webstartSftpUrl)) {
+			return encryptSftpProperty(this.webstartSftpUrl, KEY_WORD);
+		} else {
+			throw new MissingPropertyException("Modules property webstart.sftp.url missing");
+		}
+	}
+
+	public String getHashedSftpUser() {
+
+		if(!StringUtils.isBlank(this.webstartSftpUser)) {
+			return encryptSftpProperty(this.webstartSftpUser, KEY_WORD);
+		} else {
+			throw new MissingPropertyException("Modules property webstart.sftp.user missing");
+		}
+	}
 
 	public String getMirthConnectChannelUrl() {
 
@@ -1536,6 +1710,14 @@ public class ModulesConstants {
 			return this.importServiceDatadropLocation;
 		} else {
 			throw new MissingPropertyException("Modules property ImportService.datadrop.location missing");
+		}
+	}
+	
+	public String getImportRestfulUrl() {
+		if(!StringUtils.isBlank(this.importRestfulUrl)) {
+			return this.importRestfulUrl;
+		} else {
+			throw new MissingPropertyException("Modules property modules.importrestful.webservice.url missing");
 		}
 	}
 	
@@ -1629,20 +1811,85 @@ public class ModulesConstants {
 		return envFlag;
 	}
 
-	public String getLastDeployedTimeStamp() {
-		return lastDeployedTimeStamp;
-	}
-
-	public void setLastDeployedTimeStamp(String lastDeployedTimeStamp) {
-		this.lastDeployedTimeStamp = lastDeployedTimeStamp;
+	public String getPerformExtraValidationForSubmissionTool() {
+		return performExtraValidationForSubmissionTool;
 	}
 	
-	public Boolean getPfProtocolClosingoutEnable() {
-		if (pfProtocolClosingoutEnable == null || pfProtocolClosingoutEnable.isEmpty()) {
-			return Boolean.FALSE;
-		} else {
-			return Boolean.valueOf(pfProtocolClosingoutEnable);
-		}
+	public String get64BitJVMArgs() {
+		if (webstart64BitJVMArgs == null || webstart64BitJVMArgs.isEmpty()) {
+			return DEFAULT_JVM_ARG;
+		} 
+		return webstart64BitJVMArgs;
+	}
+	
+	public void set64BitJVMArgs(String modulesJVMArgs) {
+		this.webstart64BitJVMArgs = modulesJVMArgs;
 	}
 
+	public String getMicroserviceDomain() {
+		return microserviceDomain;
+	}
+
+	public void setMicroserviceDomain(String microserviceDomain) {
+		this.microserviceDomain = microserviceDomain;
+	}
+
+	public String getBiosampleServer() {
+		return biosampleServer;
+	}
+
+	public void setBiosampleServer(String biosampleServer) {
+		this.biosampleServer = biosampleServer;
+	}
+
+	public String getBiosampleUsername() {
+		return biosampleUsername;
+	}
+
+	public void setBiosampleUsername(String biosampleUsername) {
+		this.biosampleUsername = biosampleUsername;
+	}
+
+	public String getBiosamplePassword() {
+		return biosamplePassword;
+	}
+
+	public void setBiosamplePassword(String biosamplePassword) {
+		this.biosamplePassword = biosamplePassword;
+	}
+	
+	public String getBiosampleFilename() {
+		return biosampleFilename;
+	}
+
+	public void setBiosampleFilename(String biosampleFilename) {
+		this.biosampleFilename = biosampleFilename;
+	}
+
+	public String getSummaryNewJsonDate() {
+		if (summaryNewJsonDate == null || summaryNewJsonDate.isEmpty()) {
+			DateFormat dateFormat = new SimpleDateFormat(UNIVERSAL_FORMAT_DATE);  
+			String strDate = dateFormat.format(DEFAULT_SUMMARY_DATE);  
+			return strDate;
+		}
+		return summaryNewJsonDate;
+	}
+
+	public void setSummaryNewJsonDate(String summaryNewJsonDate) {
+		this.summaryNewJsonDate = summaryNewJsonDate;
+	}
+
+	
+	public String getModulesWithPII() {
+		return this.modulesWithPII;
+	}
+	
+	public String getTemplatePublicURL() {
+		return templatePublicURL;
+	}
+
+	public void setTemplatePublicURL(String templatePublicURL) {
+		this.templatePublicURL = templatePublicURL;
+	}
+	
 }

@@ -32,8 +32,6 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.struts2.result.StreamResult;
-import org.joda.time.Days;
-import org.joda.time.LocalDate;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,8 +49,6 @@ import gov.nih.tbi.account.model.AccountReportType;
 import gov.nih.tbi.account.model.AccountSignatureForm;
 import gov.nih.tbi.account.model.AccountType;
 import gov.nih.tbi.account.model.AccountUserDetails;
-import gov.nih.tbi.account.model.PermissionAuthority;
-import gov.nih.tbi.account.model.SessionAccountEdit;
 import gov.nih.tbi.account.model.SessionAccountMessageTemplates;
 import gov.nih.tbi.account.model.SignatureType;
 import gov.nih.tbi.account.model.hibernate.Account;
@@ -66,6 +62,7 @@ import gov.nih.tbi.account.model.hibernate.ElectronicSignature;
 import gov.nih.tbi.account.model.hibernate.PermissionGroup;
 import gov.nih.tbi.account.model.hibernate.PermissionGroupMember;
 import gov.nih.tbi.account.service.hibernate.AccountReportingManager;
+import gov.nih.tbi.account.service.util.AccountServiceUtil;
 import gov.nih.tbi.account.util.ESignDocGenerator;
 import gov.nih.tbi.account.ws.exception.UserAccessDeniedException;
 import gov.nih.tbi.commons.model.AccountStatus;
@@ -83,8 +80,6 @@ import gov.nih.tbi.commons.service.ServiceConstants;
 import gov.nih.tbi.commons.service.UserPermissionException;
 import gov.nih.tbi.commons.util.PaginationData;
 import gov.nih.tbi.guid.exception.InvalidJwtException;
-import gov.nih.tbi.guid.model.GuidJwt;
-import gov.nih.tbi.guid.ws.exception.AuthenticationException;
 import gov.nih.tbi.idt.ws.IdtInterface;
 import gov.nih.tbi.idt.ws.InvalidColumnException;
 import gov.nih.tbi.idt.ws.Struts2IdtInterface;
@@ -751,13 +746,19 @@ public class AccountAction extends BaseAccountAction {
 		}
 
 		String automatedMessageBody = automatedMessageBuffer.toString();
-
+		
+		// This is for eyegene with orgName as "NEI_BRICS", we don't want the OrgName to contain underscore in the email. 
+		String orgName = modulesConstants.getModulesOrgName();
+		if(orgName.contains("_")) {
+			orgName = orgName.replaceAll("_", " ");
+		}
+		
 		String subjectText =
 				this.getText(PortalConstants.MAIL_RESOURCE_TEMP_REJECT + PortalConstants.MAIL_RESOURCE_SUBJECT,
 						Arrays.asList(modulesConstants.getModulesOrgName(getDiseaseId())));
 
 		String bodyText = this.getText(PortalConstants.MAIL_RESOURCE_TEMP_REJECT + PortalConstants.MAIL_RESOURCE_BODY,
-				Arrays.asList(modulesConstants.getModulesOrgName(), rolesRequestedBody, automatedMessageBody,
+				Arrays.asList(orgName, rolesRequestedBody, automatedMessageBody,
 						modulesConstants.getModulesAccountURL(), modulesConstants.getModulesOrgEmail()));
 
 		try {
@@ -1048,7 +1049,7 @@ public class AccountAction extends BaseAccountAction {
 
 		getSessionAccountEdit().setAccount(currentAccount);
 		saveToFtp();
-		return PortalConstants.ACTION_INPUT;
+		return PortalConstants.ACTION_DUC;
 	}
 
 	/**
@@ -1142,27 +1143,8 @@ public class AccountAction extends BaseAccountAction {
 		}
 		
 		getSessionAccountEdit().setAccount(currentAccount);
-		
-		renewAccountPrivileges();
 	}
 	
-	public void renewAccountPrivileges(){
-		
-		Set<AccountRole> expiringSoonRoles = getCurrentAccount().getExpiringSoonRoles();
-		
-			for(AccountRole accountRole:expiringSoonRoles){
-				
-				Date expirationDate = accountRole.getExpirationDate();
-				Date currentDate = new Date();
-				
-				int daysInterval = Days.daysBetween(new LocalDate(currentDate.getTime()),new LocalDate(expirationDate.getTime())).getDays();
-				
-				if(expirationDate==null || daysInterval>ServiceConstants.EXPIRATION_SOON_DAYS){
-					accountRole.setRoleStatus(RoleStatus.ACTIVE);
-				}
-			}
-	}
-
 	public String uploadDocumentation() {
 
 		return PortalConstants.ACTION_SUCCESS;
@@ -1179,30 +1161,56 @@ public class AccountAction extends BaseAccountAction {
 			return new StreamResult(new ByteArrayInputStream((PortalConstants.ACTION_LANDING).getBytes()));
 		}
 
-		String currentFileName = this.uploadFileName;
-		String currentFileType = this.uploadDescription;
-		File currentFile = this.upload;
-
 		if (logger.isDebugEnabled()) {
-			logger.debug("Uploading file: [ " + currentFileName + ", " + currentFileType + " ]");
+			logger.debug("Uploading file: [ " + uploadFileName + ", " + uploadDescription + " ]");
 		}
 
 		try {
-			repositoryManager.uploadFile(currentAccount.getUser().getId(), currentFile, currentFileName,
-					currentFileType, ServiceConstants.FILE_TYPE_ACCOUNT, new Date());
+			repositoryManager.uploadFile(currentAccount.getUser().getId(), upload, uploadFileName,
+					uploadDescription, ServiceConstants.FILE_TYPE_ACCOUNT, new Date());
 		} catch (IOException | JSchException e) {
 			e.printStackTrace();
 		}
 
 		AccountHistory accountHistory = new AccountHistory(getCurrentAccount(), AccountActionType.ADD_DOCUMENTATION,
-				currentFileName, "", new Date(), getUser());
+				uploadFileName, "", new Date(), getUser());
 		currentAccount.addAccountHistory(accountHistory);
 		currentAccount.setLastUpdatedDate(new Date());
 		
 		currentAccount = accountManager.saveAccount(currentAccount);
 		getSessionAccountEdit().setAccount(currentAccount);
+		
+		// Send the notification email to OPS when user uploads a new documentation (on View My Profiles page)
+		if (currentAccount.getUserId() != null && currentAccount.getUserId().equals(getUser().getId())) {
+			this.notifyDocUpload();
+		}
 
 		return new StreamResult(new ByteArrayInputStream((SUCCESS).getBytes()));
+	}
+
+
+	private void notifyDocUpload() {
+
+		logger.debug("Send notification email to admin on user uploading new documentation.");
+		currentAccount = getCurrentAccount();
+		User user = getUser();
+
+		String subject = this.getText(PortalConstants.MAIL_RESOURCE_DOC_UPLOAD + PortalConstants.MAIL_RESOURCE_SUBJECT,
+				Arrays.asList(user.getLastName(), user.getFirstName(), modulesConstants.getModulesOrgName()));
+
+		String userNameLink = modulesConstants.getModulesAccountURL() + PortalConstants.VIEW_USER_DETAILS_URL
+				+ getCurrentAccount().getId();
+
+		String bodyText = this.getText(PortalConstants.MAIL_RESOURCE_DOC_UPLOAD + PortalConstants.MAIL_RESOURCE_BODY,
+				Arrays.asList(user.getLastName(), user.getFirstName(), userNameLink, getCurrentAccount().getUserName(),
+						modulesConstants.getModulesOrgName(), uploadFileName, uploadDescription,
+						BRICSTimeDateUtil.formatDate(new Date())));
+
+		try {
+			accountManager.sendMail(subject, bodyText, user.getEmail(), modulesConstants.getModulesOrgEmail());
+		} catch (MessagingException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -1373,12 +1381,36 @@ public class AccountAction extends BaseAccountAction {
 							modulesConstants.getModulesOrgEmail(getDiseaseId()), // {2}
 							modulesConstants.getModulesOrgName(getDiseaseId()))); // {3}));
 
+			StringBuilder bodyTextBuilder = new StringBuilder();
+			bodyTextBuilder.append(PortalConstants.MAIL_ADMIN_RESOURCE_REQUESTED);
+			bodyTextBuilder.append(PortalConstants.MAIL_RESOURCE_SUBJECT);
+			
+			
+			String adminMailBodyStr =bodyTextBuilder.toString();
+			String orgName = modulesConstants.getModulesOrgName(getDiseaseId());
+			
+			String adminMailSubject = this.getText(adminMailBodyStr,
+					Arrays.asList(orgName));
+
+			String adminReviewLink =modulesConstants.getModulesAccountURL()+"portal/accountReviewer/accountReportsAction!requestList.action";
+		
+			String adminMailbodyText = this.getText(PortalConstants.MAIL_ADMIN_RESOURCE_REQUESTED + PortalConstants.MAIL_RESOURCE_BODY,
+					Arrays.asList(orgName, // {0}
+							currentAccount.getUserName(),//{1}
+							currentAccount.getUser().getFullName(),//{2}
+							adminReviewLink //{3}
+						));
+				
+			String adminEmailId = modulesConstants.getOpsEmailID();
+			
 			try {
 				sendAccountEmail(currentAccount, PortalConstants.MAIL_RESOURCE_REQUESTED, bodyText, false);
+				
+				sendAdminEmail(adminEmailId, adminMailSubject, adminMailbodyText);
+	
 			} catch (MessagingException e) {
 				e.printStackTrace();
 			}
-
 		} else {
 			Account originalAccount = getSessionAccountEdit().getOriginalAccount();
 			recordFieldEditHistory(originalAccount, currentAccount);
@@ -1664,34 +1696,41 @@ public class AccountAction extends BaseAccountAction {
 	 * If account is active, check for any new requests, if so, set account to 'pending.' Does nothing otherwise
 	 */
 	public void checkForRequest() {
+		boolean newRequest = false;
+
 		if (currentAccount.getAccountStatus() == AccountStatus.ACTIVE) {
-			boolean newRequest = false;
 			// Check for any requested roles, and set the account status to pending if any are found.
 			for (AccountRole role : currentAccount.getAccountRoleList()) {
 				if (role.getRoleStatus() == RoleStatus.PENDING) {
 					newRequest = true;
-					currentAccount.setAccountStatus(AccountStatus.CHANGE_REQUESTED);
 					break;
 				}
 			}
-
-			// If the account is still active, check for any requested permission groups, and set the account to pending
-			// if any are found.
-			if (currentAccount.getAccountStatus() == AccountStatus.ACTIVE) {
-				for (PermissionGroupMember member : currentAccount.getPermissionGroupMemberList()) {
-					if (member.getPermissionGroupStatus() == PermissionGroupStatus.PENDING) {
-						newRequest = true;
-						currentAccount.setAccountStatus(AccountStatus.CHANGE_REQUESTED);
-						break;
-					}
+		} else if (currentAccount.getAccountStatus() == AccountStatus.RENEWAL_REQUESTED) {
+			// If the account is renewal requested, we can use expiration date to distinguish newly requested role from
+			// the pending role that was in expired/expiring soon status.
+			for (AccountRole role : currentAccount.getAccountRoleList()) {
+				if (role.getRoleStatus() == RoleStatus.PENDING && role.getExpirationDate() == null) {
+					newRequest = true;
+					break;
 				}
 			}
+		}
 
-
-			// if there is a new request applied, then set a new request submit date
-			if (newRequest) {
-				currentAccount.setRequestSubmitDate(new Date());
+		// Check permission group changes if no new request found
+		if (!newRequest && currentAccount.getAccountStatus() == AccountStatus.ACTIVE) {
+			for (PermissionGroupMember member : currentAccount.getPermissionGroupMemberList()) {
+				if (member.getPermissionGroupStatus() == PermissionGroupStatus.PENDING) {
+					newRequest = true;
+					break;
+				}
 			}
+		}
+
+		// if there is a new request applied, then set a new request submit date
+		if (newRequest) {
+			currentAccount.setAccountStatus(AccountStatus.CHANGE_REQUESTED);
+			currentAccount.setRequestSubmitDate(new Date());
 		}
 	}
 
@@ -2952,12 +2991,9 @@ public class AccountAction extends BaseAccountAction {
 	}
 
 	public void cancelPrivilegeRequest() {
-		// get current account
+		
 		currentAccount = getCurrentAccount();
-
-		// get requested privilege
 		Long paramPrivilegeId = Long.valueOf(getRequest().getParameter("privilegeId"));
-		// get requested privilege/role
 		Set<AccountRole> accountRoleSet = currentAccount.getAccountRoleList();
 
 		// remove cancelled privilege, should this be set to a new status
@@ -2966,13 +3002,23 @@ public class AccountAction extends BaseAccountAction {
 			AccountRole role = (AccountRole) iter.next();
 			Long roleId = role.getId();
 			if (roleId.equals(paramPrivilegeId)) {
+				Date expirationDate = role.getExpirationDate();
+				
+				// If it is to cancel a privilege renewal request, set its
+				// status back to the status calculated from expiration date
+				if (currentAccount.getAccountStatus() == AccountStatus.RENEWAL_REQUESTED && expirationDate != null) {
+					role.setRoleStatus(AccountServiceUtil.getRoleStatusFromExpDate(expirationDate));
+				} else {
+					iter.remove();
+				}
+
 				recordPrivilegeWithdrawal(role);
-				iter.remove();
 				break;
 			}
 		}
 
-		if (!areThereAnyRequests() && AccountStatus.CHANGE_REQUESTED == currentAccount.getAccountStatus()) {
+		if (!areThereAnyRequests() && (AccountStatus.CHANGE_REQUESTED == currentAccount.getAccountStatus()
+				|| AccountStatus.RENEWAL_REQUESTED == currentAccount.getAccountStatus())) {
 			currentAccount.setAccountStatus(AccountStatus.ACTIVE);
 		}
 

@@ -9,6 +9,7 @@ import gov.nih.nichd.ctdb.common.BaseAction;
 import gov.nih.nichd.ctdb.common.CtdbConstants;
 import gov.nih.nichd.ctdb.common.rs;
 import gov.nih.nichd.ctdb.protocol.domain.Protocol;
+import gov.nih.nichd.ctdb.security.common.SecurityConstants;
 import gov.nih.nichd.ctdb.security.domain.User;
 import gov.nih.nichd.ctdb.util.common.SysPropUtil;
 
@@ -77,10 +78,16 @@ public class LeftNavController extends BaseAction{
 	public static final int LEFTNAV_SUBJECT_MATRIX_DASHBORAD = 47;
 	public static final int LEFTNAV_QUERY_GUIDS_WITHOUT_COLLECTIONS = 48;
 	public static final int LEFTNAV_ADMIN_FORM_SUBMISSION = 49;
-	public static final int LEFTNAV_PSREFORMS_CONFIGURE = 50;
+	public static final int LEFTNAV_EFORMS_CONFIGURE = 50;
 	public static final int LEFTNAV_SCHEDULE = 51;
 	public static final int LEFTNAV_STUDY_ORDER_INTERVAL = 52;
 	public static final int LEFTNAV_STUDY_CLOSE_OUT = 53;
+	public static final int LEFTNAV_ADVERSE_EVENT = 54;
+	public static final int LEFTNAV_VIEW_AUDITOR_COMMENTS = 55;
+	public static final int LEFTNAV_ADMIN_FORM_SEARCH = 56;
+	public static final int LEFTNAV_QUERY_DETAILED_STUDY = 57;
+	public static final int LEFTNAV_STUDY_RANDOMIZATION = 58;
+
 	
 	public LeftNavController(HttpServletRequest request, User user) throws Exception {
 		links = new ArrayList<SubNavLink>();
@@ -323,22 +330,34 @@ public class LeftNavController extends BaseAction{
 							new String[] {"ordervisittypes"}));
 		}
 
-		addLink(headerLink.getLinkText(),
-				new SubNavLink(rs.getValue("protocol.psr.eforms.configure.title.display", l),
-						"/protocol/configurePSReFormsHome.action", LeftNavController.LEFTNAV_PSREFORMS_CONFIGURE,
-						new String[] {"viewPSR"}));
+		
+		
+		if (user != null && user.hasAnyPrivilege(SecurityConstants.CONFIGURE_EFORMS_PRIV_ARR)) {
+			addLink(headerLink.getLinkText(), new SubNavLink(rs.getValue("protocol.eform.configure.title.display", l),
+					"/protocol/configurePSReFormsHome.action", LeftNavController.LEFTNAV_EFORMS_CONFIGURE));
+		}
 		addLink(headerLink.getLinkText(),
 				new SubNavLink(rs.getValue("ebinder.title.display", l), "/protocol/studyEbinder.action",
 						LeftNavController.LEFTNAV_STUDY_EBINDER, new String[] {"viewstudyebinder"}));
 		addLink(headerLink.getLinkText(),
 				new SubNavLink(rs.getValue("protocol.study.closeout", l), "/protocol/protocolCloseout.action",
 						LeftNavController.LEFTNAV_STUDY_CLOSE_OUT, new String[] {"protocolcloseout"}));
-
+		
+		if(allowPii.equals("0")) {
+			addLink(headerLink.getLinkText(),
+				new SubNavLink(rs.getValue("protocol.study.randomization", l), "/protocol/protoRandomization.action",
+						LeftNavController.LEFTNAV_STUDY_RANDOMIZATION, 
+						new String[] {SecurityConstants.VIEW_PROTOCOL_RANDOMIZATION}));
+		}
 		headerLink = new SubNavLink(rs.getValue("nav.ReportAndQuery", l), "response/studyReport.action",
 				LeftNavController.LEFTNAV_QUERY_QUERY);
 		addLink(null, headerLink);
 		addLink(headerLink.getLinkText(), new SubNavLink(rs.getValue("report.studyReport", l),
-				"response/studyReport.action", LeftNavController.LEFTNAV_QUERY_STUDY));
+				"response/studyReport.action?report=protocol", LeftNavController.LEFTNAV_QUERY_STUDY));
+		if(!isPDBP) {
+			addLink(headerLink.getLinkText(), new SubNavLink(rs.getValue("report.detailedStudyReport", l),
+					"response/detailedStudyReport.action?report=detailedProtocol", LeftNavController.LEFTNAV_QUERY_DETAILED_STUDY));
+		}
 
 		// Apply these two links only on the PDBP version of the site.
 		if (isPDBP) {
@@ -359,12 +378,21 @@ public class LeftNavController extends BaseAction{
 		addLink(headerLink.getLinkText(), new SubNavLink(rs.getValue("report.form.status.id.guid.mrn", l),
 				"response/subjectMatrixDashboard.action", LeftNavController.LEFTNAV_SUBJECT_MATRIX_DASHBORAD));
 
-		String[] schedullerPrivArr = {"scheduller", "pischeduller"};
-		if (enableScheduleReport && user != null && user.hasAnyPrivilege(schedullerPrivArr)) {
+		if (enableScheduleReport && user != null && user.hasAnyPrivilege(SecurityConstants.SCHEDULER_PRIV_ARR)) {
 			addLink(headerLink.getLinkText(), new SubNavLink(rs.getValue("report.schedule", l),
 					"response/scheduleHome.action", LeftNavController.LEFTNAV_SCHEDULE));
 		}
+		
+		if (enableScheduleReport ) {
+		addLink(headerLink.getLinkText(), new SubNavLink(rs.getValue("report.ae.adverseEvent", l),
+				"response/adverseEvent.action", LeftNavController.LEFTNAV_ADVERSE_EVENT));
+		}
 
+		if (user != null && user.hasAnyPrivilege(SecurityConstants.AUDITOR_COMMENTS_PRIV_ARR)) {
+			addLink(headerLink.getLinkText(), new SubNavLink(rs.getValue("report.viewAuditorComments", l),
+					"response/viewAuditComments.action", LeftNavController.LEFTNAV_VIEW_AUDITOR_COMMENTS));
+		}
+		
 		headerLink = new SubNavLink(rs.getValue("nav.SiteAdmin", l), "admin/userHome.action",
 				LeftNavController.LEFTNAV_ADMIN_HOME, new String[] {"sysadmin"});
 		addLink(null, headerLink);
@@ -377,6 +405,9 @@ public class LeftNavController extends BaseAction{
 		addLink(headerLink.getLinkText(),
 				new SubNavLink(rs.getValue("admin.form.submit", l), "admin/formSubmissionAdmin.action",
 						LeftNavController.LEFTNAV_ADMIN_FORM_SUBMISSION, new String[] {"sysadmin"}));
+		addLink(headerLink.getLinkText(),
+				new SubNavLink(rs.getValue("admin.form.search", l), "admin/formSearchAdmin.action",
+						LeftNavController.LEFTNAV_ADMIN_FORM_SEARCH, new String[] {"sysadmin"}));
 	}
 	
 	/**

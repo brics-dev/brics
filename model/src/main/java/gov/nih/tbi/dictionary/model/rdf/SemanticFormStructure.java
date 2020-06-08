@@ -1,12 +1,5 @@
 package gov.nih.tbi.dictionary.model.rdf;
 
-import gov.nih.tbi.commons.model.BRICSTimeDateUtil;
-import gov.nih.tbi.commons.model.StatusType;
-import gov.nih.tbi.dictionary.model.FormStructureStandardization;
-import gov.nih.tbi.dictionary.model.InstanceRequiredFor;
-import gov.nih.tbi.dictionary.model.hibernate.Disease;
-import gov.nih.tbi.repository.model.SubmissionType;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -17,6 +10,14 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.google.gson.annotations.Expose;
+
+import gov.nih.tbi.commons.model.BRICSTimeDateUtil;
+import gov.nih.tbi.commons.model.StatusType;
+import gov.nih.tbi.dictionary.model.FormStructureStandardization;
+import gov.nih.tbi.dictionary.model.InstanceRequiredFor;
+import gov.nih.tbi.dictionary.model.hibernate.Disease;
+import gov.nih.tbi.dictionary.model.hibernate.FormLabel;
+import gov.nih.tbi.repository.model.SubmissionType;
 
 @XmlRootElement(name = "SemanticFormStructure")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -35,6 +36,7 @@ public class SemanticFormStructure implements Serializable {
 	private Date dateCreated;
 	private Long modifiedUserId;
 	private List<Disease> diseases = new ArrayList<Disease>();
+	private List<FormLabel> formLabels = new ArrayList<FormLabel>();
 	private String organization;
 	private SubmissionType submissionType;
 	private StatusType status;
@@ -93,6 +95,14 @@ public class SemanticFormStructure implements Serializable {
 	public void setDiseases(List<Disease> diseases) {
 
 		this.diseases = diseases;
+	}
+
+	public List<FormLabel> getFormLabels() {
+		return formLabels;
+	}
+
+	public void setFormLabels(List<FormLabel> formLabels) {
+		this.formLabels = formLabels;
 	}
 
 	/**

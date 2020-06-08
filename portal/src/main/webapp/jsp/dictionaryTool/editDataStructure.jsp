@@ -166,6 +166,31 @@
 							name="dataStructureForm.standardization" value="dataStructureForm.standardization.name" headerKey="" headerValue="- Select One -" />
 						<s:fielderror fieldName="dataStructureForm.standardization" />
 					</div>
+					
+					<div class="form-field">
+						<label for="dataStructureForm.formLabelList" class="required">Label:</label>
+						<select name="dataStructureForm.formLabelList" id="dataStructureForm.formLabel" multiple="multiple">
+							<option value="">- Select One or More -</option>
+							<c:forEach var="formLabel" items="${formLabelOptions}">
+								<s:set var="selected" value="false" />
+								<c:forEach var="selectedLabel" items="${dataStructureForm.formLabelList}">
+									<c:if test="${formLabel.label == selectedLabel.label}">
+										<s:set var="selected" value="true" />
+									</c:if>
+								</c:forEach>
+								<c:choose>
+									<c:when test="${selected == true}">
+										<option selected="selected" value="${formLabel.id}">${formLabel.label}</option>
+									</c:when>
+									<c:otherwise>
+										<option value="${formLabel.id}">${formLabel.label}</option>
+									</c:otherwise>
+								</c:choose>
+							</c:forEach>
+						</select>
+						<div class="special-instruction">Hold "Ctrl" to select multiple values</div>
+					</div>
+					
 										<!--  This is for the required field -->
 					<s:hidden id="dataStructureForm.currentOrg" name="dataStructureForm.currentOrg" value="%{getOrgName()}" escapeHtml="true" escapeJavaScript="true" />
 					

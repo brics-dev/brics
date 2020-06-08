@@ -73,8 +73,6 @@ QTDT.PagerView = BaseView.extend({
 	},
 
 	goToPage: function(e) {
-		EventBus.trigger("DataTableView:removeQueryListener");
-
 		var page = $(e.target).attr("data-page") ? $(e.target).attr("data-page") : 1;
 		var start = offset = (page - 1) * (this.model && this.model.get("perPage") || 10);
 		perPage = this.model.get("perPage");// / this is how many rowse per page

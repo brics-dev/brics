@@ -1,5 +1,31 @@
 package gov.nih.tbi.dictionary.portal;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import javax.mail.MessagingException;
+
+import org.apache.commons.httpclient.HttpException;
+import org.apache.log4j.Logger;
+import org.apache.struts2.result.StreamResult;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
+
 import gov.nih.tbi.ModelConstants;
 import gov.nih.tbi.PortalConstants;
 import gov.nih.tbi.account.model.hibernate.Account;
@@ -31,10 +57,12 @@ import gov.nih.tbi.dictionary.model.hibernate.DictionaryEventLog;
 import gov.nih.tbi.dictionary.model.hibernate.DictionarySupportingDocumentation;
 import gov.nih.tbi.dictionary.model.hibernate.Disease;
 import gov.nih.tbi.dictionary.model.hibernate.DiseaseStructure;
+import gov.nih.tbi.dictionary.model.hibernate.FormLabel;
 import gov.nih.tbi.dictionary.model.hibernate.FormStructure;
 import gov.nih.tbi.dictionary.model.hibernate.MapElement;
 import gov.nih.tbi.dictionary.model.hibernate.RepeatableGroup;
 import gov.nih.tbi.dictionary.model.hibernate.StructuralDataElement;
+import gov.nih.tbi.dictionary.model.hibernate.StructuralFormStructure;
 import gov.nih.tbi.dictionary.model.hibernate.Subgroup;
 import gov.nih.tbi.dictionary.model.hibernate.eform.BasicEform;
 import gov.nih.tbi.dictionary.service.rulesengine.RulesEngineUtils;
@@ -45,33 +73,10 @@ import gov.nih.tbi.idt.ws.Struts2IdtInterface;
 import gov.nih.tbi.portal.PortalUtils;
 import gov.nih.tbi.repository.model.SubmissionType;
 import gov.nih.tbi.repository.model.SupportingDocumentationInterface;
+import gov.nih.tbi.repository.ws.RestRepositoryProvider;
 import gov.nih.tbi.taglib.datatableDecorators.DataElementListIdtDecorator;
 import gov.nih.tbi.taglib.datatableDecorators.DictionaryEventLogListIdtDecorator;
 import gov.nih.tbi.taglib.datatableDecorators.SupportDocIdtListDecorator;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import javax.mail.MessagingException;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.log4j.Logger;
-import org.apache.struts2.ServletActionContext;
-import org.apache.struts2.result.StreamResult;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.SetMultimap;
 
 public class DataStructureAction extends BaseDictionaryAction {
 	private static final long serialVersionUID = -3437401823167431396L;
@@ -121,7 +126,7 @@ public class DataStructureAction extends BaseDictionaryAction {
 	private SeverityLevel formStructureChangeSeverity;
 
 	// this should be true if being loaded from query tool
-	private Boolean queryArea;
+	private Boolean queryArea = Boolean.FALSE;
 
 
 	// FormStructure status change
@@ -145,7 +150,8 @@ public class DataStructureAction extends BaseDictionaryAction {
 
 	/******************************************************************************************************/
 	// BaseDatastructureAction functionalities
-	public PermissionType getSessionFormStructurePermission() throws UnsupportedEncodingException, UserAccessDeniedException {
+	public PermissionType getSessionFormStructurePermission()
+			throws UnsupportedEncodingException, UserAccessDeniedException {
 		if (sessionDataStructure.getSessionDataStructureUserPermissionType() != null) {
 			return sessionDataStructure.getSessionDataStructureUserPermissionType();
 		} else {
@@ -161,7 +167,7 @@ public class DataStructureAction extends BaseDictionaryAction {
 		}
 	}
 
-	public Boolean getIsDataStructureAdmin() throws UserAccessDeniedException{
+	public Boolean getIsDataStructureAdmin() throws UserAccessDeniedException {
 
 		try {
 			return (getSessionFormStructurePermission() != null
@@ -173,7 +179,7 @@ public class DataStructureAction extends BaseDictionaryAction {
 
 	}
 
-	public boolean getCanEdit() throws UserAccessDeniedException{
+	public boolean getCanEdit() throws UserAccessDeniedException {
 
 		// If the form is published (or archived), we are no longer using access
 		// but just going with if the user is a
@@ -192,7 +198,7 @@ public class DataStructureAction extends BaseDictionaryAction {
 		}
 	}
 
-	public boolean getCanRead() throws UserAccessDeniedException{
+	public boolean getCanRead() throws UserAccessDeniedException {
 		try {
 			return (getSessionFormStructurePermission() != null
 					&& PermissionType.compare(getSessionFormStructurePermission(), PermissionType.READ) >= 0);
@@ -202,7 +208,7 @@ public class DataStructureAction extends BaseDictionaryAction {
 		}
 	}
 
-	public boolean getCanAdmin() throws UserAccessDeniedException{
+	public boolean getCanAdmin() throws UserAccessDeniedException {
 
 		if (sessionDataStructure.getNewStructure() == false) {
 
@@ -515,13 +521,19 @@ public class DataStructureAction extends BaseDictionaryAction {
 		return staticManager.getSubgroupList();
 	}
 
+	public List<FormLabel> getFormLabelOptions() throws MalformedURLException, UnsupportedEncodingException {
+
+		return dictionaryService.getFormLabels();
+	}
+	
 	/**
 	 * @throws MalformedURLException
 	 * @throws UnsupportedEncodingException
 	 * @throws UserPermissionException
 	 ****************************************************************************************************/
 
-	public String view() throws MalformedURLException, UnsupportedEncodingException, UserPermissionException, UserAccessDeniedException {
+	public String view() throws MalformedURLException, UnsupportedEncodingException, UserPermissionException,
+			UserAccessDeniedException {
 
 		// clear FS permission session
 		sessionDataStructure.clearPermission();
@@ -545,8 +557,8 @@ public class DataStructureAction extends BaseDictionaryAction {
 	 * This method is called by the view and detailedDEReport methods it sets the session data structure according to
 	 * the parameters contained in the url
 	 */
-	public void sessionDataStructure()
-			throws MalformedURLException, UnsupportedEncodingException, UserPermissionException, UserAccessDeniedException {
+	public void sessionDataStructure() throws MalformedURLException, UnsupportedEncodingException,
+			UserPermissionException, UserAccessDeniedException {
 
 		// TODO: MV 6/10/2014 - It is no longer possible to fetch a
 		// DataStructure (or DataElement) by id so that part of
@@ -591,7 +603,7 @@ public class DataStructureAction extends BaseDictionaryAction {
 			}
 		}
 
-		if (!publicArea) {
+		if (!publicArea && !queryArea) {
 			currentDataStructure.setCreatedBy(getDisplayNameByUsername(currentDataStructure.getCreatedBy()));
 		} else {
 			currentDataStructure.setCreatedBy(null);
@@ -668,7 +680,8 @@ public class DataStructureAction extends BaseDictionaryAction {
 	 * @throws UnsupportedEncodingException
 	 * @throws UserPermissionException
 	 */
-	public String lightboxView() throws MalformedURLException, UnsupportedEncodingException, UserPermissionException, UserAccessDeniedException {
+	public String lightboxView() throws MalformedURLException, UnsupportedEncodingException, UserPermissionException,
+			UserAccessDeniedException {
 
 		String publicString = getRequest().getParameter(PortalConstants.PUBLIC_AREA);
 		if (publicString != null) {
@@ -696,8 +709,8 @@ public class DataStructureAction extends BaseDictionaryAction {
 	 * @throws MalformedURLException
 	 * @throws UnsupportedEncodingException
 	 */
-	public String changeCurrentStructure()
-			throws UserPermissionException, MalformedURLException, UnsupportedEncodingException, UserAccessDeniedException {
+	public String changeCurrentStructure() throws UserPermissionException, MalformedURLException,
+			UnsupportedEncodingException, UserAccessDeniedException {
 
 		getSessionDataStructure().setDraftCopy(true);
 
@@ -797,7 +810,8 @@ public class DataStructureAction extends BaseDictionaryAction {
 		return PortalConstants.ACTION_INPUT;
 	}
 
-	public String edit() throws UserPermissionException, MalformedURLException, UnsupportedEncodingException, UserAccessDeniedException {
+	public String edit() throws UserPermissionException, MalformedURLException, UnsupportedEncodingException,
+			UserAccessDeniedException {
 
 		// clear FS permission session
 		sessionDataStructure.clearPermission();
@@ -842,34 +856,66 @@ public class DataStructureAction extends BaseDictionaryAction {
 	 * @param newId
 	 * @throws DictionaryVersioningException
 	 */
-	private void updateFormStructureReferences(UpdateFormStructureReferencePayload payload)
+	private void updateFormStructureReferences(Long oldId, Map<String, Long> oldRepeatableGroupIdMap)
 			throws DictionaryVersioningException {
+
 		boolean success;
+
+		try {
+			// If we versioned a form structure (severity is new or minor), then we
+			// need to register it as published.
+			if (StatusType.PUBLISHED == currentDataStructure.getStatus()) {
+				addToPublicGroups(currentDataStructure);
+			}
+		} catch (IOException e) {
+			throw new DictionaryVersioningException(
+					"Error occurred when trying to call account webservice for adding form into the public account group.",
+					e);
+		} catch (UserAccessDeniedException e) {
+			throw new DictionaryVersioningException(
+					"Access denied when trying to call account webservice for adding form into public account group.",
+					e);
+		}
+
+		logger.info("Form structure has been versioned...need to update form structure references in repository...");
+
+		Map<String, Long> newRepeatableGroupIdMap = buildRepeatableGroupIdMap(currentDataStructure);
+
+		Long newId = currentDataStructure.getId();
+
+		UpdateFormStructureReferencePayload payload = new UpdateFormStructureReferencePayload();
+		payload.setOldFormStructureId(oldId);
+		payload.setNewFormStructureId(newId);
+
+		// this has to be explicitly defined as hashmap so the jaxb adapter would work
+		HashMap<Long, Long> oldNewRepeatableGroupIdMap = new HashMap<Long, Long>();
+
+		for (Entry<String, Long> oldRepeatableGroupIdEntry : oldRepeatableGroupIdMap.entrySet()) {
+			String repeatableGroupName = oldRepeatableGroupIdEntry.getKey();
+			Long oldRepeatableGroupId = oldRepeatableGroupIdEntry.getValue();
+			Long newRepeatableGroupId = newRepeatableGroupIdMap.get(repeatableGroupName);
+
+			if (newRepeatableGroupId == null) {
+				throw new DictionaryVersioningException("Error occurred while versioning a form structure");
+			}
+
+			oldNewRepeatableGroupIdMap.put(oldRepeatableGroupId, newRepeatableGroupId);
+		}
+
+		payload.setOldNewRepeatableGroupIdMap(oldNewRepeatableGroupIdMap);
 
 		try {
 			success = webServiceManager.updateFormStructureReferences(getAccount(), payload);
 		} catch (SQLException e) {
-			e.printStackTrace();
 			throw new DictionaryVersioningException(
-					"An error occurred while trying to update the form structure references for versioning.");
+					"A database error occurred while trying to update the form structure references for versioning.",
+					e);
 		}
 
 		if (!success) {
 			throw new DictionaryVersioningException(
 					"An error occurred while trying to update the form structure references for versioning.");
 		}
-		// String repositoryUrl = modulesConstants.getModulesSTURL(getDiseaseId());
-		// RestRepositoryProvider restRepositoryProvider =
-		// new RestRepositoryProvider(repositoryUrl, PortalUtils.getProxyTicket(repositoryUrl));
-		//
-		// try {
-		// // PORTAL_URL/dataset/update_form_structure_references
-		// restRepositoryProvider.updateFormStructureReferences(payload);
-		// } catch (UnsupportedEncodingException e) {
-		// e.printStackTrace();
-		// } catch (JAXBException e) {
-		// e.printStackTrace();
-		// }
 	}
 
 	private Map<String, Long> buildRepeatableGroupIdMap(FormStructure fs) {
@@ -881,6 +927,23 @@ public class DataStructureAction extends BaseDictionaryAction {
 		}
 
 		return repeatableGroupIdMap;
+	}
+
+	private void saveAuditNote(Long oldId) {
+		// save audit note (if there is one)
+		if (auditNote != null && !auditNote.isEmpty()) {
+			List<SeverityRecord> severityRecords = getSessionDataStructure().getSeverityRecords();
+			SeverityLevel highestSeverityLevel = getSessionDataStructure().getfSChangeSeverity();
+
+
+			DictionaryEventLog eventLog = new DictionaryEventLog(getDiseaseId(), getAccount().getUserId());
+			Long originalEntityId =
+					dictionaryService.getOriginalFormStructureIdByName(currentDataStructure.getShortName());
+			eventLog.setFormStructureID(originalEntityId);
+
+			dictionaryService.saveChangeHistoryEventlog(eventLog, severityRecords, highestSeverityLevel,
+					EntityType.DATA_STRUCTURE, oldId, currentDataStructure.getId(), auditNote);
+		}
 	}
 
 	public String submit() throws HttpException, IOException, DictionaryVersioningException, UserAccessDeniedException {
@@ -895,7 +958,15 @@ public class DataStructureAction extends BaseDictionaryAction {
 		errors = new ArrayList<String>();
 		List<String> warnings = new ArrayList<String>();
 
-		currentDataStructure.setCreatedBy(getDisplayNameByUsername(currentDataStructure.getCreatedBy()));
+		//If we are not versioning form structure e.g. Draft copy, created by should be set to the logged in user
+		if(getFormStructureChangeSeverity() == null || getFormStructureChangeSeverity()!=null && getFormStructureChangeSeverity()==SeverityLevel.NEW ){
+			currentDataStructure.setCreatedBy(getAccount().getDisplayName());
+			logger.info(" FormStructure is new, draft copied, major versioned: created by "+getAccount().getDisplayName());
+		} else {
+			currentDataStructure.setCreatedBy(getDisplayNameByUsername(currentDataStructure.getCreatedBy()));
+			logger.info(" FormStructure is minor versioned: carried over created by info "+currentDataStructure.getCreatedBy());
+		}
+		
 
 		// Call WS
 		String accountUrl = modulesConstants.getModulesAccountURL(getDiseaseId());
@@ -926,73 +997,6 @@ public class DataStructureAction extends BaseDictionaryAction {
 		currentDataStructure = dictionaryManager.saveDataStructure(getAccount(), permission, currentDataStructure,
 				errors, warnings, getFormStructureChangeSeverity(), proxyTicket);
 
-		// if we are versioning this form structure, then we will need to update multiple tables that references the
-		// form structure to reference the latest form structure version instead.
-		if (oldId != null && !getSessionDataStructure().getDraftCopy()) {
-			logger.info(
-					"Form structure has been versioned...need to update form structure references in repository...");
-
-			Map<String, Long> newRepeatableGroupIdMap = buildRepeatableGroupIdMap(currentDataStructure);
-
-			Long newId = currentDataStructure.getId();
-
-			UpdateFormStructureReferencePayload payload = new UpdateFormStructureReferencePayload();
-			payload.setOldFormStructureId(oldId);
-			payload.setNewFormStructureId(newId);
-
-			// this has to be explicitly defined as hashmap so the jaxb adapter would work
-			HashMap<Long, Long> oldNewRepeatableGroupIdMap = new HashMap<Long, Long>();
-
-			for (Entry<String, Long> oldRepeatableGroupIdEntry : oldRepeatableGroupIdMap.entrySet()) {
-				String repeatableGroupName = oldRepeatableGroupIdEntry.getKey();
-				Long oldRepeatableGroupId = oldRepeatableGroupIdEntry.getValue();
-				Long newRepeatableGroupId = newRepeatableGroupIdMap.get(repeatableGroupName);
-
-				if (newRepeatableGroupId == null) {
-					throw new DictionaryVersioningException("Error occurred while versioning a form structure");
-				}
-
-				oldNewRepeatableGroupIdMap.put(oldRepeatableGroupId, newRepeatableGroupId);
-			}
-
-			payload.setOldNewRepeatableGroupIdMap(oldNewRepeatableGroupIdMap);
-
-			updateFormStructureReferences(payload);
-		}
-
-
-
-		// todo: this saveDataStructure method removes the dataElements from the
-		// currentDataSTructure, we need to change
-		// this so it keeps it.
-
-		// If we versioned a form structure (severity is new or minor), then we
-		// need to register it as published.
-		if (StatusType.PUBLISHED.equals(currentDataStructure.getStatus())
-				&& (SeverityLevel.MAJOR.equals(getFormStructureChangeSeverity())
-						|| SeverityLevel.MINOR.equals(getFormStructureChangeSeverity()))) {
-			addToPublicGroups(currentDataStructure);
-		}
-
-		// save audit note (if there is one)
-		if (auditNote != null && !auditNote.isEmpty()) {
-
-			List<SeverityRecord> severityRecords = getSessionDataStructure().getSeverityRecords();
-			SeverityLevel highestSeverityLevel = getSessionDataStructure().getfSChangeSeverity();
-
-
-			DictionaryEventLog eventLog = new DictionaryEventLog(getDiseaseId(), getAccount().getUserId());
-			Long originalEntityId =
-					dictionaryService.getOriginalFormStructureIdByName(currentDataStructure.getShortName());
-			eventLog.setFormStructureID(originalEntityId);
-
-			dictionaryService.saveChangeHistoryEventlog(eventLog, severityRecords, highestSeverityLevel,
-					EntityType.DATA_STRUCTURE, oldId, currentDataStructure.getId(), auditNote);
-
-		}
-
-		getSessionDataStructure().setDataStructure(currentDataStructure);
-
 		if (errors.size() > 0) {
 			for (String error : errors) {
 				this.addActionError(error);
@@ -1000,212 +1004,199 @@ public class DataStructureAction extends BaseDictionaryAction {
 			}
 
 			return PortalConstants.ACTION_INPUT;
-		} else {
-			boolean groupInRemovalList = false;
-			boolean userInRemovalList = false;
-			boolean userInMemberGroupList = false;
-
-			EntityMap removeEntityMap = null;
-
-			// This block updates the current user's permission
-			{
-
-				// This code sets up the next block for success without being
-				// invasive so close to a release.
-				// CASE: severity change == new: We don't want to copy the
-				// permissions because that would result in a
-				// DRAFT FS that is in the public group. Instead we will build
-				// our own ownership.
-				if (SeverityLevel.NEW.equals(getFormStructureChangeSeverity())) {
-					createNewOwnership();
-				}
-
-				// If a user edits a FS and it does not result in the change in version IE permissions change and the
-				// user does not
-				// visit the permissions page, the entity map is not loaded. We need to load the map for all the checks
-				// below
-				// or else two owners are assigned to the form structure. once b/c the system thinks this is a new FS
-				// and creates
-				// a new permission b/c the map is null and a second time when it does a get for permissions later.
-				// this could be done in the statement below... but it's already too big. a permissions s would be a
-				// better option
-				if (getFormStructureChangeSeverity() == null && sessionDataStructure.getEntityMapList() == null) {
-					loadEntityMap();
-				}
-
-				// At this point the data structure has already been saved. If
-				// the data structure is a current draft version
-				// the hasFormStrutureID will be flagged as true. We need this
-				// boolean to tell if the entity mape needs to be loaded
-				// if the entity map has not already been loaded and the FS is
-				// not new, load the entity map into memory.
-				// NOTE: We only need to do this for awaiting publication, draft
-				// and shared draft. copying permission is taken take of else
-				// where
-				// when dealing with published FS
-				if (isNewFormStructure && sessionDataStructure.getEntityMapList() == null
-						&& (sessionDataStructure.getDataStructure().getStatus() == StatusType.DRAFT
-								|| sessionDataStructure.getDataStructure()
-										.getStatus() == StatusType.AWAITING_PUBLICATION
-								|| sessionDataStructure.getDataStructure().getStatus() == StatusType.SHARED_DRAFT)) {
-					// this method loads the entity map from the data structure
-					// id in session
-					loadEntityMap();
-				}
-
-				// copying permission for published FS
-				if (isNewFormStructure && sessionDataStructure.getEntityMapList() == null
-						&& sessionDataStructure.getDataStructure().getStatus() == StatusType.PUBLISHED) {
-					loadEntityMapForPublishedFS(oldId);
-				}
-
-				// CASE: entityMapList == null. User did not visit perm page
-				// before saving.
-				//
-				// Create Draft Copy: entityMapList should never be null. Owner
-				// is set in action with
-				// createNewOwnership()
-				//
-				// Major/Minor Change: New FS (same shortname, new version)
-				// added to public groups earlier in action.
-				// Just needs an owner.
-				// TODO: In the future we may want this to copy all the
-				// permissions not just set the owner but it
-				// shouldn't matter because this FS is already published and
-				// ownership no longer matters when published.
-				//
-				// New Change: We don't want this in the public groups and they
-				// didn't manually set any owners so just
-				// default current user to owner.
-				if (sessionDataStructure.getEntityMapList() == null) {
-					createNewOwnership();
-				}
-
-				if (sessionDataStructure.getEntityMapList() != null) {
-					// Find the user in the list
-					for (EntityMap em : sessionDataStructure.getEntityMapList()) {
-						// Update the entity Id of each entity map [needed
-						// for when new users are added during
-						// creation]
-						em.setEntityId(currentDataStructure.getId());
-
-						if (getAccount().equals(em.getAccount())) {
-							removeEntityMap = em;
-							// break; -- Can't break here because we need to
-							// update all the EntityIds!
-						}
-						if (em.getPermissionGroup() != null) {
-							restProvider = new RestAccountProvider(accountUrl, PortalUtils.getProxyTicket(accountUrl));
-							// This has been separated as it is a ws call we
-							// want to avoid unless necessary
-							if (restProvider.isGroupMember(em.getPermissionGroup().getGroupName(),
-									getAccount().getId())) {
-								userInMemberGroupList = true; // We have
-																 // determined
-																 // that the
-																 // permission
-																 // group is
-																 // in
-																 // the list
-							}
-						}
-
-						// Based on a review of the logic in the entity register
-						// ws call this does not appear to be
-						// needed
-						// it also creates issues with initial creation of a
-						// structure in regards to permissions and
-						// unique ownership
-
-						// Remove the user
-						// sessionDataStructure.getEntityMapList().remove(removeEntityMap);
-
-						// Update the [already stored] user map with the changes
-						// from the UI
-						// oldEntityMap.setPermission(removeEntityMap.getPermission());
-
-						// Store it back into the list
-						// sessionDataStructure.getEntityMapList().add(oldEntityMap);
-
-					}
-				}
-
-				for (EntityMap em : sessionDataStructure.getRemovedMapList()) {
-					if (em.getPermissionGroup() != null) {
-						restProvider = new RestAccountProvider(accountUrl, PortalUtils.getProxyTicket(accountUrl));
-
-						// This has been separated as it is a ws call we want to
-						// avoid unless necessary
-						if (restProvider.isGroupMember(em.getPermissionGroup().getGroupName(), getAccount().getId())) {
-							groupInRemovalList = true; // We have determined
-														 // that the permission
-														 // group is in the list
-						}
-					}
-					if (getAccount().equals(em.getAccount())) {
-						userInRemovalList = true; // This is for cases where the
-													 // user has removed
-													 // themselves.
-					}
-					em.setEntityId(currentDataStructure.getId());
-				}
-
-				if (sessionDataStructure.getRemovedMapList() != null
-						&& !sessionDataStructure.getRemovedMapList().isEmpty()) {
-					webServiceManager.unregisterEntityListRestful(getAccount(),
-							sessionDataStructure.getRemovedMapList());
-				}
-				if (sessionDataStructure.getEntityMapList() != null
-						&& !sessionDataStructure.getEntityMapList().isEmpty()) {
-					// ticket array = portal get multiple proxy tickets, one for
-					// each modules account get disease id
-					String[] proxyTicketArr =
-							PortalUtils.getMultipleProxyTickets(modulesConstants.getModulesAccountURL(getDiseaseId()),
-									sessionDataStructure.getEntityMapList().size());
-					webServiceManager.registerEntityListRestful(getAccount(), sessionDataStructure.getEntityMapList(),
-							proxyTicketArr);
-				}
-			}
-
-			if (StatusType.DRAFT.equals(currentDataStructure.getStatus())) {
-				removeFromPublicGroups(currentDataStructure);
-			}
-
-			getSessionDataStructure().clear();
-			readOnly = true;
-
-			FormStructure viewDataStructure = dictionaryManager.getDataStructure(currentDataStructure.getShortName(),
-					currentDataStructure.getVersion());
-
-			getSessionDataStructure().setDataStructure(viewDataStructure);
-			// set currentDataStructure
-			currentDataStructure = viewDataStructure;
-
-			Set<MapElement> sessionList = viewDataStructure.getFormStructureSqlObject().getDataElements();
-			getSessionDataElementList().setMapElements(sessionList);
-
-			if (groupInRemovalList == true && (removeEntityMap == null)) {
-				return PortalConstants.ACTION_REDIRECT; // This will cover
-														 // situations were the
-														 // user is in the
-														 // accounts
-														 // group
-														 // and not in the main
-														 // user group as an
-														 // individual account.
-			}
-			if (userInRemovalList == true && (userInMemberGroupList == false)) {
-				return PortalConstants.ACTION_REDIRECT; // This handles
-														 // situations where the
-														 // user is not in a
-														 // member
-														 // list
-														 // but has removed
-														 // themselves.
-			}
-
-			return PortalConstants.ACTION_VIEW;
 		}
+
+		saveAuditNote(oldId);
+
+		// null means this is a totally new form structure
+		if (getFormStructureChangeSeverity() != null) {
+			switch (getFormStructureChangeSeverity()) {
+				case MAJOR:
+				case MINOR:
+					// if we are versioning this form structure, then we will need to update multiple tables that
+					// references the form
+					// structure to reference the latest form structure version instead. This method calls the
+					// repository webservice in
+					// order to update references
+					updateFormStructureReferences(oldId, oldRepeatableGroupIdMap);
+					break;
+				case NEW:
+					// CASE: severity change == new: We don't want to copy the
+					// permissions because that would result in a
+					// DRAFT FS that is in the public group. Instead we will build
+					// our own ownership.
+					createNewOwnership();
+					break;
+				default:
+					throw new UnsupportedOperationException(
+							"Invalid severity type found during form structure versioning");
+			}
+		}
+
+		getSessionDataStructure().setDataStructure(currentDataStructure);
+
+		boolean groupInRemovalList = false;
+		boolean userInRemovalList = false;
+		boolean userInMemberGroupList = false;
+
+		EntityMap removeEntityMap = null;
+
+		// This block updates the current user's permission
+
+		// If a user edits a FS and it does not result in the change in version IE permissions change and the
+		// user does not
+		// visit the permissions page, the entity map is not loaded. We need to load the map for all the checks
+		// below
+		// or else two owners are assigned to the form structure. once b/c the system thinks this is a new FS
+		// and creates
+		// a new permission b/c the map is null and a second time when it does a get for permissions later.
+		// this could be done in the statement below... but it's already too big. a permissions s would be a
+		// better option
+		if (getFormStructureChangeSeverity() == null && sessionDataStructure.getEntityMapList() == null) {
+			loadEntityMap();
+		}
+
+		// At this point the data structure has already been saved. If
+		// the data structure is a current draft version
+		// the hasFormStrutureID will be flagged as true. We need this
+		// boolean to tell if the entity mape needs to be loaded
+		// if the entity map has not already been loaded and the FS is
+		// not new, load the entity map into memory.
+		// NOTE: We only need to do this for awaiting publication, draft
+		// and shared draft. copying permission is taken take of else
+		// where
+		// when dealing with published FS
+		if (isNewFormStructure && sessionDataStructure.getEntityMapList() == null
+				&& (sessionDataStructure.getDataStructure().getStatus() == StatusType.DRAFT
+						|| sessionDataStructure.getDataStructure().getStatus() == StatusType.AWAITING_PUBLICATION
+						|| sessionDataStructure.getDataStructure().getStatus() == StatusType.SHARED_DRAFT)) {
+			// this method loads the entity map from the data structure
+			// id in session
+			loadEntityMap();
+		}
+
+		// copying permission for published FS
+		if (isNewFormStructure && sessionDataStructure.getEntityMapList() == null
+				&& sessionDataStructure.getDataStructure().getStatus() == StatusType.PUBLISHED) {
+			loadEntityMapForPublishedFS(oldId);
+		}
+
+		// CASE: entityMapList == null. User did not visit perm page
+		// before saving.
+		//
+		// Create Draft Copy: entityMapList should never be null. Owner
+		// is set in action with
+		// createNewOwnership()
+		//
+		// Major/Minor Change: New FS (same shortname, new version)
+		// added to public groups earlier in action.
+		// Just needs an owner.
+		// TODO: In the future we may want this to copy all the
+		// permissions not just set the owner but it
+		// shouldn't matter because this FS is already published and
+		// ownership no longer matters when published.
+		//
+		// New Change: We don't want this in the public groups and they
+		// didn't manually set any owners so just
+		// default current user to owner.
+		if (sessionDataStructure.getEntityMapList() == null) {
+			createNewOwnership();
+		}
+
+		if (sessionDataStructure.getEntityMapList() != null) {
+			// Find the user in the list
+			for (EntityMap em : sessionDataStructure.getEntityMapList()) {
+				// Update the entity Id of each entity map [needed
+				// for when new users are added during
+				// creation]
+				em.setEntityId(currentDataStructure.getId());
+
+				if (getAccount().equals(em.getAccount())) {
+					removeEntityMap = em;
+				}
+				if (em.getPermissionGroup() != null) {
+					restProvider = new RestAccountProvider(accountUrl, PortalUtils.getProxyTicket(accountUrl));
+					// This has been separated as it is a ws call we
+					// want to avoid unless necessary
+					if (restProvider.isGroupMember(em.getPermissionGroup().getGroupName(), getAccount().getId())) {
+						// We have determined that the permission group is in the list
+						userInMemberGroupList = true;
+					}
+				}
+			}
+		}
+
+		for (EntityMap em : sessionDataStructure.getRemovedMapList()) {
+			if (em.getPermissionGroup() != null) {
+				restProvider = new RestAccountProvider(accountUrl, PortalUtils.getProxyTicket(accountUrl));
+
+				// This has been separated as it is a ws call we want to
+				// avoid unless necessary
+				if (restProvider.isGroupMember(em.getPermissionGroup().getGroupName(), getAccount().getId())) {
+					groupInRemovalList = true; // We have determined
+												 // that the permission
+												 // group is in the list
+				}
+			}
+			if (getAccount().equals(em.getAccount())) {
+				userInRemovalList = true; // This is for cases where the
+											 // user has removed
+											 // themselves.
+			}
+			em.setEntityId(currentDataStructure.getId());
+		}
+
+		if (sessionDataStructure.getRemovedMapList() != null && !sessionDataStructure.getRemovedMapList().isEmpty()) {
+			webServiceManager.unregisterEntityListRestful(getAccount(), sessionDataStructure.getRemovedMapList());
+		}
+		if (sessionDataStructure.getEntityMapList() != null && !sessionDataStructure.getEntityMapList().isEmpty()) {
+			// ticket array = portal get multiple proxy tickets, one for
+			// each modules account get disease id
+			String[] proxyTicketArr =
+					PortalUtils.getMultipleProxyTickets(modulesConstants.getModulesAccountURL(getDiseaseId()),
+							sessionDataStructure.getEntityMapList().size());
+			webServiceManager.registerEntityListRestful(getAccount(), sessionDataStructure.getEntityMapList(),
+					proxyTicketArr);
+		}
+
+		if (StatusType.DRAFT.equals(currentDataStructure.getStatus())) {
+			removeFromPublicGroups(currentDataStructure);
+		}
+
+		getSessionDataStructure().clear();
+		readOnly = true;
+
+		FormStructure viewDataStructure = dictionaryManager.getDataStructure(currentDataStructure.getShortName(),
+				currentDataStructure.getVersion());
+
+		getSessionDataStructure().setDataStructure(viewDataStructure);
+		// set currentDataStructure
+		currentDataStructure = viewDataStructure;
+
+		Set<MapElement> sessionList = viewDataStructure.getFormStructureSqlObject().getDataElements();
+		getSessionDataElementList().setMapElements(sessionList);
+
+		if (groupInRemovalList == true && (removeEntityMap == null)) {
+			return PortalConstants.ACTION_REDIRECT; // This will cover
+													 // situations were the
+													 // user is in the
+													 // accounts
+													 // group
+													 // and not in the main
+													 // user group as an
+													 // individual account.
+		}
+		if (userInRemovalList == true && (userInMemberGroupList == false)) {
+			return PortalConstants.ACTION_REDIRECT; // This handles
+													 // situations where the
+													 // user is not in a
+													 // member
+													 // list
+													 // but has removed
+													 // themselves.
+		}
+
+		return PortalConstants.ACTION_VIEW;
 	}
 
 	/**
@@ -1216,7 +1207,8 @@ public class DataStructureAction extends BaseDictionaryAction {
 	 * @throws UnsupportedEncodingException
 	 * @throws UserPermissionException
 	 */
-	public String cancel() throws MalformedURLException, UnsupportedEncodingException, UserPermissionException, UserAccessDeniedException {
+	public String cancel() throws MalformedURLException, UnsupportedEncodingException, UserPermissionException,
+			UserAccessDeniedException {
 
 		String dsId = getRequest().getParameter(PortalConstants.DATASTRUCTURE_ID);
 		logger.info(dsId);
@@ -1251,7 +1243,8 @@ public class DataStructureAction extends BaseDictionaryAction {
 		return view();
 	}
 
-	public String delete() throws UserPermissionException, MalformedURLException, UnsupportedEncodingException, UserAccessDeniedException {
+	public String delete() throws UserPermissionException, MalformedURLException, UnsupportedEncodingException,
+			UserAccessDeniedException {
 
 		currentDataStructure = getSessionDataStructure().getDataStructure();
 
@@ -1284,6 +1277,23 @@ public class DataStructureAction extends BaseDictionaryAction {
 
 		getSessionDataStructure().clear();
 		return PortalConstants.ACTION_REDIRECT;
+	}
+	
+	public String refreshPublicationInterface () throws MalformedURLException, UnsupportedEncodingException, MessagingException {
+		
+		
+		  String dsId = getRequest().getParameter(PortalConstants.DATASTRUCTURE_ID);
+		  
+		  try { 
+			  currentDataStructure = dictionaryManager.getDataStructure(Long.valueOf(dsId));
+		  
+		  } catch (NumberFormatException e) { 
+			  throw new NumberFormatException("String dsId cannot be empty"); 
+		  }	 
+		  
+		  getSessionDataStructure().setDataStructure(currentDataStructure);
+		  
+		return PortalConstants.ACTION_PUBLICATION;
 	}
 
 	/**
@@ -1328,13 +1338,24 @@ public class DataStructureAction extends BaseDictionaryAction {
 					|| (oldStatus.equals(StatusType.PUBLISHED) && newStatus.equals(StatusType.AWAITING_PUBLICATION))) {
 				return PortalConstants.ACTION_PUBLICATION;
 			}
+			
+			// get documentation for eventlog
+			Set<DictionarySupportingDocumentation> currentDocSet =
+					getSessionDictionaryStatusChange().getfSEventLogDocumentation();
+
+			// get comment and supporting documentation
+			// this needs to be done before data element status is updated to make sure the supporting document is also
+			// saved if there is a status change
+			// repositoryManager.saveUserFile takes time and if a user refreshes in the middle, the supporing doc might
+			// not be saved
+			String comment = getSessionDictionaryStatusChange().getStatusReason();
 
 			// If we are publishing for the first time, we need to create the
 			// tables and metadata describing them for
 			// submission
 
 			if (dictionaryManager.hasRole(getAccount(), RoleType.ROLE_DICTIONARY_ADMIN)
-					&& newStatus == StatusType.PUBLISHED) {
+					&& newStatus ==StatusType.PUBLISHED) {
 
 				// Add the data structure to public groups and
 				addToPublicGroups(currentDataStructure);
@@ -1343,13 +1364,19 @@ public class DataStructureAction extends BaseDictionaryAction {
 
 				// need to refresh the object so we don't load unnecessary de supportingDocumentation here
 				currentDataStructure = dictionaryManager.getDataStructure(Long.valueOf(dsId));
-
+				
 				if (!oldStatus.equals(StatusType.ARCHIVED)) {
-					currentDataStructure.setPublicationDate(new Date());
-					webServiceManager.createTableFromDataStructure(getAccount(),
-							currentDataStructure.getFormStructureSqlObject());
+					
+					// PS-4251: Fixing form structure publication issue
+					// Setting form structure to publish pending status until we make sure it successfully published
+					currentDataStructure.setStatus(StatusType.PUBLISH_PENDING);
+					currentDataStructure = dictionaryManager.editDataStructureStatus(getAccount(), permission,
+							currentDataStructure, StatusType.PUBLISH_PENDING);
+					
+					//Leaving the third argument as emtpy string here because we don't send out email for publishing FS
+					//it will be set to approval reason by admin for awaiting publication
+					createTableFromDataStructure(currentDataStructure.getFormStructureSqlObject(),comment,"",currentDocSet,StatusType.DRAFT,getAccount().getUserId());
 
-					eventType = EventType.STATUS_CHANGE_TO_PUBLISHED;
 				} else {
 					eventType = EventType.STATUS_CHANGE_UNARCHIVED;
 				}
@@ -1381,38 +1408,7 @@ public class DataStructureAction extends BaseDictionaryAction {
 						ServiceConstants.PUBLISHED_FORM_STRUCTURES, EntityType.DATA_STRUCTURE,
 						currentDataStructure.getId(), PermissionType.READ);
 			}
-
-
-			// get documentation for eventlog
-			Set<DictionarySupportingDocumentation> currentDocSet =
-					getSessionDictionaryStatusChange().getfSEventLogDocumentation();
-
-			// get comment and supporting documentation
-			// this needs to be done before data element status is updated to make sure the supporting document is also
-			// saved if there is a status change
-			// repositoryManager.saveUserFile takes time and if a user refreshes in the middle, the supporing doc might
-			// not be saved
-			String comment = getSessionDictionaryStatusChange().getStatusReason();
-
-
-			DictionaryEventLog eventLog = new DictionaryEventLog(getDiseaseId(), getAccount().getUserId());
-			Long originalEntityId =
-					dictionaryService.getOriginalFormStructureIdByName(currentDataStructure.getShortName());
-			eventLog.setFormStructureID(originalEntityId);
-
-			if (currentDocSet != null && !currentDocSet.isEmpty()) {
-				for (DictionarySupportingDocumentation sd : currentDocSet) {
-					if (sd.getUserFile() != null)
-						sd.setUserFile(repositoryManager.saveUserFile(sd.getUserFile()));
-
-					sd.setDictionaryEventLog(eventLog);
-				}
-			}
-			eventLog.setSupportingDocumentationSet(currentDocSet);
-
-			currentDataStructure = dictionaryManager.editDataStructureStatus(getAccount(), permission,
-					currentDataStructure, newStatus);
-
+			
 			if (dictionaryManager.hasRole(getAccount(), RoleType.ROLE_DICTIONARY_ADMIN)
 					&& newStatus == StatusType.ARCHIVED) {
 				// Call webservice
@@ -1421,16 +1417,40 @@ public class DataStructureAction extends BaseDictionaryAction {
 				eventType = EventType.STATUS_CHANGE_TO_ARCHIVE;
 
 			}
+			
+			// PS-4251: Fixing form structure publication issue
+			// We are excluding saving event log and status change for published form structure here. 
+			// We will save the event log and the status change once we make sure it successfully published.
+			// CRIT-12340: Dictionary - Not able to un-Archive Form Structure... excluding un-archiving from this logic
+			if(oldStatus == StatusType.ARCHIVED || newStatus != StatusType.PUBLISHED) {
+				DictionaryEventLog eventLog = new DictionaryEventLog(getDiseaseId(), getAccount().getUserId());
+				Long originalEntityId =
+						dictionaryService.getOriginalFormStructureIdByName(currentDataStructure.getShortName());
+				eventLog.setFormStructureID(originalEntityId);
 
-			// saves the status change made on the form structure
-			// if eventType is null it means we don't want to record the status change being made
-			if (eventType != null) {
-				dictionaryManager.saveEventLog(eventLog, oldStatus.getId().toString(), newStatus.getId().toString(),
-						comment, eventType);
-			}
+				if (currentDocSet != null && !currentDocSet.isEmpty()) {
+					for (DictionarySupportingDocumentation sd : currentDocSet) {
+						if (sd.getUserFile() != null)
+							sd.setUserFile(repositoryManager.saveUserFile(sd.getUserFile()));
 
-
+						sd.setDictionaryEventLog(eventLog);
+					}
+				}
+				eventLog.setSupportingDocumentationSet(currentDocSet);
+				
+				// saves the status change made on the form structure
+				// if eventType is null it means we don't want to record the status change being made
+				// if new status change is publish pending, we want to record the status change after FS is successfully published
+				if (eventType != null) {
+					dictionaryManager.saveEventLog(eventLog, oldStatus.getId().toString(), newStatus.getId().toString(),
+							comment, eventType);
+				}
+				currentDataStructure = dictionaryManager.editDataStructureStatus(getAccount(), permission,
+						currentDataStructure, newStatus);
+			} 
+			
 			getSessionDataStructure().setDataStructure(currentDataStructure);
+			
 		}
 
 		getSessionDictionaryStatusChange().clear();
@@ -1582,7 +1602,8 @@ public class DataStructureAction extends BaseDictionaryAction {
 	 * @throws HttpException
 	 * @throws DictionaryVersioningException
 	 */
-	public String saveAndFinish() throws HttpException, IOException, DictionaryVersioningException, UserAccessDeniedException {
+	public String saveAndFinish()
+			throws HttpException, IOException, DictionaryVersioningException, UserAccessDeniedException {
 
 		return submit();
 	}
@@ -1596,28 +1617,13 @@ public class DataStructureAction extends BaseDictionaryAction {
 	 * @throws IOException
 	 * @throws HttpException
 	 */
-	public String approve()
-			throws MessagingException, UserPermissionException, SQLException, HttpException, IOException, UserAccessDeniedException {
-
-		boolean success = false;
+	public String approve() throws MessagingException, UserPermissionException, SQLException, HttpException,
+			IOException, UserAccessDeniedException {
 
 		// can't use the object from session, trust me, there are hibernate saving issues with it if you have a support
 		// documentation attached to any data elements
 		currentDataStructure = getSessionDataStructure().getDataStructure();
 
-		// Use the account web service to find out what access the current user
-		// has to the current data structure. Used
-		// for access check in service layer
-
-		Account currentDataStructureAccount = webServiceManager.getEntityOwnerAccountRestful(getAccount(),
-				currentDataStructure.getId(), EntityType.DATA_STRUCTURE);
-		String ownerName = currentDataStructureAccount.getUser().getFullName();
-
-		String accountUrl = modulesConstants.getModulesAccountURL(getDiseaseId());
-		RestAccountProvider restProvider = new RestAccountProvider(accountUrl, PortalUtils.getProxyTicket(accountUrl));
-		PermissionType permission =
-				restProvider.getAccess(getAccount().getId(), EntityType.DATA_STRUCTURE, currentDataStructure.getId())
-						.getPermission();
 
 		// Checks the form structure via database to confirm that it is awaiting
 		// publication to avoid concurrent
@@ -1625,104 +1631,32 @@ public class DataStructureAction extends BaseDictionaryAction {
 		if (StatusType.AWAITING_PUBLICATION
 				.equals(dictionaryManager.getDataStructure(currentDataStructure.getId()).getStatus())) {
 
-			try {
 				addToPublicGroups(currentDataStructure);
-
-				currentDataStructure = dictionaryManager.getDataStructure(currentDataStructure.getId());
-				currentDataStructure.setPublicationDate(new Date());
-
-				// Call webservice
-				success = webServiceManager.createTableFromDataStructure(getAccount(),
-						currentDataStructure.getFormStructureSqlObject());
-
-				currentDataStructure = dictionaryManager.editDataStructureStatus(getAccount(), permission,
-						currentDataStructure, StatusType.PUBLISHED);
-
-				// save the status change made on the form structure
-				String comment = getSessionDictionaryStatusChange().getStatusReason();
-
-				DictionaryEventLog eventLog = new DictionaryEventLog(getDiseaseId(), getAccount().getUserId());
-				Long originalEntityId =
-						dictionaryService.getOriginalFormStructureIdByName(currentDataStructure.getShortName());
-				eventLog.setFormStructureID(originalEntityId);
-
+				
+				reason = getSessionDictionaryStatusChange().getApproveReason();
+				
 				// get documentation for eventlog
 				Set<DictionarySupportingDocumentation> currentDocSet =
 						getSessionDictionaryStatusChange().getfSEventLogDocumentation();
+				
+				String comment = getSessionDictionaryStatusChange().getStatusReason();
 
-				if (currentDocSet != null && !currentDocSet.isEmpty()) {
-					for (DictionarySupportingDocumentation sd : currentDocSet) {
-						if (sd.getUserFile() != null)
-							sd.setUserFile(repositoryManager.saveUserFile(sd.getUserFile()));
-
-						sd.setDictionaryEventLog(eventLog);
-					}
-				}
-				eventLog.setSupportingDocumentationSet(currentDocSet);
-
-				dictionaryManager.saveEventLog(eventLog, StatusType.AWAITING_PUBLICATION.getId().toString(),
-						StatusType.PUBLISHED.getId().toString(), comment, EventType.REQUESTED_PUBLISH_APPROVED);
-
-			} catch (MalformedURLException e) {
-				success = false;
-				e.printStackTrace();
-			} catch (IOException e) {
-
-				// If publication of associated data elements fails, revert
-				// structure back to 'awaiting publication' status
-				currentDataStructure.setPublicationDate(null);
+				//edit formStructure status
+				//we need to pass permission here since only Users with Admin permission can change Form Structure Status
+				String accountUrl = modulesConstants.getModulesAccountURL(getDiseaseId());
+				RestAccountProvider restProvider = new RestAccountProvider(accountUrl, PortalUtils.getProxyTicket(accountUrl));
+				PermissionType permission =
+						restProvider.getAccess(getAccount().getId(), EntityType.DATA_STRUCTURE, currentDataStructure.getId())
+								.getPermission();
+				
 				currentDataStructure = dictionaryManager.editDataStructureStatus(getAccount(), permission,
-						currentDataStructure, StatusType.AWAITING_PUBLICATION);
+						currentDataStructure, StatusType.PUBLISH_PENDING);
+				// Call webservice
+				createTableFromDataStructure(currentDataStructure.getFormStructureSqlObject(),comment,reason,currentDocSet,StatusType.AWAITING_PUBLICATION,getAccount().getUserId());
 
-				success = false;
-
-				logger.error(e);
-
-				throw e;
-			} catch (Exception e) {
-				success = false;
-				e.printStackTrace();
-			}
-
-			reason = getSessionDictionaryStatusChange().getApproveReason();
-			if (success) {
-
-				boolean isLocalEnv = this.modulesConstants.getEnvIsLocal();
-
-				// construct subject line and message text to send through email
-				if (!isLocalEnv) {
-					String subject = this.getText(
-							PortalConstants.MAIL_RESOURCE_ACCEPTED_DATASTRUCTURE
-									+ PortalConstants.MAIL_RESOURCE_SUBJECT,
-							Arrays.asList(currentDataStructure.getReadableName()));
-
-					String messageText =
-							this.getText(PortalConstants.MAIL_RESOURCE_COMMON + PortalConstants.MAIL_RESOURCE_HEADER,
-									Arrays.asList(modulesConstants.getModulesOrgName(getDiseaseId()),
-											modulesConstants.getModulesOrgPhone(getDiseaseId()), ownerName, reason,
-											currentDataStructure.getReadableName()))
-									+ this.getText(
-											PortalConstants.MAIL_RESOURCE_ACCEPTED_DATASTRUCTURE
-													+ PortalConstants.MAIL_RESOURCE_BODY,
-											Arrays.asList(modulesConstants.getModulesOrgName(getDiseaseId()),
-													modulesConstants.getModulesOrgPhone(getDiseaseId()), ownerName,
-													reason, currentDataStructure.getReadableName()))
-									+ this.getText(
-											PortalConstants.MAIL_RESOURCE_COMMON + PortalConstants.MAIL_RESOURCE_FOOTER,
-											Arrays.asList(modulesConstants.getModulesOrgName(getDiseaseId()),
-													modulesConstants.getModulesOrgPhone(getDiseaseId()), ownerName,
-													reason, currentDataStructure.getReadableName()));
-
-					String from = modulesConstants.getModulesOrgEmail(getDiseaseId());
-
-					dictionaryManager.sendEmail(currentDataStructureAccount, subject, messageText, from);
-				} else {
-					logger.info("[LOCAL ENV ONLY MESSAGE] Criteria met to send an email for the approval of FS: "
-							+ currentDataStructure.getReadableName());
-				}
-			}
-
-			readOnly = true;
+				getSessionDataStructure().setDataStructure(currentDataStructure);
+				
+				readOnly = true;
 		}
 
 		return PortalConstants.ACTION_REDIRECT_TO_VIEW;
@@ -1737,8 +1671,8 @@ public class DataStructureAction extends BaseDictionaryAction {
 	 * @throws IOException
 	 * @throws HttpException
 	 */
-	public String createGroupDraft()
-			throws MessagingException, UserPermissionException, SQLException, HttpException, IOException, UserAccessDeniedException {
+	public String createGroupDraft() throws MessagingException, UserPermissionException, SQLException, HttpException,
+			IOException, UserAccessDeniedException {
 
 		currentDataStructure = getSessionDataStructure().getDataStructure();
 
@@ -1779,8 +1713,8 @@ public class DataStructureAction extends BaseDictionaryAction {
 	 * @throws MalformedURLException
 	 * @throws UnsupportedEncodingException
 	 */
-	public String deny()
-			throws MessagingException, UserPermissionException, MalformedURLException, UnsupportedEncodingException, UserAccessDeniedException {
+	public String deny() throws MessagingException, UserPermissionException, MalformedURLException,
+			UnsupportedEncodingException, UserAccessDeniedException {
 
 		currentDataStructure = getSessionDataStructure().getDataStructure();
 
@@ -1874,7 +1808,8 @@ public class DataStructureAction extends BaseDictionaryAction {
 	 * @throws IOException
 	 * @throws HttpException
 	 */
-	public void addToPublicGroups(FormStructure dataStructure) throws HttpException, IOException, UserAccessDeniedException {
+	public void addToPublicGroups(FormStructure dataStructure)
+			throws HttpException, IOException, UserAccessDeniedException {
 
 		// if the map element attached is not published, publish it and add it
 		// to the public permission groups
@@ -2414,5 +2349,43 @@ public class DataStructureAction extends BaseDictionaryAction {
 		}
 		return null;
 	}
+	
+	public void createTableFromDataStructure(StructuralFormStructure formStructure,String comment,String approveReason,Set<DictionarySupportingDocumentation> docList, StatusType statusType, Long userId) throws UnsupportedEncodingException, SQLException  {
+		
+		Set<Long> keys = modulesConstants.getModulesSTMap().keySet();
+		
+		RestRepositoryProvider restRepositoryProvider;
+		String accountUrl;
+		String adminUserName;
+		String adminSaltedPassword;
+		
+		// Case: There is only 1 account modules listed in modules.properties (Listed at -1)
+		if (keys.size() == 1) {
+			
+			accountUrl = modulesConstants.getModulesAccountURL();
+			adminUserName = modulesConstants.getAdministratorUsername();
+			adminSaltedPassword = modulesConstants.getSaltedAdministratorPassword(getDiseaseId());
+			restRepositoryProvider = new RestRepositoryProvider(accountUrl,PortalUtils.getProxyTicket(accountUrl));
+			
+			
+			logger.info("Webservice for creating data structure tables for " + formStructure.getTitle() +" at the following location: " +accountUrl);
+			restRepositoryProvider.createTableFromDataStructure(formStructure,comment,approveReason,docList,statusType,getDiseaseId(),adminUserName,adminSaltedPassword,userId);
+		    return;
+		}
 
+		// Case: There is more than one ST modules so we want to publish to all of them.
+		for (Long k : keys) {
+			if (!modulesConstants.isDuplicateModule(k) && !k.equals(ServiceConstants.DEFAULT_PROVIDER)) {
+					
+				accountUrl = modulesConstants.getModulesSTURL(k);
+				adminUserName = modulesConstants.getAdministratorUsername();
+				adminSaltedPassword = modulesConstants.getSaltedAdministratorPassword(k);
+				restRepositoryProvider = new RestRepositoryProvider(accountUrl,PortalUtils.getProxyTicket(accountUrl));
+				
+				logger.info("Webservice for creating data structure tables for " + formStructure.getTitle() +" at the following location: " +accountUrl);
+				restRepositoryProvider.createTableFromDataStructure(formStructure,comment,approveReason,docList,statusType,k,adminUserName,adminSaltedPassword,userId);
+								
+			}
+		}
+	}
 }

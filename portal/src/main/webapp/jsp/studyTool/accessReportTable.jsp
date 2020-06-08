@@ -31,7 +31,6 @@
 			dom : 'Bfrtip',
 			serverSide: true,
 			processing: true,
-			pages:1,
 			select: false,
 			filters: [
 				{

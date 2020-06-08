@@ -345,7 +345,6 @@ QTDT.ResultsView = BaseView.extend({
 		{
 			var containerHeight = $("#resultsDatatable").height();
 			var headerHeight = $("#tableHeaders").height(); // maybe outerHeight()?
-			var menuHeight = $("#lengthMenuViewContainer").height();
 			var paginationHeight = $("#pagerContainer").height();
 			var biosampleOrderHeight = 0;
 			if($("#bulkOrderButton").length){
@@ -355,7 +354,7 @@ QTDT.ResultsView = BaseView.extend({
 				
 			var scrollHeight = $("#dataBody").get(0).scrollHeight;
 		
-			var newHeight = containerHeight - headerHeight - menuHeight - paginationHeight - biosampleOrderHeight;
+			var newHeight = containerHeight - headerHeight - paginationHeight - biosampleOrderHeight;
 			if(scrollHeight > newHeight)  {
 				$("#dataBody").height(newHeight);
 			} else if (scrollHeight != 0) {

@@ -53,10 +53,10 @@ public class AuditDao extends CtdbDao {
 			stmt.setLong(3, a.getUpdatedBy());
 
 			////////////////////////////////////////////////////////////////
-			System.out.println("a.getId()--------------------------" + a.getId());
-			System.out.println("a.getProtocolId()------------------" + a.getProtocolId());
-			System.out.println("a.getReason()-----------------" + a.getReason());
-			System.out.println("a.getUpdatedBy()-------------------" + a.getUpdatedBy());
+			// System.out.println("a.getId()--------------------------" + a.getId());
+			// System.out.println("a.getProtocolId()------------------" + a.getProtocolId());
+			// System.out.println("a.getReason()-----------------" + a.getReason());
+			// System.out.println("a.getUpdatedBy()-------------------" + a.getUpdatedBy());
 			////////////////////////////////////////////////////////////
 
 			stmt.executeUpdate();

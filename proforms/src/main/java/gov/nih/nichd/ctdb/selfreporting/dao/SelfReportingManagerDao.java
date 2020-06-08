@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import gov.nih.nichd.ctdb.common.CtdbConstants;
 import gov.nih.nichd.ctdb.common.CtdbDao;
 import gov.nih.nichd.ctdb.common.CtdbException;
 import gov.nih.nichd.ctdb.selfreporting.form.SelfReportingLandingForm;
@@ -20,7 +21,7 @@ public class SelfReportingManagerDao extends CtdbDao {
 	private static Logger logger = Logger.getLogger(SelfReportingManagerDao.class);
 
 	private static final String SQL_SELFREPORTING_LIST = "select pv.patientid, fi.intervalid, pv.visitdate, " +
-			"f.eformid, f.name, af.administeredformid, ded.coll_status as status, ded.updateddate "+
+			"f.eformid, f.shortname, af.administeredformid, ded.dataentrydraftid, ded.dataenteredby, ded.coll_status as status, ded.updateddate " +
 			"from eform f " +
 			"join form_interval fi on f.eformid = fi.eformid " +
 			"join \"interval\" i on fi.intervalid = i.intervalid " +
@@ -90,9 +91,22 @@ public class SelfReportingManagerDao extends CtdbDao {
 				Integer aformId = rs.getInt("administeredformid");
 				srl.setAdministeredFormId(rs.wasNull() ? null : aformId);
 
-				srl.setFormName(rs.getString("name"));
-				srl.setStatus(rs.getString("status"));
-				srl.setLastUpdated(rs.getTimestamp("updateddate"));
+				srl.setShortName(rs.getString("shortname"));
+				
+				
+				int dataEnteredBy = rs.getInt("dataenteredby");
+				//if self reporting was started by someone other than subject (id=-1) and if status is In-Progres, then
+				//set status to Not Started
+				String status = rs.getString("status");
+				if(dataEnteredBy != -1 && status != null && status.equals(CtdbConstants.DATACOLLECTION_STATUS_INPROGRESS)) {
+					srl.setStatus(CtdbConstants.DATACOLLECTION_STATUS_NOTSTARTED);
+					srl.setLastUpdated(null);
+					
+				}else {
+					srl.setStatus(status);
+					srl.setLastUpdated(rs.getTimestamp("updateddate"));
+				}
+				
 				srl.setToken(token);
 
 				selfReportingList.add(srl);

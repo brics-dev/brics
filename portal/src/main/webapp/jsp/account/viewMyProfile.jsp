@@ -157,7 +157,8 @@
 			</s:if>
 
 
-			<s:if test="%{currentAccount.accountStatus.name == 'Requested' || currentAccount.accountStatus.name == 'Pending' || currentAccount.accountStatus.name == 'Change Requested'}">
+			<s:if test="%{currentAccount.accountStatus.name == 'Requested' || currentAccount.accountStatus.name == 'Pending' 
+					|| currentAccount.accountStatus.name == 'Change Requested' || currentAccount.accountStatus.name == 'Renewal Requested'}">
 				<jsp:include page="includes/accountPrivileges.jsp" >
 					<jsp:param name="idtUrl" value="viewProfile!getAccountRoleLists.action"/>
 				</jsp:include>

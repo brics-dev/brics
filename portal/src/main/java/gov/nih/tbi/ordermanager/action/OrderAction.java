@@ -1,41 +1,32 @@
 
 package gov.nih.tbi.ordermanager.action;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.mail.MessagingException;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.struts2.ServletActionContext;
 import org.apache.struts2.interceptor.SessionAware;
-import org.apache.struts2.result.StreamResult;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.jcraft.jsch.SftpException;
 import com.opensymphony.xwork2.util.CreateIfNull;
 import com.opensymphony.xwork2.util.Element;
 import com.opensymphony.xwork2.util.KeyProperty;
@@ -561,7 +552,7 @@ public class OrderAction extends OrderManagerBaseAction implements SessionAware
         uploadFileType = new ArrayList<String>(filesTypeMap);
     }
 
-    public String saveOrder() throws MessagingException
+	public String saveOrder() throws MessagingException, SftpException
     {
 
         boolean sendEmail = false;
@@ -639,20 +630,23 @@ public class OrderAction extends OrderManagerBaseAction implements SessionAware
         {
             Set<UserFile> upFileKeySet = uploadedFilesMap.keySet();
 
-            for (UserFile ufKey : upFileKeySet)
-            {
-                Boolean success = orderManager.storeOrderFiles(ufKey, uploadedFilesMap.get(ufKey), this.sessionAccount
-                        .getAccount().getUser().getFullName().replaceAll(" ", "")
-                        + "_"
-                        + this.sessionAccount.getAccount().getUser().getId()
-                        + "_"
-                        + new java.util.Date(order.getDateCreated().getTime()).toString().replaceAll(":", "")
-                                .replaceAll(" ", ""));
+			try {
+				for (UserFile ufKey : upFileKeySet) {
+					Boolean success = orderManager.storeOrderFiles(ufKey, uploadedFilesMap.get(ufKey),
+							this.sessionAccount.getAccount().getUser().getFullName().replaceAll(" ", "") + "_"
+									+ this.sessionAccount.getAccount().getUser().getId() + "_"
+									+ new java.util.Date(order.getDateCreated().getTime()).toString()
+											.replaceAll(":", "").replaceAll(" ", ""));
 
-                if (success) {
-                    successfullyUploadedFilesToRemove.add(ufKey);  // 1. uploadFileName/uploadedFilesMap/successfullyUploadedFilesToRemove
-                    sendEmail = true;
-                }
+					if (success) {
+						successfullyUploadedFilesToRemove.add(ufKey);  // 1.
+																		  // uploadFileName/uploadedFilesMap/successfullyUploadedFilesToRemove
+						sendEmail = true;
+					}
+				}
+			} catch (SftpException e) {
+				logger.error("Error while accessing the SFTP site.", e);
+				throw e;
             }
         }
 

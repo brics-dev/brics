@@ -780,8 +780,11 @@
 				}
 
 				$element.each(function() {
-					$(this).dialog("close");
-					destroy($(this));
+					var $this = $(this);
+					if (typeof $this.dialog("instance") !== "undefined") {
+						$this.dialog("close");
+						destroy($this);
+					}
 				});
 			},
 

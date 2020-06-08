@@ -14,6 +14,11 @@
 			processing: true,
 			pages: 3,
 			select: "multi",
+			selectParams: {
+				selectAllEnabled: false,
+				selectNoneEnabled: true,
+				selectFilteredEnabled: true,
+		  },
 			drawCallback : function(settings) {
 				var api = new $.fn.dataTable.Api( settings );
 				api.on("select", function(e, dt, type, index) {
@@ -38,7 +43,8 @@
 				{
 					columnIndex: 3,
 					type: 'select',
-					name: 'Show all',
+					name: 'filterStatus',
+					label: 'Show all',
 					defaultValue: 'hide',
 					options: [
 						{

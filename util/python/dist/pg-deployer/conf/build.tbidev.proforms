@@ -1,0 +1,7 @@
+[DB-TRG]
+host=fitbir-db-dev.cit.nih.gov
+database=proforms_data
+schema=proforms_app_dev
+user=proforms_app_dev
+label=TARGET
+

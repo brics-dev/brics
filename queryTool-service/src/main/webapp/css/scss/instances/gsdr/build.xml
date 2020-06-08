@@ -1,11 +1,10 @@
 <project>
        <target name="sass.compile">
        	<property name="sass.dir" value=". ../.." />
-        <property name="css.dir" value="../../instances/ninds" />
+        <property name="css.dir" value="../../instances/gsdr" />
 
-        <apply executable="C:\Ruby23\bin\sass.bat" dest="${css.dir}" verbose="true" force="true" failonerror="true">
+        <apply executable="C:\Ruby\bin\sass.bat" dest="${css.dir}" verbose="true" force="true" failonerror="true">
           <arg value="--unix-newline" />
-          <arg value="--compass" />
           <srcfile />
           <targetfile />
           <fileset dir="${sass.dir}" includes="**/*.scss,**/*.sass" excludes="**/_*" />

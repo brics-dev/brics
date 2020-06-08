@@ -1,6 +1,7 @@
 /**
  * 
  */
+$.getScript('/js/sessionHandler.js', function() {});
 var EditorView = BaseView.extend({
 	dialogTitle : "Edit",
 	validationRules : [],

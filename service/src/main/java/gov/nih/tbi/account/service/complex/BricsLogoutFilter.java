@@ -3,6 +3,7 @@ package gov.nih.tbi.account.service.complex;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -13,6 +14,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,18 +24,24 @@ import org.springframework.security.web.util.UrlUtils;
 import org.springframework.util.Assert;
 import org.springframework.web.filter.GenericFilterBean;
 
+import gov.nih.tbi.ModulesConstants;
+import gov.nih.tbi.account.model.AccountUserDetails;
+import gov.nih.tbi.account.model.hibernate.Account;
+import gov.nih.tbi.account.model.hibernate.TwoFactorAuthentication;
+import gov.nih.tbi.commons.service.AccountManager;
+
 /**
  * A version of LogoutFilter from the spring security framework that takes multiple logoutSuccessURLs as an argument and
  * then picks on when logging out based on the host
  * 
  */
-public class BricsLogoutFilter extends GenericFilterBean
+public class BricsLogoutFilter extends GenericFilterBean 
 {
 
     // ~ Instance fields
     // ================================================================================================
 
-    private String filterProcessesUrl = "/logout";
+    private String filterProcessesUrl = "";
     private List<LogoutHandler> handlers;
     private LinkedHashMap<String, String> logoutSuccessUrls;
     private SimpleUrlLogoutSuccessHandler logoutSuccessHandler;
@@ -43,6 +51,15 @@ public class BricsLogoutFilter extends GenericFilterBean
 
 	@Value("#{casSecurityProperties['cas.server.location']}")
 	private String[] casUrl;
+
+	private static final String PORTAL_URL = "portal";
+	private static final String PROFORMS_URL = "proforms";
+	private static final String LOGOUT_URL= "/logout";
+	@Autowired (required=false)
+	protected AccountManager accountManager;
+	@Autowired
+	ModulesConstants modulesConstants;
+	Authentication auth;
 
     // ~ Constructors
     // ===================================================================================================
@@ -71,14 +88,19 @@ public class BricsLogoutFilter extends GenericFilterBean
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException,
             ServletException
     {
-
+    	
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
-
+    	
+        if(modulesConstants.getIsTwoFaEnabled()) {
+        	updateAccountTwoFa(request, response);
+        }
+        
         if (requiresLogout(request, response))
         {
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
+        	if (auth == null) {
+            	auth = SecurityContextHolder.getContext().getAuthentication();
+        	}
             if (logger.isDebugEnabled())
             {
                 logger.debug("Logging out user '" + auth + "' and transferring to logout destination");
@@ -183,5 +205,28 @@ public class BricsLogoutFilter extends GenericFilterBean
 		}
 
 		initFilterBean();
+	}
+	
+	private void updateAccountTwoFa(HttpServletRequest request, HttpServletResponse response) throws IOException{
+    	auth = SecurityContextHolder.getContext().getAuthentication();
+    	String uri = request.getRequestURI();
+
+    	String logoutUri = PORTAL_URL + LOGOUT_URL;
+    	String pfLogoutUri = PROFORMS_URL + LOGOUT_URL;
+    	if(uri.endsWith(logoutUri) || uri.endsWith(pfLogoutUri)) {
+        	String requestUrl = request.getRequestURL().toString();
+        	String accountUrl = modulesConstants.getModulesAccountURL();
+        	if(!requestUrl.contains(accountUrl + PORTAL_URL)) {
+        		response.sendRedirect(accountUrl + logoutUri);
+        	} else {
+        		if(auth != null) {
+        			AccountUserDetails accountUserDetails = (AccountUserDetails) auth.getPrincipal();
+        			Account account = accountManager.getAccountById(accountUserDetails.getAccount().getId());
+        			account.setTwoFactorAuthentications(new HashSet<TwoFactorAuthentication>());
+        			accountManager.saveAccount(account);
+        		}
+        	}
+    	}
+
 	}
 }

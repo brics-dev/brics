@@ -1,0 +1,16 @@
+[DB-TRG]
+host=fitbir-db-stage.cit.nih.gov
+database=tbi_stage
+schema=tbi_metastg
+user=tbi_metastg
+label=TRG-STAGE
+
+[DB-SRC]
+host=fitbir-db-prod.cit.nih.gov
+database=tbi_prod
+schema=tbi_meta
+user=tbi_meta
+label=SRC-PROD
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\pgDelta\tbistage-tbiprod-meta

@@ -21,6 +21,11 @@ public class SkipRuleOperatorType extends EnumeratedType
     public static final SkipRuleOperatorType IS_BLANK = new SkipRuleOperatorType(2, "Is Blank");
     public static final SkipRuleOperatorType HAS_ANY_VALUE = new SkipRuleOperatorType(3, "Has Any Value");
     public static final SkipRuleOperatorType CONTAINS = new SkipRuleOperatorType(4, "Contains");// add by sunny
+	public static final SkipRuleOperatorType LESS_THAN = new SkipRuleOperatorType(5, "Less than");
+	public static final SkipRuleOperatorType LESS_THAN_EQUAL_TO = new SkipRuleOperatorType(6, "Less than equal to");
+	public static final SkipRuleOperatorType GREATER_THAN = new SkipRuleOperatorType(7, "Greater than");
+	public static final SkipRuleOperatorType GREATER_THAN_EQUAL_TO =
+			new SkipRuleOperatorType(8, "Greater than equal to");
 
     /**
      * Protected Constructor to populate default

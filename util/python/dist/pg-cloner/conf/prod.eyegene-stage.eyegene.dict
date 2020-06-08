@@ -1,0 +1,14 @@
+[DB-SRC]
+host=eyegene-db-prod.cit.nih.gov
+database=dictionary_prod
+schema=dictionary
+user=dictionary
+label=SOURCE
+
+[DB-TRG]
+host=eyegene-db-stage.cit.nih.gov
+database=dictionary_stage
+schema=dictionarystg
+user=dictionarystg
+label=TARGET
+

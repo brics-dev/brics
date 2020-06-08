@@ -43,7 +43,12 @@ public class PatientVisitsJSONAction extends BaseAction {
 		List<PatientVisit> visits = new ArrayList<PatientVisit>();
 		if (protocol != null) {
 			pvrc.setProtocolId(protocol.getId());
-			visits = (List<PatientVisit>)pm.getMonthPatientVisits(pvrc);
+			if (!isUserSiteCheckNeeded()) {
+				visits = pm.getMonthPatientVisits(pvrc);
+			} else {
+				List<Integer> siteIds = getUserAssignedSites();
+				visits = pm.getMonthPatientVisitsBySites(pvrc, siteIds);
+			}
 			
 		} else {
 			// if the protocol is not explicitly set, we are in "All Studies" and we need to get the visits

@@ -4,10 +4,13 @@ import gov.nih.brics.job.AccountEmailReportJob;
 import gov.nih.brics.job.AccountExpirationEmailJob;
 import gov.nih.brics.job.AccountReportingEmailJob;
 import gov.nih.brics.job.AdvancedViewCreateFileJob;
+import gov.nih.brics.job.BiosampleImportJob;
 import gov.nih.brics.job.CheckIUStatusAndRetrievManifestJob;
 import gov.nih.brics.job.DataElementStatusUpdateJob;
+import gov.nih.brics.job.DataImportJob;
 import gov.nih.brics.job.DeleteLoginPendingApprovedAccountJob;
 import gov.nih.brics.job.DownloadDatasetDeleteJob;
+import gov.nih.brics.job.DucExpirationEmailJob;
 import gov.nih.brics.job.PasswordExpirationEmailJob;
 import gov.nih.brics.job.PublicSiteStudiesCreateFileJob;
 import gov.nih.brics.job.RDFJobs;
@@ -61,6 +64,9 @@ public class JobScheduler {
 	@Autowired
 	AccountExpirationEmailJob accountExpirationEmailJob;
 
+    @Autowired
+    DucExpirationEmailJob ducExpiratonEmailJob;
+    
 	@Autowired
 	RDFJobs rdfJobs;
 
@@ -112,12 +118,21 @@ public class JobScheduler {
 	@Autowired
 	AccountReportingEmailJob accountReportingEmailJob;
 	
+	@Autowired
+	DataImportJob dataImportJob;
+	
+	@Autowired
+	BiosampleImportJob biosampleImportJob;
+	
 
 	@Value("${common.portal.noOfDayToDeleteDatasets}")
 	private String noOfDayToDeleteDatasets;
 	
 	@Value("${common.email.renewPassword.enabled}")
 	private boolean emailRenewPasswordEnabled;
+	
+	@Value("${common.email.ducExpiration.enabled}")
+	private boolean emailDucExpirationEnabled;
 	
 	@Value("${common.rdf.generate.enabled}")
 	private boolean rdfGenerateEnabled;
@@ -164,6 +179,13 @@ public class JobScheduler {
 	@Value("${common.account.accountReporting.enabled}")
 	private boolean accountReportingEmailEnabled;
 	
+	@Value("${common.repository.proformsDataImport.enabled}")
+	private boolean proformsDataImportEnabled;
+	
+	@Value("${common.repository.biosampleDataImport.enabled}")
+	private boolean biosampleDataImportEnabled;
+	
+	
 	/*
 	 * @Autowired ThreadPoolTaskScheduler scheduler;
 	 */
@@ -178,6 +200,14 @@ public class JobScheduler {
 		if(emailRenewPasswordEnabled) {
 			passwordExpirationEmailJob.doJob();
 			accountExpirationEmailJob.doJob();
+		}
+	}
+
+	@Scheduled(cron = "${common.email.ducExpiration.cronExpression}")
+	public void scheduleDucJob() {
+		if (emailDucExpirationEnabled) {
+			log.info("executing scheduled DUC expiration job");
+			ducExpiratonEmailJob.doJob();
 		}
 	}
 
@@ -319,6 +349,26 @@ public class JobScheduler {
 			accountReportingEmailJob.doJob();
 		}
 		log.info("Ending accountReportingEmailJob from scheduler");
+		
+	}
+	
+	@Scheduled(cron = "${common.repository.proformsDataImport.cronExpression}")
+	public void proformsDataImport(){
+		log.info("Executing proformsDataImportJob from scheduler");
+		if(proformsDataImportEnabled) {
+			dataImportJob.doJob();
+		}
+		log.info("Ending proformsDataImportJob from scheduler");
+		
+	}
+	
+	@Scheduled(cron = "${common.repository.biosampleDataImport.cronExpression}")
+	public void biosampleDataImport(){
+		log.info("Executing biosampleDataImportJob from scheduler");
+		if(biosampleDataImportEnabled) {
+			biosampleImportJob.doJob();
+		}
+		log.info("Ending biosampleImportJob from scheduler");
 		
 	}
 	

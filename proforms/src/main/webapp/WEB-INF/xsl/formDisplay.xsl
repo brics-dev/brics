@@ -3,6 +3,7 @@
     <xsl:variable name="displayQids" select="/form/@displayQids"/>
     <xsl:variable name="displaytop" select="/form/TOC/@display"/>
     <xsl:variable name="formFontSize" select="/form/htmlAttributes/@formFontSize"/>
+    <xsl:variable name="hasBtrisMappingQuestion" select="/form/@hasBtrisMappingQuestion"/>
     <xsl:param name="webroot"/>
     <xsl:param name="imageroot"/>
     <xsl:param name="cssstylesheet"/>
@@ -149,8 +150,16 @@
               	<I><xsl:value-of select="description"/></I>
               </td>
           </tr>
-          <tr align="left">
+          <tr align="left"><!-- BTRIS Get All Button -->
              <td>
+                 <xsl:choose>
+                     <xsl:when test="$hasBtrisMappingQuestion = 'true'">
+                     	<input type="button" id="getAllBtrisData" value="Get All BTRIS Data" class="allBtrisDataBtn" 
+  									title="Get All BTRIS Data for All Mapped Questions"
+  									onclick="openMappedBtrisQuestionsDlg();" 
+  									style="float: right; display: none;"/>
+   					</xsl:when>
+   			    </xsl:choose>
              	<!-- <img src="{$imageroot}/spacer.gif" width="1" height="10" alt="" border="0"/> -->
              </td>
           </tr>
@@ -256,7 +265,7 @@
         <xsl:variable name="maxNoofColumnForEachRowInSection" select="@maxNoofColumnForEachRowInSection"/>
             <xsl:choose>
                 <xsl:when test="@isCollapsable = 'true'">
-                    <table width="100%" cellspacing="0" cellpadding="0" border="0">
+                    <table width="100%" cellspacing="0" cellpadding="0" border="0" hideid="sectionContainer_{$sectionid}" >
                     	<tr width="100%">
                     		<td  width="100%" align="right" valign="top" >
                         		<DIV style="z-index:99;position:relative; top:17px; padding-left:10px; height:18px;" align="left"><xsl:value-of select="name"/></DIV>
@@ -267,9 +276,7 @@
  								<a href="javascript:;" style="display:block;" onclick="toggleVisibility('sectionContainer_{$sectionid}', 'sectionImg_{$sectionid}');">
  									<img src="{$imageroot}/ctdbCollapse.gif" alt="expand / collapse" id="sectionImg_{$sectionid}" border="0" style="border:none;"/>
  								</a>
-							     <script language="Javascript">
-							         setTimeout ( "toggleVisibility('sectionContainer_<xsl:value-of select="$sectionid"/>', 'sectionImg_<xsl:value-of select="$sectionid"/>');", 900);
-							     </script>
+
                         	</td>
                          </tr>
                     </table>
@@ -431,6 +438,7 @@
 		                                            </xsl:choose>
 		                                        </xsl:when>
 		                                    </xsl:choose>
+
 		                                    <div align="center">
 		                                    	{<span id="S_{$questionSectionNode}_Q_{$qid}_amount" style="border:0; color:#f6931f; font-weight:bold;"><xsl:value-of select="$scaleMin"/>/<xsl:value-of select="$scaleMax"/></span>}<!-- show the index number -->
 		                                	</div>
@@ -656,7 +664,7 @@
 							                       		<xsl:for-each select="answers/answer">
 					                                        <xsl:choose>
 					                                            <xsl:when test="$default = display">
-					                                           		<label>
+					                                           		<label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 					                                                	<input type="radio" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" checked="true" onfocus="checkButtons(this);" onMouseDown="toggleRadio(this);" onchange="displayRadioOther(this)" />
 					                                                	<div class="questionText" title="{display/@displayToolTip}">
 					                                                		<xsl:value-of select="display"/>
@@ -669,7 +677,7 @@
 				                                                	</xsl:choose>
 					                                            </xsl:when>
 					                                            <xsl:otherwise>
-					                                           		<label>
+					                                           		<label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 					                                                	<input type="radio" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" onfocus="checkButtons(this);" onMouseDown="toggleRadio(this);" onchange="displayRadioOther(this)" />
 					                                                	<div class="questionText" title="{display/@displayToolTip}">
 					                                                		<xsl:value-of select="display"/>
@@ -684,7 +692,7 @@
 					                                        </xsl:choose>
 					                                         <xsl:choose>
 					                                                 <xsl:when test="$horizontalDisplay!='true'">
-					                                                     <br/>
+					                                                     <br hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}"></br>
 					                                                 </xsl:when>
 					                                            </xsl:choose>
 					                                    	</xsl:for-each>
@@ -694,7 +702,7 @@
 				                                    <xsl:for-each select="answers/answer">
 				                                        <xsl:choose>
 				                                            <xsl:when test="$default = display">
-				                                                <label>
+				                                                <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 				                                                	<input type="radio" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" checked="true" onfocus="checkButtons(this);" onMouseDown="toggleRadio(this);" onchange="displayRadioOther(this)" />
 				                                                	<div class="questionText" title="{display/@displayToolTip}">
 				                                                		<xsl:value-of select="display"/>
@@ -707,7 +715,7 @@
 				                                                </xsl:choose>
 				                                            </xsl:when>
 				                                            <xsl:otherwise>
-				                                        	    <label>
+				                                        	    <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 				                                               		<input type="radio" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" onfocus="checkButtons(this);" onMouseDown="toggleRadio(this);" onchange="displayRadioOther(this)" />
 				                                               		<div class="questionText" title="{display/@displayToolTip}">
 				                                                		<xsl:value-of select="display"/>
@@ -722,7 +730,7 @@
 				                                        </xsl:choose>
 				                                         <xsl:choose>
 				                                                 <xsl:when test="$horizontalDisplay!='true'">
-				                                                     <br/>
+				                                                     <br hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}"></br>
 				                                                 </xsl:when>
 				                                            </xsl:choose>
 				                                    </xsl:for-each>
@@ -736,7 +744,7 @@
 						                    		<xsl:for-each select="answers/answer">
 				                                       <xsl:choose>
 				                                            <xsl:when test="$default = display">
-				                                                 <label>
+				                                                 <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 				                                                 	<input type="radio" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}"  onfocus="checkButtons(this);" checked="true" ondblclick="clearSkipRuleForDoubleClick('{$skipRule}',[{$questionsToSkip}])" onchange="applyskiprule(this, [{$questionsToSkip}], '{$skipOperator}','{$skipRule}','{$skipRuleEquals}');displayRadioOther(this)" onMouseDown="toggleRadio(this);" />
 				                                                 	<div class="questionText" title="{display/@displayToolTip}">
 				                                                		<xsl:value-of select="display"/>
@@ -749,7 +757,7 @@
 				                                                </xsl:choose>
 				                                             </xsl:when>
 				                                             <xsl:otherwise>
-				                                                <label>
+				                                                <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 				                                                	<input type="radio" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" onfocus="checkButtons(this);" ondblclick="clearSkipRuleForDoubleClick('{$skipRule}',[{$questionsToSkip}])" onchange="applyskiprule(this, [{$questionsToSkip}], '{$skipOperator}','{$skipRule}','{$skipRuleEquals}');displayRadioOther(this)" onMouseDown="toggleRadio(this);" />
 				                                                	<div class="questionText" title="{display/@displayToolTip}">
 				                                                		<xsl:value-of select="display"/>
@@ -764,7 +772,7 @@
 				                                         </xsl:choose>
 				                                         <xsl:choose>
 				                                                 <xsl:when test="$horizontalDisplay!='true'">
-				                                                     <br/>
+				                                                     <br hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}"></br>
 				                                                 </xsl:when>
 				                                         </xsl:choose>
 				                                     </xsl:for-each>
@@ -774,7 +782,7 @@
 				                                    <xsl:for-each select="answers/answer">
 				                                       <xsl:choose>
 				                                            <xsl:when test="$default = display">
-				                                                <label>
+				                                                <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 				                                                	<input type="radio" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}"  onfocus="checkButtons(this);" checked="true" ondblclick="clearSkipRuleForDoubleClick('{$skipRule}',[{$questionsToSkip}])" onchange="applyskiprule(this, [{$questionsToSkip}], '{$skipOperator}','{$skipRule}','{$skipRuleEquals}');displayRadioOther(this)" onMouseDown="toggleRadio(this);" />
 				                                                	<div class="questionText" title="{display/@displayToolTip}">
 				                                                		<xsl:value-of select="display"/>
@@ -787,7 +795,7 @@
 				                                                </xsl:choose>
 				                                             </xsl:when>
 				                                             <xsl:otherwise>
-				                                                <label>
+				                                                <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 				                                                	<input type="radio" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" onfocus="checkButtons(this);" ondblclick="clearSkipRuleForDoubleClick('{$skipRule}',[{$questionsToSkip}])" onchange="applyskiprule(this, [{$questionsToSkip}], '{$skipOperator}','{$skipRule}','{$skipRuleEquals}');displayRadioOther(this)" onMouseDown="toggleRadio(this);" />
 				                                                	<div class="questionText" title="{display/@displayToolTip}">
 				                                                		<xsl:value-of select="display"/>
@@ -802,7 +810,7 @@
 				                                         </xsl:choose>
 				                                         <xsl:choose>
 				                                                 <xsl:when test="$horizontalDisplay!='true'">
-				                                                     <br/>
+				                                                     <br hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}"></br>
 				                                                 </xsl:when>
 				                                         </xsl:choose>
 				                                     </xsl:for-each>
@@ -821,7 +829,7 @@
 				                                    <xsl:for-each select="answers/answer">
 				                                        <xsl:choose>
 				                                            <xsl:when test="$default = display">
-				                                                <label>
+				                                                <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 				                                                	<input type="checkbox" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" checked="true" onfocus="checkButtons(this);" onchange="displayCheckOther('S_{$questionSectionNode}_Q_{$qid}')" />
 				                                                	<div class="questionText" title="{display/@displayToolTip}">
 				                                                		<xsl:value-of select="display"/>
@@ -834,7 +842,7 @@
 				                                               	</xsl:choose>
 				                                            </xsl:when>
 				                                            <xsl:otherwise>
-				                                                <label>
+				                                                <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 				                                                	<input type="checkbox" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" onfocus="checkButtons(this);" onchange="displayCheckOther('S_{$questionSectionNode}_Q_{$qid}')" />
 				                                                	<div class="questionText" title="{display/@displayToolTip}">
 				                                                		<xsl:value-of select="display"/>
@@ -854,7 +862,7 @@
 			                                  	<xsl:for-each select="answers/answer">
 			                                        <xsl:choose>
 			                                            <xsl:when test="$default = display">
-			                                                <label>
+			                                                <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 			                                                	<input type="checkbox" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" checked="true" onfocus="checkButtons(this);" onchange="displayCheckOther('S_{$questionSectionNode}_Q_{$qid}')" />
 			                                                	<div class="questionText" title="{display/@displayToolTip}">
 				                                                		<xsl:value-of select="display"/>
@@ -867,7 +875,7 @@
 				                                           	</xsl:choose>
 			                                            </xsl:when>
 			                                            <xsl:otherwise>
-			                                                <label>
+			                                                <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 			                                                	<input type="checkbox" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" onfocus="checkButtons(this);" onchange="displayCheckOther('S_{$questionSectionNode}_Q_{$qid}')" />
 			                                                	<div class="questionText" title="{display/@displayToolTip}">
 				                                                		<xsl:value-of select="display"/>
@@ -891,7 +899,7 @@
 		                                			<xsl:for-each select="answers/answer">
 				                                        <xsl:choose>
 				                                            <xsl:when test="$default = display">
-				                                                <label>
+				                                                <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 				                                                	<input type="checkbox" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" checked="true" onfocus="checkButtons(this);" onchange="applyskiprule(this, [{$questionsToSkip}], '{$skipOperator}','{$skipRule}','{$skipRuleEquals}');displayCheckOther('S_{$questionSectionNode}_Q_{$qid}')" />
 				                                                	<div class="questionText" title="{display/@displayToolTip}">
 				                                                		<xsl:value-of select="display"/>
@@ -904,7 +912,7 @@
 				                                               	</xsl:choose>
 				                                            </xsl:when>
 				                                            <xsl:otherwise>
-				                                                <label>
+				                                                <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 				                                                	<input type="checkbox" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" onfocus="checkButtons(this);" onchange="applyskiprule(this, [{$questionsToSkip}], '{$skipOperator}','{$skipRule}','{$skipRuleEquals}');displayCheckOther('S_{$questionSectionNode}_Q_{$qid}')" />
 				                                                	<div class="questionText" title="{display/@displayToolTip}">
 				                                                		<xsl:value-of select="display"/>
@@ -924,7 +932,7 @@
 				                                    <xsl:for-each select="answers/answer">
 				                                        <xsl:choose>
 				                                            <xsl:when test="$default = display">
-				                                                <label>
+				                                                <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 				                                                	<input type="checkbox" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" checked="true" onfocus="checkButtons(this);" onchange="applyskiprule(this, [{$questionsToSkip}], '{$skipOperator}','{$skipRule}','{$skipRuleEquals}');displayCheckOther('S_{$questionSectionNode}_Q_{$qid}')" />
 				                                                	<div class="questionText" title="{display/@displayToolTip}">
 				                                                		<xsl:value-of select="display"/>
@@ -937,7 +945,7 @@
 				                                               	</xsl:choose>
 				                                            </xsl:when>
 				                                            <xsl:otherwise>
-				                                                <label>
+				                                                <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 				                                                	<input type="checkbox" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" onfocus="checkButtons(this);" onchange="applyskiprule(this, [{$questionsToSkip}], '{$skipOperator}','{$skipRule}','{$skipRuleEquals}');displayCheckOther('S_{$questionSectionNode}_Q_{$qid}')" />
 				                                                	<div class="questionText" title="{display/@displayToolTip}">
 				                                                		<xsl:value-of select="display"/>
@@ -957,7 +965,14 @@
 	                            </xsl:choose>
 	                        </xsl:when>
 	                    </xsl:choose>
-	
+						<!-- Btris Mapping -->
+                        <xsl:choose>
+                             <xsl:when test="@hasBtrisMapping = 'true'">
+                            		<xsl:for-each select="btrisMapping">
+                            			<br/><img src="{$imageroot}/icons/information.png" class="btrisMappingInfo" alt="Info Image" title="Has Btris Mapping" border="0" style="float: right; display: none;"/>
+           						</xsl:for-each>
+           					</xsl:when>
+           			   </xsl:choose>
 	                    </td>
 	                    </tr>
 	
@@ -1127,19 +1142,19 @@
 	                                                    	</xsl:when>
 	                                                    </xsl:choose> 
 	                                                    <xsl:if test="not(contains(scoreStr, $default))">
-	                                                    	<option value="{$default}" selected="selected">
+	                                                    	<option value="{$default}" selected="selected" hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 	                                                    		<xsl:value-of select="$default"/>
 	                                                    	</option> 
 	                                                    </xsl:if>	                                                                                                      
 	                                                    <xsl:for-each select="answers/answer">
 	                                                        <xsl:choose>
 	                                                            <xsl:when test="$default = display">
-	                                                                <option value="{display}" selected="selected" title="{display/@displayToolTip}">
+	                                                                <option value="{display}" selected="selected" title="{display/@displayToolTip}" hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 	                                                                    <xsl:value-of select="display"/>
 	                                                                </option>
 	                                                            </xsl:when>
 	                                                            <xsl:otherwise>
-		                                                            <option value="{display}" title="{display/@displayToolTip}">
+		                                                            <option value="{display}" title="{display/@displayToolTip}" hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 	                                                                    <xsl:value-of select="display"/>
 	                                                                </option>
 	                                                            </xsl:otherwise>
@@ -1153,7 +1168,7 @@
 	                                                    	</xsl:when>
 	                                                    	</xsl:choose>
 	                                                    <xsl:for-each select="answers/answer">
-	                                                        <option value="{display}" title="{display/@displayToolTip}">
+	                                                        <option value="{display}" title="{display/@displayToolTip}" hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 	                                                            <xsl:value-of select="display"/>
 	                                                        </option>
 	                                                    </xsl:for-each>
@@ -1173,12 +1188,12 @@
 	                                            <xsl:for-each select="answers/answer">
 	                                                <xsl:choose>
 	                                                    <xsl:when test="$default = display">
-	                                                        <option value="{display}" selected="selected" title="{display/@displayToolTip}">
+	                                                        <option value="{display}" selected="selected" title="{display/@displayToolTip}" hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 	                                                            <xsl:value-of select="display"/>
 	                                                        </option>
 	                                                    </xsl:when>
 	                                                    <xsl:otherwise>
-	                                                        <option value="{display}" title="{display/@displayToolTip}">
+	                                                        <option value="{display}" title="{display/@displayToolTip}" hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 	                                                            <xsl:value-of select="display"/>
 	                                                        </option>
 	                                                    </xsl:otherwise>
@@ -1198,7 +1213,7 @@
 						                                 <xsl:for-each select="answers/answer">
 				                                            <xsl:choose>
 				                                                <xsl:when test="$default = display">
-				                                                    <label>
+				                                                    <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 				                                                    	<input type="radio" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" checked="true" onfocus="checkButtons(this);" onMouseDown="toggleRadio(this);" onchange="displayRadioOther(this)" />
 				                                                    	<div class="questionText" title="{display/@displayToolTip}">
 					                                                		<xsl:value-of select="display"/>
@@ -1211,7 +1226,7 @@
 					                                               	</xsl:choose>
 				                                                </xsl:when>
 				                                                <xsl:otherwise>
-				                                                    <label>
+				                                                    <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 				                                                    	<input type="radio" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" onfocus="checkButtons(this);" onMouseDown="toggleRadio(this);" onchange="displayRadioOther(this)" />
 				                                                    	<div class="questionText" title="{display/@displayToolTip}">
 					                                                		<xsl:value-of select="display"/>
@@ -1226,7 +1241,7 @@
 				                                            </xsl:choose>
 				                                             <xsl:choose>
 				                                                <xsl:when test="$horizontalDisplay!='true'">
-				                                                     <br/>
+				                                                     <br hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}"></br>
 				                                                </xsl:when>
 				                                            </xsl:choose>
 				                                        </xsl:for-each>
@@ -1236,7 +1251,7 @@
 						                                 <xsl:for-each select="answers/answer">
 				                                            <xsl:choose>
 				                                                <xsl:when test="$default = display">
-				                                                    <label>
+				                                                    <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 				                                                   		<input type="radio" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" checked="true" onfocus="checkButtons(this);" onMouseDown="toggleRadio(this);" onchange="displayRadioOther(this)" />
 				                                                   		<div class="questionText" title="{display/@displayToolTip}">
 					                                                		<xsl:value-of select="display"/>
@@ -1249,7 +1264,7 @@
 					                                               	</xsl:choose>
 				                                                </xsl:when>
 				                                                <xsl:otherwise>
-				                                                	<label>
+				                                                	<label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 				                                                   		<input type="radio" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" onfocus="checkButtons(this);" onMouseDown="toggleRadio(this);" onchange="displayRadioOther(this)" />
 				                                                   		<div class="questionText" title="{display/@displayToolTip}">
 					                                                		<xsl:value-of select="display"/>
@@ -1264,7 +1279,7 @@
 				                                            </xsl:choose>
 				                                             <xsl:choose>
 				                                                <xsl:when test="$horizontalDisplay!='true'">
-				                                                     <br/>
+				                                                     <br hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}"></br>
 				                                                </xsl:when>
 				                                            </xsl:choose>
 				                                        </xsl:for-each>
@@ -1279,7 +1294,7 @@
 				                                        <xsl:for-each select="answers/answer">
 				                                                    <xsl:choose>
 				                                                        <xsl:when test="$default = display">
-				                                                            <label>
+				                                                            <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 				                                                            	<input type="checkbox" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" checked="true" onfocus="checkButtons(this);" onchange="displayCheckOther('S_{$questionSectionNode}_Q_{$qid}')" />
 				                                                            	<div class="questionText" title="{display/@displayToolTip}">
 							                                                		<xsl:value-of select="display"/>
@@ -1292,7 +1307,7 @@
 							                                               	</xsl:choose>
 				                                                        </xsl:when>
 				                                                        <xsl:otherwise>
-				                                                            <label>
+				                                                            <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 				                                                            	<input type="checkbox" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" onfocus="checkButtons(this);" onchange="displayCheckOther('S_{$questionSectionNode}_Q_{$qid}')" />
 				                                                            	<div class="questionText" title="{display/@displayToolTip}">
 							                                                		<xsl:value-of select="display"/>
@@ -1307,7 +1322,7 @@
 				                                                    </xsl:choose>
 				                                              <xsl:choose>
 				                                                 <xsl:when test="$horizontalDisplay!='true'">
-				                                                     <br/>
+				                                                      <br hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}"></br>
 				                                                 </xsl:when>
 				                                            </xsl:choose>
 														</xsl:for-each>
@@ -1317,7 +1332,7 @@
 													<xsl:for-each select="answers/answer">
 				                                                    <xsl:choose>
 				                                                        <xsl:when test="$default = display">
-				                                                            <label>
+				                                                            <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 				                                                            	<input type="checkbox" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" checked="true" onfocus="checkButtons(this);" onchange="displayCheckOther('S_{$questionSectionNode}_Q_{$qid}')" />
 				                                                            	<div class="questionText" title="{display/@displayToolTip}">
 							                                                		<xsl:value-of select="display"/>
@@ -1330,7 +1345,7 @@
 							                                               	</xsl:choose>
 				                                                        </xsl:when>
 				                                                        <xsl:otherwise>
-				                                                            <label>
+				                                                            <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 				                                                            	<input type="checkbox" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" onfocus="checkButtons(this);" onchange="displayCheckOther('S_{$questionSectionNode}_Q_{$qid}')" />
 				                                                            	<div class="questionText" title="{display/@displayToolTip}">
 							                                                		<xsl:value-of select="display"/>
@@ -1345,7 +1360,7 @@
 				                                                    </xsl:choose>
 				                                              <xsl:choose>
 				                                                 <xsl:when test="$horizontalDisplay!='true'">
-				                                                     <br/>
+				                                                     <br hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}"></br>
 				                                                 </xsl:when>
 				                                            </xsl:choose>
 														</xsl:for-each>
@@ -1355,10 +1370,11 @@
 	
 	                                    <xsl:when test="@type = 'Calculated'">
 	                                        <xsl:variable name="calc" select="@calculation"/>
+	                                         <xsl:variable name="isCount" select="@isCount"/>
 	                                        <xsl:variable name="answertype" select="@answertype"/>
 	                                        <xsl:variable name="decimalPrecision" select="@decimalPrecision"/>
 	                                        <xsl:variable name="conditionalForCalc" select="@conditionalForCalc"/>
-	                                        <input type="text" deName="{$deName}" id="S_{$questionSectionNode}_Q_{$qid}" readonly="yes" name="S_{$questionSectionNode}_Q_{$qid}" size="{$textboxSize}"  onfocus="calculate(this, '{$calc}', '{$answertype}','{$decimalPrecision}','{$conditionalForCalc}');" onkeyup="userEntry(this)"/>
+	                                        <input type="text" deName="{$deName}" id="S_{$questionSectionNode}_Q_{$qid}" readonly="yes" name="S_{$questionSectionNode}_Q_{$qid}" size="{$textboxSize}"  onfocus="calculate(this, '{$calc}', '{$answertype}','{$decimalPrecision}','{$conditionalForCalc}','{$isCount}');" onkeyup="userEntry(this)"/>
                                     		<input type="hidden" id="inputFalg_S_{$questionSectionNode}_Q_{$qid}" value="false"/>
 	                                    </xsl:when>
 	                                    <xsl:otherwise>
@@ -1437,12 +1453,12 @@
 	                                                    <xsl:for-each select="answers/answer">
 	                                                        <xsl:choose>
 	                                                            <xsl:when test="$default = display">
-	                                                                <option value="{display}" selected="selected" title="{display/@displayToolTip}">
+	                                                                <option value="{display}" selected="selected" title="{display/@displayToolTip}" hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 	                                                                    <xsl:value-of select="display"/>
 	                                                                </option>
 	                                                            </xsl:when>
 	                                                            <xsl:otherwise>
-	                                                                <option value="{display}" title="{display/@displayToolTip}">
+	                                                                <option value="{display}" title="{display/@displayToolTip}" hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 	                                                                    <xsl:value-of select="display"/>
 	                                                                </option>
 	                                                            </xsl:otherwise>
@@ -1456,7 +1472,7 @@
 	                                                    	</xsl:when>
 	                                                    </xsl:choose>
 	                                                    <xsl:for-each select="answers/answer">
-	                                                        <option value="{display}" title="{display/@displayToolTip}">
+	                                                        <option value="{display}" title="{display/@displayToolTip}" hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 	                                                            <xsl:value-of select="display"/>
 	                                                        </option>
 	                                                    </xsl:for-each>
@@ -1476,12 +1492,12 @@
 	                                            <xsl:for-each select="answers/answer">
 	                                                <xsl:choose>
 	                                                    <xsl:when test="$default = display">
-	                                                        <option value="{display}" selected="selected" title="{display/@displayToolTip}">
+	                                                        <option value="{display}" selected="selected" title="{display/@displayToolTip}" hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 	                                                            <xsl:value-of select="display"/>
 	                                                        </option>
 	                                                    </xsl:when>
 	                                                    <xsl:otherwise>
-	                                                        <option value="{display}" title="{display/@displayToolTip}">
+	                                                        <option value="{display}" title="{display/@displayToolTip}" hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 	                                                            <xsl:value-of select="display"/>
 	                                                        </option>
 	                                                    </xsl:otherwise>
@@ -1501,7 +1517,7 @@
 					                                        <xsl:for-each select="answers/answer">
 					                                            <xsl:choose>
 					                                                <xsl:when test="$default = display">
-					                                                	<label>
+					                                                	<label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 						                                                    <input type="radio" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}"  onfocus="checkButtons(this);" checked="true" ondblclick="clearSkipRuleForDoubleClick('{$skipRule}',[{$questionsToSkip}])" onchange="applyskiprule(this, [{$questionsToSkip}], '{$skipOperator}','{$skipRule}','{$skipRuleEquals}');displayRadioOther(this)" onMouseDown="toggleRadio(this);" />
 						                                                    <div class="questionText" title="{display/@displayToolTip}">
 						                                                		<xsl:value-of select="display"/>
@@ -1514,7 +1530,7 @@
 						                                               	</xsl:choose>
 					                                                </xsl:when>
 					                                                <xsl:otherwise>
-					                                                    <label>
+					                                                    <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 					                                                    	<input type="radio" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" onfocus="checkButtons(this);" ondblclick="clearSkipRuleForDoubleClick('{$skipRule}',[{$questionsToSkip}])" onchange="applyskiprule(this, [{$questionsToSkip}], '{$skipOperator}','{$skipRule}','{$skipRuleEquals}');displayRadioOther(this)" onMouseDown="toggleRadio(this);" />
 					                                                    	<div class="questionText" title="{display/@displayToolTip}">
 						                                                		<xsl:value-of select="display"/>
@@ -1529,7 +1545,7 @@
 					                                            </xsl:choose>
 					                                            <xsl:choose>
 					                                                 <xsl:when test="$horizontalDisplay!='true'">
-					                                                     <br/>
+					                                                     <br hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}"></br>
 					                                                 </xsl:when>
 					                                            </xsl:choose>
 					                                        </xsl:for-each>
@@ -1539,7 +1555,7 @@
 				                                  		<xsl:for-each select="answers/answer">
 				                                            <xsl:choose>
 				                                                <xsl:when test="$default = display">
-				                                                    <label>
+				                                                    <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 				                                                    	<input type="radio" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}"  onfocus="checkButtons(this);" checked="true" ondblclick="clearSkipRuleForDoubleClick('{$skipRule}',[{$questionsToSkip}])" onchange="applyskiprule(this, [{$questionsToSkip}], '{$skipOperator}','{$skipRule}','{$skipRuleEquals}');displayRadioOther(this)" onMouseDown="toggleRadio(this);" />
 				                                                    	<div class="questionText" title="{display/@displayToolTip}">
 					                                                		<xsl:value-of select="display"/>
@@ -1552,7 +1568,7 @@
 					                                               	</xsl:choose>
 				                                                </xsl:when>
 				                                                <xsl:otherwise>
-				                                                	<label>
+				                                                	<label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 				                                                    	<input type="radio" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" onfocus="checkButtons(this);" ondblclick="clearSkipRuleForDoubleClick('{$skipRule}',[{$questionsToSkip}])" onchange="applyskiprule(this, [{$questionsToSkip}], '{$skipOperator}','{$skipRule}','{$skipRuleEquals}');displayRadioOther(this)" onMouseDown="toggleRadio(this);" />
 				                                                    	<div class="questionText" title="{display/@displayToolTip}">
 					                                                		<xsl:value-of select="display"/>
@@ -1567,7 +1583,7 @@
 				                                            </xsl:choose>
 				                                            <xsl:choose>
 				                                                 <xsl:when test="$horizontalDisplay!='true'">
-				                                                     <br/>
+				                                                     <br hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}"></br>
 				                                                 </xsl:when>
 				                                            </xsl:choose>
 				                                        </xsl:for-each>
@@ -1583,7 +1599,7 @@
 				                                        <xsl:for-each select="answers/answer">
 				                                            <xsl:choose>
 				                                                <xsl:when test="$default = display">
-				                                                    <label>
+				                                                    <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 				                                                   		<input type="checkbox" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" checked="true" onfocus="checkButtons(this);" onchange="applyskiprule(this, [{$questionsToSkip}], '{$skipOperator}','{$skipRule}','{$skipRuleEquals}');displayCheckOther('S_{$questionSectionNode}_Q_{$qid}')" />
 				                                                   		<div class="questionText" title="{display/@displayToolTip}">
 					                                                		<xsl:value-of select="display"/>
@@ -1596,7 +1612,7 @@
 					                                               	</xsl:choose>
 				                                                </xsl:when>
 				                                                <xsl:otherwise>
-				                                                    <label>
+				                                                    <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 				                                                    	<input type="checkbox" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" onfocus="checkButtons(this);" onchange="applyskiprule(this, [{$questionsToSkip}], '{$skipOperator}','{$skipRule}','{$skipRuleEquals}');displayCheckOther('S_{$questionSectionNode}_Q_{$qid}')" />
 				                                                    	<div class="questionText" title="{display/@displayToolTip}">
 					                                                		<xsl:value-of select="display"/>
@@ -1611,7 +1627,7 @@
 				                                            </xsl:choose>
 				                                            <xsl:choose>
 				                                                 <xsl:when test="$horizontalDisplay!='true'">
-				                                                     <br/>
+				                                                     <br hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}"></br>
 				                                                 </xsl:when>
 				                                            </xsl:choose>
 				                                        </xsl:for-each>
@@ -1621,7 +1637,7 @@
 		                                        	<xsl:for-each select="answers/answer">
 			                                            <xsl:choose>
 			                                                <xsl:when test="$default = display">
-			                                                    <label>
+			                                                    <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 			                                                    	<input type="checkbox" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" checked="true" onfocus="checkButtons(this);" onchange="applyskiprule(this, [{$questionsToSkip}], '{$skipOperator}','{$skipRule}','{$skipRuleEquals}');displayCheckOther('S_{$questionSectionNode}_Q_{$qid}')" />
 			                                                    	<div class="questionText" title="{display/@displayToolTip}">
 				                                                		<xsl:value-of select="display"/>
@@ -1634,7 +1650,7 @@
 				                                               	</xsl:choose>
 			                                                </xsl:when>
 			                                                <xsl:otherwise>
-			                                                    <label>
+			                                                    <label hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}">
 			                                                    	<input type="checkbox" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" value="{display}" onfocus="checkButtons(this);" onchange="applyskiprule(this, [{$questionsToSkip}], '{$skipOperator}','{$skipRule}','{$skipRuleEquals}');displayCheckOther('S_{$questionSectionNode}_Q_{$qid}')" />
 			                                                    	<div class="questionText" title="{display/@displayToolTip}">
 				                                                		<xsl:value-of select="display"/>
@@ -1649,7 +1665,7 @@
 			                                            </xsl:choose>
 			                                            <xsl:choose>
 			                                                 <xsl:when test="$horizontalDisplay!='true'">
-			                                                     <br/>
+			                                                     <br hideid="questionContainer_{$questionSectionNode}_{$qid}_{pvid}"></br>
 			                                                 </xsl:when>
 			                                            </xsl:choose>
 			                                        </xsl:for-each>
@@ -1658,10 +1674,11 @@
 	                                    </xsl:when>
 	                                    <xsl:when test="@type = 'Calculated'">
 	                                        <xsl:variable name="calc" select="@calculation"/>
+	                                        <xsl:variable name="isCount" select="@isCount"/>
 	                                        <xsl:variable name="answertype" select="@answertype"/>
 	                                         <xsl:variable name="decimalPrecision" select="@decimalPrecision"/>
 	                                         <xsl:variable name="conditionalForCalc" select="@conditionalForCalc"/>
-	                                        <input type="text" deName="{$deName}" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" readonly="yes" size="{$textboxSize}"  onfocus="calculate(this,'{$calc}', '{@answertype}','{$decimalPrecision}','{$conditionalForCalc}');" onchange="applyskiprule(this, [{$questionsToSkip}], '{$skipOperator}','{$skipRule}','{$skipRuleEquals}')" onkeyup="userEntry(this)"/>
+	                                        <input type="text" deName="{$deName}" id="S_{$questionSectionNode}_Q_{$qid}" name="S_{$questionSectionNode}_Q_{$qid}" readonly="yes" size="{$textboxSize}"  onfocus="calculate(this,'{$calc}', '{@answertype}','{$decimalPrecision}','{$conditionalForCalc}','{$isCount}');" onchange="applyskiprule(this, [{$questionsToSkip}], '{$skipOperator}','{$skipRule}','{$skipRuleEquals}')" onkeyup="userEntry(this)"/>
                                     		<input type="hidden" id="inputFalg_S_{$questionSectionNode}_Q_{$qid}" value="false"/>
 	                                    </xsl:when>
 	                                    <xsl:otherwise>
@@ -1678,13 +1695,21 @@
 		                                    	<br/>
 		                                    	</span>
 		                                    	</xsl:when>
-		                                  	  </xsl:choose>                         
+		                                  	  </xsl:choose>  
+	                     	<!-- Btris Mapping -->
+                            <xsl:choose>
+                                <xsl:when test="@hasBtrisMapping = 'true'">
+                               		<xsl:for-each select="btrisMapping">
+                               			<br/><img src="{$imageroot}/icons/information.png" class="btrisMappingInfo" alt="Info Image" title="Has Btris Mapping" border="0"  style="float: right; display: none;"/>
+              						</xsl:for-each>
+              					</xsl:when>
+              			    </xsl:choose>                       
 	                    </td>
 	                </xsl:otherwise>
 	            </xsl:choose>
 	        </tr> <!-- show question end -->
-			<!--Question  graphics -->
 			
+			<!--Question  documents -->		
 			<tr align='left'>
 	            <td colspan="2" id="S_{$questionSectionNode}_Q_{$qid}_link">
 	                <xsl:for-each select="images/filename">
@@ -1692,7 +1717,11 @@
 	                    <!-- <img class="imgThumb" src="{$imageroot}/questionimages/{.}" alt="Question Image" border="0" onclick="goImgWin('{$imageroot}/questionimages/{.}',240,302,100,50)" style="cursor: pointer"/>&#160;&#160; -->
 	                	<!-- <img class="imgThumb" src="{$qid}/{.}" alt="Question Image" border="0" onclick="goImgWin('{$imageroot}/response/dataCollection.action?action=getQuestionGraphic&qId={$qid}&filename={.}',240,302,100,50)" style="cursor: pointer"/>&#160;&#160;-->
 	                	<!-- <img class="imgThumb" src="{$qid}/{.}" alt="Question Image" border="0"  style="cursor: pointer"/>&#160;&#160;  -->
-	                	<img class="imgThumb" src="{$dictionaryWsRoot}portal/ws/ddt/dictionary/eforms/question/{$qid}/document/{.}" alt="Question Image" border="0"  style="cursor: pointer"/>&#160;&#160;
+	                	<img class="imgThumb" src="{$webroot}/ws/public/image/question/{$qid}/document/{.}" alt="Question Image" border="0"  style="cursor: pointer"/>&#160;&#160;
+	                </xsl:for-each>
+	                <xsl:for-each select="files/filename">
+	                	<xsl:variable name="fileLink" select="@fileLink"/>
+	                  	<a href="{@fileLink}" fileName="{.}" questionId="{$qid}" alt="Question File"><xsl:value-of select="current()"/></a>&#160;&#160;
 	                </xsl:for-each>
 	            </td>
 	        </tr>

@@ -8,4 +8,6 @@ public interface MetaStudyDataDao extends GenericDao<MetaStudyData, Long> {
 	
 	public boolean isMetaStudyDataTitleUnique(String fileName, long metaStudyId);
 	
+	public boolean isQueryLinkedToMetaStudy(long savedQueryId);
+	
 }

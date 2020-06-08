@@ -1,0 +1,7 @@
+[DB-TRG]
+host=eyegene-db-demo.cit.nih.gov
+database=dictionary_demo
+schema=dictionarydemo
+user=dictionarydemo
+label=TARGET
+

@@ -74,6 +74,7 @@ var Question = BaseModel.extend({
 		triggerAnswers : new Array(),
 		eMailTriggerId : -2147483648,
 		eMailTriggerUpdatedBy : -2147483648,
+		triggerValues: new Array(),
 		
 		///// Calculated Form Question Attributes
 		calculationType : -2147483648,   //not sure if this is even being used
@@ -84,10 +85,22 @@ var Question = BaseModel.extend({
 		calDependent : false,
 		conditionalForCalc : false,
 		
+		// count information
+		countFormula : '',
+		questionsInCount : new Array(),
+		countFlag : false,
+		
 		htmlText : '',
 		answerTypeDisplay : '',
 		
 		dataElementName : 'none',
+		
+		hasBtrisMapping: false,
+		isGettingBtrisVal: false,
+		//Btris Mapping attributes		
+		btrisObservationName: '',
+		btrisRedCode: '',
+		btrisSpecimenType: '',
 		
 		prepopulation : false,
 		prepopulationValue : '',
@@ -170,7 +183,11 @@ var Question = BaseModel.extend({
 		"attachedFormIds",
 		"questionOrder",
 		"questionOrder_col",
-		"htmlText"
+		"htmlText",
+		//Btris Mapping
+		"hasBtrisMapping",
+		"isGettingBtrisVal"
+
 	],
 	
 	/**
@@ -640,7 +657,15 @@ var Question = BaseModel.extend({
 			return 'questionForm.conditionalForCalc='+params[KEYs[key]]+'&';
 			break;	
 			
-			
+		case 'countFormula':
+			return 'questionForm.countFormula='+params[KEYs[key]]+'&';
+			break;
+		case 'questionsInCount':
+			return 'questionForm.questionsInCount='+params[KEYs[key]]+'&';
+			break;
+		case 'countFlag':
+			return 'questionForm.countFlag='+params[KEYs[key]]+'&';
+			break;
 			
 		case 'horizontalDisplay':
 			return 'questionForm.'+KEYs[key]+'='+params[KEYs[key]]+'&';
@@ -784,7 +809,11 @@ var Question = BaseModel.extend({
 	
 		//added by Ching-Heng
 		questionObj.catOid = this.get("catOid");
-		questionObj.formItemOid = this.get("formItemOid");		
+		questionObj.formItemOid = this.get("formItemOid");	
+		
+		//BTRIS Mapping
+		questionObj.hasBtrisMapping = this.get("hasBtrisMapping");
+		questionObj.isGettingBtrisVal = this.get("isGettingBtrisVal");
 		
 		return questionObj;
 	},
@@ -821,6 +850,7 @@ var Question = BaseModel.extend({
 		attributeObj.eMailTriggerId = this.get("eMailTriggerId");
 		attributeObj.deleteTrigger = this.get("deleteTrigger");
 		attributeObj.triggerAnswers = this.get("triggerAnswers");
+		attributeObj.triggerValues = this.get("triggerValues");
 		attributeObj.required = this.get("required");
 		attributeObj.answerTypeDisplay = this.get("answerTypeDisplay");
 		attributeObj.rangeValue2 = String(this.get("rangeValue2"));
@@ -842,6 +872,11 @@ var Question = BaseModel.extend({
 		attributeObj.calculatedQuestion = this.get("calculatedQuestion");
 		attributeObj.conditionalForCalc = this.get("conditionalForCalc");
 		
+		// count
+		attributeObj.countFormula = this.get("countFormula");
+		attributeObj.questionsInCount = this.get("questionsInCount");
+		attributeObj.countFlag = this.get("countFlag");
+		
 		attributeObj.textareaHeight = this.get("textareaHeight");
 		attributeObj.dataSpring = this.get("dataSpring");
 		attributeObj.color = this.get("color");
@@ -861,6 +896,10 @@ var Question = BaseModel.extend({
 		attributeObj.vscaleRightText = this.get("vscaleRightText");
 		attributeObj.showText = this.get("showText");
 		attributeObj.tableHeaderType = this.get("tableHeaderType");
+		
+		attributeObj.btrisObservationName = this.get("btrisObservationName");
+		attributeObj.btrisRedCode = this.get("btrisRedCode");
+		attributeObj.btrisSpecimenType = this.get("btrisSpecimenType");
 
 		return attributeObj;
 	},

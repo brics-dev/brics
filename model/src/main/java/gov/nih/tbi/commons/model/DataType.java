@@ -4,13 +4,12 @@ import gov.nih.tbi.PostgreConstants;
 import gov.nih.tbi.dictionary.model.NativeTypeConverter;
 import gov.nih.tbi.dictionary.model.conversion.DoubleConverter;
 
-
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
 public enum DataType {
-	//new LongConverter()
+	// new LongConverter()
 	ALPHANUMERIC(0L, "Alphanumeric", "unrestricted text", PostgreConstants.CREATE_CHARACTER_VARYING, null),
 	NUMERIC(1L, "Numeric Values", "", PostgreConstants.CREATE_NUMERIC, new DoubleConverter()),
 	DATE(2L, "Date or Date & Time", "", PostgreConstants.CREATE_TIMESTAMP, null),
@@ -24,25 +23,27 @@ public enum DataType {
 	private String value;
 	private String specialInstructions;
 	private String sqlFormatString; // Used by Formatter to generate SQL to create a column for this type
-	//private SortingType sortType;
+	// private SortingType sortType;
 	private NativeTypeConverter typeConverter;
 
 	private static final Map<Long, DataType> lookup = new HashMap<Long, DataType>();
+	private static final Map<String, DataType> lookupValue = new HashMap<String, DataType>();
 
 	static {
 		for (DataType s : EnumSet.allOf(DataType.class)) {
 			lookup.put(s.getId(), s);
+			lookupValue.put(s.getValue(), s);
 		}
 	}
 
 	DataType(Long id, String value, String specialInstructions, String sqlFormatString,
-			 /* SortingType sortType, */ NativeTypeConverter converter) {
+			/* SortingType sortType, */ NativeTypeConverter converter) {
 
 		this.id = id;
 		this.value = value;
 		this.specialInstructions = specialInstructions;
 		this.sqlFormatString = sqlFormatString;
-		//this.sortType = sortType;
+		// this.sortType = sortType;
 		this.typeConverter = converter;
 	}
 
@@ -71,11 +72,15 @@ public enum DataType {
 		return lookup.get(id);
 	}
 
-	/* public SortingType getSortingType() {
-		return this.sortType;
-	} */
+	/*
+	 * public SortingType getSortingType() { return this.sortType; }
+	 */
 
 	public NativeTypeConverter getTypeConverter() {
 		return this.typeConverter;
+	}
+
+	public static DataType getByValue(String value) {
+		return lookupValue.get(value);
 	}
 }

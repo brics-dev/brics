@@ -28,7 +28,10 @@
 		</ul>
 		<br>
 		<div class="action-button" style="float:none; display:inline-block;"><ndar:actionLink action="baseAction!launch.action" value="Launch Submission Tools" paramName="webstart" paramValue="submissionTool" /></div>
-		
+		<br>
+		To launch the Submission Tool in 64-Bit mode, click <a href="baseAction!launch.action?webstart=submissionTool64">here</a>
+		<br>
+		NOTE: Make sure you have a 64-bit machine with ONLY 64-bit Java installed before running this version. You must uninstall the 32-bit Java version if you have both installed.
 
 	</div>
 </div>

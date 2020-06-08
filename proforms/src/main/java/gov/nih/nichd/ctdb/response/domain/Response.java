@@ -35,6 +35,8 @@ public class Response extends CtdbDomainObject
 	//private List<String> deComments = new ArrayList<String>();
 	private String comment = "";
     private String editReason;
+    private String editAuditComment;
+	private String auditStatus;
     private int editedBy = Integer.MIN_VALUE;
     private Date editedDate;
     private List<String> editAnswers = new ArrayList<String>();
@@ -240,7 +242,22 @@ public class Response extends CtdbDomainObject
     {
         this.editReason = editReason;
     }
-
+    
+    public String getEditAuditComment()
+    {
+        return editAuditComment;
+    }
+    public void setEditAuditComment(String editAuditComment)
+    {
+        this.editAuditComment = editAuditComment;
+    }
+    public String getAuditStatus() {
+		return auditStatus;
+	}
+	public void setAuditStatus(String auditStatus) {
+		this.auditStatus = auditStatus;
+	}
+	
     /**
      * Gets the Edited By user ID
      *
@@ -369,6 +386,12 @@ public class Response extends CtdbDomainObject
 
         if (r.getEditReason() != null) {
             this.setEditReason(new String(r.getEditReason()));
+        }
+        if (r.getEditAuditComment() != null) {
+            this.setEditAuditComment(new String(r.getEditAuditComment()));
+        }
+        if (r.getAuditStatus() != null) {
+            this.setAuditStatus(new String(r.getAuditStatus()));
         }
         this.setEditedBy(r.getEditedBy());
         if (r.getEditedDate() != null) {

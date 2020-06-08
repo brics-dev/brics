@@ -13,6 +13,7 @@ import gov.nih.nichd.ctdb.common.StrutsConstants;
 import gov.nih.nichd.ctdb.common.navigation.LeftNavController;
 import gov.nih.nichd.ctdb.protocol.domain.Protocol;
 import gov.nih.nichd.ctdb.protocol.manager.ProtocolManager;
+import gov.nih.nichd.ctdb.protocol.tag.ConfigureEformHomeIdtDecorator;
 import gov.nih.tbi.dictionary.model.hibernate.eform.BasicEform;
 import gov.nih.tbi.idt.ws.IdtInterface;
 import gov.nih.tbi.idt.ws.InvalidColumnException;
@@ -29,7 +30,7 @@ public class ConfigureEformsHomeAction extends BaseAction {
 	 * execute method
 	 */
 	public String execute() {
-		buildLeftNav(LeftNavController.LEFTNAV_PSREFORMS_CONFIGURE);
+		buildLeftNav(LeftNavController.LEFTNAV_EFORMS_CONFIGURE);
 
 		
 		return BaseAction.SUCCESS;
@@ -53,9 +54,9 @@ public class ConfigureEformsHomeAction extends BaseAction {
 			eformList = protoMgr.getEformsForAllVisitTypes(p.getId());
 		} catch (CtdbException e) {
 			logger.error("A database error occured while getting a list of eforms.", e);
-        	addActionError(getText(StrutsConstants.ERROR_DATABASE_GET, new String[]{getText("protocol.psr.eforms.configure.title.display").toLowerCase(userLocale)}));
+			addActionError(getText(StrutsConstants.ERROR_DATABASE_GET,
+					new String[] {getText("protocol.eform.configure.title.display").toLowerCase(userLocale)}));
 		}
-		
 		
 		try {
 			IdtInterface idt = new Struts2IdtInterface();			
@@ -63,19 +64,14 @@ public class ConfigureEformsHomeAction extends BaseAction {
 			idt.setList(outputList);
 			idt.setTotalRecordCount(outputList.size());
 			idt.setFilteredRecordCount(outputList.size());
+			idt.decorate(new ConfigureEformHomeIdtDecorator());
 			idt.output();
 		} catch (InvalidColumnException e) {
 			logger.error("invalid column: " + e);
 			e.printStackTrace();
 		}
 		
-		
 		return null;
 	}
-	
-	
-	
-	
-	
 
 }

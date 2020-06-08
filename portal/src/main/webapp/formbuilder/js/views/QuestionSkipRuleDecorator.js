@@ -21,6 +21,103 @@ var QuestionSkipRuleDecorator = {
         		   var skipRuleOperatorType = model.get("skipRuleOperatorType");
         		   
         		   if ( skipRuleOperatorType == 4 ) {
+        			   
+        			   var skipRuleEquals = model.get("skipRuleEquals");
+        			   
+        			   if ( skipRuleEquals.length != 0 ) {
+            			   return true;
+            		   }
+        			   else {
+            			   return false;
+            		   }  
+        		   }
+        		   else {
+        			   return true;
+        		   } 
+        	   } 
+           }),
+           
+           new ValidationRule({
+        	   fieldName : "skipRuleEquals",
+        	   description : Config.language.validateLessthanSkipRuleEquals,
+        	   
+        	   match : function(model) {
+        		   var skipRuleOperatorType = model.get("skipRuleOperatorType");
+        		   
+        		   if ( skipRuleOperatorType == 5 ) {
+        			   
+        			   var skipRuleEquals = model.get("skipRuleEquals");
+        			   
+        			   if ( skipRuleEquals.length != 0 ) {
+            			   return true;
+            		   }
+        			   else {
+            			   return false;
+            		   }  
+        		   }
+        		   else {
+        			   return true;
+        		   } 
+        	   } 
+           }),
+           
+           new ValidationRule({
+        	   fieldName : "skipRuleEquals",
+        	   description : Config.language.validateLessthanEqualtoSkipRuleEquals,
+        	   
+        	   match : function(model) {
+        		   var skipRuleOperatorType = model.get("skipRuleOperatorType");
+        		   
+        		   if ( skipRuleOperatorType == 6 ) {
+        			   
+        			   var skipRuleEquals = model.get("skipRuleEquals");
+        			   
+        			   if ( skipRuleEquals.length != 0 ) {
+            			   return true;
+            		   }
+        			   else {
+            			   return false;
+            		   }  
+        		   }
+        		   else {
+        			   return true;
+        		   } 
+        	   } 
+           }),
+           
+           new ValidationRule({
+        	   fieldName : "skipRuleEquals",
+        	   description : Config.language.validateGreaterthanSkipRuleEquals,
+        	   
+        	   match : function(model) {
+        		   var skipRuleOperatorType = model.get("skipRuleOperatorType");
+        		   
+        		   if ( skipRuleOperatorType == 7 ) {
+        			   
+        			   var skipRuleEquals = model.get("skipRuleEquals");
+        			   
+        			   if ( skipRuleEquals.length != 0 ) {
+            			   return true;
+            		   }
+        			   else {
+            			   return false;
+            		   }  
+        		   }
+        		   else {
+        			   return true;
+        		   } 
+        	   } 
+           }),
+           
+           new ValidationRule({
+        	   fieldName : "skipRuleEquals",
+        	   description : Config.language.validateGreaterthanEqualtoSkipRuleEquals,
+        	   
+        	   match : function(model) {
+        		   var skipRuleOperatorType = model.get("skipRuleOperatorType");
+        		   
+        		   if ( skipRuleOperatorType == 8 ) {
+        			   
         			   var skipRuleEquals = model.get("skipRuleEquals");
         			   
         			   if ( skipRuleEquals.length != 0 ) {
@@ -51,6 +148,31 @@ var QuestionSkipRuleDecorator = {
             		   }
         			   else {
             			   return false;
+            		   }
+        		   }
+        		   else {
+        			   return true;
+        		   } 
+        	   }   
+           }),
+           
+           new ValidationRule({
+        	   fieldName : "skipRuleEquals",
+        	   description : Config.language.validateNumericSkipRuleEquals,
+        	   
+        	   match : function(model) {
+        		   var skipRuleOperatorType = model.get("skipRuleOperatorType");
+        		   
+        		   if ( skipRuleOperatorType == 5 || skipRuleOperatorType == 6 
+        				   || skipRuleOperatorType == 7 || skipRuleOperatorType == 8) {
+        			   
+        			   var skipRuleEquals = model.get("skipRuleEquals");
+        			   
+        			   if (isNaN(skipRuleEquals)) {
+            			   return false;
+            		   }
+        			   else {
+            			   return true;
             		   }
         		   }
         		   else {
@@ -184,19 +306,25 @@ var QuestionSkipRuleDecorator = {
 			var skipRuleOperatorType = this.model.get("skipRuleOperatorType");
 			var $skipRuleType = this.$("#skipRuleType");
 			var $skipRuleEquals = this.$("#skipRuleEquals");
+			$(".multipleSkipText").hide();
 			
 			if ( skipRuleOperatorType != -2147483648 ) {
 				// Enable skip rule
 				$skipRuleType.prop("disabled", false);
 				
-				// Enable skip rule equals only if the skip rule operator type is "contains" or "equals"
-				if ( skipRuleOperatorType == 1 || skipRuleOperatorType == 4 ) {
+				// Enable skip rule equals only if the skip rule operator type is "contains" or "equals" or "Less than" or "Less than equal to" or "Greate than" or "Greater than equal to"
+				if ( skipRuleOperatorType == 1 || skipRuleOperatorType == 4
+						|| skipRuleOperatorType == 5 || skipRuleOperatorType == 6
+						|| skipRuleOperatorType == 7 || skipRuleOperatorType == 8) {
+					
 					$skipRuleEquals.prop("disabled", false);
-					$(".multipleSkipText").show();
+					
+					if(skipRuleOperatorType == 1 || skipRuleOperatorType == 4){
+						$(".multipleSkipText").show();
+					}
 				}
 				else {
 					$skipRuleEquals.prop("disabled", true);
-					$(".multipleSkipText").hide();
 				}
 				
 				// Enable add skip rule question button
@@ -213,14 +341,20 @@ var QuestionSkipRuleDecorator = {
 		skipRuleOperatorTypeOnChange: function() {
 			var $skipRuleOperatorType = this.$("#skipRuleOperatorType");
 			var $skipRuleEquals = this.$("#skipRuleEquals");
-			
-			if ( ($skipRuleOperatorType.val() == 1) || ($skipRuleOperatorType.val() == 4) ) {
+			$(".multipleSkipText").hide();
+
+			if ( ($skipRuleOperatorType.val() == 1) || ($skipRuleOperatorType.val() == 4) || 
+					($skipRuleOperatorType.val() == 5) || ($skipRuleOperatorType.val() == 6) || 
+					($skipRuleOperatorType.val() == 7) || ($skipRuleOperatorType.val() == 8)) {
+				
 				$skipRuleEquals.prop("disabled", false);
-				$(".multipleSkipText").show();
+				
+				if(($skipRuleOperatorType.val() == 1) || ($skipRuleOperatorType.val() == 4)){
+					$(".multipleSkipText").show();
+				}
 		    }
 			else {
 				$skipRuleEquals.val("").prop("disabled", true);
-				$(".multipleSkipText").hide();
 		    }
 			
 			if ( $skipRuleOperatorType.val() == -2147483648 ) {

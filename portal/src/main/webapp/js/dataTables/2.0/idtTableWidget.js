@@ -279,6 +279,9 @@ $.fn.dataTable.Api.register('clearPipeline()', function() {
 							if(that.options.filterData) {
 								$.extend(d,that.options.filterData);
 							}
+							if (that.options.requestData) {
+							    $.extend(d, that.options.requestData);
+							}
 
 						}
 					});
@@ -300,6 +303,9 @@ $.fn.dataTable.Api.register('clearPipeline()', function() {
 							d.obj = that.options.idtData;
 							if(that.options.filterData) {
 								$.extend(d,that.options.filterData);
+							}
+							if (that.options.requestData) {
+							    $.extend(d, that.options.requestData);
 							}
 						}
 					};
@@ -344,6 +350,14 @@ $.fn.dataTable.Api.register('clearPipeline()', function() {
 				}else {
 					that.options.totalRowCount = api.rows().count();
 				}
+				
+				//we are disabling selectFilter when we are returning All Data
+				if(settings.fnRecordsDisplay() === settings.fnRecordsTotal() || settings.fnRecordsDisplay() === 0) {
+					$(settings.nTable).find("#idt_selectFilter").addClass("idt_selectDisabled");
+				}else {
+					$(settings.nTable).find("#idt_selectFilter").removeClass("idt_selectDisabled");
+				}
+				
 				that._idtInfoCallback(that.options.totalRowCount);
 				// allows the developer to specify a drawCallback as well and
 				// have it run

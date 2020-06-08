@@ -1,6 +1,7 @@
 <jsp:include page="/common/doctype.jsp" />
 <%@ page
 	import="gov.nih.nichd.ctdb.protocol.domain.Protocol,gov.nih.nichd.ctdb.common.CtdbConstants,java.util.List"%>
+
 <%@ page import="gov.nih.nichd.ctdb.response.domain.AdministeredForm"%>
 <%@ page import="gov.nih.nichd.ctdb.security.domain.User"%>
 <%@ page import="gov.nih.nichd.ctdb.common.rs,java.util.Locale"%>
@@ -16,11 +17,12 @@
 	int subjectDisplayType = protocol.getPatientDisplayType();
 	User user = (User) session.getAttribute(CtdbConstants.USER_SESSION_KEY);
 	String username = user.getUsername();
+	Boolean protocolclosed = (Boolean)session.getAttribute(CtdbConstants.PROTOCOL_CLOSED_SESSION_KEY);
 %>
 
 <%-- CHECK PRIVILEGES --%>
 <security:check
-	privileges="dataentry,dataentryoversight,doublekeyresolution,unadministeraform" />
+	privileges="dataentry,dataentryoversight,doublekeyresolution,unadministeraform,addeditauditorcomments" />
 <html>
 <s:set var="pageTitle" scope="request">
 	<s:text name="response.collect.myCollections.title.display" />
@@ -63,6 +65,7 @@
 		}));
 		
 		
+		
 				var basePath = "<s:property value="#webRoot"/>";
 
 				$("#patDataCollectionProgressTable").idtTable({		
@@ -77,6 +80,11 @@
 			          pageLength: 15,
 			          dom: "Bfrtip",
 			          "autoWidth": false,
+			          selectParams: {
+							selectAllEnabled: true,
+							selectNoneEnabled: true,
+							selectFilteredEnabled: true,
+					  },
 			          filterData: {
 						visitDatePreColl: $("#visitDateId").val(),
 						intervalName: $("#intervalSelectedId").val(),
@@ -93,40 +101,39 @@
 							          name: 'guid',
 							          title: '<%=rs.getValue("response.resolveHome.tableHeader.subjectGUID", l)%>',
 							          data: 'guid',
-							          parameter: 'guid'
+							          parameter: 'guid',
+							          width: '12%'
 						          },
 							<%
 								}
-							%>
-							<%
-								if (subjectDisplayType == CtdbConstants.PATIENT_DISPLAY_ID) {
 							%>						          
-							      {
-							          name: 'subjectid',
-							          title: '<%=rs.getValue("subject.table.subjectID", l)%>',
-							          parameter: 'subjectId',
-							          data: 'subjectid'
-							      },
-							<%
-								}
-							%>      
+							    {
+							      name: 'subjectid',
+							      title: '<%=rs.getValue("subject.table.subjectID", l)%>',
+							      parameter: 'subjectId',
+							      data: 'subjectid',
+							      width: '13%'
+							    },    
 								{
 					              name: 'sVisitDate',
 					              title: '<%=rs.getValue("scheduledvisitdate.display", l)%>',
 					              parameter: 'scheduledVisitDate',
-					              data: 'sVisitDate'
+					              data: 'sVisitDate',
+					              width: '9%'
 				              	}, 
 								{
 							          name: 'pVisitDate',
 							          title: '<%=rs.getValue("visitdate.display", l)%>',
 							          parameter: 'date',
-							          data: 'pVisitDate'
+							          data: 'pVisitDate',
+							          width: '9%'
 						          },
 						          {
 							          name: 'intervalname',
 							          title: '<%=rs.getValue("protocol.visitType.title.display", l)%>',
 							          parameter: 'timePointDec',
-							          data: 'intervalname'
+							          data: 'intervalname',
+							          width: '7%'
 						          },
 							      {
 							          name: 'formName',
@@ -138,19 +145,22 @@
 							          name: 'coll_status',
 							          title: '<%=rs.getValue("response.collect.myCollections.dataEntry1Status", l)%>',
 							          parameter: 'status1',
-							          data: 'coll_status'
+							          data: 'coll_status',
+							          width: '7%'
 							      },
 							      {
 							          name: 'firstname',
 							          title: '<%=rs.getValue("response.collect.myCollections.user", l)%>',
 							          parameter: 'dataEntry1',
-							          data: 'firstname'
+							          data: 'firstname',
+							          width: '12%'
 							      },
 							      {
 							          name: 'finallockdate',
 							          title: '<%=rs.getValue("response.collect.myCollections.finalLockDate", l)%>',
 							          parameter: 'finalLockDate',
-							          data: 'finallockdate'
+							          data: 'finallockdate',
+							          width: "9%"
 							      },							      
 							      {
 							          name: 'username',
@@ -343,6 +353,23 @@
 		           				}
 		           			},
 		           			</security:hasProtocolPrivilege>
+		           			<security:hasProtocolPrivilege privilege="addeditauditorcomments">
+		           			<!-- hasEditAnswer-->
+		           			{
+		           				text: "<s:text name='button.AuditorComments'/>",
+		           				className: "patFAuditBtn1",
+		                        enableControl: {
+	                             count: 1,
+	                             invert:true
+	                         	},
+	                         	enabled: false,
+		           				action: function(e, dt, node, config) {
+	           						var selected_Form_Ids = $("#patDataCollectionProgressTable").idtApi("getSelected");
+	           						var url = basePath+ '/response/dataCollection.action?action=auditComments&mode=formPatient&aformId='+selected_Form_Ids+'&audit=true';
+	           						redirectWithReferrer(url);
+		           				}
+		           			},
+		           			</security:hasProtocolPrivilege>
 		           			<security:hasProtocolPrivilege privilege="dataentryreassign">
 		           			{
 		           				text: "<s:text name='response.collect.myCollections.reassign'/>",
@@ -531,6 +558,7 @@
 		           				}
 		           			},
 		           			</security:hasProtocolPrivilege> 
+		           			<security:hasProtocolPrivilege privilege="editdataentry">
 		           			{
 		           				text: "<s:text name='response.collect.myCollections.deleteEntry1'/>",
 		           				className: "patFUnadministerBtn1",
@@ -667,6 +695,7 @@
 		 						 } //end if not sys admin
 		           				}
 		           			},
+		           			</security:hasProtocolPrivilege>
 		           			<security:hasProtocolPrivilege privilege="reporting">
 		           			{
 		           				text: "<s:text name='response.collect.myCollections.exportCollection'/>",
@@ -674,35 +703,27 @@
 	                         	enabled: false,
 		           				action: function(e, dt, node, config) {
 		           					var selectedFormIds = $("#patDataCollectionProgressTable").idtApi("getSelected");
-		           					var options = $("#patDataCollectionProgressTable").idtApi("getOptions");
-		           					var selectedRowsData = options.rowsData;
-		           						
-		           					 var firstFormName;
-		           					 var isSameForm = true;
-		           					 selectedRowsData.map(function(row, index) {
-		           						 var formName = row.formName;
-		           						 if(index == 0) {
-		           							firstFormName = formName;
-		           						 }else {
-		           							if(formName != firstFormName) {
-		           								isSameForm = false;
+		           					var urlDownload = basePath+ '/response/dataCollectionExport.action?aformIds='+selectedFormIds;
+		           					var urlValidation = basePath+ '/response/dataCollectionExportValidation.action?aformIds='+selectedFormIds;
+		           					$.ajax({
+		           						type: "GET",
+		           						url: urlValidation,
+		           						success: function(response) {
+		           							if (response.status == "ok") {
+		           								redirectWithReferrer(urlDownload);
 		           							}
-		           						 }
-		           						 return formName;
-		           					 })
-
-		           					 if(!isSameForm) {
-		           						 $.ibisMessaging("dialog","info","You can not export collections for different forms");
-		           						 return;
-		           					 }
-
-
-		           					var url = basePath+ '/response/dataCollectionExport.action?aformIds='+selectedFormIds;
-		           					redirectWithReferrer(url);
+		           							else {
+		           							 $.ibisMessaging("dialog","warning",response.message);
+		           							}
+		           						},
+		           						error: function(response) {
+		           							$.ibisMessaging("dialog","warning","There was a problem processing your request.  Please try again or contact your system administrator");
+		           						}
+		           					});
 		           				}
 		           			},
 		           			</security:hasProtocolPrivilege>		           			
-			           		<%-- <security:hasProtocolPrivilege privilege="audit">
+			           		<%-- <security:hasProtocolPrivilege privilege="addeditauditorcomments">
 			           			{
 			           				text: "<s:text name='response.collect.myCollections.audit'/>",
 			           				className: "patFAuditBtn",
@@ -712,6 +733,25 @@
 			          	],
 			          	initComplete: function(){		          		
 
+			          		var oTable = $("#patDataCollectionProgressTable").idtApi("getTableApi");
+			          		var protocolclosed = <%=protocolclosed.booleanValue()%>;
+			          		
+			        		oTable.on('select', function(e, dt, type, indexes) {
+			                	if(protocolclosed){
+			                		oTable.buttons(['.patFEditBtn1']).disable();
+			                		oTable.buttons(['.patFReassignBtn']).disable();
+			                		oTable.buttons(['.patFUnadministerBtn1']).disable();
+			                	}
+			        		})
+			        		
+			        		oTable.on('deselect', function(e, dt, type, indexes) {
+			        			if(protocolclosed){
+			                		oTable.buttons(['.patFEditBtn1']).disable();
+			                		oTable.buttons(['.patFReassignBtn']).disable();
+			                		oTable.buttons(['.patFUnadministerBtn1']).disable();
+			                	}
+			        		})
+			        		
 			          		$('#patDataCollectionProgressContainer').find('.idt_searchContainer').mouseover(function(){
 
 		          				$('#patDataCollectionProgressContainer').find('.idt_selectColumnCheckbox').unbind().on('click', function(e) {

@@ -1,0 +1,7 @@
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\propPasswdUtil\stage-cnrm-host
+passFile=D:\DATA\secur\.pgpass
+
+[DEPLOY]
+trgRoot=D:\DEV\workspace\conf\stage\cnrm-host
+srcRoot=D:\DEV\BRIX\local\prop\stage\cnrm-host

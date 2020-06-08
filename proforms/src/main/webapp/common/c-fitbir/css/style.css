@@ -54,6 +54,10 @@
 .footer-links li {
   vertical-align: top; }
 
+.build-notes {
+  float: left;
+  margin: -38px 11px -28px 20px; }
+
 /* Import Stylesheets */
 /*----------------------------------------------------------
   ProForms Styles  
@@ -2006,7 +2010,7 @@ body {
   top: 300px;
   width: 10px;
   height: 2px;
-  font-family: ∩┐╜Trebuchet MS∩┐╜, Helvetica, sans-serif;
+  font-family: �Trebuchet MS�, Helvetica, sans-serif;
   font-size: 12px;
   font-weight: normal;
   text-shadow: 0px 0px 1px #333;
@@ -2149,10 +2153,12 @@ table.dataTable th {
     /* IE10+ */
     background: linear-gradient(to bottom, #678747 0%, #004d00 80%);
     /* W3C */ }
+
+@media print {
+  .no-print, .no-print * {
+    display: none !important; } }
   
-@media print {    
-   .no-print, .no-print * {
-       display: none !important;
-   }
-}
+.selfReportingPSRHeader ol{
+	padding-left: 15px; }
+
 /*# sourceMappingURL=style.css.map */

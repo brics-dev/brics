@@ -1,14 +1,14 @@
 package gov.nih.tbi.semantic.model;
 
-import gov.nih.tbi.repository.model.AbstractStudy;
-import gov.nih.tbi.repository.model.hibernate.Study;
-
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.util.URIUtil;
 
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.ResourceFactory;
+import com.hp.hpl.jena.sparql.core.Var;
+
+import gov.nih.tbi.repository.model.hibernate.Study;
 
 /**
  * BRICS vocabulary items
@@ -52,6 +52,13 @@ public class StudyRDF {
 	public static final Property RELATION_PROPERTY_FACETED_DE = property("facetedDE");
 	public static final Property RELATION_PROPERTY_FACETED_DATASET = property("facetedDataset");
 
+	public static final Var VAR_TITLE = Var.alloc("title");
+	public static final Var VAR_PREFIXED_ID = Var.alloc("prefixedId");
+	public static final Var VAR_ABSTRACT = Var.alloc("abstract");
+	public static final Var VAR_PI = Var.alloc("pi");
+	public static final Var VAR_STUDY = Var.alloc("study");
+	public static final Var VAR_STATUS = Var.alloc("status");
+	
 	public static final Resource resource(String local) {
 
 		return ResourceFactory.createResource(BASE_URI_NS + local);
@@ -85,7 +92,8 @@ public class StudyRDF {
 	//
 	// try
 	// {
-	// studyProperty = ResourceFactory.createProperty(URIUtil.encodeQuery(URI_NS + study.getTitle()));
+	// studyProperty = ResourceFactory.createProperty(URIUtil.encodeQuery(URI_NS +
+	// study.getTitle()));
 	// }
 	// catch (URIException e)
 	// {

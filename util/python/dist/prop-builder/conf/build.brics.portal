@@ -1,0 +1,5 @@
+[FILE-SYS]
+logDir=/var/lib/brics/log/propBuilder/brics-portal
+instFile=/var/lib/brics/src/local/conf/brics/propMatrix-portal.xlsx
+workDir=/etc/brics/portalx
+passFile=/home/buildman/.pgpass

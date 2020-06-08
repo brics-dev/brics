@@ -19,9 +19,9 @@ import gov.nih.tbi.doi.model.OSTIRecord;
 
 public class DoiWSTest {
 	private static final String DOI_DATA_FILE_ROOT = "src/test/resources/doi/";
-	private static final String DOI_WS_URL = "REPLACED";
-	private static final String DOI_USERNAME = "REPLACED";
-	private static final String DOI_PASSWORD = "REPLACED";
+	private static final String DOI_WS_URL = "https://www.osti.gov/iad2test/api/records/legacyxml";
+	private static final String DOI_USERNAME = "abcd";
+	private static final String DOI_PASSWORD = "abcd";
 
 	private static JsonParser jsonParser;
 

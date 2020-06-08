@@ -1,0 +1,14 @@
+[DB-SRC]
+host=fitbir-db-prod.cit.nih.gov
+database=tbi_prod
+schema=tbi_repos
+user=tbi_repos
+
+[DB-TRG]
+host=localhost
+database=repodb
+schema=reposch
+user=repouser
+
+[FILE-SYS]
+logbase=D:\\DEV\\appdata\\log\\pgCloner\\prod-local.repo

@@ -16,11 +16,13 @@ import gov.nih.nichd.ctdb.common.CtdbLookup;
 import gov.nih.nichd.ctdb.common.StrutsConstants;
 import gov.nih.nichd.ctdb.common.navigation.LeftNavController;
 import gov.nih.nichd.ctdb.form.common.FormConstants;
+import gov.nih.nichd.ctdb.form.util.FormDataStructureUtility;
 import gov.nih.nichd.ctdb.protocol.domain.Protocol;
 import gov.nih.nichd.ctdb.response.form.DataCollectionLandingForm;
 import gov.nih.nichd.ctdb.response.manager.ResponseManager;
 import gov.nih.nichd.ctdb.response.tag.DataCollectionSearchIdtDecorator;
 import gov.nih.nichd.ctdb.response.util.DataCollectionUtils;
+import gov.nih.tbi.dictionary.model.hibernate.eform.BasicEform;
 import gov.nih.tbi.idt.ws.IdtInterface;
 import gov.nih.tbi.idt.ws.InvalidColumnException;
 import gov.nih.tbi.idt.ws.Struts2IdtInterface;
@@ -32,6 +34,8 @@ public class DataCollectingLandingSearchAction extends BaseAction {
 	private DataCollectionLandingForm dataForm = new DataCollectionLandingForm();
     private String searchSubmitted = "NO";
 	private String formName;
+	
+	private List<Integer> siteIds = new ArrayList<Integer>();
 
 	public String getFormName() {
 		return formName;
@@ -57,7 +61,11 @@ public class DataCollectingLandingSearchAction extends BaseAction {
 		if (p == null) {
 			return StrutsConstants.SELECTPROTOCOL;
 		}
-
+		
+			int protocolId = p.getId();
+						
+			List pvDataList= null;
+			
 		ResponseManager rm = new ResponseManager();
 		Map<String, String> searchOptions = new HashMap<String, String>();
 		
@@ -69,17 +77,33 @@ public class DataCollectingLandingSearchAction extends BaseAction {
 		
 		this.retrieveActionMessages(DataCollectionAction.ACTION_MESSAGES_KEY);
 		this.retrieveActionErrors(DataCollectionAction.ACTION_ERRORS_KEY);
-		int protocolId = p.getId();
-		
-		
 	
 		List<DataCollectionLandingForm> dataFormList = rm.getCollectDataSearchResult(dataForm ,protocolId,searchOptions);
-
-	
+		// CRIT-11445: replace eform name with eform title from dicitonary
+		List<String> shortNameList = new ArrayList<String>();
+		for (DataCollectionLandingForm df : dataFormList) {
+			shortNameList.add(df.getShortName());
+		}
+		FormDataStructureUtility fsUtil = new FormDataStructureUtility();
+		List<BasicEform> basicEforms = fsUtil.getBasicEforms(request, shortNameList);
+		for (DataCollectionLandingForm dclf : dataFormList) {
+			String dfShortName = dclf.getShortName();
+			for (BasicEform beForm : basicEforms) {
+				String efTitle = beForm.getTitle();
+				if (beForm.getShortName().equals(dfShortName)) {
+					dclf.setFormName(efTitle);
+					break;
+				}
+			}
+		}
 		
-	
-		List pvDataList = rm.getPatientViewDataForLandingPage(dataForm, protocolId, searchOptions);
-		
+		if(!isUserSiteCheckNeeded()) {
+			pvDataList = rm.getPatientViewDataForLandingPageBySites(dataForm, protocolId, searchOptions,null);
+		}
+		else {
+			siteIds = getUserAssignedSites();
+			pvDataList = rm.getPatientViewDataForLandingPageBySites(dataForm, protocolId, searchOptions,siteIds);
+		}
 		String searchFormType = dataForm.getSearchFormType();
 		
 		if (searchFormType.equals("patientFormsData")) {
@@ -88,7 +112,15 @@ public class DataCollectingLandingSearchAction extends BaseAction {
 			}
 
 			if (!StringUtils.isEmpty(dataForm.getFormName())) {
-				searchOptions.put(CtdbConstants.DATA_COLLECTION_EFORMS_NAME, dataForm.getFormName());
+				String searchVal = "";
+				for (BasicEform beForm : basicEforms) {
+					String efTitle = beForm.getTitle();
+					if (efTitle.equals(dataForm.getFormName())) {
+						searchVal = beForm.getShortName();
+						break;
+					}
+				}
+				searchOptions.put(CtdbConstants.DATA_COLLECTION_EFORMS_NAME, searchVal);
 			}
 
 			if (!StringUtils.isEmpty(dataForm.getFormLastUpdatedDate())) {
@@ -96,9 +128,27 @@ public class DataCollectingLandingSearchAction extends BaseAction {
 			}
 
 			dataFormList = rm.getCollectDataSearchResult(dataForm, protocolId,searchOptions);
+			// CRIT-11445: replace eform name with eform title from dicitonary
+			List<String> searchShortNList = new ArrayList<String>();
+			for (DataCollectionLandingForm df : dataFormList) {
+				searchShortNList.add(df.getShortName());
+			}
 
-		}  
-		
+			List<BasicEform> searchEforms = fsUtil.getBasicEforms(request, searchShortNList);
+			for (DataCollectionLandingForm dclf : dataFormList) {
+				String dfShortName = dclf.getShortName();
+					for (BasicEform eform : searchEforms) {
+						String efTitle = eform.getTitle();
+						if (eform.getShortName().equals(dfShortName)) {
+							dclf.setFormName(efTitle);
+						break;
+						}
+					}
+				}
+			}
+
+
+
 		if (searchFormType.equals("patientData")) {
 			if (dataForm.getPvVisitDate() != null) {
 				
@@ -125,8 +175,12 @@ public class DataCollectingLandingSearchAction extends BaseAction {
 			if (!StringUtils.isEmpty(dataForm.getPvGuid())) {
 				searchOptions.put(CtdbConstants.DATA_COLLECTION_SUBJECT_GUID, dataForm.getPvGuid());
 			}
-			pvDataList = rm.getPatientViewDataForLandingPage(dataForm, protocolId, searchOptions);
-
+			if(!isUserSiteCheckNeeded()) {
+				 pvDataList = rm.getPatientViewDataForLandingPageBySites(dataForm, protocolId, searchOptions,null);
+			}else {
+				siteIds = getUserAssignedSites();
+				pvDataList = rm.getPatientViewDataForLandingPageBySites(dataForm, protocolId, searchOptions,siteIds);
+			}
 		}
 
 		List<CtdbLookup> formStatus = (List<CtdbLookup>) session.get(FormConstants.FORMSEARCHSTATUS);

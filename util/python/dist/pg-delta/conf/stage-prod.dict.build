@@ -1,0 +1,16 @@
+[DB-SRC]
+host=ibis-db-stage.cit.nih.gov
+database=dictionary_stage
+schema=dictionarystg
+user=dictionarystg
+label=STAGE-SRC
+
+[DB-TRG]
+host=ibis-db-prod.cit.nih.gov
+database=dictionary_prod
+schema=dictionary
+user=dictionary
+label=PROD-TRG
+
+[FILE-SYS]
+logDir=/var/lib/brics/log/pg-delta/stage-prod-dict

@@ -46,7 +46,7 @@
 				<interceptor-ref name="scopedModelDriven" />
 				<interceptor-ref name="modelDriven" />
 				<interceptor-ref name="fileUpload">
-					<param name="maximumSize">30485760</param>
+					<param name="maximumSize">524288000</param>
 				</interceptor-ref>
 				<interceptor-ref name="multiselect" />
 				<interceptor-ref name="checkbox" />

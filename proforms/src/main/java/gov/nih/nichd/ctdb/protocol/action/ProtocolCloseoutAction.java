@@ -39,26 +39,34 @@ public class ProtocolCloseoutAction extends BaseAction {
 		User user = getUser();
 		String userFullName = user.getFirstName() + " " + user.getLastName();
 		setUserFullName(userFullName);
-		checkProtocolClosed();
+		Boolean protocolclosed = (Boolean) session.get(CtdbConstants.PROTOCOL_CLOSED_SESSION_KEY);
+		if (protocolclosed.booleanValue()) {
+			checkIfProtocolClosedPILogin();
+		}
 		return SUCCESS;
 	}
 
-	public void checkProtocolClosed() {
-		boolean closedout = false;
+	public void checkIfProtocolClosedPILogin() {
 		Protocol protocol = null;
+		boolean protocolClosedUser = false;
+
 		protocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
+		User user = getUser();
 
 		try {
 			if (protocol != null) {
+				long bricsUserId = user.getBricsUserId();
 				ProtocolManager pm = new ProtocolManager();
-				closedout = pm.checkProtocolClosed(protocol.getId());
-				request.setAttribute("protocolclosedout", closedout);
+				long protocolClosedBricsId = pm.getProtocolClosedBricsUserId(protocol.getId());
+				if ((bricsUserId == protocolClosedBricsId) || (user.isSysAdmin())) {
+					protocolClosedUser = true;
+				}
+				request.setAttribute("protocolcloseduser", protocolClosedUser);
 			}
 		} catch (CtdbException e) {
 			logger.error("Error in getting protocol close out detail from database " + e);
 			e.printStackTrace();
 		}
-
 	}
 
 	public void digitalSignature() throws IOException, CtdbException {
@@ -128,6 +136,8 @@ public class ProtocolCloseoutAction extends BaseAction {
 	public String saveProtocolCloseout() {
 
 		Protocol protocol = null;
+		boolean protocolClosed = false;
+
 		try {
 			protocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
 
@@ -144,15 +154,48 @@ public class ProtocolCloseoutAction extends BaseAction {
 				pco.setProtocolId(protocol.getId());
 				pco.setBricsStudyId(protocol.getBricsStudyId());
 				pco.setClosingOutDate(new Date());
+				pco.setReopenStatus(false);
 
 				ProtocolManager pm = new ProtocolManager();
-				pm.saveProtocolClosingout(pco);
+				protocolClosed = pm.saveProtocolClosingout(pco);
+				if (protocolClosed) {
+					session.put(CtdbConstants.PROTOCOL_CLOSED_SESSION_KEY, true);
+				}
+			}
+		} catch (CtdbException ce) {
+			logger.error("Error while closing the protocol", ce);
+			return StrutsConstants.FAILURE;
+		}
+		return SUCCESS;
+	}
+
+	public String reopenClosedProtocol() {
+		Protocol protocol = null;
+		try {
+			protocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
+			if (protocol == null) {
+				return StrutsConstants.SELECTPROTOCOL;
+			}
+			ProtocolClosingOut pco = new ProtocolClosingOut();
+			User user = getUser();
+
+			if (user != null) {
+				pco.setClosingUserId(user.getId());
+				pco.setClosingBricsUserId(user.getBricsUserId());
+				pco.setProtocolId(protocol.getId());
+				pco.setBricsStudyId(protocol.getBricsStudyId());
+				pco.setReopenStatus(true);
+				pco.setReopenDate(new Date());
+
+				ProtocolManager pm = new ProtocolManager();
+				pm.reopenClosedProtocol(pco);
+				session.put(CtdbConstants.PROTOCOL_CLOSED_SESSION_KEY, false);
 			}
 
-		} catch (Exception e) {
-			logger.error("Failed to save the protocol close out.", e);
+		} catch (CtdbException ce) {
+			logger.error("Error while reopening closed protocol ", ce);
+			return ERROR;
 		}
-
 		return SUCCESS;
 	}
 

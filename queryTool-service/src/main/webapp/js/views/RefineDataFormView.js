@@ -48,7 +48,24 @@ QT.RefineDataFormView = BaseView.extend({
 		//this.$el.width((this.$el.innerWidth() * .9) - 25); // 25 = padding-right
 		var $this = this.$el;
 		var paddingRight = Number($this.css("padding-right").replace("px", ""));
-		$this.width(($this.parent().width() - paddingRight) * 0.9);
+		var inactiveWidth = ($this.parent().width() - paddingRight) * 0.9;
+		
+		if ($this.is('[droppedwidth]')) {
+			$this.width($this.attr("droppedwidth"));
+		}
+		else if ($this.is('[inactivewidth]')) {
+			var attrInactiveWidth = $this.attr("inactivewidth");
+			if (inactiveWidth > attrInactiveWidth) {
+				attrInactiveWidth = inactiveWidth;
+				$this.attr("inactivewidth", inactiveWidth);
+			}
+			
+			$this.width(attrInactiveWidth);
+		}
+		else {	
+			$this.width(inactiveWidth).attr("inactivewidth", inactiveWidth);
+		}
+
 	},
 	
 	/**
@@ -72,6 +89,7 @@ QT.RefineDataFormView = BaseView.extend({
 		QueryTool.query.set("selectedForms", formUris);
 		var obj = { notOnActivate:false, formUris:formUris };
 		EventBus.trigger("runQuery", obj);
+		$("#filterLogicRunQuery").removeClass("disabled");
 	},
 	
 	openRemoveDialog : function(event) {

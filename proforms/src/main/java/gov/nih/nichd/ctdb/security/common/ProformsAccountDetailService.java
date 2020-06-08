@@ -17,6 +17,7 @@ import javax.ws.rs.core.MediaType;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.LockedException;
@@ -50,6 +51,7 @@ public class ProformsAccountDetailService implements UserDetailsService, Authent
 			new SavedRequestAwareAuthenticationSuccessHandler();
 	
 	@Autowired
+	@Qualifier("ProformsConstants")
 	ModulesConstants modulesConstants;
 	
 	@Override

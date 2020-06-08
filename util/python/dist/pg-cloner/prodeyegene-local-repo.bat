@@ -1,0 +1,1 @@
+python pgCloner.py --props=.\conf\prod.eyegene-local.repo --logDir=%WORK_SPACE%\log\util\pgclone\prodeyegene-local-repo

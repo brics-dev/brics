@@ -18,6 +18,7 @@ import gov.nih.tbi.account.model.hibernate.ElectronicSignature;
 import gov.nih.tbi.account.model.hibernate.EntityMap;
 import gov.nih.tbi.account.model.hibernate.PermissionGroup;
 import gov.nih.tbi.account.model.hibernate.PermissionGroupMember;
+import gov.nih.tbi.account.model.hibernate.TwoFactorAuthentication;
 import gov.nih.tbi.commons.model.AccountStatus;
 import gov.nih.tbi.commons.model.EntityType;
 import gov.nih.tbi.commons.model.PermissionType;
@@ -79,7 +80,7 @@ public interface AccountManager extends BaseManager {
 	 * 
 	 * @param account
 	 * @param Action path including token key, e.g.: publicAccounts/passwordRecoveryAction!recover.action?token=a0ce
-	 * @param url URL NAME + SERVER ROOT, e.g.: http://REPLACED/portal/
+	 * @param url URL NAME + SERVER ROOT, e.g.: http://fitbir-dev.cit.nih.gov/portal/
 	 * @param subject
 	 * @param messagePattern
 	 * 
@@ -563,6 +564,20 @@ public interface AccountManager extends BaseManager {
 	 * @return
 	 */
 	public HashMap<Long, PermissionType> listUserAccessMap(Account account, EntityType type, PermissionType permission, Boolean onlyGranted);
+	
+	/**
+	 * List the ids of the entities and the permission a user has the provided permission to.
+	 * 
+	 * @param accountId
+	 * @param type
+	 * @param permission
+	 * @param onlyGranted (Boolean) - indicates if the method should only return actually granted permissions (no
+	 *        permission groups or admins)
+	 * @return
+	 */
+	public HashMap<Long, PermissionType> visualizationListUserAccessMap(Long accountId, EntityType type, PermissionType permission,
+			Boolean onlyGranted);
+	
 	/**
 	 * Return a list of entity objects that the user has the provided permission to.
 	 * 
@@ -726,5 +741,8 @@ public interface AccountManager extends BaseManager {
 	
 	public ElectronicSignature saveElectronicSignature(ElectronicSignature electronicSignature);
 	
+	public TwoFactorAuthentication saveTwoFactorAuthentication(TwoFactorAuthentication TwoFa);
+	
 	public User saveUserChanges(User user);
+
 }

@@ -62,6 +62,7 @@
 		<!-- ACCOUNTS -->
 		<intercept-url access="hasRole(&apos;ROLE_GUEST&apos;)" pattern="/publicAccounts/*" />
 		<intercept-url access="hasRole(&apos;ROLE_USER&apos;)" pattern="/accounts/*" />
+		<intercept-url access="hasRole(&apos;ROLE_USER&apos;)" pattern="/accountReviewer/*" />
 		<!-- ELECTRONIC SIGNATURE -->
 		<intercept-url access="hasRole(&apos;ROLE_UNSIGNED&apos;)" pattern="/esign/*" />
 		<!-- REPOSITORY -->

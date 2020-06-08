@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>brics</groupId>
 		<artifactId>brics</artifactId>
-		<version>4.0.0</version>
+		<version>6.0.0</version>
 	</parent>
 
 	<dependencies>
@@ -72,6 +72,12 @@
 			<version>1.4</version>
 			<type>jar</type>
 			<scope>compile</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
@@ -236,10 +242,9 @@
 		      <plugin>
 		        <groupId>org.apache.maven.plugins</groupId>
 		        <artifactId>maven-jarsigner-plugin</artifactId>
-		        <version>1.4</version>
+		        <version>3.0.0</version>
 		        <executions>
 		          <execution>
-		          	<phase>verify</phase>
 		            <id>sign</id>
 		            <goals>
 		              <goal>sign</goal>
@@ -250,6 +255,7 @@
 		          <keystore>key/FITBIR.jks</keystore>
 		          <alias>tbi</alias>
 		          <storepass>${jks.storepass}</storepass>
+		          <tsa>http://timestamp.digicert.com</tsa>
 		        </configuration>
 		    </plugin>
 

@@ -43,6 +43,12 @@ public class ViewPatientAction extends BaseAction {
         Protocol protocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
         int protocolId = protocol.getId();
 		
+		boolean protocolClosed = ((Boolean) session.get(CtdbConstants.PROTOCOL_CLOSED_SESSION_KEY)).booleanValue();
+		if (protocolClosed) {
+			disableLinksForProtocolCloseout(LeftNavController.LEFTNAV_SUBJECTS_MYSUBJECTS,
+					new int[] {LeftNavController.LEFTNAV_SUBJECTS_ADD, LeftNavController.LEFTNAV_SUBJECTS_VISITS});
+		}
+
         String expandedDisplayOption = request.getParameter("sectionDisplay");
         if (expandedDisplayOption != null){
         	patientForm.setSectionDisplay(expandedDisplayOption);
@@ -53,7 +59,7 @@ public class ViewPatientAction extends BaseAction {
             ResponseManager rm = new ResponseManager();
             
        
-            Patient patient = pm.getPatient(patientId);
+			Patient patient = pm.getPatient(patientId, protocolId);
             pm.updatePatientDisplayValues(patient);
             patientForm.setId(patient.getId());
             patientForm.setCurrentProtocolId(protocolId + "");

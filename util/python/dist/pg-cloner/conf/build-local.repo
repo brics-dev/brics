@@ -1,0 +1,15 @@
+[DB-SRC]
+host=brics-build.cit.nih.gov
+database=repodb
+schema=reposchema
+user=repouser
+
+[DB-TRG]
+host=localhost
+database=repodb
+schema=reposch
+user=repouser
+
+[FILE-SYS]
+logDir=D:\\DEV\\appdata\\log\\pgCloner\\build-local-repo
+dumpDir=D:\\DEV\\appdata\\dump\\pgCloner\\build-local-repo

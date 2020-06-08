@@ -1,0 +1,7 @@
+[DB-TRG]
+host=nti-db-dev
+database=dictionary_dev
+schema=dictionarydev
+user=dictionarydev
+label=TARGET
+

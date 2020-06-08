@@ -4,6 +4,7 @@ import java.util.Date;
 
 import gov.nih.nichd.ctdb.common.CtdbLookup;
 import gov.nih.nichd.ctdb.protocol.domain.Protocol;
+import gov.nih.nichd.ctdb.protocol.domain.ProtocolRandomization;
 
 /**
  * PatientProtocol DomainObject for the NICHD CTDB Application
@@ -28,9 +29,9 @@ public class PatientProtocol extends Protocol
     private boolean futureStudy = false;
     private boolean validated = false;
     private boolean recruited = false;
-    private String biorepositoryId;
     private int validatedBy = Integer.MIN_VALUE;
     private Date validatedDate = null;
+    private ProtocolRandomization randomization = new ProtocolRandomization();
 
     public boolean isSubject() {
 		return subject;
@@ -64,13 +65,6 @@ public class PatientProtocol extends Protocol
 		this.recruited = recruited;
 	}
 
-	public String getBiorepositoryId() {
-		return biorepositoryId;
-	}
-
-	public void setBiorepositoryId(String biorepositoryId) {
-		this.biorepositoryId = biorepositoryId;
-	}
 
 	public int getValidatedBy() {
 		return validatedBy;
@@ -191,5 +185,13 @@ public class PatientProtocol extends Protocol
 
 	public void setSubjectId(String nihRecordNumber) {
 		this.subjectId = nihRecordNumber;
+	}
+	
+	public ProtocolRandomization getProtocolRandomization() {
+		return this.randomization;
+	}
+	
+	public void setProtocolRandomization(ProtocolRandomization randomization) {
+		this.randomization = randomization;
 	}
 }

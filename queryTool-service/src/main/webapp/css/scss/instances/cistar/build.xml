@@ -3,9 +3,8 @@
         <property name="sass.dir" value=". ../.." />
         <property name="css.dir" value="../../instances/cistar" />
 
-        <apply executable="C:\Ruby193\bin\sass.bat" dest="${css.dir}" verbose="true" force="true" failonerror="true">
+        <apply executable="C:\Ruby\bin\sass.bat" dest="${css.dir}" verbose="true" force="true" failonerror="true">
           <arg value="--unix-newline" />
-          <arg value="--compass" />
           <srcfile />
           <targetfile />
           <fileset dir="${sass.dir}" includes="**/*.scss,**/*.sass" excludes="**/_*" />

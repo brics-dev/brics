@@ -1,0 +1,17 @@
+[DB-SRC]
+host=ninr-db-prod.cit.nih.gov
+database=ninr_prod
+schema=ninr_meta
+user=ninr_meta
+label=SOURCE
+
+[DB-TRG]
+host=localhost
+database=metadb
+schema=metasch
+user=metauser
+label=TARGET
+
+[FILE-SYS]
+logDir=D:\\DEV\\appdata\\log\\pgCloner\\prodninr-local-meta
+workDir=D:\\DEV\\appdata\\dump\\pgCloner\\prodninr-local-meta

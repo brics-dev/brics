@@ -1,8 +1,8 @@
 
 package gov.nih.tbi.repository.dao.hibernate;
 
-import java.util.List;
 
+import java.util.List;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -140,4 +140,5 @@ public class DataStoreInfoDaoImpl extends GenericDaoImpl<DataStoreInfo, Long> im
 		query.where(cb.equal(root.get("dataStructureId"), dataStructureId)).distinct(true);
 		return getUniqueResult(query);
 	}
+		
 }

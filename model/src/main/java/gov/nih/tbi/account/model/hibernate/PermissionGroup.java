@@ -23,52 +23,48 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-
 @Entity
 @Table(name = "PERMISSION_GROUP")
 @XmlRootElement(name = "permissionGroup")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class PermissionGroup implements PermissionAuthority, Serializable
-{
+public class PermissionGroup implements PermissionAuthority, Serializable {
 
-    /**
+	/**
 	 * 
 	 */
-    private static final long serialVersionUID = -5298242282060166275L;
+	private static final long serialVersionUID = -5298242282060166275L;
 
-    public static final String PUBLIC_STATUS = "publicStatus";
-    public static final String GROUP_NAME = "groupName";
+	public static final String PUBLIC_STATUS = "publicStatus";
+	public static final String GROUP_NAME = "groupName";
 
-    /**********************************************************************/
+	/**********************************************************************/
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TBI_USER_SEQ")
-    @SequenceGenerator(name = "TBI_USER_SEQ", sequenceName = "TBI_USER_SEQ", allocationSize = 1)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TBI_USER_SEQ")
+	@SequenceGenerator(name = "TBI_USER_SEQ", sequenceName = "TBI_USER_SEQ", allocationSize = 1)
+	private Long id;
 
-    @Column(name = "GROUP_NAME")
-    private String groupName;
+	@Column(name = "GROUP_NAME")
+	private String groupName;
 
-    @Column(name = "GROUP_DESCRIPTION")
-    private String groupDescription;
+	@Column(name = "GROUP_DESCRIPTION")
+	private String groupDescription;
 
-    @Column(name = "PUBLIC_STATUS")
-    private Boolean publicStatus;
+	@Column(name = "PUBLIC_STATUS")
+	private Boolean publicStatus;
 
-    @XmlTransient
+	@XmlTransient
 	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "permissionGroup", targetEntity = PermissionGroupMember.class, orphanRemoval = true)
-    private Set<PermissionGroupMember> memberSet;
+	private Set<PermissionGroupMember> memberSet;
 
-    @XmlTransient
+	@XmlTransient
 	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "permissionGroup", targetEntity = EntityMap.class, orphanRemoval = true)
-    private Set<EntityMap> entityMapSet;
+	private Set<EntityMap> entityMapSet;
 
-    @Transient
-    private String diseaseKey = "";
+	@Transient
+	private String diseaseKey = "";
 
-    /**********************************************************************/
+	/**********************************************************************/
 
 	public PermissionGroup() {
 		publicStatus = Boolean.valueOf(false);
@@ -76,78 +72,71 @@ public class PermissionGroup implements PermissionAuthority, Serializable
 		entityMapSet = new HashSet<EntityMap>();
 	}
 
-    public Long getId()
-    {
+	public Long getId() {
 
-        return id;
-    }
+		return id;
+	}
 
-    public void setId(Long id)
-    {
+	public void setId(Long id) {
 
-        this.id = id;
-    }
+		this.id = id;
+	}
 
-    public String getGroupName()
-    {
+	public String getGroupName() {
 
-        return groupName;
-    }
+		return groupName;
+	}
 
-    public void setGroupName(String groupName)
-    {
+	public void setGroupName(String groupName) {
 
-        this.groupName = groupName;
-    }
+		this.groupName = groupName;
+	}
 
-    public Set<PermissionGroupMember> getMemberSet()
-    {
+	public Set<PermissionGroupMember> getMemberSet() {
 
-        if (memberSet == null)
-        {
-            return new HashSet<PermissionGroupMember>();
-        }
+		if (memberSet == null) {
+			return new HashSet<PermissionGroupMember>();
+		}
 
-        return memberSet;
-    }
+		return memberSet;
+	}
 
 	public void setMemberSet(Set<PermissionGroupMember> memberSet) {
+		if (this.memberSet == null) {
+			this.memberSet = new HashSet<>();
+		}
+
+		this.memberSet.clear();
+
 		if (memberSet != null) {
-			this.memberSet = memberSet;
-		} else {
-			this.memberSet = new HashSet<PermissionGroupMember>();
+			this.memberSet.addAll(memberSet);
 		}
 	}
 
-    public String getGroupDescription()
-    {
+	public String getGroupDescription() {
 
-        return groupDescription;
-    }
+		return groupDescription;
+	}
 
-    public void setGroupDescription(String groupDescription)
-    {
+	public void setGroupDescription(String groupDescription) {
 
-        this.groupDescription = groupDescription;
-    }
+		this.groupDescription = groupDescription;
+	}
 
-    public Boolean getPublicStatus()
-    {
+	public Boolean getPublicStatus() {
 
-        return publicStatus;
-    }
+		return publicStatus;
+	}
 
-    public void setPublicStatus(Boolean publicStatus)
-    {
+	public void setPublicStatus(Boolean publicStatus) {
 
-        this.publicStatus = publicStatus;
-    }
+		this.publicStatus = publicStatus;
+	}
 
-    public Set<EntityMap> getEntityMapSet()
-    {
+	public Set<EntityMap> getEntityMapSet() {
 
-        return entityMapSet;
-    }
+		return entityMapSet;
+	}
 
 	public void setEntityMapSet(Set<EntityMap> entityMapSet) {
 		if (entityMapSet != null) {
@@ -157,37 +146,33 @@ public class PermissionGroup implements PermissionAuthority, Serializable
 		}
 	}
 
-    /**
-     * Overrides display name for use in permission pages
-     */
-    public String getDisplayName()
-    {
+	/**
+	 * Overrides display name for use in permission pages
+	 */
+	public String getDisplayName() {
 
-        return this.getGroupName();
-    }
+		return this.getGroupName();
+	}
 
-    /**
-     * Overrides display key for use in permission pages
-     */
-    public String getDisplayKey()
-    {
+	/**
+	 * Overrides display key for use in permission pages
+	 */
+	public String getDisplayKey() {
 
-        return "PERMISSION_GROUP:" + getDiseaseKey() + ";" + getId();
-    }
+		return "PERMISSION_GROUP:" + getDiseaseKey() + ";" + getId();
+	}
 
-    @Override
-    public String getDiseaseKey()
-    {
+	@Override
+	public String getDiseaseKey() {
 
-        return diseaseKey;
-    }
+		return diseaseKey;
+	}
 
-    @Override
-    public void setDiseaseKey(String diseaseKey)
-    {
+	@Override
+	public void setDiseaseKey(String diseaseKey) {
 
-        this.diseaseKey = diseaseKey;
-    }
+		this.diseaseKey = diseaseKey;
+	}
 
 	@Override
 	public int hashCode() {

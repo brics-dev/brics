@@ -1,0 +1,7 @@
+[FILE-SYS]
+logDir=/var/lib/brics/log/propPasswdUtil/prod-pd-host
+passFile=/home/buildman/.pgpass
+
+[DEPLOY]
+trgRoot=/var/lib/brics/remote/prod/pd-host
+srcRoot=/var/lib/brics/src/local/prop/prod/pd-host

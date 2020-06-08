@@ -1,0 +1,17 @@
+[DB-SRC]
+host=fitbir-db-dev.cit.nih.gov
+database=tbi_dev
+schema=tbi_metadev
+user=tbi_metadev
+label=SOURCE
+
+[DB-TRG]
+host=localhost
+database=metadb
+schema=metasch
+user=metauser
+label=TARGET
+
+[FILE-SYS]
+logDir=D:\\DEV\\appdata\\log\\pgCloner\\tbidev-local-meta
+workDir=D:\\DEV\\appdata\\dump\\pgCloner\\tbidev-local-meta

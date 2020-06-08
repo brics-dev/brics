@@ -149,6 +149,9 @@
 			
 			</div>
 		</div>
+		<div class="fa-3x containerFontIcon">
+			<i class="fas fa-spinner fa-pulse"></i>
+		</div>
 	</div>
 	<div id="selectDeDialog"></div>
 	<div id="detailsDialog"></div>
@@ -161,5 +164,4 @@
 	<div id="fileDownloadDialog"></div>
 	<div id="sendToMetaStudyValidationDialog"></div>
 </script>
-
 <script type="text/config" id="savedQueryData"></script>

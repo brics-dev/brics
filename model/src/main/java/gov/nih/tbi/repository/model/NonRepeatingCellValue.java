@@ -1,6 +1,6 @@
 package gov.nih.tbi.repository.model;
 
-import gov.nih.tbi.ModelConstants;
+import gov.nih.tbi.commons.model.DataType;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -16,38 +16,26 @@ public class NonRepeatingCellValue extends CellValue {
 	@XmlElement(name = "cellValueCode", type = CellValueCode.class)
 	private CellValueCode valueCode; // value of the cell
 
-	public NonRepeatingCellValue(String value) {
-
-		super(ModelConstants.EMPTY_STRING, false);
-		this.valueCode = new CellValueCode(value);
-	}
-
-	public NonRepeatingCellValue(CellValueCode valueCode) {
-
-		super(ModelConstants.EMPTY_STRING, false);
-		this.valueCode = valueCode;
-	}
-
-	public NonRepeatingCellValue(String dataElementType, String value) {
+	public NonRepeatingCellValue(DataType dataElementType, String value) {
 
 		super(dataElementType, false);
 		this.valueCode = new CellValueCode(value);
 	}
 
-	public NonRepeatingCellValue(String dataElementType, CellValueCode valueCode) {
+	public NonRepeatingCellValue(DataType dataElementType, CellValueCode valueCode) {
 
 		super(dataElementType, false);
 		this.valueCode = valueCode;
 	}
 
 	@Override
-	public String getDataElementType() {
+	public DataType getDataElementType() {
 
 		return dataElementType;
 	}
 
 	@Override
-	public void setDataElementType(String dataElementType) {
+	public void setDataElementType(DataType dataElementType) {
 
 		this.dataElementType = dataElementType;
 	}
@@ -72,5 +60,30 @@ public class NonRepeatingCellValue extends CellValue {
 	@Override
 	public int getRowSize() {
 		return 1;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((valueCode == null) ? 0 : valueCode.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		NonRepeatingCellValue other = (NonRepeatingCellValue) obj;
+		if (valueCode == null) {
+			if (other.valueCode != null)
+				return false;
+		} else if (!valueCode.equals(other.valueCode))
+			return false;
+		return true;
 	}
 }

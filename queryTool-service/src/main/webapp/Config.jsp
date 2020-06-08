@@ -15,6 +15,7 @@ var System = {
 		login : "${applicationConstants.logInURL}",
 
 		publicSite : "${applicationConstants.modulesPublicURL}",
+		TemplatePublicURL : "${applicationConstants.templatePublicURL}",
 		proforms :  "${applicationConstants.modulesPFURL}",
 		guid : "${applicationConstants.modulesGTURL}",
 		dataDict :  "${applicationConstants.modulesDDTURL}",
@@ -187,6 +188,7 @@ var Config = {
 	/**
 	 * Used to map from the server's description.  Just provides a nice set of constants
 	 * that can be accessed quickly.
+	 * These are related to the DE's input instructructions
 	 */
 	filterTypeMapping : {
 		freeForm : "Free-Form Entry",
@@ -194,10 +196,33 @@ var Config = {
 		radioSelect : "Radio Values",
 		multiSelect : "Multiple Pre-Defined Values Selected",
 		guid : "GUID",
+		changeInDiagnosis : "Change in Diagnosis",
 		date : "Date or Date & Time",
 		alpha : "Alphanumeric",
-		numeric : "Numeric Values"
+		numeric : "Numeric Values",
+		triplanar: "Tri-Planar",
+		thumbnail: "Thumbnail",
+		file: "File",
+		biosample: "Biosample",
+		dataset: "Dataset",
+		multiRange: "Multi Range"
 		// TODO: add more here
+	},
+	
+	//TODO: we need to create an accurate mapping from the DE's input instructions, dataType, and Permissibale values
+	//count to the JAVA types, right now FreeForm from above can have FREE_FORM or SINGLE_SELECT type. 
+	filterTypeJava: {
+		0: "FREE_FORM",
+		1: "SINGLE_SELECT", 
+		2: "MULTI_SELECT", 
+		3: "DATE",
+		4: "RANGED_NUMERIC",
+	    5: "DELIMITED_MULTI_SELECT", 
+	    6: "CHANGE_IN_DIAGNOSIS",
+	    7: "SHOW_BLANKS",
+	    8: "DATASET",
+	    9: "MULTI_RANGE"
+
 	},
 	
 	filterTypes : {
@@ -206,10 +231,18 @@ var Config = {
 		dateRangeType : 2,
 		permissibleValuesType : 3,
 		numericUnbounded : 4,
-		radioFormType : 5
+		radioFormType : 5,
+		multiRangeType: 6
 	},
 	
-	permissionTypes : ["Read", "Write", "Admin", "Owner"]
+	permissionTypes : ["Read", "Write", "Admin", "Owner"],
+	multiRaceDEs: ["RaceUSACat"],
+	
+	mdsUpdrsOptions : 
+		{ message: "The MDS-UPDRS part III section has been rescored for a subset of Penn State subjects - records are highlighted in RED. For additional details visit the Data Repository or the PDBP public website and view the study: Multimodal MRI markers of nigrostriatal pathology in Parkinson's disease (U01).",
+			formNames: ["PDBP MDS-UPDRS","MDS_UPDRS","PDBP MDS-UPDRS-X","MDSUPDRS_PennStateRescored","PDBP MDS-UPDRS_Penn State Rescored"],
+			formNamesForRedText: ["PDBP MDS-UPDRS-X","MDS_UPDRS_X","MDSUPDRS_PennStateRescored","PDBP MDS-UPDRS_Penn State Rescored"]
+	},
 };
 
 $(document).ready(function() {

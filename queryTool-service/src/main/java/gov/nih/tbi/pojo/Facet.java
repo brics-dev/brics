@@ -1,14 +1,13 @@
 package gov.nih.tbi.pojo;
 
-import gov.nih.tbi.constants.QueryToolConstants;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 import com.hp.hpl.jena.query.QuerySolution;
-import com.hp.hpl.jena.query.ResultSet;
+
+import gov.nih.tbi.constants.QueryToolConstants;
 
 public class Facet implements Serializable {
 
@@ -28,14 +27,12 @@ public class Facet implements Serializable {
 
 	private String filterQuery = QueryToolConstants.EMPTY_STRING;
 
-	public void populateItemsFromJena(ResultSet results) {
+	public void populateItemsFromJena(QueryResult results) {
 
 		String strVar = results.getResultVars().get(0);
 		String countVar = results.getResultVars().get(1);
 
-		while (results.hasNext()) {
-			QuerySolution row = results.next();
-
+		for (QuerySolution row : results.getQueryData()) {
 			if (!row.contains(strVar)) {
 				continue;
 			}

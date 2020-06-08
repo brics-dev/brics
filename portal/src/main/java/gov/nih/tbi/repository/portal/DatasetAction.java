@@ -12,8 +12,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.mail.MessagingException;
 
@@ -22,8 +22,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import gov.nih.tbi.ModulesConstants;
 import gov.nih.tbi.PortalConstants;
-import gov.nih.tbi.account.model.hibernate.EntityMap;
 import gov.nih.tbi.account.model.hibernate.Account;
+import gov.nih.tbi.account.model.hibernate.EntityMap;
 import gov.nih.tbi.commons.model.DatasetStatus;
 import gov.nih.tbi.commons.model.EntityType;
 import gov.nih.tbi.commons.model.PermissionType;
@@ -53,11 +53,12 @@ import gov.nih.tbi.repository.model.hibernate.DatasetDataStructure;
 import gov.nih.tbi.repository.model.hibernate.DatasetFile;
 import gov.nih.tbi.repository.model.hibernate.DownloadFileDataset;
 import gov.nih.tbi.repository.model.hibernate.DownloadPackage;
+import gov.nih.tbi.repository.model.hibernate.EventLog;
+import gov.nih.tbi.repository.model.hibernate.EventLogDocumentation;
 import gov.nih.tbi.repository.model.hibernate.Study;
 import gov.nih.tbi.repository.service.exception.DataLoaderException;
 import gov.nih.tbi.taglib.datatableDecorators.DatasetIdtListDecorator;
-import gov.nih.tbi.repository.model.hibernate.EventLog;
-import gov.nih.tbi.repository.model.hibernate.EventLogDocumentation;
+import gov.nih.tbi.taglib.datatableDecorators.EventLogListIdtDecorator;
 
 
 
@@ -253,6 +254,27 @@ public class DatasetAction extends BaseRepositoryAction {
 		return accesRecord;
 	}
 
+	
+	public String getEventLogListOutput() {
+		try {
+			if (eventLogList == null) {
+				eventLogList = repositoryManager.getEventLogs(getCurrentDataset().getId(), EntityType.DATASET);
+			}
+			
+			IdtInterface idt = new Struts2IdtInterface();
+			ArrayList<EventLog> outputList = new ArrayList<EventLog>(eventLogList);
+			idt.setList(outputList);
+			idt.setTotalRecordCount(outputList.size());
+			idt.setFilteredRecordCount(outputList.size());
+			idt.decorate(new EventLogListIdtDecorator());
+			idt.output();
+		} catch (InvalidColumnException e) {
+			logger.error("invalid column: " + e);
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 	public void setBulkRequest(boolean isBulkRequest) {
 		this.isBulkRequest = isBulkRequest;
 	}
@@ -713,20 +735,19 @@ public class DatasetAction extends BaseRepositoryAction {
 			String messageText =
 					this.getText(PortalConstants.MAIL_RESOURCE_COMMON + PortalConstants.MAIL_RESOURCE_HEADER,
 							Arrays.asList(modulesConstants.getModulesOrgName(getDiseaseId()),
-									modulesConstants.getModulesOrgPhone(getDiseaseId()),
+									modulesConstants.getModulesOrgEmail(getDiseaseId()),
 									currentDataset.getSubmitter().getFullName(), statusReason,
 									currentDataset.getPrefixedId(), requestStatusVerb))
 							+ this.getText(
 									PortalConstants.MAIL_RESOURCE_ACCEPTED_DATASET + PortalConstants.MAIL_RESOURCE_BODY,
 									Arrays.asList(modulesConstants.getModulesOrgName(getDiseaseId()),
-											modulesConstants.getModulesOrgPhone(getDiseaseId()),
+											modulesConstants.getModulesOrgEmail(getDiseaseId()),
 											currentDataset.getSubmitter().getFullName(), statusReason,
 											currentDataset.getPrefixedId(), requestStatusVerb))
 							+ this.getText(PortalConstants.MAIL_RESOURCE_COMMON + PortalConstants.MAIL_RESOURCE_FOOTER,
 									Arrays.asList(modulesConstants.getModulesOrgName(getDiseaseId()),
-											modulesConstants.getModulesOrgPhone(getDiseaseId()),
-											currentDataset.getSubmitter().getFullName(), statusReason,
-											currentDataset.getPrefixedId(), requestStatusVerb));
+											modulesConstants.getModulesOrgEmail(getDiseaseId())));
+
 
 			mailEngine.sendMail(subject, messageText, null, currentDataset.getSubmitter().getEmail());
 		} else {
@@ -799,9 +820,7 @@ public class DatasetAction extends BaseRepositoryAction {
 											currentDataset.getPrefixedId(), requestStatusVerb))
 							+ this.getText(PortalConstants.MAIL_RESOURCE_COMMON + PortalConstants.MAIL_RESOURCE_FOOTER,
 									Arrays.asList(modulesConstants.getModulesOrgName(getDiseaseId()),
-											modulesConstants.getModulesOrgPhone(getDiseaseId()),
-											currentDataset.getSubmitter().getFullName(), statusReason,
-											currentDataset.getPrefixedId(), requestStatusVerb));
+											modulesConstants.getModulesOrgEmail(getDiseaseId())));
 
 			mailEngine.sendMail(subject, messageText, null, currentDataset.getSubmitter().getEmail());
 		} else {
@@ -964,6 +983,8 @@ public class DatasetAction extends BaseRepositoryAction {
 			throw new NullPointerException();
 		}
 
+		eventLogList = repositoryManager.getEventLogs(currentDataset.getId(), EntityType.DATASET);
+		
 		getSessionDataset().setDataset(currentDataset);
 		return PortalConstants.ACTION_LIGHTBOX;
 	}
@@ -1209,15 +1230,16 @@ public class DatasetAction extends BaseRepositoryAction {
 				String messageText =
 						this.getText(PortalConstants.MAIL_RESOURCE_COMMON + PortalConstants.MAIL_RESOURCE_HEADER,
 								Arrays.asList(modulesConstants.getModulesOrgName(getDiseaseId()),
-										modulesConstants.getModulesOrgPhone(getDiseaseId()), user.getFullName()))
+										modulesConstants.getModulesOrgEmail(getDiseaseId()), user.getFullName()))
 								+ this.getText(
 										PortalConstants.MAIL_RESOURCE_CHANGE_STATUS_BULK_DATASETS
 												+ PortalConstants.MAIL_RESOURCE_BODY,
-										Arrays.asList(modulesConstants.getModulesOrgPhone(getDiseaseId()), datasetsName,
+										Arrays.asList(modulesConstants.getModulesOrgEmail(getDiseaseId()), datasetsName,
 												newstatusVerb))
 								+ this.getText(
 										PortalConstants.MAIL_RESOURCE_COMMON + PortalConstants.MAIL_RESOURCE_FOOTER,
-										Arrays.asList(modulesConstants.getModulesOrgName(getDiseaseId())));
+										Arrays.asList(modulesConstants.getModulesOrgName(getDiseaseId()),""));
+
 
 				mailEngine.sendMail(subject, messageText, null, user.getEmail());
 			} else {
@@ -1311,7 +1333,7 @@ public class DatasetAction extends BaseRepositoryAction {
 												newstatusVerb, statusChangeComment))
 								+ this.getText(
 										PortalConstants.MAIL_RESOURCE_COMMON + PortalConstants.MAIL_RESOURCE_FOOTER,
-										Arrays.asList(modulesConstants.getModulesOrgName(getDiseaseId())));
+										Arrays.asList(modulesConstants.getModulesOrgName(getDiseaseId()),""));
 
 				mailEngine.sendMail(subject, messageText, null, user.getEmail());
 			} else {
@@ -1406,7 +1428,7 @@ public class DatasetAction extends BaseRepositoryAction {
 												requestStatus, statusChangeComment))
 								+ this.getText(
 										PortalConstants.MAIL_RESOURCE_COMMON + PortalConstants.MAIL_RESOURCE_FOOTER,
-										Arrays.asList(modulesConstants.getModulesOrgName(getDiseaseId())));
+										Arrays.asList(modulesConstants.getModulesOrgName(getDiseaseId()),""));
 
 				mailEngine.sendMail(subject, messageText, null, user.getEmail());
 			}
@@ -1497,7 +1519,7 @@ public class DatasetAction extends BaseRepositoryAction {
 									Arrays.asList(modulesConstants.getModulesOrgPhone(getDiseaseId()),
 											currentDataset.getPrefixedId(), newstatusVerb))
 							+ this.getText(PortalConstants.MAIL_RESOURCE_COMMON + PortalConstants.MAIL_RESOURCE_FOOTER,
-									Arrays.asList(modulesConstants.getModulesOrgName(getDiseaseId())));
+									Arrays.asList(modulesConstants.getModulesOrgName(getDiseaseId()),""));
 
 			mailEngine.sendMail(subject, messageText, null, currentDataset.getSubmitter().getEmail());
 		} else {

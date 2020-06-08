@@ -18,6 +18,13 @@ body {
   color: #333333;
   background-color: #ffffff;
 }
+.floatLeft {
+	float: left;
+}
+
+.floatRight {
+	float: right;
+}
 
 .clearfix {
 	clear: both;

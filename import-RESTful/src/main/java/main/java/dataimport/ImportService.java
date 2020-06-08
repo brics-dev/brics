@@ -80,6 +80,8 @@ public class ImportService {
 			@DefaultValue("null") @QueryParam("repository") String repositoryName) {
 
 		logger.info("Creating a submission for the following CSV:\n" + incomingCSV + "\n");
+		
+		String result = "";
 
 		try {
 			loadProperties();
@@ -89,7 +91,7 @@ public class ImportService {
 			SubmissionMetaData submissionMetaData = new SubmissionMetaData(metaDataLine);
 
 			// returns from the processing array
-			processSubmissionDelegate.processJob(submissionMetaData, isBiosample, repositoryName);
+			result = processSubmissionDelegate.processJob(submissionMetaData, isBiosample, repositoryName);
 		} catch (Exception e) {
 			logger.error("Unable to process job due to the following errors:", e);
 			return "ERROR: unable to process job due to the following errors: " + e.getLocalizedMessage();
@@ -97,7 +99,7 @@ public class ImportService {
 
 		// 6. return success
 
-		return "Success";
+		return result;
 	}
 	
 	public void loadProperties() throws FileNotFoundException, IOException {

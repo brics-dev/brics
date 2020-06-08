@@ -129,6 +129,9 @@
 		<script type="text/javascript" src='/portal/formbuilder/js/views/QuestionImageMapDecorator.js'></script>
 		<script type="text/javascript" src='/portal/formbuilder/js/views/QuestionAdditionalTextDecorator.js'></script>
 		<script type="text/javascript" src='/portal/formbuilder/js/views/QuestionDefaultValueDecorator.js'></script>
+		<script type="text/javascript" src='/portal/formbuilder/js/views/CountDialogView.js'></script>
+		<script type="text/javascript" src='/portal/formbuilder/js/views/QuestionCountDecorator.js'></script>
+		<script type="text/javascript" src='/portal/formbuilder/js/views/QuestionBtrisMappingDecorator.js'></script>
 		
 		<script type="text/javascript" src='/portal/formbuilder/js/views/TextBlockEditView.js'></script>
 		<script type="text/javascript" src='/portal/formbuilder/js/views/TextBlockView.js'></script>
@@ -220,6 +223,9 @@
 	<jsp:include page='/formbuilder/templates/question/skipQuestions.jsp' />
 	<jsp:include page='/formbuilder/templates/question/editorAdditionalText.jsp' />
 	<jsp:include page='/formbuilder/templates/question/editorDefaultValue.jsp' />
+	<jsp:include page='/formbuilder/templates/question/editorQuestionCount.jsp' />
+	<jsp:include page='/formbuilder/templates/question/countDialog.jsp' />
+	<jsp:include page='/formbuilder/templates/question/editorBtrisMapping.jsp' />
 
 	<jsp:include page='/formbuilder/templates/question/imageMapTamplate.jsp' />
 	

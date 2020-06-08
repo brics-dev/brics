@@ -1,0 +1,42 @@
+{"properties": [
+  {
+    "name": "microservice.cors.allowed-origin",
+    "type": "java.lang.String",
+    "description": "A description for 'microservice.cors.allowed-origin'"
+  },
+  {
+    "name": "fileRepo.system.fileId.length",
+    "type": "java.lang.Integer",
+    "description": "The length of the file ID for the BricsFile object.'"
+  },
+  {
+    "name": "microservice.cors.max-age",
+    "type": "java.lang.Integer",
+    "description": "A description for 'microservice.cors.max-age'"
+  },
+  {
+    "name": "microservice.cors.exposed-headers",
+    "type": "java.lang.String",
+    "description": "A description for 'microservice.cors.exposed-headers'"
+  },
+  {
+    "name": "fileRepo.taskExecutor.pool.size.core",
+    "type": "java.lang.Integer",
+    "description": "The number of core task execution pools."
+  },
+  {
+    "name": "fileRepo.taskExecutor.pool.size.max",
+    "type": "java.lang.Integer",
+    "description": "The maximum number of task execution pools."
+  },
+  {
+    "name": "fileRepo.taskExecutor.queue.capacity",
+    "type": "java.lang.Integer",
+    "description": "The maximum number of tasks that can occupy each pool."
+  },
+  {
+    "name": "fileRepo.taskExecutor.timeout.milliseconds",
+    "type": "java.lang.Long",
+    "description": "The timeout (in milliseconds) for waiting for a task to be added to the pool."
+  }
+]}

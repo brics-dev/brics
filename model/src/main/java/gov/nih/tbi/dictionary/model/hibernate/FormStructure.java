@@ -247,7 +247,7 @@ public class FormStructure implements Serializable {
 		this.structuralObject.setStatus(status);
 		this.semanticObject.setStatus(status);
 	}
-
+	
 	public Date getPublicationDate() {
 
 		return this.structuralObject.getPublicationDate();
@@ -364,6 +364,14 @@ public class FormStructure implements Serializable {
 		this.structuralObject.setDiseaseList(diseaseList);
 	}
 
+	public List<FormLabel> getFormLabelList() {
+		return this.semanticObject.getFormLabels();
+	}
+	
+	public void setFormLabelList(List<FormLabel> formLabels) {
+		this.semanticObject.setFormLabels(formLabels);
+	}
+	
 	/**
 	 * Returns a set of all the MapElements that are attached to this data structure through a repeatable group.
 	 * 

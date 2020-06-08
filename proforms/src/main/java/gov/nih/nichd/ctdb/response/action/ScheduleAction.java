@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -27,6 +28,8 @@ import gov.nih.nichd.ctdb.response.domain.ScheduleReport;
 import gov.nih.nichd.ctdb.response.domain.ScheduleReportFilter;
 import gov.nih.nichd.ctdb.response.manager.ReportingManager;
 import gov.nih.nichd.ctdb.response.tag.ScheduleReportIdtDecorator;
+import gov.nih.nichd.ctdb.security.common.SecurityConstants;
+import gov.nih.nichd.ctdb.security.domain.Privilege;
 import gov.nih.nichd.ctdb.security.domain.User;
 import gov.nih.nichd.ctdb.security.util.SecuritySessionUtil;
 import gov.nih.nichd.ctdb.util.common.SysPropUtil;
@@ -41,6 +44,7 @@ public class ScheduleAction extends BaseAction{
 	private static final Logger logger = Logger.getLogger(ReportingAction.class);
 	
 	private String currProtoId;
+	private List<Protocol> protocolList = new ArrayList<Protocol>();
 	private List<ClinicalLocation> clinicalLocList = new ArrayList<ClinicalLocation>();
 	private List<Patient> patientList = new ArrayList<Patient>();
 	private String jsonString = CtdbConstants.EMPTY_JSON_ARRAY_STR;
@@ -49,7 +53,6 @@ public class ScheduleAction extends BaseAction{
 	private String selectedSubjectId;
 	private String scheduleStartDateStr;
 	private String scheduleEndDateStr;
-	
 
 	public String showGenerateSchedule() throws CtdbException {
 		buildLeftNav(LeftNavController.LEFTNAV_SCHEDULE);
@@ -57,19 +60,44 @@ public class ScheduleAction extends BaseAction{
 		
 		Protocol curProtocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
 		this.setCurrProtoId(String.valueOf(curProtocol.getId()));
-		
-		@SuppressWarnings("unchecked")
-		List<Protocol> protocols = (List<Protocol>) session.get(CtdbConstants.USER_PROTOCOL_LIST);
-		if(protocols == null) {
-			User user = getUser();
-			protocols = SecuritySessionUtil.refreshUserProtocols(user, request);
-		}
+
+		User user = getUser();
+		// only see the protocol(s) this user can access
+		Privilege piPrivlege = new Privilege(SecurityConstants.PI_SCHEDULER_PRIV);
+		// able to see all protocols
+		Privilege schedulerPriv = new Privilege(SecurityConstants.SCHEDULER_PRIV);
+
 		ProtocolManager protMan = new ProtocolManager();
-		this.setClinicalLocList(protMan.getAllClinicalLocs());
-		
 		PatientManager patMan = new PatientManager();
-		this.setPatientList(patMan.getPatientListForAllProtocol());
-		
+		if (!user.isSysAdmin() && user.hasPrivilege(piPrivlege)) {
+			this.setProtocolList((List<Protocol>) session.get(CtdbConstants.USER_PROTOCOL_LIST));
+			if (this.getProtocolList().isEmpty()) {
+				this.setProtocolList(SecuritySessionUtil.refreshUserProtocols(user, request));
+			}
+			// this.getProtocolList().add(curProtocol);
+
+			List<ClinicalLocation> clinicalLocList = new ArrayList<ClinicalLocation>();
+			for (Protocol prot : this.getProtocolList()) {
+				clinicalLocList.addAll(protMan.getProtocolClinicalLocs(prot.getId()));
+			}
+			this.setClinicalLocList(clinicalLocList);
+			// this.setClinicalLocList(protMan.getProtocolClinicalLocs(Integer.parseInt(this.getCurrProtoId())));
+
+			List<Patient> patientList = new ArrayList<Patient>();
+			for (Protocol prot : this.getProtocolList()) {
+				patientList.addAll(patMan.getPatientListByProtocol(prot.getId()));
+			}
+			this.setPatientList(patientList);
+			// this.setPatientList(patMan.getPatientListByProtocol(Integer.parseInt(this.getCurrProtoId())));
+
+		} else if (user.hasPrivilege(schedulerPriv)) {
+
+			this.setProtocolList(protMan.getProtocols());
+
+			this.setClinicalLocList(protMan.getAllClinicalLocs());
+
+			this.setPatientList(patMan.getPatientListForAllProtocol());
+		}
 		List<ScheduleReport> repoList = new ArrayList<ScheduleReport>();
 		session.put("scheduleReportList", repoList);
 		
@@ -137,6 +165,11 @@ public class ScheduleAction extends BaseAction{
 		try {
 			scheduleStartDate = df.parse(scheduleStartDateStr);
 			scheduleEndDate = df.parse(scheduleEndDateStr);
+			// include end date
+			Calendar c = Calendar.getInstance();
+			c.setTime(scheduleEndDate);
+			c.add(Calendar.DATE, 1);
+			scheduleEndDate = c.getTime();
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
@@ -183,6 +216,17 @@ public class ScheduleAction extends BaseAction{
 	}
 	public void setCurrProtoId(String protoId){
 		this.currProtoId = protoId;
+	}
+
+	public List<Protocol> getProtocolList() {
+		return this.protocolList;
+	}
+
+	public void setProtocolList(List<Protocol> protocolList) {
+		this.protocolList.clear();
+		if (protocolList != null) {
+			this.protocolList.addAll(protocolList);
+		}
 	}
 	public List<ClinicalLocation> getClinicalLocList() {
 		return this.clinicalLocList;

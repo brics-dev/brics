@@ -22,7 +22,9 @@ import gov.nih.nichd.ctdb.common.PaginationData;
 import gov.nih.nichd.ctdb.common.StrutsConstants;
 import gov.nih.nichd.ctdb.common.navigation.LeftNavController;
 import gov.nih.nichd.ctdb.common.util.Utils;
+import gov.nih.nichd.ctdb.form.domain.Form;
 import gov.nih.nichd.ctdb.form.manager.FormManager;
+import gov.nih.nichd.ctdb.form.util.FormDataStructureUtility;
 import gov.nih.nichd.ctdb.protocol.domain.Protocol;
 import gov.nih.nichd.ctdb.protocol.manager.ProtocolManager;
 import gov.nih.nichd.ctdb.response.common.ResponseConstants;
@@ -32,6 +34,7 @@ import gov.nih.nichd.ctdb.response.tag.DataEntrySummaryIdtDecorator;
 import gov.nih.nichd.ctdb.response.util.DataCollectionUtils;
 import gov.nih.nichd.ctdb.security.domain.User;
 import gov.nih.nichd.ctdb.util.common.SysPropUtil;
+import gov.nih.tbi.dictionary.model.hibernate.eform.BasicEform;
 import gov.nih.tbi.idt.ws.IdtColumnDescriptor;
 import gov.nih.tbi.idt.ws.IdtInterface;
 import gov.nih.tbi.idt.ws.IdtRequest;
@@ -84,9 +87,12 @@ public class MyCollectionsAction extends BaseAction {
 	private String key;
 	private String sort;
 	private Boolean ascending;
+	
+    private List<Integer> siteIds = new ArrayList<Integer>();
 
 	public String execute() throws Exception {
 		try{
+			
 			buildLeftNav(LeftNavController.LEFTNAV_COLLECT_COLLECTIONS);
 			
 			User user = getUser();
@@ -137,12 +143,16 @@ public class MyCollectionsAction extends BaseAction {
 				if (!Utils.isBlank(getSubjectId())) {
 					searchOptions.put(CtdbConstants.PATIENTID_DISPLAY, this.getSubjectId());
 				}
-
-				aformList = rm.myCollectionsList(protocolId, userId, searchOptions,null, null);
+				  				
+				if(!isUserSiteCheckNeeded()) {
+					aformList = rm.myCollectionsListBySiteIds(protocolId, userId, searchOptions,null, null,null);
+				}else {
+					siteIds = getUserAssignedSites();
+					aformList = rm.myCollectionsListBySiteIds(protocolId, userId, searchOptions,null, null,siteIds);
+				}
+				
 				session.put(ResponseConstants.LIST_ADMINISTEREDFORM, aformList);
 				session.put(CtdbConstants.VISIT_TYPE_OPTIONS, DataCollectionUtils.getVisitTypeMap(pm.getIntervals(p.getId())));
-
-			
 	
 			}
 			catch (CtdbException ce) {
@@ -171,8 +181,8 @@ public class MyCollectionsAction extends BaseAction {
 		    IdtInterface idt;
 		    try {
 		    	idt = new Struts2IdtInterface();
-		    	IdtRequest request = idt.getRequest();
-			User user = getUser();
+		    	IdtRequest idtRequest = idt.getRequest();
+				User user = getUser();
 				Protocol p = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
 				int subjectDisplayType = p.getPatientDisplayType();
 				if (p == null) {
@@ -229,22 +239,26 @@ public class MyCollectionsAction extends BaseAction {
 				}
 				
 				
-				updateAccessRecordOrder(request.getOrderColumn());
-				updateAccessRecordSearch(request);				
-				
+				updateAccessRecordOrder(idtRequest.getOrderColumn());
+				updateAccessRecordSearch(idtRequest);
+					
 				PaginationData pageData = new PaginationData();
-				pageData.setPage((request.getStart() / request.getLength()) + 1);
-				pageData.setPageSize(request.getLength());
+				pageData.setPage((idtRequest.getStart() / idtRequest.getLength()) + 1);
+				pageData.setPageSize(idtRequest.getLength());
 				pageData.setAscending(ascending);
 				pageData.setSort(sort);				
 				
+				if(!isUserSiteCheckNeeded()) {
+					aformList = rm.myCollectionsListBySiteIds(protocolId, userId, searchOptions, pageData, key,null); 
+				}else {
+					siteIds = getUserAssignedSites();
+					aformList = rm.myCollectionsListBySiteIds(protocolId, userId, searchOptions, pageData, key,siteIds);
+				}
 				
-				aformList = rm.myCollectionsList(protocolId, userId, searchOptions, pageData, key);
-					
 				/*getting the search value from data table search box and the values of the selected columns 
 				 * from idt search drop checkboxes. And filtering data from the data table search input and selected columns.
 				 */
-				List<IdtColumnDescriptor> columns = new ArrayList<IdtColumnDescriptor>(request.getColumnDescriptions());
+				List<IdtColumnDescriptor> columns = new ArrayList<IdtColumnDescriptor>(idtRequest.getColumnDescriptions());
 				// pre-filter out columns we don't want to search
 				Iterator<IdtColumnDescriptor> columnsIterator = columns.iterator();
 				while (columnsIterator.hasNext()) {
@@ -253,10 +267,19 @@ public class MyCollectionsAction extends BaseAction {
 						columnsIterator.remove();
 					}
 				}
-				
+			
 				List<AdministeredForm> displayAFormList = new ArrayList<AdministeredForm>();
-				String searchVal = request.getSearchVal();
-				if (columns.size() != 0 && !searchVal.isEmpty()){
+				// CRIT-11445: using eform title from dictionary in form name
+				List<String> shortNameList = new ArrayList<String>();
+				for (AdministeredForm af : aformList) {
+					Form form = af.getForm();
+					shortNameList.add(form.getShortName());
+				}
+				FormDataStructureUtility fsUtil = new FormDataStructureUtility();
+				List<BasicEform> basicEforms = fsUtil.getBasicEforms(request, shortNameList);
+				String searchVal = idtRequest.getSearchVal();
+				
+				if (columns.size() != 0 && !searchVal.isEmpty()) {
 					for(AdministeredForm af : aformList) {
 						boolean isInList = false;
 						for(IdtColumnDescriptor column : columns){
@@ -278,7 +301,17 @@ public class MyCollectionsAction extends BaseAction {
 								if (af.getInterval().getName().toLowerCase().contains(searchVal)) isInList = true;
 								break;
 							case "formName":
-								if (af.getForm().getName().toLowerCase().contains(searchVal)) isInList = true;
+								String afShortName = af.getForm().getShortName();
+								// CRIT-11445: using eform title from dictionary in form name
+								for (BasicEform beForm : basicEforms) {
+									String efTitle = beForm.getTitle();
+									if (beForm.getShortName().equals(afShortName)
+											&& efTitle.toLowerCase().contains(searchVal)) {
+										af.getForm().setName(efTitle);
+										isInList = true;
+										break;
+									}
+								}
 								break;
 							case "coll_status":
 								if (af.getEntryOneStatus().toLowerCase().contains(searchVal)) isInList = true;
@@ -296,22 +329,43 @@ public class MyCollectionsAction extends BaseAction {
 								if (finalLockDateString.toLowerCase().contains(searchVal)) isInList = true;
 								break;
 							}
-							if(isInList){
+							if(isInList && !displayAFormList.contains(af)){
+								// CRIT-11445: using eform title from dictionary in form name
+								String afShortName = af.getForm().getShortName();
+								for (BasicEform beForm : basicEforms) {
+									String efTitle = beForm.getTitle();
+									if (beForm.getShortName().equals(afShortName)) {
+										af.getForm().setName(efTitle);
+										break;
+									}
+								}
 								displayAFormList.add(af);
 								isInList = false;
 							}
 						}
 					}
-				} else if(searchVal.isEmpty()){
+				} else if (searchVal.isEmpty()) {
+					// CRIT-11445: using eform title from dictionary in form name
+					for (AdministeredForm af : aformList) {
+						String afShortName = af.getForm().getShortName();
+						for (BasicEform beForm : basicEforms) {
+							String efTitle = beForm.getTitle();
+							if (beForm.getShortName().equals(afShortName)) {
+								af.getForm().setName(efTitle);
+								break;
+							}
+						}
+					}
 					displayAFormList.addAll(aformList);
 				}
 
 				
-				int countTotalRecord = rm.countMyCollectionsList(protocolId, userId, searchOptions, key);
+				int countFilteredRecord = rm.countMyCollectionsList(protocolId, userId, searchOptions, key);
+				int countTotalRecord = rm.countMyCollectionsList(protocolId, userId, new HashMap<String, String>(), null);
 
 					
 			    idt.setTotalRecordCount(countTotalRecord);
-			    idt.setFilteredRecordCount(countTotalRecord);
+			    idt.setFilteredRecordCount(countFilteredRecord);
 			    
 			    ArrayList<AdministeredForm> outputAr = new ArrayList<AdministeredForm>(displayAFormList);
 			    idt.setList(outputAr);
@@ -338,6 +392,9 @@ public class MyCollectionsAction extends BaseAction {
 			sort = null;
 			if (orderColumn != null) {
 				sort = orderColumn.getData();
+				if (sort.equals("id")) {
+					sort = "administeredformid";
+				}
 				
 				ascending = orderColumn.getOrderDirection().equals(IdtRequest.ORDER_ASCENDING);
 			}

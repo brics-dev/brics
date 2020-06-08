@@ -1,0 +1,6 @@
+[DB-TRG]
+host=pdbp-db-test.cit.nih.gov
+database=pd_test
+schema=tbi_metatest
+user=tbi_metatest
+label=TARGET

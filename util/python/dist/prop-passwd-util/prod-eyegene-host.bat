@@ -1,0 +1,1 @@
+propPasswdUtil.py --props=.\conf\prod-eyegene.host

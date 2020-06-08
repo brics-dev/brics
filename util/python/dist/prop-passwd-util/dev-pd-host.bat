@@ -1,0 +1,1 @@
+propPasswdUtil.py --props=.\conf\dev-pd.host --srcDir=D:\DEV\BRIX\local\prop\dev\pd-host --trgDir=D:\DEV\workspace\conf\dev\pd-host

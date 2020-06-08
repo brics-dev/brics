@@ -35,7 +35,8 @@ var Form = BaseModel.extend({
 		isCAT : false,
 		// used only by the formbuilder
 		isDataSpring : false,
-		saved : false
+		saved : false,
+		pfCategory : 0
 		
 	},
 	
@@ -594,6 +595,9 @@ var Form = BaseModel.extend({
 		case 'sectioncolor':
 			return 'formForm.'+KEYs[key]+'='+params[KEYs[key]]+'&';
 			break;
+		case 'pfCategory':
+			return 'formForm.'+KEYs[key]+'='+params[KEYs[key]]+'&';
+			break;
 		default:
 			return '';
 		}
@@ -627,7 +631,8 @@ var Form = BaseModel.extend({
 			dataStructureRadio: formForm.dataStructureName,
 			copyrightedForm:formForm.copyRight,
 			allowMultipleCollectionInstances:formForm.allowMultipleCollectionInstances,
-			statusHidden:formForm.statusHidden
+			statusHidden:formForm.statusHidden,
+			pfCategory:formForm.pfCategory
 		});
 
 	},

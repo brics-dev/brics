@@ -37,6 +37,8 @@ import gov.nih.tbi.account.dao.AccountDao;
 import gov.nih.tbi.account.dao.AccountEmailReportSettingDao;
 import gov.nih.tbi.account.dao.AccountHistoryDao;
 import gov.nih.tbi.account.dao.ElectronicSignatureDao;
+import gov.nih.tbi.account.dao.TwoFactorAuthenticationDao;
+import gov.nih.tbi.account.dao.hibernate.TwoFactorAuthenticationDaoImpl;
 import gov.nih.tbi.account.dao.EntityMapDao;
 import gov.nih.tbi.account.dao.PermissionGroupDao;
 import gov.nih.tbi.account.dao.PermissionGroupMemberDao;
@@ -51,10 +53,12 @@ import gov.nih.tbi.account.model.hibernate.AccountHistory;
 import gov.nih.tbi.account.model.hibernate.AccountRole;
 import gov.nih.tbi.account.model.hibernate.BasicAccount;
 import gov.nih.tbi.account.model.hibernate.ElectronicSignature;
+import gov.nih.tbi.account.model.hibernate.TwoFactorAuthentication;
 import gov.nih.tbi.account.model.hibernate.EntityMap;
 import gov.nih.tbi.account.model.hibernate.PermissionGroup;
 import gov.nih.tbi.account.model.hibernate.PermissionGroupMember;
 import gov.nih.tbi.account.model.hibernate.PreviousPassword;
+import gov.nih.tbi.account.model.hibernate.VisualizationEntityMap;
 import gov.nih.tbi.commons.dao.UserDao;
 import gov.nih.tbi.commons.model.AccountStatus;
 import gov.nih.tbi.commons.model.BRICSTimeDateUtil;
@@ -77,6 +81,7 @@ import gov.nih.tbi.commons.ws.HashMethods;
 import gov.nih.tbi.repository.dao.BasicDatasetDao;
 import gov.nih.tbi.repository.dao.DatasetDao;
 import gov.nih.tbi.repository.dao.UserFileDao;
+import gov.nih.tbi.account.dao.VisualizationEntityMapDao;
 import gov.nih.tbi.repository.model.AbstractDataset;
 import gov.nih.tbi.repository.model.hibernate.Dataset;
 import gov.nih.tbi.repository.model.hibernate.DatasetDataStructure;
@@ -153,6 +158,14 @@ public class AccountManagerImpl extends BaseManagerImpl implements AccountManage
 	
 	@Autowired
 	ElectronicSignatureDao electronicSignatureDao;
+	
+	@Autowired
+	VisualizationEntityMapDao VisualizationEntityMapDao;
+
+
+	@Autowired
+	TwoFactorAuthenticationDao twoFactorAuthenticationDao;;
+
 
 	/**
 	 * @inheritDoc
@@ -385,6 +398,23 @@ public class AccountManagerImpl extends BaseManagerImpl implements AccountManage
 		return entityMapList;
 
 	}
+	
+	/**
+	 * @inheritDoc
+	 */
+	public List<VisualizationEntityMap> listUserGrantedEntities(Long accountId, EntityType type) {
+		// if we are only getting permission of granted entities, get all the eneities the user has access to except
+		// entities from public permission groups
+
+		
+		List<VisualizationEntityMap> entityMapList = null;
+		
+		Long typeId = type.getId();
+		
+		entityMapList =  VisualizationEntityMapDao.getUserGrantedEntities(accountId, typeId);
+		
+		return entityMapList;
+	}
 
 	/**
 	 * @inheritDoc
@@ -418,6 +448,25 @@ public class AccountManagerImpl extends BaseManagerImpl implements AccountManage
 
 			if (em.getPermission().contains(permission)) {
 				ids.put(em.getEntityId(), em.getPermission());
+			}
+		}
+		return ids;
+	}
+	
+	/**
+	 * @inheritDoc
+	 */
+	public HashMap<Long, PermissionType> visualizationListUserAccessMap(Long accountId, EntityType type, PermissionType permission,
+			Boolean onlyGranted) {
+
+		List<VisualizationEntityMap> entityMapList = listUserGrantedEntities(accountId, type);
+
+		HashMap<Long, PermissionType> ids = new HashMap<Long, PermissionType>();
+
+		for (VisualizationEntityMap em : entityMapList) {
+			PermissionType r = PermissionType.values()[em.getPermissionTypeId()];
+			if (r.contains(permission)) {
+				ids.put((long) em.getEntityId(), r);
 			}
 		}
 		return ids;
@@ -1929,10 +1978,15 @@ public class AccountManagerImpl extends BaseManagerImpl implements AccountManage
 	 * {@inheritDoc}
 	 */
 	public ElectronicSignature saveElectronicSignature(ElectronicSignature electronicSignature) {
-		
 		return electronicSignatureDao.save(electronicSignature);
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
+	public TwoFactorAuthentication saveTwoFactorAuthentication(TwoFactorAuthentication TwoFa) {
+		return twoFactorAuthenticationDao.save(TwoFa);
+	}
 	
 	public User saveUserChanges(User user) {
 		return userDao.save(user);

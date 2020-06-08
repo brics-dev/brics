@@ -1,0 +1,9 @@
+[DB-TRG]
+host=pdbp-db-test.cit.nih.gov
+database=pd_test
+schema=tbi_metatest
+user=tbi_metatest
+
+[FILE-SYS]
+queueDir=D:\DEV\BRIX\pg-rev\meta
+logDir=D:\DEV\appdata\log\pgDeployer\pdtest-meta

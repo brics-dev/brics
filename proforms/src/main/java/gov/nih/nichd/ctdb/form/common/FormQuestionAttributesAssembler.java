@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,6 +26,7 @@ import gov.nih.nichd.ctdb.common.CtdbLookup;
 import gov.nih.nichd.ctdb.common.DuplicateObjectException;
 import gov.nih.nichd.ctdb.common.HtmlAttributes;
 import gov.nih.nichd.ctdb.common.Version;
+import gov.nih.nichd.ctdb.emailtrigger.domain.EmailTriggerValue;
 import gov.nih.nichd.ctdb.form.domain.CalculatedFormQuestionAttributes;
 import gov.nih.nichd.ctdb.form.domain.Form;
 import gov.nih.nichd.ctdb.form.domain.FormExportImport;
@@ -342,30 +344,30 @@ public class FormQuestionAttributesAssembler extends CtdbAssembler {
 				question.getFormQuestionAttributes().getEmailTrigger()
 						.setBody(emailBody);
 
-				JSONArray emailTriggerAnswersJSON = attributeObjJSON
-						.getJSONArray("triggerAnswers");
-				String[] emailTriggerAnswers = null;
+				JSONArray emailTriggerValuesJSON = attributeObjJSON.getJSONArray("triggerValues");
 
-				if (emailTriggerAnswersJSON != null
-						&& emailTriggerAnswersJSON.length() > 0) {
-					emailTriggerAnswers = new String[emailTriggerAnswersJSON
-							.length()];
-					for (int i = 0; i < emailTriggerAnswersJSON.length(); i++) {
-						String emailTrigger = (String) emailTriggerAnswersJSON
-								.get(i);
-						emailTriggerAnswers[i] = emailTrigger;
+				List<EmailTriggerValue> etvList = new ArrayList<EmailTriggerValue>();
+				if (emailTriggerValuesJSON != null && emailTriggerValuesJSON.length() > 0) {
+
+					for (int i = 0; i < emailTriggerValuesJSON.length(); i++) {
+						EmailTriggerValue etv = new EmailTriggerValue();
+
+						JSONObject etvJsonObj = emailTriggerValuesJSON.getJSONObject(i);
+						etv.setAnswer(etvJsonObj.getString("etAnswer"));
+						etv.setId(etvJsonObj.getLong("etValId") > 0 ? etvJsonObj.getInt("etValId") : null);
+						etv.setTriggerCondition(etvJsonObj.getString("etCondition").isEmpty() ? null : etvJsonObj
+								.getString("etCondition"));
+						etvList.add(etv);
 					}
 
 				}
 
-				if (emailTriggerAnswers != null
-						|| emailTriggerAnswers.length > 0) {
-					for (int i = 0; i < emailTriggerAnswers.length; i++) {
+				if (etvList != null || etvList.size() > 0) {
 						question.getFormQuestionAttributes().getEmailTrigger()
-								.getTriggerAnswers()
-								.add(emailTriggerAnswers[i]);
-					}
+								.getTriggerValues()
+							.addAll(etvList);
 				}
+
 
 				boolean dataSpring = attributeObjJSON.getBoolean("dataSpring");
 				String htmlText = attributeObjJSON.getString("htmlText");
@@ -1002,9 +1004,9 @@ public class FormQuestionAttributesAssembler extends CtdbAssembler {
 			attributeObjJson.put("toEmailAddress", "");
 			attributeObjJson.put("ccEmailAddress", "");
 			attributeObjJson.put("body", "");
-			attributeObjJson.put("subject", "Emailing from the IBIS");
+			attributeObjJson.put("subject", "");
 
-			JSONArray triggerAnswersJsonArr = new JSONArray();
+
 			// attributeObjJson.put("questionsToSkip",questionsToSkipJsonArr);
 
 			attributeObjJson.put("eMailTriggerId", qAttrs.getEmailTrigger()
@@ -1040,18 +1042,23 @@ public class FormQuestionAttributesAssembler extends CtdbAssembler {
 				}
 				attributeObjJson.put("subject", subject);
 
-				List triggerAnswersList = qAttrs.getEmailTrigger()
-						.getTriggerAnswers();
+				JSONArray triggerValuesJsonArr = new JSONArray();
+				Set<EmailTriggerValue> triggerValuesList = qAttrs.getEmailTrigger().getTriggerValues();
 
-				if (triggerAnswersList != null && triggerAnswersList.size() > 0) {
-					Iterator iter = triggerAnswersList.iterator();
+				if (triggerValuesList != null && triggerValuesList.size() > 0) {
+					Iterator iter = triggerValuesList.iterator();
 					while (iter.hasNext()) {
-						String triggerAnswerString = (String) iter.next();
-						triggerAnswersJsonArr.put(triggerAnswerString);
+						EmailTriggerValue etv = (EmailTriggerValue) iter.next();
+						JSONObject etvJsonObj = new JSONObject();
+						etvJsonObj.put("etValId", etv.getId());
+						etvJsonObj.put("etAnswer", etv.getAnswer());
+						etvJsonObj.put("etCondition",
+								(etv.getTriggerCondition() == null ? "" : etv.getTriggerCondition()));
+						triggerValuesJsonArr.put(etvJsonObj);
 					}
 
 				}
-				attributeObjJson.put("triggerAnswers", triggerAnswersJsonArr);
+				attributeObjJson.put("triggerValues", triggerValuesJsonArr);
 
 				attributeObjJson.put("eMailTriggerId", qAttrs.getEmailTrigger()
 						.getId());
@@ -1577,11 +1584,12 @@ public class FormQuestionAttributesAssembler extends CtdbAssembler {
 			} else {
 				for (int i = 0; i < questionAttributesForm.getEmailTrigger()
 						.getSelectedAnswers().length; i++) {
+					EmailTriggerValue etv =
+							new EmailTriggerValue(questionAttributesForm.getEmailTrigger().getSelectedAnswers()[i], "");
+
 					question.getFormQuestionAttributes()
 							.getEmailTrigger()
-							.getTriggerAnswers()
-							.add(questionAttributesForm.getEmailTrigger()
-									.getSelectedAnswers()[i]);
+							.getTriggerValues().add(etv);
 				}
 			}
 		}
@@ -1673,14 +1681,17 @@ public class FormQuestionAttributesAssembler extends CtdbAssembler {
 						qAttrs.getEmailTrigger().getBody());
 				questionAttributesForm.getEmailTrigger().setSubject(
 						qAttrs.getEmailTrigger().getSubject());
-				String[] strAry = (String[]) qAttrs
-						.getEmailTrigger()
-						.getTriggerAnswers()
-						.toArray(
-								questionAttributesForm.getEmailTrigger()
-										.getSelectedAnswers());
+
+				List<String> strList = new ArrayList<String>();
+				Set<EmailTriggerValue> etvList = qAttrs.getEmailTrigger().getTriggerValues();
+				String[] strAry = new String[etvList.size()];
+				for (EmailTriggerValue etv : etvList) {
+					strList.add(etv.getAnswer());
+				}
+				strAry = strList.toArray(strAry);
 				questionAttributesForm.getEmailTrigger().setSelectedAnswers(
 						strAry);
+
 				// questionAttributesForm.getEmailTrigger().setSelectedAnswers(qAttrs.getEmailTrigger().getTriggerAnswers().toArray(questionAttributesForm.getEmailTrigger().getSelectedAnswers()));
 				questionAttributesForm.getEmailTrigger().setId(
 						qAttrs.getEmailTrigger().getId());

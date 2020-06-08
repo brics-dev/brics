@@ -78,6 +78,13 @@ $(document).ready(function() {
 				render: IdtActions.ellipsis(25)
 			},
 			{
+				title:"Permissible Value",
+				data: "pvText",
+				name:"pvText",
+				parameter: "pvText",
+				render: IdtActions.ellipsis(25)
+			},
+			{
 				title:"Action",
 				data: "action",
 				name:"action",

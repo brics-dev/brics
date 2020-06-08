@@ -18,6 +18,7 @@ QT.RefineDataCartView = BaseView.extend({
 		// changing tabs is effectively the same as window resizing
 		EventBus.on("select:stepTab", this.onWindowResize, this);
 		EventBus.on("runQuery", this.onRunQuery, this);
+		EventBus.on("joinForms", this.joinForms, this);
 		EventBus.on("runJoinQuery", this.onRunQuery, this);
 		EventBus.on("query:reset", this.rerender, this);
 
@@ -51,21 +52,49 @@ QT.RefineDataCartView = BaseView.extend({
 	    			left : "0"
 	    		}));
 	    		
-	    		var paddingRight = Number(ui.draggable.css("padding-right").replace("px", ""));
 	    		// don't use 90% here
-	    		ui.draggable.width(($(this).width() - paddingRight));
+	    		var paddingRight = Number(ui.draggable.css("padding-right").replace("px", ""));
+	    		var finalWidth = $(this).width() - paddingRight;
+
+	    		if (ui.draggable.is('[droppedwidth]')) {
+	    			var attrDroppedWidth = ui.draggable.attr("droppedwidth");
+	    			if (finalWidth > attrDroppedWidth) {
+	    				attrDroppedWidth = finalWidth;
+	    				ui.draggable.attr("droppedwidth", finalWidth);
+	    			}
+	    			ui.draggable.width(attrDroppedWidth);
+	    		}
+	    		else {
+		    		
+		    		ui.draggable.width(finalWidth);
+		    		ui.draggable.attr("droppedwidth", finalWidth);
+	    		}
+	    		
 	    		
 	    		$(this).height(ui.draggable.height());
-	    		
+	    		$(".containerFontIcon").show();
+	    		$("#filterLogicRunQuery").addClass("disabled"); 
 	    		//disable join form only if forms are dragged from refineDataFormContainer
 	    		if($("#firstForm").has('.draggable').length && $("#secondForm").has('.draggable').length && $formId!="firstForm" && $formId!="secondForm" && $formId!="thirdForm" && $formId!="fourthForm" && $formId!="fifthForm" ){
-	    			$("#joinFormsButton").removeClass("disabled");
+	    			
+	    			view.model.set("joinFormsAvailable",true);
 	    		}
 	    		else{
-	    			$("#joinFormsButton").addClass("disabled"); 			
+	    			
+	    			view.model.set("joinFormsAvailable",false);
 	    		}
-	    				    		
+	    		
+	    		///reset table
+	    		EventBus.trigger("DataTableView:destroyTable");
 	    		EventBus.trigger("enableDroppables");
+	    		EventBus.trigger("openSelectCriteriaViewTab");
+	    		EventBus.trigger("removeAll:filters");
+	    		EventBus.trigger("populateQueryBox");
+	    		
+	    		//show criteria
+	    		
+	    		view.createJoinFormsSelectedFormsArray();
+	    		
 	    	},
     		over: function(event, ui) {
     		    // If the droppable element we're hovered over already contains a .draggable element, 
@@ -103,6 +132,7 @@ QT.RefineDataCartView = BaseView.extend({
 	    		
 	    		if($formId=="firstForm" ||$formId=="secondForm" ){
 	    			$("#joinFormsButton").addClass("disabled");
+	    			view.model.set("joinFormsAvailable",false);
 	    			$.ibisMessaging("dialog", "warning", "Reset to perform a new form join");
 	    		}
 	    		// we don't want to remove height assignment on the big list!
@@ -130,6 +160,7 @@ QT.RefineDataCartView = BaseView.extend({
 		}
 		
 		this.buildDraggable();
+		this.renderNeededPlaceholders();
 		
 		$("#secondForm").droppable('disable');
 		$("#thirdForm").droppable('disable');
@@ -141,12 +172,18 @@ QT.RefineDataCartView = BaseView.extend({
 	moveFormToList : function($form) {
 		var uri = $form.attr("id").replace("refineDataForm_", "");
 		var $placeholder = this.$('placeholder[class="' + uri + '"]');
-		$placeholder.after($form.css({
+		$form.css({
 			position : "relative",
 			top : "auto",
 			left : "auto"
-		}));
-		$placeholder.remove();
+		});
+		if ($placeholder.length > 0) {
+			$placeholder.after($form);
+			$placeholder.remove();
+		}
+		else {
+			this.$(".refineDataFormContainer").append($form)
+		}
 		var parentWidth = $form.parent().width()
 		var paddingRight = Number($form.css("padding-right").replace("px", ""));
 		$form.width((parentWidth - paddingRight) * 0.9);
@@ -154,12 +191,9 @@ QT.RefineDataCartView = BaseView.extend({
 	
 	rerender : function() {
 		this.destroyDraggable();
-		
 		this.empty();
 		this.render();
-		
 		EventBus.trigger("enableDroppables");
-		EventBus.trigger("DataTableView:destroyTable",this);
 	},
 	
 	/**
@@ -187,14 +221,17 @@ QT.RefineDataCartView = BaseView.extend({
 	},
 	
 	resetForms : function() {
-		EventBus.trigger("query:reset");
+		EventBus.trigger("query:reset",{"applyFilters":false});
+		$("#filterLogicRunQuery").addClass("disabled");
+		var obj = { updateSelectCriteria:false, formUris:[] };
+		QueryTool.query.selectForms(obj);
 	},
 	
 	joinForms : function() {
 		if ( window.console && console.log ){
-		console.log("joining...");
+			console.log("joining...");
 		}
-		if (!this.$("#joinFormsButton").hasClass("disabled")) {
+		if (this.model.get("joinFormsAvailable")) {
 			// get the list of selected form URIs
 			var formIds = [];
 			var formIds = ["#firstForm", "#secondForm", "#thirdForm", "#fourthForm", "#fifthForm"]
@@ -218,6 +255,32 @@ QT.RefineDataCartView = BaseView.extend({
 		}
 	},
 	
+	createJoinFormsSelectedFormsArray : function() {
+			// get the list of selected form URIs
+			var formIds = [];
+			var formIds = ["#firstForm", "#secondForm", "#thirdForm", "#fourthForm", "#fifthForm"]
+					.map(function(containerId) {
+						var $formDiv = this.$(containerId + " .dataCartForm");
+						if ($formDiv.length > 0) {
+							$formDiv.addClass("dataCartActive");
+							return $formDiv.attr("id").replace("refineDataForm_", "");
+						}
+					})
+					.filter(function(ids) {
+						return typeof ids !== "undefined";
+					});
+		
+			// call the event to query
+			QueryTool.query.set("selectedForms", formIds);
+			if(formIds.length > 1) {
+				QueryTool.query.set("currentlyJoined",false);
+				QueryTool.query.set("singleFormRequest",false);
+			}
+			var obj = { notOnActivate:false, formUris:formIds };
+			EventBus.trigger("runSelectForms", obj);
+			
+	},
+	
 	buildDraggable: function() {
 		this.$( ".draggable" ).draggable({
 			revert : "invalid",
@@ -236,7 +299,6 @@ QT.RefineDataCartView = BaseView.extend({
 		});
 	},
 	
-	
 	destroyDraggable: function() {
 		this.$( ".draggable" ).each(function(index, item) {
 			var $this = $(this);
@@ -249,6 +311,20 @@ QT.RefineDataCartView = BaseView.extend({
 	rebuildDraggable: function() {
 		this.destroyDraggable();
 		this.buildDraggable();	
+	},
+	
+	/**
+	 * When reloading the page state or loading a saved query, the form placeholders
+	 * are not added to the left side of the listing.  We need to add those if there
+	 * are forms in the joined section.
+	 */
+	renderNeededPlaceholders : function() {
+		this.$("#firstForm,#secondForm,#thirdForm, #fourthForm, #fifthForm").find(".dataCartForm").each(function() {
+			var uri = $form.attr("id").replace("refineDataForm_", "");
+			if (this.$('placeholder[class="' + uri + '"]').length == 0) {
+				this.$(".refineDataFormContainer").append("<placeholder class=\"" + uri + "\"></placeholder>");
+			}
+		});
 	},
 	
 	addNewForm : function(newForm) {
@@ -308,9 +384,17 @@ QT.RefineDataCartView = BaseView.extend({
 		var paddingBottom = Number(this.$el.css("padding-bottom").replace("px", ""));
 		var extraPadding = Config.scrollContainerBottomOffset;
 		var borderThickness = 1;
-		containerHeight = (windowHeight - currentTop - (paddingTop + paddingBottom) - extraPadding - (borderThickness * 2) - 10) / 2;
-		this.$el.height(containerHeight);
 		
+		var isOpen = QueryTool.page.get("dataCartPaneOpen");
+		if (isOpen) {
+			containerHeight = (windowHeight - currentTop - (paddingTop + paddingBottom) - extraPadding - (borderThickness * 2) - 10) / 2;
+		}
+		else {
+			var dataCartHeaderHeight = $(".refineDataDataCartHeader").height();
+			containerHeight = dataCartHeaderHeight;
+		}
+
+		this.$el.height(containerHeight);
 		this.resizeFormList(containerHeight);
 		this.resizeJoinPanel(containerHeight);
 	},

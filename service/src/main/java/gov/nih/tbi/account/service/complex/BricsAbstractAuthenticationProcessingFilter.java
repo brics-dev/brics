@@ -10,6 +10,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.MessageSource;
@@ -34,6 +35,10 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 import org.springframework.security.web.util.UrlUtils;
 import org.springframework.util.Assert;
 import org.springframework.web.filter.GenericFilterBean;
+
+import gov.nih.tbi.ModulesConstants;
+import gov.nih.tbi.account.model.AccountUserDetails;
+import gov.nih.tbi.account.model.hibernate.Account;
 
 /**
  * The AbstractAuthenticationProcessingFilter implemented in our version of Spring does not support a modified SuccessfulAuthentication call that allows a child class to manipulate the chian. Proxying requires this chain to continue filtering after authenticating the user therefore this the class had to be subsituted for this custom class. The class is identical to its replacement except for the addition of the following funciton:
@@ -87,6 +92,10 @@ public abstract class BricsAbstractAuthenticationProcessingFilter extends Generi
 
     private AuthenticationSuccessHandler successHandler = new BricsAuthenticationSuccessHandler();
     private AuthenticationFailureHandler failureHandler = new SimpleUrlAuthenticationFailureHandler();
+	@Autowired
+	ModulesConstants modulesConstants;
+	private static final String PORTAL_URL = "portal";
+	private static final String TWO_FA_URL = "/twoFa/twoFaLoginAction!input.action";
 
     // ~ Constructors
     // ===================================================================================================
@@ -247,8 +256,41 @@ public abstract class BricsAbstractAuthenticationProcessingFilter extends Generi
         {
             eventPublisher.publishEvent(new InteractiveAuthenticationSuccessEvent(authResult, this.getClass()));
         }
-
-        successHandler.onAuthenticationSuccess(request, response, authResult);
+		AccountUserDetails accountUserDetails = (AccountUserDetails) authResult.getPrincipal();
+		Account account = accountUserDetails.getAccount();
+		Boolean isAdmin = account.isAdmin();
+        Boolean isTwoFaAllowed = this.isTwoFaAllowed(isAdmin);
+		if(isTwoFaAllowed) {
+			String requestUrl = request.getRequestURL().toString();
+			String redirectUrl = response.encodeRedirectURL(modulesConstants.getModulesAccountURL() + PORTAL_URL + TWO_FA_URL);
+			Boolean isLocal = modulesConstants.getEnvIsLocal();
+			if(!isLocal && account.getTwoFactorAuthentication() == null){
+				logger.info("redirect to two factor. requestUrl: " + requestUrl);
+				response.sendRedirect(redirectUrl);
+			} else {	
+		        successHandler.onAuthenticationSuccess(request, response, authResult);
+			}
+			
+		} else {
+			successHandler.onAuthenticationSuccess(request, response, authResult);
+		}
+		
+    }
+    
+    private boolean isTwoFaAllowed(Boolean isAdmin) {
+    	boolean isTwoFaAllowd = false;
+    	if(modulesConstants.getIsTwoFaEnabled()) {
+    		//CNRM wants to apply two factor authentication for all admin accounts, including administrator account
+	    	if(modulesConstants.getTwoFaApplyToAdmin()) {
+	    		isTwoFaAllowd = true;
+	    	} 
+	    	//In case, some instance wants to use two factor authentication, 
+	    	//but does not want to apply to admin accounts
+	    	else if(!isAdmin) { 
+	    		isTwoFaAllowd = true;
+	    	}    	
+    	}
+    	return isTwoFaAllowd;
     }
 
     /**
@@ -362,16 +404,6 @@ public abstract class BricsAbstractAuthenticationProcessingFilter extends Generi
     {
 
         this.sessionStrategy = sessionStrategy;
-    }
-
-    /**
-     * See Spring implementation of AbstractAuthenticationProcessingFilter for javadoc
-     */
-    public void setAuthenticationSuccessHandler(AuthenticationSuccessHandler successHandler)
-    {
-
-        Assert.notNull(successHandler, "successHandler cannot be null");
-        this.successHandler = successHandler;
     }
 
     public void setAuthenticationFailureHandler(AuthenticationFailureHandler failureHandler)

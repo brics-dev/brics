@@ -189,13 +189,13 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 		} else {
 			metaStudyKeywordForm = new MetaStudyKeywordForm(currentMetaStudy);
 		}
-		
+
 		getSessionMetaStudy().setTherapeuticAgentSet(metaStudyDetailsForm.getTherapeuticAgentSet());
 		getSessionMetaStudy().setTherapeuticTargetSet(metaStudyDetailsForm.getTherapeuticTargetSet());
 		getSessionMetaStudy().setTherapyTypeSet(metaStudyDetailsForm.getTherapyTypeSet());
 		getSessionMetaStudy().setModelNameSet(metaStudyDetailsForm.getModelNameSet());
 		getSessionMetaStudy().setModelTypeSet(metaStudyDetailsForm.getModelTypeSet());
-		
+
 		getSessionMetaStudy().setMetaStudy(currentMetaStudy);
 	}
 
@@ -245,7 +245,8 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 	}
 
 
-	public String edit() throws UserPermissionException, MalformedURLException, UnsupportedEncodingException, UserAccessDeniedException {
+	public String edit() throws UserPermissionException, MalformedURLException, UnsupportedEncodingException,
+			UserAccessDeniedException {
 
 		currentMetaStudy = getMetaStudyFromRequest();
 		if (currentMetaStudy == null) {
@@ -278,8 +279,8 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 		return PortalConstants.ACTION_EDIT_DOCUMENTATION;
 	}
 
-	public String editPermissions()
-			throws UserPermissionException, MalformedURLException, UnsupportedEncodingException, UserAccessDeniedException {
+	public String editPermissions() throws UserPermissionException, MalformedURLException, UnsupportedEncodingException,
+			UserAccessDeniedException {
 		currentMetaStudy = getMetaStudyFromRequest();
 		if (!getHasAdminPermission()) {
 			sessionMetaStudy.clear();
@@ -291,8 +292,8 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 		return PortalConstants.ACTION_PERMISSIONS;
 	}
 
-	public String submitPermissions()
-			throws UserPermissionException, MalformedURLException, UnsupportedEncodingException, UserAccessDeniedException {
+	public String submitPermissions() throws UserPermissionException, MalformedURLException,
+			UnsupportedEncodingException, UserAccessDeniedException {
 		currentMetaStudy = getSessionMetaStudy().getMetaStudy();
 
 		if (!getHasAdminPermission()) {
@@ -302,6 +303,19 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 
 		// These lists in session were created and maintained in MetaStudyPermissionsAction
 		List<EntityMap> entitiesToRemove = getSessionMetaStudy().getRemovedMapList();
+
+		// if a permission was added and removed immediately, then the permission has not yet been saved in the db. no
+		// need to delete these.
+		Iterator<EntityMap> entitiesToRemoveIterator = entitiesToRemove.iterator();
+
+		while (entitiesToRemoveIterator.hasNext()) {
+			EntityMap currentEntityMap = entitiesToRemoveIterator.next();
+
+			if (currentEntityMap.getId() == null) {
+				entitiesToRemoveIterator.remove();
+			}
+		}
+
 		if (entitiesToRemove != null && !entitiesToRemove.isEmpty()) {
 			accountManager.unregisterEntity(entitiesToRemove);
 		}
@@ -336,7 +350,8 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 	}
 
 
-	public String view() throws UserPermissionException, MalformedURLException, UnsupportedEncodingException, UserAccessDeniedException {
+	public String view() throws UserPermissionException, MalformedURLException, UnsupportedEncodingException,
+			UserAccessDeniedException {
 
 		currentMetaStudy = getMetaStudyFromRequest();
 		if (currentMetaStudy == null) {
@@ -344,12 +359,12 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 		}
 		getSessionMetaStudy().setMetaStudy(currentMetaStudy);
 
-		
-		 if (!getHasReadPermission()) { 
-			 sessionMetaStudy.clear(); 
-			 throw new UserPermissionException(ServiceConstants.READ_ACCESS_DENIED); 
+
+		if (!getHasReadPermission()) {
+			sessionMetaStudy.clear();
+			throw new UserPermissionException(ServiceConstants.READ_ACCESS_DENIED);
 		}
-		 
+
 
 		// metaStudyDetailsForm = new MetaStudyDetailsForm(currentMetaStudy);
 
@@ -378,7 +393,8 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 		return PortalConstants.ACTION_VIEW;
 	}
 
-	public String delete() throws UserPermissionException, MalformedURLException, UnsupportedEncodingException, UserAccessDeniedException {
+	public String delete() throws UserPermissionException, MalformedURLException, UnsupportedEncodingException,
+			UserAccessDeniedException {
 
 		currentMetaStudy = getMetaStudyFromRequest();
 		if (currentMetaStudy == null) {
@@ -605,13 +621,18 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 		}
 
 		currentMetaStudy = metaStudyManager.saveMetaStudy(getAccount(), currentMetaStudy);
-		
-		//adding DAO calls to save sets seperately
-		metaStudyManager.saveMetaStudyTherapeuticAgent(metaStudyDetailsForm.getTherapeuticAgentSet(), String.valueOf(currentMetaStudy.getId()));
-		metaStudyManager.saveMetaStudyTherapyType(metaStudyDetailsForm.getTherapyTypeSet(), String.valueOf(currentMetaStudy.getId()));
-		metaStudyManager.saveMetaStudyTherapeuticTarget(metaStudyDetailsForm.getTherapeuticTargetSet(), String.valueOf(currentMetaStudy.getId()));
-		metaStudyManager.saveMetaStudyModelType(metaStudyDetailsForm.getModelTypeSet(), String.valueOf(currentMetaStudy.getId()));
-		metaStudyManager.saveMetaStudyModelName(metaStudyDetailsForm.getModelNameSet(), String.valueOf(currentMetaStudy.getId()));
+
+		// adding DAO calls to save sets seperately
+		metaStudyManager.saveMetaStudyTherapeuticAgent(metaStudyDetailsForm.getTherapeuticAgentSet(),
+				String.valueOf(currentMetaStudy.getId()));
+		metaStudyManager.saveMetaStudyTherapyType(metaStudyDetailsForm.getTherapyTypeSet(),
+				String.valueOf(currentMetaStudy.getId()));
+		metaStudyManager.saveMetaStudyTherapeuticTarget(metaStudyDetailsForm.getTherapeuticTargetSet(),
+				String.valueOf(currentMetaStudy.getId()));
+		metaStudyManager.saveMetaStudyModelType(metaStudyDetailsForm.getModelTypeSet(),
+				String.valueOf(currentMetaStudy.getId()));
+		metaStudyManager.saveMetaStudyModelName(metaStudyDetailsForm.getModelNameSet(),
+				String.valueOf(currentMetaStudy.getId()));
 
 		// Set owner permission if it's a new meta study
 		if (isNewMetaStudy) {
@@ -641,7 +662,8 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 	 * @throws MalformedURLException
 	 * @throws UnsupportedEncodingException
 	 */
-	public String moveToDetails() throws MalformedURLException, UnsupportedEncodingException, UserAccessDeniedException {
+	public String moveToDetails()
+			throws MalformedURLException, UnsupportedEncodingException, UserAccessDeniedException {
 
 		currentMetaStudy = getSessionMetaStudy().getMetaStudy();
 
@@ -662,7 +684,8 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 	 * @throws MalformedURLException
 	 * @throws UnsupportedEncodingException
 	 */
-	public String moveToDocumentation() throws MalformedURLException, UnsupportedEncodingException, UserAccessDeniedException {
+	public String moveToDocumentation()
+			throws MalformedURLException, UnsupportedEncodingException, UserAccessDeniedException {
 
 		currentMetaStudy = getSessionMetaStudy().getMetaStudy();
 
@@ -702,7 +725,8 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 	 * @throws MalformedURLException
 	 * @throws UnsupportedEncodingException
 	 */
-	public String moveToPreview() throws MalformedURLException, UnsupportedEncodingException, UserAccessDeniedException {
+	public String moveToPreview()
+			throws MalformedURLException, UnsupportedEncodingException, UserAccessDeniedException {
 
 		currentMetaStudy = getSessionMetaStudy().getMetaStudy();
 
@@ -716,7 +740,8 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 	}
 
 
-	public String moveToKeyword() throws MalformedURLException, UnsupportedEncodingException, UserAccessDeniedException {
+	public String moveToKeyword()
+			throws MalformedURLException, UnsupportedEncodingException, UserAccessDeniedException {
 
 		currentMetaStudy = getSessionMetaStudy().getMetaStudy();
 
@@ -730,7 +755,7 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 	}
 
 	// first part of the 2 part save for editing a meta study
-	public StreamResult editDetailsSave() throws UserAccessDeniedException{
+	public StreamResult editDetailsSave() throws UserAccessDeniedException {
 		currentMetaStudy = getSessionMetaStudy().getMetaStudy();
 
 		// permissions check - if the id is null the meta study hasn't been created yet
@@ -758,7 +783,7 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 		return validationSuccess();
 	}
 
-	public String editKeywordSave() throws UserAccessDeniedException{
+	public String editKeywordSave() throws UserAccessDeniedException {
 		currentMetaStudy = getSessionMetaStudy().getMetaStudy();
 
 		// permissions check - if the id is null the meta study hasn't been created yet
@@ -902,7 +927,7 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 	 * 
 	 * @return a string that directs to View page
 	 */
-	public String requestPublication() throws UserAccessDeniedException{
+	public String requestPublication() throws UserAccessDeniedException {
 		currentMetaStudy = getSessionMetaStudy().getMetaStudy();
 
 		if (currentMetaStudy.getId() != null && !getHasWritePermission()) {
@@ -928,7 +953,7 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 	 * 
 	 * @return a string that directs to View page
 	 */
-	public String approve() throws UserAccessDeniedException{
+	public String approve() throws UserAccessDeniedException {
 		currentMetaStudy = getSessionMetaStudy().getMetaStudy();
 
 		if (currentMetaStudy.getId() != null && !getHasAdminPermission()) {
@@ -953,7 +978,7 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 	 * 
 	 * @return a string that directs to View page
 	 */
-	public String reject() throws UserAccessDeniedException{
+	public String reject() throws UserAccessDeniedException {
 		currentMetaStudy = getSessionMetaStudy().getMetaStudy();
 
 		if (currentMetaStudy.getId() != null && !getHasAdminPermission()) {
@@ -974,7 +999,7 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 	 * 
 	 * @return a string that directs to View page
 	 */
-	public String unpublish() throws UserAccessDeniedException{
+	public String unpublish() throws UserAccessDeniedException {
 		currentMetaStudy = getSessionMetaStudy().getMetaStudy();
 
 		if (currentMetaStudy.getId() != null && !getHasAdminPermission()) {
@@ -1059,7 +1084,7 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 	 * @return : string MetaStudyAccessRecord for struts
 	 * @throws UserPermissionException : if the current user does not have admin access to the current study
 	 */
-	public String searchReportsList() throws UserPermissionException, UserAccessDeniedException{
+	public String searchReportsList() throws UserPermissionException, UserAccessDeniedException {
 		// Permission Check. This search is only visible to admins and those with admin acces to the current study.
 		if (!getIsAdmin() && !getHasAdminPermission()) {
 
@@ -1280,7 +1305,7 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 		UserFile pictureFileOld = null;
 		boolean isRemoved = false;
 
-		if (resMgmtEditedId != null & resMgmtEditedId > 0) { /* add attached new userfile to existing entry */
+		if (resMgmtEditedId != null && resMgmtEditedId > 0) { /* add attached new userfile to existing entry */
 
 			isRemoved = removeResearchManagementObj(resMgmtToEdit);
 			if (!isRemoved) {
@@ -1326,7 +1351,7 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 					resMgmtEdited.setPictureFile(picFile);
 				}
 			}
-		    getSessionMetaStudy().addResearchMgmt(resMgmtEdited.getId(),resMgmtEdited);
+			getSessionMetaStudy().addResearchMgmt(resMgmtEdited.getId(), resMgmtEdited);
 			getCurrentStudy().getResearchMgmtMetaSet().add(resMgmtEdited);
 
 
@@ -1458,7 +1483,7 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 	 * 
 	 * @return The "success" result if a DOI was created, or "error" if there was an error.
 	 */
-	public String createDOIForMetaStudy() throws UserAccessDeniedException{
+	public String createDOIForMetaStudy() throws UserAccessDeniedException {
 		MetaStudy currMs = getSessionMetaStudy().getMetaStudy();
 
 		// Create a DOI for this published meta study, if able.
@@ -1841,7 +1866,7 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 	public List<TherapeuticAgent> getAllTherapeuticAgents() {
 		return metaStudyManager.getAllTherapeuticAgents();
 	}
-	
+
 	public List<TherapyType> getAllTherapyTypes() {
 		return metaStudyManager.getAllTherapyTypes();
 	}
@@ -1849,15 +1874,15 @@ public class MetaStudyAction extends BaseMetaStudyAction {
 	public List<TherapeuticTarget> getAllTherapeuticTargets() {
 		return metaStudyManager.getAllTherapeuticTargets();
 	}
-	
+
 	public List<ModelName> getAllModelNames() {
 		return metaStudyManager.getAllModelNames();
 	}
-	
+
 	public List<ModelType> getAllModelTypes() {
 		return metaStudyManager.getAllModelTypes();
 	}
-	
+
 	public List<TherapeuticAgent> getTherapeuticAgentSet() {
 		return metaStudyDao.getMetaStudyTherapeuticAgents(getSessionMetaStudy().getMetaStudy().getId().toString());
 	}

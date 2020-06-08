@@ -1,0 +1,15 @@
+[DB-SRC]
+host=fitbir-db-prod.cit.nih.gov
+database=tbi_prod
+schema=tbi_meta
+user=tbi_meta
+
+[DB-TRG]
+host=localhost
+database=metadb
+schema=metaschema
+user=metauser
+
+[FILE-SYS]
+logDir=/var/lib/brics/log/pgCloner/prod-build-meta
+;dumpDir=/var/lib/brics/data/pgCloner/prod-build-meta

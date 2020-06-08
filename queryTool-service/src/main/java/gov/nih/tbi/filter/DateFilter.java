@@ -4,17 +4,9 @@ import java.io.Serializable;
 import java.util.Date;
 
 import com.google.gson.JsonObject;
-import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
-import com.hp.hpl.jena.graph.NodeFactory;
-import com.hp.hpl.jena.sparql.expr.E_GreaterThan;
-import com.hp.hpl.jena.sparql.expr.E_LessThanOrEqual;
-import com.hp.hpl.jena.sparql.expr.E_LogicalAnd;
-import com.hp.hpl.jena.sparql.expr.Expr;
-import com.hp.hpl.jena.sparql.expr.ExprVar;
-import com.hp.hpl.jena.sparql.expr.nodevalue.NodeValueDT;
-import com.hp.hpl.jena.sparql.syntax.ElementFilter;
 
 import gov.nih.tbi.commons.model.BRICSTimeDateUtil;
+import gov.nih.tbi.constants.QueryToolConstants;
 import gov.nih.tbi.pojo.DataElement;
 import gov.nih.tbi.pojo.FilterType;
 import gov.nih.tbi.pojo.FormResult;
@@ -26,9 +18,9 @@ public class DateFilter extends DataElementFilter implements Filter, Serializabl
 	private Date dateMin;
 	private Date dateMax;
 
-	public DateFilter(FormResult form, RepeatableGroup group, DataElement element, boolean blank, Date dateMax,
-			Date dateMin) {
-		super(form, group, element, blank);
+	public DateFilter(FormResult form, RepeatableGroup group, DataElement element, Date dateMax, Date dateMin,
+			String name, String logicBefore, Integer groupingBefore, Integer groupingAfter) {
+		super(form, group, element, name, logicBefore, groupingBefore, groupingAfter);
 		this.dateMax = dateMax;
 		this.dateMin = dateMin;
 	}
@@ -51,39 +43,14 @@ public class DateFilter extends DataElementFilter implements Filter, Serializabl
 
 	@Override
 	public JsonObject toJson() {
-		JsonObject filterJson = new JsonObject();
-
-		filterJson.addProperty("groupUri", getGroup().getUri());
-		filterJson.addProperty("elementUri", getElement().getUri());
-		filterJson.addProperty("blank", isBlank());
+		JsonObject filterJson = super.toJson();
 
 		String maxString = BRICSTimeDateUtil.dateToStringUtc(dateMax);
 		String minString = BRICSTimeDateUtil.dateToStringUtc(dateMin);
 		filterJson.addProperty("dateMax", maxString);
 		filterJson.addProperty("dateMin", minString);
-		filterJson.addProperty("filterType", getFilterType().name());
 
 		return filterJson;
-	}
-
-	@Override
-	public ElementFilter toElementFilter(String variable) {
-		if(isEmpty()) {
-			return null;
-		}
-		
-		ExprVar var = new ExprVar(variable);
-		String minString = BRICSTimeDateUtil.dateToDateString(dateMin);
-		String maxString = BRICSTimeDateUtil.dateToDateString(dateMax);
-
-		Expr filterExpression;
-		Expr min = new E_GreaterThan(var,
-				new NodeValueDT(minString, NodeFactory.createLiteral(minString, XSDDatatype.XSDdateTime)));
-		Expr max = new E_LessThanOrEqual(var,
-				new NodeValueDT(maxString, NodeFactory.createLiteral(maxString, XSDDatatype.XSDdateTime)));
-		filterExpression = new E_LogicalAnd(min, max);
-
-		return applyIsBlank(var, new ElementFilter(filterExpression));
 	}
 
 	@Override
@@ -130,11 +97,7 @@ public class DateFilter extends DataElementFilter implements Filter, Serializabl
 	@Override
 	public boolean evaluate(String cellValue) {
 		if (cellValue == null || cellValue.isEmpty()) {
-			if (isBlank()) {
-				return true;
-			} else {
-				return false;
-			}
+			return false;
 		}
 
 		Date cellDateValue = BRICSTimeDateUtil.zuluStringToDate(cellValue);
@@ -144,5 +107,20 @@ public class DateFilter extends DataElementFilter implements Filter, Serializabl
 		}
 
 		return cellDateValue.compareTo(dateMin) >= 0 && cellDateValue.compareTo(dateMax) <= 0;
+	}
+
+	public String toString() {
+		final String queryFormat = "(%s >= %s AND %s <= %s)";
+
+		String output = QueryToolConstants.EMPTY_STRING;
+
+		if (!isEmpty()) {
+			String maxString = BRICSTimeDateUtil.dateToStringUtc(dateMax);
+			String minString = BRICSTimeDateUtil.dateToStringUtc(dateMin);
+			output +=
+					String.format(queryFormat, getReadableFilterName(), minString, getReadableFilterName(), maxString);
+		}
+
+		return output;
 	}
 }

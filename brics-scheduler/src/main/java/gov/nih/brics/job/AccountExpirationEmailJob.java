@@ -115,7 +115,7 @@ public class AccountExpirationEmailJob extends EmailJobs
                 
                 if (orgName.indexOf("FITBIR") >= 0) {
                 	contentForFitbir = messageSource.getMessage(ModulesConstants.RENEW_ACCOUNT_ROLE_CONTENT_FOR_FITBIR_PROPERTY, 
-                    		new Object[] { modulesConstants.getModulesAccountURL() }, null);
+                    		null, null);
                 }
                 
                 String mailBody = messageSource.getMessage(ModulesConstants.RENEW_ACCOUNT_ROLE_MESSAGE_BODY_PROPERTY, 
@@ -241,7 +241,7 @@ public class AccountExpirationEmailJob extends EmailJobs
 
                     if (i == 0) // first role expiring this day
                     {
-                    	roleListBuffer.append("     Your ").append(orgName).append(" ").append(currentRole);
+                    	roleListBuffer.append("     Your ").append(orgName.replaceAll("_", " ")).append(" ").append(currentRole);
                     }
 
                     if (i > 0 && i < numberOfRolesExpiringThisDay - 1) // between the first and last role, not inclusive

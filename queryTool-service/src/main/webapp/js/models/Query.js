@@ -13,9 +13,16 @@ QT.Query = BaseModel.extend({
         selectedForms: [],
         totalRecords: 0,
         formUris: [],
+        currentlyJoined: false, // This will tell us if a joined query has been successfully processed.
+        singleFormRequest: false, // This will tell us if a user is just asked for a single form to be queried
+        applyFiltersEnabled : false, //this will tell us if there are filters that need to be ran.
+        onReload: false, //this tells us if we are reloading objects
         hideShowColButtonText: "Hide All Blank Columns",
         hideShowColButtonClass: "hideBlankCol",
-        queryType: "full" // || "data" for only-data queries.  Used for determining how the rest of the page should handle this
+        queryType: "full", // || "data" for only-data queries.  Used for determining how the rest of the page should handle this
+        doApplyFilter: false,
+        outputSelectionOption : "Permissible Value",
+        outputCodeSelection: "pv"
     },
 
     filters: null,
@@ -24,11 +31,12 @@ QT.Query = BaseModel.extend({
         this.filters = new QT.QueryFilters();
         this.set("formDetails", new QT.QueryForms());
         EventBus.on("runQuery", this.performQuery, this);
+        EventBus.on("runOnlyQuery", this.performQuery, this);
         EventBus.on("runJoinQuery", this.performQuery, this);
         EventBus.on("runExpandQuery", this.expandQuery, this);
         EventBus.on("runCollapseQuery", this.collapseQuery, this);
         EventBus.on("runSort", this.applySort, this);
-        //EventBus.on("applyFilters", this.applyFilters, this);
+        EventBus.on("runSelectForms", this.selectForms, this);
         EventBus.on("applyFiltersWithoutRendering", this.applyFiltersWithoutRendering, this);
         EventBus.on("query:dataAvailable", this.updateSelectCriteria, this);
         EventBus.on("remove:filter", this.removeFilter, this);
@@ -36,13 +44,14 @@ QT.Query = BaseModel.extend({
         EventBus.on("addBiosample", this.addBiosample, this);
         EventBus.on("addBiosamples", this.addBiosamples, this);
         EventBus.on("clearDataCart", this.onClearDataCart, this);
-        EventBus.on("query:reset", this.removeAllFilters, this);
+        EventBus.on("query:reset", this.queryReset, this);
         EventBus.on("query:reRun", this.reRunQuery, this);
         EventBus.on("query:hideAllBlankColumns", this.hideAllBlankColumns, this);
         EventBus.on("query:showAllBlankColumns", this.showAllBlankColumns, this);
         EventBus.on("query:selectDe", this.selectDataElement, this);
         EventBus.on("query:deselectDe", this.deselectDataElement, this);
         EventBus.on("query:runRefreshRepeatbleGroup", this.refreshRG, this);
+        EventBus.on("query:dragUpdateSelectCriteria",this.dragToUpdateSelectCriteria,this);
     },
 
     loadForms: function(formArray) {
@@ -73,6 +82,13 @@ QT.Query = BaseModel.extend({
             },
             success: function(data, textStatus, jqXHR) {
                 // Do nothing
+            	 if (typeof data.status !== "undefined") {
+                  	if(data.status = "401") {
+                  		//redirect
+                  		window.location.href = "/query/logout";
+                  		return;
+                  	}
+                  }
             },
             error: function() {
             	if ( window.console && console.log ){
@@ -80,70 +96,53 @@ QT.Query = BaseModel.extend({
             	}
             }
         });
-
-        EventBus.trigger
     },
-
-    applyFilters: function() {
-        EventBus.trigger("open:processing", "Applying Filters");
-        EventBus.trigger("DataTableView:removeQueryListener");
-        $.ajaxSettings.traditional = true;
-        var query = this;
-        var filtersJson = replaceAllOccurrencesInString(JSON.stringify(this.filters.toJson()), "\\n", ";");
-       
-        $.ajax({
-            type: "POST",
-            cache: false,
-            url: "service/dataCart/applyFilters",
-            data: {
-                filters: filtersJson,
-                offset: this.get("offset"),
-                limit: this.get("limit"),
-                sortColName: this.get("sortColName"),
-                sortOrder: this.get("sortOrder")
-            },
-            success: function(data, textStatus, jqXHR) {
-                query.set("queryType", "data");
-                query.filtersQueryComplete.call(query, data, true);
-                EventBus.trigger("DataTableView:reloadRepeatableGroup", this);
-                EventBus.trigger("renderResults", this);
-                EventBus.trigger("DataTableView:addQueryListener", this);
-
-            },
-            error: function() {
-                // TODO: fill in
-                EventBus.trigger("close:processing");
-                if ( window.console && console.log ){
-                console.log("error applying filters");
-                }
-            }
-        });
-    },
-    
-
+   
     filtersQueryComplete: function(data, updateSelectCriteria) {
+    	 if (typeof data.status !== "undefined") {
+         	if(data.status = "401") {
+         		//redirect
+         		window.location.href = "/query/logout";
+         		return;
+         	}
+         }
         if (typeof data.error !== "undefined") {
             $.ibisMessaging("dialog", "error", "There was an error processing your query.");
         } else {
             if (this.get("tableResults") != undefined || this.get("tableResults").headers != undefined) {
-                $.extend(this.get("tableResults"), data);
-                // manually triggering here so we can use $.extend above to merge results into original
-                this.trigger("change:tableResults", this.get("tableResults"));
+            	
+            	if(this.get("tableResults").data != undefined) {
+             	   this.get("tableResults").data = data;
+                }
+               var newData = $.extend(this.get("tableResults"), data);
+               
+               //manually triggering here so we can use $.extend above to merge results into original
+               //This is a bad hack, but the extend doesn't doesn't trigger the listenTo for changes in tableResults
+               this.set("tableResults",{});
+               this.set("tableResults", newData); 
             } else {
                 this.set("tableResults", data);
             }
-
+            
             if (typeof updateSelectCriteria == "undefined") {
                 updateSelectCriteria = true;
             }
             if (updateSelectCriteria) {
-                this.updateSelectCriteria();
+                this.updateSelectCriteria(false);
             }
         }
         EventBus.trigger("close:processing");
     },
 
     queryComplete: function(data, updateSelectCriteria) {
+        if (typeof data.status !== "undefined") {
+        	if(data.status = "401") {
+        		//redirect
+        		window.location.href = "/query/logout";
+        		return;
+        	}
+        }
+        
         if (typeof data.error !== "undefined") {
             $.ibisMessaging("dialog", "error", "There was an error processing your query.");
         } else {
@@ -160,13 +159,39 @@ QT.Query = BaseModel.extend({
             data.data = JSON.parse(data.data.replace('\"', '"'));
             this.set("tableResults", data);
             this.set("totalRecords", data.data.iTotalRecords);
-
+            //For initial joins with filters, check if we need to run filters
+            
+            
+            
+            //This is used to aid in workflow as user goes from rendering join forms and single forms
+            if(!this.get("onReload")) {
+            	//Assuming this was a single form request
+                this.set("singleFormRequest",true);
+                var formUris = this.get("formUris");
+	            if(formUris.length > 1) {
+	            	updateSelectCriteria = false;
+	            	this.set("currentlyJoined",true);
+	            	this.set("singleFormRequest",false);
+	            } else if (this.get("currentlyJoined")) {
+	            	this.set("currentlyJoined",false);
+	            }
+            } 
             if (updateSelectCriteria) {
-                this.updateSelectCriteria();
+                this.updateSelectCriteria(true);
+            } else {
+	            //render table
+				EventBus.trigger("renderTable");
             }
         }
     },
     paginateQueryComplete: function(data, updateSelectCriteria) {
+    	 if (typeof data.status !== "undefined") {
+         	if(data.status = "401") {
+         		//redirect
+         		window.location.href = "/query/logout";
+         		return;
+         	}
+         }
         if (typeof data.error !== "undefined") {
             $.ibisMessaging("dialog", "error", "There was an error processing your query during pagination.");
         } else {
@@ -175,10 +200,6 @@ QT.Query = BaseModel.extend({
             }
             this.set("tableResults", data);
             this.set("totalRecords", data.iTotalRecords);
-
-            if (updateSelectCriteria) {
-                this.updateSelectCriteria();
-            }
         }
     },
 
@@ -203,10 +224,18 @@ QT.Query = BaseModel.extend({
             if(formUris.length > 3) {
             	processMessage = "Performing query...  Returned query results will vary depending on the size of the dataset and/or form structures you are joining.";
             }
-          
+            
             EventBus.trigger("open:processing", processMessage);
+            var filtersJson = replaceAllOccurrencesInString(JSON.stringify(query.filters.toJsonForQuery()), "\\n", ";");
+            
+            if(filtersJson.length > 0) {
+				this.set("doApplyFilter",true);
+            } else {
+            	this.set("doApplyFilter",false);
+            }
+            
             $.ajax({
-                type: "GET",
+                type: "POST",
                 cache : false,
                 url: "service/dataCart/runQuery",
                 data: {
@@ -214,23 +243,44 @@ QT.Query = BaseModel.extend({
                     offset: this.get("offset"),
                     limit: this.get("limit"),
                     sortColName: this.get("sortColName"),
-                    sortOrder: this.get("sortOrder")
+                    sortOrder: this.get("sortOrder"),
+                    filters: filtersJson,
+        			filterExpression: query.filters.getExpression(),
+        			doApplyFilter: this.get("doApplyFilter")
                 },
                 success: function(data, textStatus, jqXHR) {
+                	query.set("doApplyFilter",false);
                     query.set("queryType", "full");
-                    if (typeof data.allHaveGuid !== "undefined") {
-                        $.ibisMessaging("dialog", "warning", "A form you are attempting to Join does not have a valid GUID, please select again.");
-                        EventBus.trigger("close:processing");
-                    } else if (typeof data.hasMatchingGuid !== "undefined") {
-                        $.ibisMessaging("dialog", "warning", "There is no matching data between the selected forms.");
-                        EventBus.trigger("close:processing");
-                    } else {
-                        EventBus.trigger("close:processing");
-                        query.queryComplete.call(query, data, true);
-                    }
 
+                    var showData = true;
+                    
+                    if (typeof data.formInfo !== "undefined") {
+                    	var missingGuidDialog = "";
+                    	for(var i = 0; i < data.formInfo.length; i++) {
+                    		var currentForm = data.formInfo[i];
+                    		if(currentForm.hasGuidColumn !== "undefined" && currentForm.hasGuidColumn === false) {
+                    			missingGuidDialog = missingGuidDialog.concat("The JOIN consists of ").concat(currentForm.name).concat(" which does not has GUIDS.  Please remove this Form Structure and Redo your Join. You should be able to see the data for this FS by loading it individually.&nbsp;");
+                    			//dont show data if one of the forms don't have a GUID
+                    			showData = false;
+                    		}
+                    		
+                    		if(!currentForm.hasGuidData !== "undefined" && currentForm.hasGuidData === false) {
+                    			missingGuidDialog = missingGuidDialog.concat("At least one record from ").concat(currentForm.name).concat(" is missing data for GUID.  Records that do not have a GUID are not included in the join result.&nbsp;");
+        					}
+                    	}
+        				
+        				if(missingGuidDialog != "") {
+        					$.ibisMessaging("dialog", "warning", missingGuidDialog);
+        				}
+                    }
+        				
+                    EventBus.trigger("close:processing");
+                    
+                    if(showData === true) {
+                    	query.queryComplete.call(query, data, true);
+                    }
                 },
-                error: function() {
+                error: function(err,x,a) {
                     // TODO: fill in
                 	$.ibisMessaging("dialog", "error", "There is an error processing your request.");
                 	EventBus.trigger("close:processing");
@@ -248,7 +298,7 @@ QT.Query = BaseModel.extend({
         });
     },
 
-    updateSelectCriteria: function() {
+    updateSelectCriteria: function(renderTable) {
         var query = this;
         $.ajaxSettings.traditional = true;
         $.ajax({
@@ -256,8 +306,20 @@ QT.Query = BaseModel.extend({
             cache : false,
             url: "service/dataCart/selectedFormDetails",
             success: function(data, textStatus, jqXHR) {
+            	 if (typeof data.status !== "undefined") {
+                  	if(data.status = "401") {
+                  		//redirect
+                  		window.location.href = "/query/logout";
+                  		return;
+                  	}
+                  }
                 query.set("formDetails", data);
+                $(".containerFontIcon").hide();
+                //TODO: Do we want to change this for joins?
                 EventBus.trigger("query:formDetailsAvailable");
+                if(renderTable) {
+                	EventBus.trigger("renderTable");
+                }
             },
             error: function() {
                 // TODO: fill in
@@ -265,6 +327,12 @@ QT.Query = BaseModel.extend({
             }
            
         });
+    },
+    dragToUpdateSelectCriteria: function() {
+        var query = this;
+        query.set("queryType", "full");
+        this.updateSelectCriteria(false);
+        
     },
 
     getDeFilterDetails: function(formUri, rgUri, deUri, rgName, deName, extraData) {
@@ -286,6 +354,13 @@ QT.Query = BaseModel.extend({
                 deName: deName
             },
             success: function(data, textStatus, jqXHR) {
+            	if (typeof data.status !== "undefined") {
+                 	if(data.status = "401") {
+                 		//redirect
+                 		window.location.href = "/query/logout";
+                 		return;
+                 	}
+                 }
                 var localData = {
                     formUri: formUri,
                     groupUri: rgUri,
@@ -314,19 +389,28 @@ QT.Query = BaseModel.extend({
             data: {
                 formUri: colModel.formUri,
                 rgName: colModel.rgName,
-                deName: colModel.get("name")
+                deName: colModel.deName
             },
             success: function(data, textStatus, jqXHR) {
+            	if (typeof data.status !== "undefined") {
+                 	if(data.status = "401") {
+                 		//redirect
+                 		window.location.href = "/query/logout";
+                 		return;
+                 	}
+                 }
+            	EventBus.trigger("processed:columnCheckBox");
                 // TODO: do we need to handle this?  Probably update local data somehow
             },
             error: function() {
                 // TODO: fill in
+            	EventBus.trigger("processed:columnCheckBox");
             }
         });
     },
 
     selectDataElement: function(colModel) {
-    	if(colModel.formUri !== "" && colModel.rgName !== "" && colModel.get("name") !== "") {
+    	if(colModel.formUri !== "" && colModel.rgName !== "" && colModel.deName !== "") {
     		
 	        $.ajaxSettings.traditional = true;
 	        $.ajax({
@@ -336,45 +420,37 @@ QT.Query = BaseModel.extend({
 	            data: {
 	                formUri: colModel.formUri,
 	                rgName: colModel.rgName,
-	                deName: colModel.get("name")
+	                deName: colModel.deName
 	            },
 	            success: function(data, textStatus, jqXHR) {
+	            	if (typeof data.status !== "undefined") {
+	                 	if(data.status = "401") {
+	                 		//redirect
+	                 		window.location.href = "/query/logout";
+	                 		return;
+	                 	}
+	                 }
+	            	EventBus.trigger("processed:columnCheckBox");
 	                // TODO: do we need to handle this?  Probably update local data somehow
 	            },
 	            error: function() {
 	                // TODO: fill in
+	            	EventBus.trigger("processed:columnCheckBox");
 	            }
 	        });
     	}
     },
-
-    removeAllFilters: function() {
-        this.filters.reset();
-        EventBus.trigger("applyFiltersWithoutRendering");
-    },
-
-    changeDisplayOption: function(id) {
-        $.ajaxSettings.traditional = true;
-        var query = this;
-        $.ajax({
-            type: "GET",
-            cache : false,
-            url: "service/dataCart/changeDisplayOption",
-            data: {
-                displayOption: id
-            },
-            success: function(data, textStatus, jqXHR) {
-                EventBus.trigger("DataTableView:removeQueryListener", this);
-                query.set("tableResults", data);
-                query.set("totalRecords", data.iTotalRecords);
-                EventBus.trigger("renderResults", this);
-                EventBus.trigger("DataTableView:addQueryListener", this);
-            },
-            error: function() {
-                // TODO: fill in
-            }
-        });
-    },
+    
+	removeAllFilters : function(conf) {
+		EventBus.trigger("removeAll:filters");
+		if((conf != undefined && conf.applyFilters) || conf == undefined) {
+			_.defer(function() {
+				EventBus.trigger("applyFilters");
+				EventBus.trigger("populateQueryBox");
+			});
+		}
+	},
+    
     changeDisplayOptionVirtTable: function(displayOptionObj) {
     	 var query = this;
    	  return new Promise(function (resolve, reject) {
@@ -388,10 +464,15 @@ QT.Query = BaseModel.extend({
 	                displayOption: displayOptionObj.displayOption
 	            },
 	            success: function(data, textStatus, jqXHR) {
-	                EventBus.trigger("DataTableView:removeQueryListener", this);
+	            	if (typeof data.status !== "undefined") {
+	                 	if(data.status = "401") {
+	                 		//redirect
+	                 		window.location.href = "/query/logout";
+	                 		return;
+	                 	}
+	                 }
 	                query.set("tableResults", data);
 	                query.set("totalRecords", data.iTotalRecords);
-	                EventBus.trigger("DataTableView:addQueryListener", this);
 	            	resolve(data);
 	            },
 	            error: function() {
@@ -402,6 +483,29 @@ QT.Query = BaseModel.extend({
        });
         
     },
+    resetChangeDisplayOption: function(displayOption) {
+   	 var query = this;
+  	  $.ajaxSettings.traditional = true;
+	        $.ajax({
+	            type: "GET",
+	            cache : false,
+	            url: "service/dataCart/changeDisplayOption",
+	            data: {
+	                displayOption: displayOption
+	            },
+	            success: function(data, textStatus, jqXHR) {
+	                query.set("tableResults", data);
+	                query.set("totalRecords", data.iTotalRecords);
+	            	
+	            },
+	            error: function() {
+	                // TODO: there should be an error message
+	            	
+	            }
+	        });
+      
+       
+   },
 
     removeVisualFilter: function(queryFilterModel) {
         var formUri = queryFilterModel.get("formUri");
@@ -435,9 +539,6 @@ QT.Query = BaseModel.extend({
     },
 
     applySort: function() {
-        //this removeQueryListener, prevents the entire table from redrawing we just want to redraw the results
-        EventBus.trigger("DataTableView:removeQueryListener");
-        //this.performPaginateQuery();
         return this.scrollVirtTable(this.get("offset"),this.get("limit"));
 
     },
@@ -446,6 +547,7 @@ QT.Query = BaseModel.extend({
     },
 
     /**
+     * TODO: i think we can delete this
      * performs a query, gets the result table
      * 
      * @param formUris array of form URIs
@@ -477,7 +579,6 @@ QT.Query = BaseModel.extend({
                     }
                     EventBus.trigger("close:processing");
                     EventBus.trigger("renderResults", this);
-                    EventBus.trigger("DataTableView:addQueryListener", this);
 
                 },
                 error: function() {
@@ -523,6 +624,7 @@ QT.Query = BaseModel.extend({
 	  return new Promise(function (resolve, reject) {
         var formUris = query.get("selectedForms");
         if (formUris.length > 0) {
+             
           //re-use pagination query for scrolling the virtual table.
           $.ajaxSettings.traditional = true;
           $.ajax({
@@ -543,13 +645,12 @@ QT.Query = BaseModel.extend({
                     reject();
                 } else {
                 	// success, return the data
-                	 EventBus.trigger("DataTableView:removeQueryListener", this);
-                	 query.paginateQueryComplete.call(query, data, true);
-                	 EventBus.trigger("DataTableView:addQueryListener", this);
+                	query.paginateQueryComplete.call(query, data, true);
                 	resolve(data);
                 }
             },
             error: function() {
+            	EventBus.trigger("close:processing");
                 // TODO: can we get an error message?
             	reject();
             }
@@ -573,12 +674,15 @@ QT.Query = BaseModel.extend({
 		                rgName: expandModel.rgName
 		            },
 		            success: function(data, textStatus, jqXHR) {
-		            	  EventBus.trigger("DataTableView:removeQueryListener");
+		            	if (typeof data.status !== "undefined") {
+		                 	if(data.status = "401") {
+		                 		//redirect
+		                 		window.location.href = "/query/logout";
+		                 		return;
+		                 	}
+		                 }
 		                query.set("queryType", "data");
 		                query.expandQueryComplete.call(query, data, true);
-	
-		                //EventBus.trigger("renderResults", this);
-		                EventBus.trigger("DataTableView:addQueryListener", this);
 		                resolve(data);
 	
 		            },
@@ -607,11 +711,15 @@ QT.Query = BaseModel.extend({
 		                rgName: expandModel.rgName
 		            },
 		            success: function(data, textStatus, jqXHR) {
-		            	EventBus.trigger("DataTableView:removeQueryListener");
+		            	if (typeof data.status !== "undefined") {
+		                 	if(data.status = "401") {
+		                 		//redirect
+		                 		window.location.href = "/query/logout";
+		                 		return;
+		                 	}
+		                 }
 		                query.set("queryType", "data");
 		                query.expandQueryComplete.call(query, data, true);
-		                //EventBus.trigger("renderResults", this);
-		                EventBus.trigger("DataTableView:addQueryListener", this);
 		                resolve(data);
 	
 		            },
@@ -630,11 +738,10 @@ QT.Query = BaseModel.extend({
 	    	var query = this;
 	        EventBus.trigger("open:processing", "Applying Filters");
 	        return new Promise(function(resolve, reject) {
-	        	EventBus.trigger("DataTableView:removeQueryListener");
 		        $.ajaxSettings.traditional = true;
 		        
-		        var filtersJson = replaceAllOccurrencesInString(JSON.stringify(query.filters.toJson()), "\\n", ";");
-			       
+		        var filtersJson = replaceAllOccurrencesInString(JSON.stringify(query.filters.toJsonForQuery()), "\\n", ";");
+		        
 		        $.ajax({
 		            type: "POST",
 		            cache: false,
@@ -644,16 +751,13 @@ QT.Query = BaseModel.extend({
 		                offset: query.get("offset"),
 		                limit: query.get("limit"),
 		                sortColName: query.get("sortColName"),
-		                sortOrder: query.get("sortOrder")
+		                sortOrder: query.get("sortOrder"),
+		                filterExpression: query.filters.getExpression()
 		            },
 		            success: function(data, textStatus, jqXHR) {
 		                query.set("queryType", "data");
 		                query.filtersQueryComplete.call(query, data, true);
-		                //EventBus.trigger("DataTableView:reloadRepeatableGroup", this);
-		                //EventBus.trigger("renderResults", this);
-		                EventBus.trigger("DataTableView:addQueryListener", this);
 		                resolve(data);
-
 		            },
 		            error: function() {
 		                // TODO: fill in
@@ -672,39 +776,6 @@ QT.Query = BaseModel.extend({
 	       
 	    },
 
-	
-	//TODO: remove bottom two methods expand and collapse after tests
-    expandQuery: function(expandModel) {
-        EventBus.trigger("DataTableView:removeQueryListener");
-        $.ajaxSettings.traditional = true;
-        var query = this;
-
-        var filtersJson = JSON.stringify(this.filters.toJson());
-        $.ajax({
-            type: "GET",
-            cache : false,
-            url: "service/dataCart/expandRepeatableGroup",
-            data: {
-                rowUri: expandModel.rowUri,
-                rgFormUri: expandModel.rgFormUri,
-                rgName: expandModel.rgName
-            },
-            success: function(data, textStatus, jqXHR) {
-                query.set("queryType", "data");
-                query.expandQueryComplete.call(query, data, true);
-
-                EventBus.trigger("renderResults", this);
-                EventBus.trigger("DataTableView:addQueryListener", this);
-
-            },
-            error: function() {
-                // TODO: fill in
-            	if ( window.console && console.log ){
-                console.log("error running expand query")
-            	}
-            }
-        });
-    },
     expandQueryComplete: function(data, updateSelectCriteria) {
         if (typeof data.error !== "undefined") {
             $.ibisMessaging("dialog", "error", "There was an error processing your expand query.");
@@ -715,38 +786,9 @@ QT.Query = BaseModel.extend({
                 updateSelectCriteria = true;
             }
             if (updateSelectCriteria) {
-                this.updateSelectCriteria();
+                this.updateSelectCriteria(false);
             }
         }
-    },
-    collapseQuery: function(expandModel) {
-        EventBus.trigger("DataTableView:removeQueryListener");
-        $.ajaxSettings.traditional = true;
-        var query = this;
-
-        $.ajax({
-            type: "GET",
-            cache : false,
-            url: "service/dataCart/collapseRepeatableGroup",
-            data: {
-                rowUri: expandModel.rowUri,
-                rgFormUri: expandModel.rgFormUri,
-                rgName: expandModel.rgName
-            },
-            success: function(data, textStatus, jqXHR) {
-                query.set("queryType", "data");
-                query.expandQueryComplete.call(query, data, true);
-                EventBus.trigger("renderResults", this);
-                EventBus.trigger("DataTableView:addQueryListener", this);
-
-            },
-            error: function() {
-                // TODO: fill in
-            	if ( window.console && console.log ){
-                console.log("error running expand query")
-            	}
-            }
-        });
     },
     refreshRG: function(cellModel) {
 
@@ -763,7 +805,13 @@ QT.Query = BaseModel.extend({
 	            rgName: cellModel.rgName
 	        },
 	        success: function(data, textStatus, jqXHR) {
-
+	        	if (typeof data.status !== "undefined") {
+	             	if(data.status = "401") {
+	             		//redirect
+	             		window.location.href = "/query/logout";
+	             		return;
+	             	}
+	             }
 	            if (typeof data.error !== "undefined") {
 	                $.ibisMessaging("dialog", "error", "There was an error processing your refresh repeatable group.");
 	            } else {
@@ -798,6 +846,13 @@ QT.Query = BaseModel.extend({
                 columnName: biosampleCellModel.columnName
             },
             success: function(data, textStatus, jqXHR) {
+            	if (typeof data.status !== "undefined") {
+                 	if(data.status = "401") {
+                 		//redirect
+                 		window.location.href = "/query/logout";
+                 		return;
+                 	}
+                 }
                 if (data.success == "duplicate") {
                     $.ibisMessaging("dialog", "success", "The item you tried to add is already in your queue.");
                 } else if (data.success == "unique") {
@@ -842,6 +897,13 @@ QT.Query = BaseModel.extend({
                 
             },
             success: function(data, textStatus, jqXHR) {
+            	if (typeof data.status !== "undefined") {
+                 	if(data.status = "401") {
+                 		//redirect
+                 		window.location.href = "/query/logout";
+                 		return;
+                 	}
+                 }
 
 
                 EventBus.trigger("close:processing");
@@ -908,6 +970,13 @@ QT.Query = BaseModel.extend({
                 bioFormName: bioFormName
             },
             success: function(data, textStatus, jqXHR) {
+            	if (typeof data.status !== "undefined") {
+                 	if(data.status = "401") {
+                 		//redirect
+                 		window.location.href = "/query/logout";
+                 		return;
+                 	}
+                 }
                 EventBus.trigger("close:processing");
 
                 var queueLink = "The item(s) has been added to your queue. Visit <a href=\"" +
@@ -937,9 +1006,17 @@ QT.Query = BaseModel.extend({
             cache : false,
             url: "service/dataCart/columnsWithNoData",
             success: function(data, textStatus, jqXHR) {
+            	if (typeof data.status !== "undefined") {
+                 	if(data.status = "401") {
+                 		//redirect
+                 		window.location.href = "/query/logout";
+                 		return;
+                 	}
+                 }
                 data.forEach(function(col) {
 
                     EventBus.trigger("hamburgerview:showHideCol", {
+                    	formName: col.formName,
                         formUri: col.formUri,
                         rgName: col.rgName,
                         rgUri: col.rgUri,
@@ -974,6 +1051,13 @@ QT.Query = BaseModel.extend({
             cache : false,
             url: "service/dataCart/columnsWithNoData",
             success: function(data, textStatus, jqXHR) {
+            	if (typeof data.status !== "undefined") {
+                 	if(data.status = "401") {
+                 		//redirect
+                 		window.location.href = "/query/logout";
+                 		return;
+                 	}
+                 }
                 data.forEach(function(col) {
 
                     EventBus.trigger("hamburgerview:showHideCol", {
@@ -1001,10 +1085,74 @@ QT.Query = BaseModel.extend({
             }
         });
     },
+    
+    /**
+     * sets selected form objects in java, this is only used when a user drags forms
+     * into join fields
+     * 
+     * @param formUris array of form URIs
+     */
+    selectForms: function(obj) {
+        var formUris = obj.formUris;
 
+      
+            this.set("formUris", formUris);
+            $.ajaxSettings.traditional = true;
+            var query = this;
+            var processMessage = "Selecting forms...";
+           // EventBus.trigger("open:processing", processMessage);
+            $.ajax({
+                type: "GET",
+                cache : false,
+                url: "service/dataCart/setSelectedForms",
+                data: {
+                    formUris: formUris
+                },
+                success: function(data, textStatus, jqXHR) {
+                	
+                	//if join is available and we have turn on run Query button
+                	if(query.get("selectedForms").length > 1) {
+                		$("#filterLogicRunQuery").removeClass("disabled");
+                	}
+                	
+                	if (typeof data.status !== "undefined") {
+                     	if(data.status = "401") {
+                     		//redirect
+                     		window.location.href = "/query/logout";
+                     		return;
+                     	}
+                     }
+                    query.set("queryType", "full");
+                   if (typeof data.error !== "undefined") {
+                        $.ibisMessaging("dialog", "warning", "There is an error selecting your form.");
+                    } else {
+                    	if(obj.updateSelectCriteria == undefined) {
+                    		//After the forms have been selected and placed into the join form fields, update the select criteria fields
+                    		EventBus.trigger("query:dragUpdateSelectCriteria");	
+                    	}
+                    	
+                    	if(obj.loadsq !== undefined) {
+                    		EventBus.trigger("load:sqFilters");
+                    	}
+                    }
+                   
+                },
+                error: function() {
+                    // TODO: fill in
+                	$.ibisMessaging("dialog", "error", "There is an error processing your request.");
+                	//EventBus.trigger("close:processing");
+                }
+            });
+       
+    },
+    
+    queryReset: function(conf) {
+    	this.removeAllFilters(conf);
+    },
     reset: function() {
         this.filters.reset();
         this.set("formDetails", new QT.QueryForms());
+        this.set("formUris",[]);
         this.set("offset", 0);
         this.set("limit", 100);
         this.set("sortColName", "");

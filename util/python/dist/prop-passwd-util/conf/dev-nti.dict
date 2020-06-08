@@ -1,0 +1,7 @@
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\propPasswdUtil\dev-nti-dict
+passFile=D:\DATA\secur\.pgpass
+
+[DEPLOY]
+trgRoot=D:\DEV\workspace\conf\dev\nti-dict
+srcRoot=D:\DEV\BRIX\local\prop\dev\nti-dict

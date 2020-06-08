@@ -1,5 +1,7 @@
 package gov.nih.nichd.ctdb.response.form;
 
+import java.util.ArrayList;
+
 import gov.nih.nichd.ctdb.common.CtdbForm;
 
 public class ReportingForm extends CtdbForm {
@@ -25,6 +27,14 @@ public class ReportingForm extends CtdbForm {
 	private String studyStartDate;
 	private String studyEndDate;
 	private int studyNumberSubjects;
+	private String studyEformCount;
+	private String studyLockedAdminFormsCount;
+	private String studyNotLockedAdminFormsCount;
+	private int protocolId;
+	private String protocolEformsAndAdminFormCount;
+	private ArrayList protocolEformsAndAdminFormCountArr;
+	private String eformName;
+	private int numAforms;
 
 	// administrative forms report fields & form without guid
 	private String afName;
@@ -93,6 +103,32 @@ public class ReportingForm extends CtdbForm {
 
 	public void setStudyAdminFormsCount(String studyAdminFormsCount) {
 		this.studyAdminFormsCount = studyAdminFormsCount;
+	}
+	
+	
+
+	public String getStudyEformCount() {
+		return studyEformCount;
+	}
+
+	public void setStudyEformCount(String studyEformCount) {
+		this.studyEformCount = studyEformCount;
+	}
+
+	public String getStudyLockedAdminFormsCount() {
+		return studyLockedAdminFormsCount;
+	}
+
+	public void setStudyLockedAdminFormsCount(String studyLockedAdminFormsCount) {
+		this.studyLockedAdminFormsCount = studyLockedAdminFormsCount;
+	}
+
+	public String getStudyNotLockedAdminFormsCount() {
+		return studyNotLockedAdminFormsCount;
+	}
+
+	public void setStudyNotLockedAdminFormsCount(String studyNotLockedAdminFormsCount) {
+		this.studyNotLockedAdminFormsCount = studyNotLockedAdminFormsCount;
 	}
 
 	public String getAfName() {
@@ -654,6 +690,46 @@ public class ReportingForm extends CtdbForm {
 
 	public void setStudyNumberSubjects(int studyNumberSubjects) {
 		this.studyNumberSubjects = studyNumberSubjects;
+	}
+
+	public int getProtocolId() {
+		return protocolId;
+	}
+
+	public void setProtocolId(int protocolId) {
+		this.protocolId = protocolId;
+	}
+
+	public String getProtocolEformsAndAdminFormCount() {
+		return protocolEformsAndAdminFormCount;
+	}
+
+	public void setProtocolEformsAndAdminFormCount(String protocolEformsAndAdminFormCount) {
+		this.protocolEformsAndAdminFormCount = protocolEformsAndAdminFormCount;
+	}
+
+	public String getEformName() {
+		return eformName;
+	}
+
+	public void setEformName(String eformName) {
+		this.eformName = eformName;
+	}
+
+	public int getNumAforms() {
+		return numAforms;
+	}
+
+	public void setNumAforms(int numAforms) {
+		this.numAforms = numAforms;
+	}
+
+	public ArrayList getProtocolEformsAndAdminFormCountArr() {
+		return protocolEformsAndAdminFormCountArr;
+	}
+
+	public void setProtocolEformsAndAdminFormCountArr(ArrayList protocolEformsAndAdminFormCountArr) {
+		this.protocolEformsAndAdminFormCountArr = protocolEformsAndAdminFormCountArr;
 	}
 
 	

@@ -339,27 +339,9 @@ public class BasicEform implements Serializable{
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + (allowMultipleCollectionInstances ? 1231 : 1237);
-		result = prime * result + ((catOid == null) ? 0 : catOid.hashCode());
-		result = prime * result + ((createBy == null) ? 0 : createBy.hashCode());
-		result = prime * result + ((createDate == null) ? 0 : createDate.hashCode());
-		result = prime * result + ((description == null) ? 0 : description.hashCode());
 		result = prime * result + ((formStructureShortName == null) ? 0 : formStructureShortName.hashCode());
-		result = prime * result + ((formStructureTitle == null) ? 0 : formStructureTitle.hashCode());
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((isCAT == null) ? 0 : isCAT.hashCode());
-		result = prime * result + ((isConfigured == null) ? 0 : isConfigured.hashCode());
-		result = prime * result + ((isLegacy == null) ? 0 : isLegacy.hashCode());
-		result = prime * result + ((isMandatory == null) ? 0 : isMandatory.hashCode());
-		result = prime * result + ((isSelfReport == null) ? 0 : isSelfReport.hashCode());
-		result = prime * result + ((isShared == null) ? 0 : isShared.hashCode());
-		result = prime * result + ((measurementType == null) ? 0 : measurementType.hashCode());
-		result = prime * result + ((orderValue == null) ? 0 : orderValue.hashCode());
-		result = prime * result + ((publicationDate == null) ? 0 : publicationDate.hashCode());
 		result = prime * result + ((shortName == null) ? 0 : shortName.hashCode());
-		result = prime * result + ((status == null) ? 0 : status.hashCode());
 		result = prime * result + ((title == null) ? 0 : title.hashCode());
-		result = prime * result + ((updatedDate == null) ? 0 : updatedDate.hashCode());
 		return result;
 	}
 
@@ -372,107 +354,21 @@ public class BasicEform implements Serializable{
 		if (getClass() != obj.getClass())
 			return false;
 		BasicEform other = (BasicEform) obj;
-		if (allowMultipleCollectionInstances != other.allowMultipleCollectionInstances)
-			return false;
-		if (catOid == null) {
-			if (other.catOid != null)
-				return false;
-		} else if (!catOid.equals(other.catOid))
-			return false;
-		if (createBy == null) {
-			if (other.createBy != null)
-				return false;
-		} else if (!createBy.equals(other.createBy))
-			return false;
-		if (createDate == null) {
-			if (other.createDate != null)
-				return false;
-		} else if (!createDate.equals(other.createDate))
-			return false;
-		if (description == null) {
-			if (other.description != null)
-				return false;
-		} else if (!description.equals(other.description))
-			return false;
 		if (formStructureShortName == null) {
 			if (other.formStructureShortName != null)
 				return false;
 		} else if (!formStructureShortName.equals(other.formStructureShortName))
-			return false;
-		if (formStructureTitle == null) {
-			if (other.formStructureTitle != null)
-				return false;
-		} else if (!formStructureTitle.equals(other.formStructureTitle))
-			return false;
-		if (id == null) {
-			if (other.id != null)
-				return false;
-		} else if (!id.equals(other.id))
-			return false;
-		if (isCAT == null) {
-			if (other.isCAT != null)
-				return false;
-		} else if (!isCAT.equals(other.isCAT))
-			return false;
-		if (isConfigured == null) {
-			if (other.isConfigured != null)
-				return false;
-		} else if (!isConfigured.equals(other.isConfigured))
-			return false;
-		if (isLegacy == null) {
-			if (other.isLegacy != null)
-				return false;
-		} else if (!isLegacy.equals(other.isLegacy))
-			return false;
-		if (isMandatory == null) {
-			if (other.isMandatory != null)
-				return false;
-		} else if (!isMandatory.equals(other.isMandatory))
-			return false;
-		if (isSelfReport == null) {
-			if (other.isSelfReport != null)
-				return false;
-		} else if (!isSelfReport.equals(other.isSelfReport))
-			return false;
-		if (isShared == null) {
-			if (other.isShared != null)
-				return false;
-		} else if (!isShared.equals(other.isShared))
-			return false;
-		if (measurementType == null) {
-			if (other.measurementType != null)
-				return false;
-		} else if (!measurementType.equals(other.measurementType))
-			return false;
-		if (orderValue == null) {
-			if (other.orderValue != null)
-				return false;
-		} else if (!orderValue.equals(other.orderValue))
-			return false;
-		if (publicationDate == null) {
-			if (other.publicationDate != null)
-				return false;
-		} else if (!publicationDate.equals(other.publicationDate))
 			return false;
 		if (shortName == null) {
 			if (other.shortName != null)
 				return false;
 		} else if (!shortName.equals(other.shortName))
 			return false;
-		if (status != other.status)
-			return false;
 		if (title == null) {
 			if (other.title != null)
 				return false;
 		} else if (!title.equals(other.title))
 			return false;
-		if (updatedDate == null) {
-			if (other.updatedDate != null)
-				return false;
-		} else if (!updatedDate.equals(other.updatedDate))
-			return false;
-		//not including isSelfReport in this method to prevent duplicates
-		//in the psr eform configuring table
 		return true;
 	}
 

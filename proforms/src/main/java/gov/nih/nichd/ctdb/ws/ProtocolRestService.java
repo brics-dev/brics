@@ -1,9 +1,15 @@
 package gov.nih.nichd.ctdb.ws;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.InternalServerErrorException;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -17,9 +23,12 @@ import org.springframework.stereotype.Component;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+import gov.nih.nichd.ctdb.common.CasProxyTicketException;
 import gov.nih.nichd.ctdb.common.CtdbException;
 import gov.nih.nichd.ctdb.protocol.domain.ProtocolClosingOut;
 import gov.nih.nichd.ctdb.protocol.manager.ProtocolManager;
+import gov.nih.nichd.ctdb.ws.clients.DictionaryWSProvider;
+import gov.nih.tbi.dictionary.model.hibernate.eform.BasicEform;
 
 @Component
 @Path("/protocol/")
@@ -29,16 +38,15 @@ public class ProtocolRestService {
 	@GET
 	@Path("getProtocolList/{studyId}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getProtocolListByStudyId(@PathParam("studyId") String studyId) throws WebApplicationException {
+	public Response getProtocolListByStudyId(@PathParam("studyId") String studyId) throws WebApplicationException, UnsupportedEncodingException {
 
 		// TODO: Only a check for the "ROLE_PROFORMS" is done right now. Will need add a check for the proper
 		// ProFoRMS user role (i.e. PI or Data Manager).
-
+		studyId = decodeUrl(studyId);
 		JsonArray dataJson = new JsonArray();
 
 		try {
 			ProtocolManager protoMan = new ProtocolManager();
-
 			for (ProtocolClosingOut pco : protoMan.getClosingOutListByStudyId(studyId)) {
 				JsonObject jsonObj = new JsonObject();
 				jsonObj.addProperty("bricsStudyId", pco.getBricsStudyId());
@@ -72,5 +80,30 @@ public class ProtocolRestService {
 		}
 
 		return Response.ok().entity(dataJson.toString()).build();
+	}
+
+	@POST
+	@Path("updateEformNames")
+	public Response updateEformNames() throws WebApplicationException, CtdbException, CasProxyTicketException {
+		DictionaryWSProvider wsProvider = new DictionaryWSProvider();
+		Map<String, BasicEform> allEformMap = wsProvider.getPublishedEformListFromWs();
+		logger.debug("updateEformNames allEformMap size: " + allEformMap.size());
+
+		ProtocolManager protoMan = new ProtocolManager();
+		List<Integer> allProtocolIds = new ArrayList<Integer>(protoMan.getProtocolIds().keySet());
+		for (Integer protoId : allProtocolIds) {
+			protoMan.updateEformsForProtocol(protoId, allEformMap);
+		}
+
+		return Response.ok().build();
+	}
+	
+	public static String decodeUrl(String url) throws UnsupportedEncodingException {
+
+		if (url == null) {
+			return null;
+		}
+
+		return URLDecoder.decode(url, "UTF-8");
 	}
 }

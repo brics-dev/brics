@@ -48,6 +48,18 @@ public class BRICSFilesUtils {
 	}
 
 	/**
+	 * Reads the file in the specified path into a string and return
+	 * 
+	 * @param file
+	 * @param encoding
+	 * @return
+	 * @throws IOException
+	 */
+	public static String readFile(File file, Charset encoding) throws IOException {
+		return BRICSFilesUtils.readFile(file.getAbsolutePath(), encoding);
+	}
+
+	/**
 	 * Helper method that copies the contents of the source file into a new temporary file. Please delete the temporary
 	 * file if it is no longer being used.
 	 * 
@@ -81,5 +93,14 @@ public class BRICSFilesUtils {
 		newFile.deleteOnExit();
 
 		return newFile;
+	}
+
+	public static String getFileExtension(String filename) {
+
+		int lastIndexOf = filename.lastIndexOf(".");
+		if (lastIndexOf == -1) {
+			return ""; // empty extension
+		}
+		return filename.substring(lastIndexOf + 1);
 	}
 }

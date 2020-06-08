@@ -31,6 +31,8 @@ public class EulaAgreementWrapper extends JFrame implements ActionListener
     private static final String ACCEPT_ACTION = "ACCEPT";
     private static final String DECLINE_ACTION = "DECLINE";
     
+    private static final int VERTICAL_SIZE = 470;
+    
     /**
      * To differentiate between EULA for standalone upload manager
      * and the combined validation and upload tool
@@ -40,7 +42,7 @@ public class EulaAgreementWrapper extends JFrame implements ActionListener
     public static void main(String[] args)
     {
 
-        String orgEmail = "REPLACED@nih.gov";
+        String orgEmail = "fitbir-ops@nih.gov";
 
         EulaAgreementWrapper test = new EulaAgreementWrapper(new ActionListener()
         {
@@ -101,7 +103,7 @@ public class EulaAgreementWrapper extends JFrame implements ActionListener
         layout.setAutoCreateContainerGaps(true);
         layout.setAutoCreateGaps(true);
 
-        int verticalSize = 400;
+        
         // set horizontal grouping
         
         ParallelGroup pGroup = layout.createParallelGroup(GroupLayout.Alignment.CENTER)
@@ -112,7 +114,6 @@ public class EulaAgreementWrapper extends JFrame implements ActionListener
         if(declineListener != null){
         	pGroup.addComponent(noteText);
         	sGroup.addComponent(noteText);
-        	verticalSize = 425;
         }
         pGroup.addGroup(
                 layout.createSequentialGroup().addComponent(agreeButton)
@@ -166,13 +167,15 @@ public class EulaAgreementWrapper extends JFrame implements ActionListener
         pack();
 
         this.setTitle("EULA Agreement");
-        this.setSize(new Dimension(650, verticalSize));
+        this.setSize(new Dimension(650, VERTICAL_SIZE));
 
         this.setIconImage(UploadManagerController.createImageIcon(ApplicationsConstants.FRAME_ICON, "Frame GIF")
                 .getImage());
 
         this.setVisible(true);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+        //open in center
+        this.setLocationRelativeTo(null);
 
         // confirm quit dialog
         this.addWindowListener(new WindowAdapter()

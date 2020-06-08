@@ -1,0 +1,1 @@
+python pgDelta.py --props=.\conf\demo.cistar-prod.ibis.dict

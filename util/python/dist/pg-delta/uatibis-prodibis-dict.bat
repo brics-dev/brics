@@ -1,0 +1,1 @@
+python pgDelta.py --props=.\conf\uat.ibis-prod.ibis.dict

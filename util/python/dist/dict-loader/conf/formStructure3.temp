@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<formStructure>
+    <StructuralFormStructure>
+        <repeatableGroups>
+            <id>-1</id>
+            <name>Main</name>
+            <type>EXACTLY</type>
+            <threshold>1</threshold>
+            <position>0</position>
+            <mapElements>
+                <repeatableGroup>Main</repeatableGroup>
+                <dataElement>
+                    <id>38473</id>
+                </dataElement>
+                <position>1</position>
+                <requiredTypeId>RECOMMENDED</requiredTypeId>
+            </mapElements>
+
+            <elemGen template="./conf/dataElement1.temp" position="2" namebase="@NAME@"/>
+            <elemGen template="./conf/dataElement1.temp" position="3" namebase="Doberman"/>
+
+        </repeatableGroups>
+        <repeatableGroups>
+            <id>-1</id>
+            <name>@NAME@</name>
+            <type>EXACTLY</type>
+            <threshold>1</threshold>
+            <position>1</position>
+
+            <elemGen template="./conf/dataElement1.temp" position="1" namebase="Poodle"/>
+            <elemFind name="GUID" position="2"/>
+        </repeatableGroups>
+        <diseaseList>
+            <formStructure>@NAME@</formStructure>
+            <disease>
+                <id>1</id>
+
+            </disease>
+        </diseaseList>
+        <id></id>
+        <shortName>@NAME@</shortName>
+        <!-- <version>1.7</version> -->
+        <title>@NAME@</title>
+        <description>@NAME@</description>
+        <status>DRAFT</status>
+        <organization>PostHibernate Org</organization>
+        <fileType>CLINICAL</fileType>
+        <isCopyrighted>false</isCopyrighted>
+    </StructuralFormStructure>
+    <SemanticFormStructure>
+        <!-- <version>1.7</version> -->
+        <title>@NAME@</title>
+        <shortName>@NAME@</shortName>
+        <description>@NAME@</description>
+        <modifiedDate></modifiedDate>
+        <dateCreated></dateCreated>
+        <modifiedAccount>2</modifiedAccount>
+        <diseases>
+                <name>General (For all diseases)</name>
+        </diseases>
+        <organization>@NAME@ Org</organization>
+        <submissionType>CLINICAL</submissionType>
+        <status>DRAFT</status>
+        <createdBy>Admin, Portal</createdBy>
+        <standardization>NINDSNOTSTANDARD</standardization>
+        <isCopyrighted>false</isCopyrighted>
+    </SemanticFormStructure>
+</formStructure>

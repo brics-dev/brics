@@ -34,6 +34,21 @@
 			});
 	 }
 	 
+	 this.getGuidListForSites = function(selectedSiteIds){
+		 
+		 return $http({
+				method: 'GET',
+			    url: basePath+"/populateViewDataAction!getGuidsForSelectedSites.action",
+			    params: {"selectedSiteIds": JSON.stringify(selectedSiteIds)},
+			    cache: false
+			}).then(function (response) {
+			    return response.data;
+			}, function(err){
+				console.log("error in getEforms ajax");
+			    return [];
+			});
+	 }
+	 
 	 this.getVTListByGuid = function(guidId){
 		 
 		 return $http({
@@ -60,7 +75,7 @@
 			    return response.data;
 			}, function(err){
 			   console.log("error in getEforms ajax");
-			    return [];
+			    return err.data;
 			});
 	 }
 	 
@@ -114,20 +129,9 @@
 				 $("#noSite").text("");
 			 }
 			 //guid
-			 ViewDataService.getGuidForViewData().then(function(data) {
-				 var guidArr = JSON.parse(data);
-				 $scope.guids.length = guidArr.length;
-				 $.merge($scope.guids.guidOptions, guidArr);
-				 if($scope.guids.length > 1) {
-					$scope.guids.guidOptions[0].guid = 'Select or search a GUID in the list...';
-				 } else {
-					$scope.guids.guidOptions[0].guid = '------ No GUIDs Available ------';
-				 }
-			 })
+			 getGuidList();
 	 	  });
 		  
-		  $scope.guids.selectedOption = $scope.guids.guidOptions[0];
-			
 		  //when selecting any sites or guid
 	 
 		 $scope.selectedSites = function (){
@@ -137,7 +141,18 @@
 			$scope.selectedSiteIds = selectedSiteArr.map(function (siteObj){
 				 return siteObj["id"];
 			 }); 
-			 
+			
+			if($scope.selectedSiteIds != "" && $scope.selectedSiteIds.length > 0){
+				getGuidListForSites(); //get Guids for selected sites
+			} else{
+				$scope.resetguids = {
+					guidOptions : [{id:'', guid: ''}],
+					length : 0
+				};
+				$scope.guids = angular.copy($scope.resetguids);
+				getGuidList();
+			}
+			
  //show visit type checkbox list with existing list
 			 eformArray = [];
 			 $scope.intervals = [];
@@ -159,7 +174,41 @@
 			 }		 
 		  }
 
-		  $scope.selectedGuid = function(selectedItem) {
+		 function getGuidList(){
+			 ViewDataService.getGuidForViewData().then(function(data) {
+				 var guidArr = JSON.parse(data);
+				 $scope.guids.length = guidArr.length +1;
+				 $.merge($scope.guids.guidOptions, guidArr);
+				 if($scope.guids.length > 1) {
+					$scope.guids.guidOptions[0].guid = 'Select or search a GUID in the list...';
+				 } else {
+					$scope.guids.guidOptions[0].guid = '------ No GUIDs Available ------';
+				 }
+				 $scope.guids.selectedOption = $scope.guids.guidOptions[0];
+			 });
+		 }
+		 
+		 function getGuidListForSites(){
+			 ViewDataService.getGuidListForSites($scope.selectedSiteIds).then(function(data) {
+				 var guidArr = JSON.parse(data);
+				 $scope.resetguids = {
+					guidOptions : [{id:'', guid: ''}],
+					length : 0
+				};
+				 $scope.guids = angular.copy($scope.resetguids);
+				 $scope.guids.length = guidArr.length + 1;
+				 $.merge($scope.guids.guidOptions, guidArr);
+				 if($scope.guids.length > 1) {
+					$scope.guids.guidOptions[0].guid = 'Select or search a GUID in the list...';
+				 } else {
+					$scope.guids.guidOptions[0].guid = '------ No GUIDs Available ------';
+				 }
+				 $scope.guids.selectedOption = $scope.guids.guidOptions[0];
+			 });
+		 }
+		 
+		 
+		 $scope.selectedGuid = function(selectedItem) {
 				$scope.guids.selectedOption = selectedItem;	
 				$scope.selectedGuidId = selectedItem.id;
 				
@@ -225,6 +274,14 @@
 			  ViewDataService.geteForms($scope.selectedIntervalIds).then(function(data) {
 				//  console.log('eformsJson: '+data);
 				  $scope.eforms = JSON.parse(data);
+				  var checkForErrors = $scope.eforms;
+				  if (checkForErrors.hasOwnProperty("backEndErrors")){
+	  					var div = $("#backEndErrors");
+	  					div.html("<font color=red><b>"+ checkForErrors.backEndErrors+"</b></font><br/>");
+	  					setTimeout(	$("#backEndErrors").focus(),500)
+	  					return;
+	  			  }
+				  
 				  if($scope.eforms && $scope.eforms != "" && $scope.eforms.length > 0){
 				  	$scope.showEforms=true;
 				  }else{

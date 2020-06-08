@@ -1,0 +1,17 @@
+[DB-SRC]
+host=proforms-stage-db.cit.nih.gov
+database=pdbp_data
+schema=proforms_app_stg
+user=proforms_app_stg
+label=SOURCE
+
+[DB-TRG]
+host=localhost
+database=proforms
+schema=pformsch
+user=pformuser
+label=TARGET
+
+[FILE-SYS]
+logDir=D:\\DEV\\appdata\\log\\pgCloner\\stage-local-proform
+dumpDir=D:\\DEV\\appdata\\dump\\pgCloner\\stage-local-proform

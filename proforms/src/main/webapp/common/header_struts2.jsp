@@ -58,6 +58,10 @@
 <script type="text/javascript">
 	var language = "<%= request.getLocale() %>";
 	var baseUrl = '<s:property value="#webRoot"/>';
+	var appTimeOut = '<s:property value="#systemPreferences.get(\'app.timeout\')" />';
+	var appWarningThreshold = '<s:property value="#systemPreferences.get(\'app.warningTimeout\')" />';
+	var appTimeoutThreshold = '<s:property value="#systemPreferences.get(\'application.integration.cas.localtimeout\')" />';
+
 </script>
 
 <!-- Load jQuery from their CDN -->
@@ -68,6 +72,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-migrate/1.4.1/jquery-migrate.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 
+<script src="<s:property value="#webRoot"/>/common/sessionHandlerPF.js" type="text/javascript"></script>
 <script src="<s:property value="#webRoot"/>/common/common.js" type="text/javascript"></script>
 <script src="<s:property value="#webRoot"/>/common/js/jquery.multiselect.min.js" type="text/javascript"></script>
 <script src="<s:property value="#webRoot"/>/common/js/jquery.dataTables.js" type="text/javascript"></script>
@@ -124,68 +129,8 @@
 	//added by Ching-Heng for PROMIS api
 	var HealthMeasurementApiUrl = "<s:property value="#systemPreferences.get('healthMeasurement.api.url')" />";
 	var HealthMeasurementApiToken = "<s:property value="#systemPreferences.get('healthMeasurement.api.token')" />";
-//<![CDATA[
-	var __autosave = false;
-	var logoutTimeout = null;
-	
-	function logoutOfSystem() {
-	    if (__autosave) {
-	        preformAutosave();
-	    } else {
-	        top.location.href = '<s:property value="#webRoot"/>/logout';
-	    }
-	}
+	var casServiceUrl = "<s:property value="#systemPreferences.get('webservice.cas.service.url')" />";
 
-	// monitor and refresh the CAS timeout.  THIS DOES NOT INTERFERE WITH THE INDIVIDUAL PAGE TIMEOUT BELOW
-	var appTimeOut = <s:property value="#systemPreferences.get('app.timeout')" />;
-	var currentDate = new Date();
-	var startTime = currentDate.getTime();
-	var casClearIframeTimeout = null;
-	
-	// Handle the CAS session refreshing.
-	function refreshCasTimeout() {
-		// determine if we need to refresh the timeout at all
-		var date = new Date();
-		var urlRoot = "<s:property value="#webRoot"/>";
-		var timeoutThreshold = <s:property value="#systemPreferences.get('application.integration.cas.localtimeout')" />;
-		var currentTime = date.getTime();
-		var elapsedTime = (currentTime - startTime) / 60000;
-		
-		if (elapsedTime > timeoutThreshold) {
-			console.log("keepalive refresh");
-			console.log("current: " + currentTime + " start: " + startTime + " elapsed: " + elapsedTime);
-			
-			// create an invisible IFrame
-			if ($("#hiddenIframe").length < 1) {
-				$("body").append('<iframe id="hiddenIframe" src="'+ urlRoot + 
-						'/casLoginRedirect.action?unique=' + currentTime + '" style="display: none;"><iframe>');
-			}
-			else {
-				$("#hiddenIframe").attr("src", urlRoot + '/casLoginRedirect.action?unique=' + currentTime);
-			}
-		}
-	}
-	
-	// check the timer every minute.
-	setInterval(refreshCasTimeout, 60000);
-
-    // TIMEOUT AFTER A PERIOD OF INACTIVITY
-    console.log("start timeout");
-    logoutTimeout = setTimeout(logoutOfSystem, appTimeOut);
-    
-    function adjustTimeout() {
-    	console.log("adjust timeout");
-        window.clearTimeout(logoutTimeout);
-        logoutTimeout = setTimeout(logoutOfSystem, appTimeOut);
-    }
-    
-    function clearLogoutTimeout() {
-    	console.log("clear timeout");
-    	if (logoutTimeout != null) {
-    		window.clearTimeout(logoutTimeout);
-    	}
-    }
-    
     $(document).ready(function() {
      	$("div#topNavContainer ul li a").click(function() {
         	if(<%= overviewMode %>) { 
@@ -206,7 +151,6 @@
         	}
     	});
     });
-//]]>
 </script>
 </head>
 

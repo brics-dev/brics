@@ -30,7 +30,10 @@ public class PatientForm extends CtdbForm {
 	private String lastName = null;
     private String firstName = null;
     private String middleName = null;
-
+	private String mrnG = null;
+	private String lastNameG = null;
+    private String firstNameG = null;
+    
     private String birthCity;
     private int birthCountryId;
     private String sex = null;
@@ -55,7 +58,6 @@ public class PatientForm extends CtdbForm {
     private boolean futureStudy = false;
 
     private String subjectNumber = null;
-    private String biorepositoryId = null;
     private String enrollmentDate = null;
     private String completionDate = null;
     private String sectionDisplay = "default";
@@ -220,6 +222,31 @@ public class PatientForm extends CtdbForm {
         }
     }
 
+    
+
+    public String getMrnG() {
+		return mrnG;
+	}
+
+	public void setMrnG(String mrnG) {
+		this.mrnG = mrnG;
+	}
+
+	public String getLastNameG() {
+		return lastNameG;
+	}
+
+	public void setLastNameG(String lastNameG) {
+		this.lastNameG = lastNameG;
+	}
+
+	public String getFirstNameG() {
+		return firstNameG;
+	}
+
+	public void setFirstNameG(String firstNameG) {
+		this.firstNameG = firstNameG;
+	}
     /**
      * Return the NIH Record Number
      *
@@ -660,17 +687,7 @@ public class PatientForm extends CtdbForm {
 		this.displayBirthCountry = displayBirthCountry;
 	}
 
-	public String getBiorepositoryId() {
-		return biorepositoryId;
-	}
 
-	public void setBiorepositoryId(String biorepositoryId) {
-        if(biorepositoryId == null) {
-            this.biorepositoryId = null;
-        } else {
-            this.biorepositoryId = biorepositoryId.trim();
-        }
-	}
 
 	public boolean hasInvalidDateOfBirth() {
 		if ((this.dateOfBirth != null) && (this.dateOfBirth.length() > 0)) {

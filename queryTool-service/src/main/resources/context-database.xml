@@ -15,8 +15,8 @@
 		<property name="jdbcUrl" value="${queryTool.server}" />
 		<property name="username" value="${queryTool.user}" />
 		<property name="password" value="${queryTool.pass}" />
-		<property name="maximumPoolSize" value="10" />
-		<property name="idleTimeout" value="600000" />
-		<property name="maxLifetime" value="3600000" />
+		<property name="maximumPoolSize" value="${queryTool.maximumPoolSize}" />
+		<property name="idleTimeout" value="${queryTool.idleTimeout}" />
+		<property name="maxLifetime" value="${queryTool.maxLifetime}" />
 	</bean>
 </beans>

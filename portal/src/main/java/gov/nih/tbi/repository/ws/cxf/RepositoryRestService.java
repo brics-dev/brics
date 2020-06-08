@@ -29,6 +29,7 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
@@ -47,6 +48,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.ws.WebServiceContext;
 
+import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.HibernateException;
@@ -61,6 +63,7 @@ import com.jcraft.jsch.SftpException;
 
 import gov.nih.tbi.ModelConstants;
 import gov.nih.tbi.ModulesConstants;
+import gov.nih.tbi.PortalConstants;
 import gov.nih.tbi.account.model.SessionAccount;
 import gov.nih.tbi.account.model.hibernate.Account;
 import gov.nih.tbi.account.ws.AbstractRestService;
@@ -71,6 +74,7 @@ import gov.nih.tbi.commons.model.DatasetStatus;
 import gov.nih.tbi.commons.model.EntityType;
 import gov.nih.tbi.commons.model.PermissionType;
 import gov.nih.tbi.commons.model.RoleType;
+import gov.nih.tbi.commons.model.StatusType;
 import gov.nih.tbi.commons.model.StudyStatus;
 import gov.nih.tbi.commons.model.hibernate.User;
 import gov.nih.tbi.commons.service.AccountManager;
@@ -79,9 +83,12 @@ import gov.nih.tbi.commons.service.HibernateManager;
 import gov.nih.tbi.commons.service.RepositoryManager;
 import gov.nih.tbi.commons.service.ServiceConstants;
 import gov.nih.tbi.commons.service.UserPermissionException;
+import gov.nih.tbi.commons.ws.HashMethods;
 import gov.nih.tbi.dictionary.exceptions.DictionaryVersioningException;
 import gov.nih.tbi.dictionary.model.UpdateFormStructureReferencePayload;
+import gov.nih.tbi.dictionary.model.hibernate.PublishedFormStructure;
 import gov.nih.tbi.dictionary.model.hibernate.StructuralFormStructure;
+import gov.nih.tbi.dictionary.model.restful.CreateTableFromFormStructurePayload;
 import gov.nih.tbi.dictionary.ws.RestDictionaryProvider;
 import gov.nih.tbi.metastudy.dao.MetaStudyDao;
 import gov.nih.tbi.portal.PortalUtils;
@@ -650,35 +657,109 @@ public class RepositoryRestService extends AbstractRestService {
 	@POST
 	@Consumes(MediaType.APPLICATION_XML)
 	@Path("DataStructure/createTable")
-	@Produces("text/xml")
-	public boolean createTableFromDataStructure(StructuralFormStructure datastructure)
+	public Response createTableFromDataStructure(CreateTableFromFormStructurePayload payLoad, @HeaderParam("authorization") String authString)
 			throws JAXBException, UnsupportedEncodingException {
 
-		/*
-		 * JAXBContext jaxbContext = JAXBContext.newInstance(DataStructure.class); Unmarshaller unmarshaller =
-		 * jaxbContext.createUnmarshaller();
-		 * 
-		 * StringReader reader = new StringReader("xml string here"); DataStructure ds = (DataStructure)
-		 * unmarshaller.unmarshal(reader);
-		 */
-		Account requestingAccount = getAuthenticatedAccount();
+		StructuralFormStructure formstructure = payLoad.getFormStructure();
+		StatusType statusType = payLoad.getStatusType();
+		Long diseaseId = payLoad.getDiseaseId();
+		
+		if(!isServiceAuthenticated(authString)){
+			throw new RuntimeException("Unauthenticatied Service call!!!!");
+        }
+		
+		Account requestingAccount = accountManager.getAccountByUserName(modulesConstants.getAdministratorUsername());
+		
+		RestDictionaryProvider	restDictonaryProvider = new RestDictionaryProvider (modulesConstants.getModulesDDTURL(), 
+				PortalUtils.getProxyTicket(modulesConstants.getModulesDDTURL()));
+	
+		Thread createTableThread = new Thread(new Runnable() {
+			public void run() {
+				
+			   try {
+				   
+				   repositoryManager.createTableFromDataStructure(formstructure, requestingAccount);
+				   restDictonaryProvider.publishFormStructure(payLoad);		  
+				
+				} catch (SQLException | UserPermissionException | UnsupportedEncodingException e) {
+					cleanRepoTables(formstructure,e.getMessage(),diseaseId,statusType);
+					repositoryManager.emailDevPublicationError(formstructure, e.getMessage());
+					logger.error("Exception occured when creating repo tables!",e);
+								
+				}
+		   }
+		});
 
-		boolean success = true;
-
-		// TODO: Need to check if datastructure is in dictionary module (another
-		// webservice call?)
-		try {
-			success = repositoryManager.createTableFromDataStructure(datastructure,
-					modulesConstants.getModulesDevEmail(), requestingAccount);
-		} catch (SQLException e) {
-			success = false;
-			e.printStackTrace();
-		} catch (UserPermissionException e) {
-			success = false;
-			e.printStackTrace();
-		}
-		return success;
+		createTableThread.setName("ThreadWithTimeStamp" + System.currentTimeMillis());
+		createTableThread.start();
+		
+		return Response.ok().build();
 	}
+	
+	
+	/**
+	 * Checks if the web service call is authenticated
+	 * @param authString
+	 * @return
+	 */
+	public boolean isServiceAuthenticated(String authString) {
+		
+		String userName = modulesConstants.getAdministratorUsername();
+		String passWord = modulesConstants.getSaltedAdministratorPassword();
+		
+		if(authString.equals(HashMethods.getServiceAuthentication(userName, passWord))) {
+			return true;
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Cleans the table for a FormStructure in repository database if the publication failed for any reason
+	 * and saves an audit in dictionary database with the error for failure
+	 * @param formStructure
+	 * @param errorMessage
+	 * @param diseaseId
+	 * @param statusType
+	 */
+	public void cleanRepoTables(StructuralFormStructure formStructure, String errorMessage,Long diseaseId, StatusType statusType) {
+		try {		
+	        //clean table in the repo
+			repositoryManager.cleanRepoTables(formStructure);
+			
+			RestDictionaryProvider	restDictonaryProvider= new RestDictionaryProvider (modulesConstants.getModulesDDTURL(), 
+					PortalUtils.getProxyTicket(modulesConstants.getModulesDDTURL()));
+			
+			PublishedFormStructure publishedFormStructure = new PublishedFormStructure(formStructure.getId(),diseaseId);
+			publishedFormStructure.setPublished(false);
+			publishedFormStructure.setPublicationDate(new Date());
+			publishedFormStructure.setErrorMessage(errorMessage);
+			
+			restDictonaryProvider.savePublishedFormStructure(publishedFormStructure);
+			
+			revertFormStructureStatus (formStructure,statusType);
+			
+		} catch (SQLException e) {			
+			logger.error("SQLException occured when cleaning repo tables!",e);
+		} catch (UnsupportedEncodingException e) {
+			logger.error("UnsupportedEncodingException occured when cleaning repo tables!",e);
+		} 	
+	}
+	
+	/**
+	 * Reverts the Formstructure to either draft or awaiting publication when publication fails
+	 * @param formStructure
+	 * @param statusType
+	 */
+	public void revertFormStructureStatus (StructuralFormStructure formStructure,StatusType statusType) {
+		
+		RestDictionaryProvider restDictonaryProvider = new RestDictionaryProvider (modulesConstants.getModulesDDTURL(), 
+				PortalUtils.getProxyTicket(modulesConstants.getModulesDDTURL()));
+		
+		restDictonaryProvider.editFormStructureStatus(formStructure.getId(), statusType.getId());
+		
+	}
+	
 
 	@GET
 	@Path("Download/getDownloadPackages")

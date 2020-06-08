@@ -1,0 +1,16 @@
+[DB-TRG]
+host=nti-db-stage
+database=nti_stage
+schema=nti_metastg
+user=nti_metastg
+label=STAGE-TRG
+
+[DB-SRC]
+host=pdbp-db-prod.cit.nih.gov
+database=pd_prod
+schema=tbi_meta
+user=tbi_meta
+label=PROD-SRC
+
+[FILE-SYS]
+logDir=/var/lib/brics/log/pg-delta/ntistage-pdprod-meta

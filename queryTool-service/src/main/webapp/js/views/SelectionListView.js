@@ -57,17 +57,16 @@ QT.SelectionListView = BaseView.extend({
 			    try {
 			    	var model = collection.at(j);
 			    	var view = null;
-			    	// special case, unfortunately
-			    	if (model instanceof QT.DataElement) {
-			    		view = new QT.DeSelectionListItemView({model: model});
+			    	// do nothing for DataElement.  DeSelectionListView handles it
+			    	if (!(model instanceof QT.DataElement)) {
+			    		if (model instanceof QT.DefinedQuery) {
+				    		view = new QT.SqSelectionListItemView({model: model});
+				    	}
+				    	else {
+				    		view = new QT.SelectionListItemView({model: model});
+				    	}
+				        view.render($selectionItemsContainer, tabName);
 			    	}
-			    	else if (model instanceof QT.DefinedQuery) {
-			    		view = new QT.SqSelectionListItemView({model: model});
-			    	}
-			    	else {
-			    		view = new QT.SelectionListItemView({model: model});
-			    	}
-			        view.render($selectionItemsContainer, tabName);
 			    }
 			    catch(e) {
 			        // handle any exception
@@ -159,9 +158,10 @@ QT.SelectionListView = BaseView.extend({
 		this.model.showAllSelectionItems(this.tabName);
 	},
 	
-	
-	
 	showTextPill : function(textFilter) {
+		if (textFilter.length >= 22) {
+			textFilter = textFilter.slice(0, 25) + "...";
+		}
 		var text = "Text: \"" + textFilter + "\"";
 		this.$(".textFilterPill .pillContent").text(text);
 		this.$(".textFilterPill").show();

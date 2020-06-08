@@ -4,7 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 import javax.mail.MessagingException;
 
@@ -30,11 +29,6 @@ import gov.nih.tbi.idt.ws.Struts2IdtInterface;
 import gov.nih.tbi.repository.dao.StudyDao;
 import gov.nih.tbi.repository.model.alzped.ModelName;
 import gov.nih.tbi.repository.model.alzped.ModelType;
-import gov.nih.tbi.repository.model.alzped.StudyModelName;
-import gov.nih.tbi.repository.model.alzped.StudyModelType;
-import gov.nih.tbi.repository.model.alzped.StudyTherapeuticAgent;
-import gov.nih.tbi.repository.model.alzped.StudyTherapeuticTarget;
-import gov.nih.tbi.repository.model.alzped.StudyTherapyType;
 import gov.nih.tbi.repository.model.alzped.TherapeuticAgent;
 import gov.nih.tbi.repository.model.alzped.TherapeuticTarget;
 import gov.nih.tbi.repository.model.alzped.TherapyType;
@@ -44,23 +38,17 @@ import gov.nih.tbi.taglib.datatableDecorators.StudyPfProtocolIdtListDecorator;
 public class ViewStudyAction extends BaseRepositoryAction {
 
 	private static final long serialVersionUID = 4668296443874317981L;
-	
+
 	private static Logger logger = Logger.getLogger(ViewStudyAction.class);
 
 	private String visibility;
 	private String reason;
 
 	private Boolean assoPfProtoVisible = false;
-	
+
 	@Autowired
 	private StudyDao studyDao;
-	
-	private Set<StudyTherapeuticAgent> therapeuticAgentSet;
-	private Set<StudyTherapeuticTarget> therapeuticTargetSet;
-	private Set<StudyTherapyType> therapyTypeSet;
-	private Set<StudyModelName> modelNameSet;
-	private Set<StudyModelType> modelTypeSet;
-	
+
 	/**
 	 * Action for view studies
 	 * 
@@ -71,7 +59,7 @@ public class ViewStudyAction extends BaseRepositoryAction {
 
 		Study currentStudy = getStudyExcludingDataset();
 		getSessionStudy().setStudy(currentStudy);
-		
+
 		getAssoPfProtoVisible();
 		return PortalConstants.ACTION_VIEW;
 	}
@@ -85,7 +73,7 @@ public class ViewStudyAction extends BaseRepositoryAction {
 		return PortalConstants.ACTION_LIGHTBOX;
 	}
 
-	
+
 	/**
 	 * Deletes the study with id of parameter studyId
 	 * 
@@ -102,13 +90,13 @@ public class ViewStudyAction extends BaseRepositoryAction {
 		if (!StudyStatus.PRIVATE.equals(currentStudy.getStudyStatus())
 				|| !accountManager.hasRole(getAccount(), RoleType.ROLE_STUDY_ADMIN)) {
 			throw new UnsupportedOperationException();
-		}	
-		try{
-			accountManager.unregisterEntity(accountManager.listEntityAccess(currentStudy.getId(), EntityType.STUDY));
 		}
-		catch(Exception e){
+		try {
+			accountManager.unregisterEntity(accountManager.listEntityAccess(currentStudy.getId(), EntityType.STUDY));
+		} catch (Exception e) {
 			e.printStackTrace();
-			logger.error("Error occurred when deleting access permission records for the study with ID: " + currentStudy.getId());
+			logger.error("Error occurred when deleting access permission records for the study with ID: "
+					+ currentStudy.getId());
 		}
 		repositoryManager.deleteStudy(getAccount(), currentStudy, getIsAdmin());
 		getSessionStudy().clear();
@@ -174,7 +162,7 @@ public class ViewStudyAction extends BaseRepositoryAction {
 		getSessionStudy().setStudy(currentStudy);
 
 		boolean isLocalEnv = this.modulesConstants.getEnvIsLocal();
-		
+
 		// send email to user
 		if (!isLocalEnv) {
 			String subject =
@@ -185,18 +173,21 @@ public class ViewStudyAction extends BaseRepositoryAction {
 							Arrays.asList(modulesConstants.getModulesOrgName(getDiseaseId()),
 									modulesConstants.getModulesOrgPhone(getDiseaseId()),
 									accountManager.getEntityOwnerAccount(currentStudy.getId(), EntityType.STUDY)
-											.getUser().getFullName(), reason))
+											.getUser().getFullName(),
+									reason))
 							+ this.getText(
 									PortalConstants.MAIL_RESOURCE_ACCEPTED_STUDY + PortalConstants.MAIL_RESOURCE_BODY,
 									Arrays.asList(modulesConstants.getModulesOrgName(getDiseaseId()),
 											modulesConstants.getModulesOrgPhone(getDiseaseId()),
 											accountManager.getEntityOwnerAccount(currentStudy.getId(), EntityType.STUDY)
-													.getUser().getFullName(), reason))
+													.getUser().getFullName(),
+											reason))
 							+ this.getText(PortalConstants.MAIL_RESOURCE_COMMON + PortalConstants.MAIL_RESOURCE_FOOTER,
 									Arrays.asList(modulesConstants.getModulesOrgName(getDiseaseId()),
-											modulesConstants.getModulesOrgPhone(getDiseaseId()), accountManager
-													.getEntityOwnerAccount(currentStudy.getId(), EntityType.STUDY)
-													.getUser().getFullName(), reason));
+											modulesConstants.getModulesOrgPhone(getDiseaseId()),
+											accountManager.getEntityOwnerAccount(currentStudy.getId(), EntityType.STUDY)
+													.getUser().getFullName(),
+											reason));
 			accountManager.sendEmail(accountManager.getEntityOwnerAccount(currentStudy.getId(), EntityType.STUDY),
 					subject, messageText);
 		} else {
@@ -228,7 +219,7 @@ public class ViewStudyAction extends BaseRepositoryAction {
 		getSessionStudy().setStudy(currentStudy);
 
 		boolean isLocalEnv = this.modulesConstants.getEnvIsLocal();
-		
+
 		// send email to user
 		if (!isLocalEnv) {
 			String subject =
@@ -239,18 +230,21 @@ public class ViewStudyAction extends BaseRepositoryAction {
 							Arrays.asList(modulesConstants.getModulesOrgName(getDiseaseId()),
 									modulesConstants.getModulesOrgPhone(getDiseaseId()),
 									accountManager.getEntityOwnerAccount(currentStudy.getId(), EntityType.STUDY)
-											.getUser().getFullName(), reason))
+											.getUser().getFullName(),
+									reason))
 							+ this.getText(
 									PortalConstants.MAIL_RESOURCE_REJECTED_STUDY + PortalConstants.MAIL_RESOURCE_BODY,
 									Arrays.asList(modulesConstants.getModulesOrgName(getDiseaseId()),
 											modulesConstants.getModulesOrgPhone(getDiseaseId()),
 											accountManager.getEntityOwnerAccount(currentStudy.getId(), EntityType.STUDY)
-													.getUser().getFullName(), reason))
+													.getUser().getFullName(),
+											reason))
 							+ this.getText(PortalConstants.MAIL_RESOURCE_COMMON + PortalConstants.MAIL_RESOURCE_FOOTER,
 									Arrays.asList(modulesConstants.getModulesOrgName(getDiseaseId()),
-											modulesConstants.getModulesOrgPhone(getDiseaseId()), accountManager
-													.getEntityOwnerAccount(currentStudy.getId(), EntityType.STUDY)
-													.getUser().getFullName(), reason));
+											modulesConstants.getModulesOrgPhone(getDiseaseId()),
+											accountManager.getEntityOwnerAccount(currentStudy.getId(), EntityType.STUDY)
+													.getUser().getFullName(),
+											reason));
 			accountManager.sendEmail(accountManager.getEntityOwnerAccount(currentStudy.getId(), EntityType.STUDY),
 					subject, messageText);
 		} else {
@@ -260,8 +254,8 @@ public class ViewStudyAction extends BaseRepositoryAction {
 
 		return PortalConstants.ACTION_VIEW;
 	}
-	
-	
+
+
 	/**
 	 * Returns a boolean determining if the currentStudy is a request
 	 * 
@@ -276,9 +270,10 @@ public class ViewStudyAction extends BaseRepositoryAction {
 		return (currentStudy.getStudyStatus().equals(StudyStatus.REQUESTED));
 	}
 
-	
+
 	/**
 	 * Gets the owner of the current study
+	 * 
 	 * @return
 	 */
 	public User getStudyOwner() {
@@ -293,7 +288,7 @@ public class ViewStudyAction extends BaseRepositoryAction {
 		}
 	}
 
-	
+
 	// url: http://fitbir-portal-local.cit.nih.gov:8080/portal/study/studyAction!getStudySiteSet.action
 	public String getStudyPfProtocolList() {
 
@@ -303,9 +298,9 @@ public class ViewStudyAction extends BaseRepositoryAction {
 		outJsonArr = jsonParser.parse(outJsonArrStr).getAsJsonArray();
 
 		ArrayList<String> outputList = new ArrayList<String>();
-		for (int i=0; i< outJsonArr.size();i++){ 
+		for (int i = 0; i < outJsonArr.size(); i++) {
 			outputList.add(outJsonArr.get(i).toString());
-		   } 
+		}
 		try {
 			IdtInterface idt = new Struts2IdtInterface();
 			idt.setList(outputList);
@@ -336,23 +331,23 @@ public class ViewStudyAction extends BaseRepositoryAction {
 	public void setReason(String reason) {
 		this.reason = reason;
 	}
-	
+
 	public String getDocumentsActionName() {
 		return "studyDocumentationAction";
 	}
 
 	public Boolean getAssoPfProtoVisible() {
 		JsonArray pFProtoJsonArr = getStudyAssoPfProtocols(getCurrentStudy().getPrefixedId());
-		
-		for(int i = 0; i < pFProtoJsonArr.size(); i++) {
+
+		for (int i = 0; i < pFProtoJsonArr.size(); i++) {
 			JsonObject pFProtoObject = pFProtoJsonArr.get(i).getAsJsonObject();
-			if(!pFProtoObject.get("closingBricsUserId").isJsonNull()) {
+			if (!pFProtoObject.get("closingBricsUserId").isJsonNull()) {
 				this.assoPfProtoVisible = true;
 			}
 		}
 		return this.assoPfProtoVisible;
 	}
-	
+
 	public void setAssoPfProtoVisible(Boolean assoPfProtoVisible) {
 		this.assoPfProtoVisible = assoPfProtoVisible;
 	}

@@ -1,0 +1,1 @@
+python pgDelta.py --props=.\conf\demo.eyegene-prod.ibis.dict

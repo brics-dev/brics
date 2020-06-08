@@ -1,0 +1,17 @@
+[DB-SRC]
+host=ibis-db-dev.cit.nih.gov
+database=dictionary_dev
+schema=dictionarydev
+user=dictionarydev
+label=SOURCE
+
+[DB-TRG]
+host=localhost
+database=dictdb
+schema=dictsch
+user=dictuser
+label=TARGET
+
+[FILE-SYS]
+logDir=D:\\DEV\\appdata\\log\\pgCloner\\dev-local-dict
+workDir=D:\\DEV\\appdata\\dump\\pgCloner\\dev-local-dict

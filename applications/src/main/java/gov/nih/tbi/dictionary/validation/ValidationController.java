@@ -1,9 +1,13 @@
 
 package gov.nih.tbi.dictionary.validation;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -14,24 +18,35 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
 
+import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingWorker;
 import javax.swing.event.ListSelectionEvent;
@@ -39,6 +54,9 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.PlainDocument;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.xml.bind.DataBindingException;
@@ -51,6 +69,7 @@ import org.apache.log4j.Logger;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 
+import gov.nih.tbi.ApplicationsConstants;
 import gov.nih.tbi.commons.AppConfig;
 import gov.nih.tbi.commons.WebstartRestProvider;
 import gov.nih.tbi.commons.model.DataElementStatus;
@@ -72,8 +91,14 @@ import gov.nih.tbi.dictionary.validation.util.SubmissionPackageBuilder;
 import gov.nih.tbi.dictionary.validation.view.JoinFiles;
 import gov.nih.tbi.dictionary.validation.view.ValidationClient;
 import gov.nih.tbi.dictionary.validation.view.ValidationUploadManager;
+import gov.nih.tbi.repository.UploadManager;
+import gov.nih.tbi.repository.UploadManagerController;
+import gov.nih.tbi.repository.model.SubmissionDataFile;
+import gov.nih.tbi.repository.model.SubmissionPackage;
 // import gov.nih.tbi.repository.UploadManagerController;
 import gov.nih.tbi.repository.model.SubmissionTicket;
+import gov.nih.tbi.repository.model.hibernate.Dataset;
+import gov.nih.tbi.repository.model.hibernate.Study;
 import gov.nih.tbi.repository.ws.AccessionProvider;
 import gov.nih.tbi.repository.ws.AccessionWebService;
 
@@ -82,19 +107,32 @@ public class ValidationController implements ActionListener, TreeSelectionListen
 
 	static Logger logger = Logger.getLogger(ValidationController.class);
 
+	private static final int WARNING_CUTOFF_NUM = 1000;
+
+	private static final Color LIGHT_RED = new Color(255,184,184);
 	// private IUser user;
 	// private DataManagerProvider dataClient;
 	private WebstartRestProvider ddtClient;
+	private static WebstartRestProvider serverClient;
 	private AccessionWebService accClient;
 	private String message;
 	private String bricsUrl;
 	private String ddtUrl;
+	private boolean isComingFromProforms;
+	private String submissionSuffix = "";
+	private JComboBox<Study> studySelect;
+	private JLabel errorInstructions;
+
 
 	private ValidationClient view;
 	private DataSubmission submission;
 
 	private ValidationEngine engine;
 	private FileParser parser;
+	private HashMap<FileNode, JTextField> mapFieldToNode;
+	private List<JTextField> allFields;
+	
+	public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMdd");
 
 	private JDialog working;
 	private JProgressBar progressBar;
@@ -118,19 +156,44 @@ public class ValidationController implements ActionListener, TreeSelectionListen
 
 
 	private List<String> unknownFileWarnings = new ArrayList<String>();
+	
+	public class JTextFieldLimit extends PlainDocument {
+		private int limit;
+
+		JTextFieldLimit(int limit) {
+			super();
+			this.limit = limit;
+		}
+
+		JTextFieldLimit(int limit, boolean upper) {
+			super();
+			this.limit = limit;
+		}
+
+		public void insertString(int offset, String str, AttributeSet attr) throws BadLocationException {
+			if (str == null)
+				return;
+
+			if ((getLength() + str.length()) <= limit) {
+				super.insertString(offset, str, attr);
+			}
+		}
+	}
 
 	public ValidationController(ValidationClient dataEntryClient, String bricsUrl, String ddtUrl, String userName,
-			String password) throws Exception { // , String username, String password) {
+			String password, boolean isComingFromProforms) throws Exception { // , String username, String password) {
 
 		// Initiated Connections
 		this.bricsUrl = bricsUrl;
 		this.ddtUrl = ddtUrl;
+		this.isComingFromProforms = isComingFromProforms;
 		// this.url = "http://tbi-stage-apps.cit.nih.gov";
 
 		String portalRoot = this.config.getProperty("PORTAL_ROOT");
-
+		String serverLocation = this.config.getProperty("SERVER_LOC");
 		try {
 			ddtClient = new WebstartRestProvider(this.ddtUrl.trim(), userName, password);
+			serverClient = new WebstartRestProvider(serverLocation, userName, password);
 			accClient =
 					(new AccessionProvider(this.bricsUrl.trim() + "/" + portalRoot + "/ws/accessionWebService?wsdl"))
 							.getAccessionWebService();
@@ -146,7 +209,9 @@ public class ValidationController implements ActionListener, TreeSelectionListen
 			view = dataEntryClient;
 		}
 		engine = new ValidationEngine(accClient);
-
+		if(!isComingFromProforms) {
+			convertStudyList();
+		}
 	}
 
 	public void actionPerformed(ActionEvent event) {
@@ -225,11 +290,71 @@ public class ValidationController implements ActionListener, TreeSelectionListen
 
 		} else if (command.equals(ValidationClient.BUILD_SUBMISSION)) {
 
-			buildSubmission(null);
-			if (message != null) {
-				JOptionPane.showMessageDialog(view, message);
+			JPanel fullPanel = new JPanel();
+			JPanel descPanel = new JPanel();
+			JPanel popUpPanel = new JPanel();
+			JPanel studyPanel = new JPanel();
+			JPanel datasetNamingPanel = new JPanel();
+			fullPanel.setLayout(new BoxLayout(fullPanel, BoxLayout.Y_AXIS));
+			mapFieldToNode = new HashMap<FileNode, JTextField>();
+			allFields = new ArrayList<JTextField>();
+			JLabel defaultInfo = new JLabel("Default Dataset Name:");
+			JLabel editableInfo = new JLabel("Edit Dataset Name:");
+			JLabel studySelectInfo = new JLabel("Select a study to submit to:");
+			JLabel datasetNamingInfoLineOne = new JLabel("The dataset name will have the form structure short name appended to it automatically. The max length for the field, including the suffix, is 255 characters.");
+			JLabel datasetNamingInfoLineTwo = new JLabel("Example: Dataset1_Demographics");
+			studyPanel.add(studySelectInfo);
+			editableInfo.setHorizontalAlignment(JLabel.LEFT);
+			studySelectInfo.setHorizontalAlignment(JLabel.LEFT);
+			datasetNamingPanel.add(datasetNamingInfoLineOne);
+			datasetNamingPanel.add(datasetNamingInfoLineTwo);
+			datasetNamingInfoLineOne.setHorizontalAlignment(JLabel.LEFT);
+			datasetNamingInfoLineTwo.setHorizontalAlignment(JLabel.LEFT);
+			datasetNamingPanel.setLayout(new GridLayout(2,1));
+			descPanel.add(defaultInfo);
+			descPanel.add(editableInfo);
+			descPanel.setLayout(new GridLayout(1, 2));
+			for (FileNode node : submission.getFileData().keySet()) {
+				if(node.isIncluded()) {
+					String nameWithoutExt = node.getName().substring(0, node.getName().lastIndexOf("."));
+					JTextField anonTextField = new JTextField(20);
+					anonTextField.setDocument(new JTextFieldLimit(256));
+					JLabel fileLabel = new JLabel(nameWithoutExt);
+					JLabel fileShortName = new JLabel("_" + node.getStructureName());
+					fileLabel.setHorizontalAlignment(JLabel.LEFT);
+					anonTextField.setText(nameWithoutExt);
+					allFields.add(anonTextField);
+					popUpPanel.add(fileLabel);
+					popUpPanel.add(anonTextField);
+					popUpPanel.add(fileShortName);
+					anonTextField.setCaretPosition(0);
+					fileLabel.setToolTipText(nameWithoutExt);
+					mapFieldToNode.put(node,anonTextField);
+				}
 			}
-
+			int panelSize = (allFields.size()) * 35;
+			popUpPanel.setPreferredSize(new Dimension(780, panelSize));
+			descPanel.setPreferredSize(new Dimension(780,30));
+			JScrollPane scrollPane = new JScrollPane(popUpPanel);
+			popUpPanel.setLayout(new GridLayout(allFields.size(), 3));
+			errorInstructions = new JLabel("\nDataset names highlighted in RED are in error.");
+			fullPanel.add(studyPanel);
+			fullPanel.add(studySelect);
+			fullPanel.add(datasetNamingPanel);
+			fullPanel.add(descPanel);
+			fullPanel.add(scrollPane);
+			fullPanel.add(errorInstructions);
+			errorInstructions.setVisible(false);
+			if(allFields.size() == 1) {
+				fullPanel.setPreferredSize(new Dimension(900,200));
+			}else {
+				fullPanel.setPreferredSize(new Dimension(900,250));
+			}
+			if(buildSubmissionPanel(fullPanel) == JOptionPane.OK_OPTION) {
+				if (message != null) {
+					JOptionPane.showMessageDialog(view, message);
+				}
+			}
 		} else if (command.equals(ValidationClient.EXPORT)) {
 			// TODO : Move this file chooser crap to view and get the right fields set from
 			// it
@@ -306,6 +431,10 @@ public class ValidationController implements ActionListener, TreeSelectionListen
 						if (node.isIncluded() && submission.getDataNodes().contains(node)) {
 							printStream.println("\t" + node.getName());
 							DataTable dataTable = submission.getFileData(node);
+							
+							if(node.getWarnNum() >= WARNING_CUTOFF_NUM && !errorsOnly) {
+								printStream.println("\t" + ApplicationsConstants.ERR_TOO_MANY_WARNINGS);
+							}
 
 							if (!warningsOnly && hasErrors) {
 								printStream.println("\t\tERRORS");
@@ -361,6 +490,77 @@ public class ValidationController implements ActionListener, TreeSelectionListen
 			buildDetails(nodeList);
 		}
 
+	}
+	
+	public int buildSubmissionPanel(JPanel fullPanel) {
+		int result = JOptionPane.showConfirmDialog(null, fullPanel, "Please confirm Dataset Naming",
+				JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+		if (result == JOptionPane.OK_OPTION) {
+			UploadManager.systemBusyDialog.setVisible(true);
+			if(!validateDatasetName()) {
+				errorInstructions.setVisible(true);
+				UploadManager.systemBusyDialog.setVisible(false);
+				JOptionPane.showMessageDialog(null, "One or more dataset names in your submission contain a ':'. Please remove this character and try again.", 
+						"Dataset name(s) contain illegal character",
+						JOptionPane.ERROR_MESSAGE);
+				return buildSubmissionPanel(fullPanel);
+				
+			}
+			
+			if (!checkPopupDatasetLength()) {
+				errorInstructions.setVisible(true);
+				UploadManager.systemBusyDialog.setVisible(false);
+				JOptionPane.showMessageDialog(null, "One or more dataset names in your submission are over the maximum dataset length of 256 characters. ",
+						"Dataset name(s) are too long",
+						JOptionPane.ERROR_MESSAGE);
+				return buildSubmissionPanel(fullPanel);
+			} else {
+				if (checkPopupDatasetNames()) {
+					UploadManager.systemBusyDialog.setVisible(false);
+					buildSubmission(null, false, null);
+					return result;
+				} else {
+					errorInstructions.setVisible(true);
+					UploadManager.systemBusyDialog.setVisible(false);
+					JOptionPane.showMessageDialog(null, "One or more dataset names in your submission exist within the study",
+							"Dataset name(s) already exist",
+							JOptionPane.ERROR_MESSAGE);
+					return buildSubmissionPanel(fullPanel);
+				}
+			}
+			
+		}else {
+			return result;
+		}
+	}
+	
+	public static List<Study> getStudyList() {
+
+		List<Study> studies = null;
+		try {
+			studies = new ArrayList<Study>(serverClient.getStudies());
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+
+		Collections.sort(studies, new Comparator<Study>() {
+
+			@Override
+			public int compare(Study o1, Study o2) {
+				return o1.getTitle().compareTo(o2.getTitle());
+			}
+
+		});
+
+		return studies;
+	}
+	
+	private void convertStudyList() {
+
+		studySelect = new JComboBox<Study>(new Vector<Study>(
+				getStudyList()));
+		// studySelect.setPrototypeDisplayValue(ApplicationsConstants.COMBO_BOX_VALUE);
 	}
 
 	private void buildDetails(List<FileNode> selectedList) {
@@ -441,154 +641,210 @@ public class ValidationController implements ActionListener, TreeSelectionListen
 
 		view.setOutputModel(model);
 	}
-
-	public String buildSubmission(final String sourceDir) {
-
-		message = null;
-		// Create the datafile.xml
-		if (view != null) {
-			working = view.createWorkingPopUp("Building Submission");
-			view.configAll(false);
-			working.setVisible(true);
+	
+	public boolean checkPopupDatasetNames() {
+		Set<Dataset> datasets = null;
+		boolean areDatasetsUnique = true;
+		try {
+			datasets = serverClient.getDatasets(studySelect.getSelectedItem().toString());
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
 		}
-		// This thread will allow the waiting dialog to be open while the submission package is built.
-		final CountDownLatch latch = new CountDownLatch(1);
-		new Thread() {
-
-			public void run() {
-
-				// This value will contain the error message on any exceptions that occur.
-				String error = "";
-
-				String directory;
-				if (view != null) {
-					directory = view.getSourceDir();
-				} else {
-					directory = sourceDir;
+		
+		if (datasets != null && !datasets.isEmpty()) {
+			for(JTextField currentField : allFields) {
+				for (Dataset dataset : datasets) {
+					if (dataset != null && currentField.getText()
+							.concat("_" + getNodeFromMap(mapFieldToNode, currentField).getStructureName())
+							.equals(dataset.getName())) {
+						currentField.setBackground(LIGHT_RED);
+						areDatasetsUnique = false;
+						break;
+					} else {
+						currentField.setBackground(Color.WHITE);
+					}
 				}
+			}
+		}
+		return areDatasetsUnique;
+	}
+	
+	public boolean checkPopupDatasetLength() {
 
-				Date date = new Date();
-				try {
-					// Build the datafile.xml
-					DataFileBuilder dataFileBuilder;
-					dataFileBuilder = new DataFileBuilder(submission, directory);
-					if (dataFileBuilder.build()) {
-						if (dataFileBuilder.write(File.separator + "dataFile-" + date.getTime() + ".xml")) {
-							// Nothing to do on write success
-						} else {
+		boolean areDatasetsPermissibleLength = true;
+
+		for (JTextField currentField : allFields) {
+			if (currentField.getText().concat("_" + getNodeFromMap(mapFieldToNode, currentField).getStructureName())
+					.length() > ApplicationsConstants.MAX_DATASET_NAME_LENGTH) {
+				currentField.setBackground(LIGHT_RED);
+				areDatasetsPermissibleLength = false;
+				break;
+			} else {
+				currentField.setBackground(Color.WHITE);
+			}
+		}
+		return areDatasetsPermissibleLength;
+	}
+	
+	private boolean validateDatasetName() {
+		boolean isValid = true;
+		
+		for (JTextField currentField : allFields) {
+			if (currentField.getText().contains(":")) {
+				currentField.setBackground(LIGHT_RED);
+				isValid = false;
+				break;
+			} else {
+				currentField.setBackground(Color.WHITE);
+			}
+		}
+		return isValid;
+		
+	}
+	
+	private FileNode getNodeFromMap(HashMap<FileNode,JTextField> nodeMap, JTextField field) {
+		return nodeMap.entrySet().stream().filter(entry -> field.equals(entry.getValue())).map(Map.Entry::getKey).findFirst()
+				.get();
+	}
+
+	public String buildSubmission(final String sourceDir, final boolean isNonToolSubmission, String proformsDatasetName) {
+
+		
+			message = null;
+			// Create the datafile.xml
+			if (view != null) {
+				working = view.createWorkingPopUp("Building Submission");
+				view.configAll(false);
+				working.setVisible(true);
+			}
+			// This thread will allow the waiting dialog to be open while the submission
+			// package is built.
+			final CountDownLatch latch = new CountDownLatch(1);
+			new Thread() {
+
+				public void run() {
+
+					// This value will contain the error message on any exceptions that occur.
+					String error = "";
+
+					String directory;
+					if (view != null) {
+						directory = view.getSourceDir();
+					} else {
+						directory = sourceDir;
+					}
+
+					Date date = new Date();
+					try {
+						// Build the datafile.xml
+						DataFileBuilder dataFileBuilder;
+						dataFileBuilder = new DataFileBuilder(submission, directory);
+						if (!dataFileBuilder.build(mapFieldToNode, isNonToolSubmission, proformsDatasetName)) {
 							error = dataFileBuilder.getErrorMessage();
-							logger.error("There was an error writing the file: " + error);
+							logger.error("There was an error building the file: " + error);
 							throw new Exception();
 						}
-					} else {
-						error = dataFileBuilder.getErrorMessage();
-						logger.error("There was an error building the file: " + error);
-						throw new Exception();
-					}
 
-					// Create and build the submission ticket
-					SubmissionTicket ticket = new SubmissionTicket();
+						// Create and build the submission ticket
+						SubmissionTicket ticket = new SubmissionTicket();
 
+						String version = config.getProperty("VERSION");
 
+						ticket.setVersion(version);
+						ticket.setEnvironment(getEnvironment());
 
-					String version = config.getProperty("VERSION");
+						SubmissionPackageBuilder packageBuilder = new SubmissionPackageBuilder(submission,
+								dataFileBuilder.getRootPath(), date, submissionSuffix);
+						if (packageBuilder.build(mapFieldToNode, isNonToolSubmission, proformsDatasetName)) {
+							ticket.setSubmissionPackages(packageBuilder.getSubmissionPackages());
+						} else {
+							error = packageBuilder.getErrorMessage();
+							logger.error("There was an error building the submission package " + error);
+							throw new Exception();
 
-					ticket.setVersion(version);
-					ticket.setEnvironment(getEnvironment());
+						}
 
-					SubmissionPackageBuilder packageBuilder =
-							new SubmissionPackageBuilder(submission, dataFileBuilder.getPath(), date);
-					if (packageBuilder.build()) {
-						ticket.setSubmissionPackage(packageBuilder.getSubmissionPackage());
-					} else {
-						error = packageBuilder.getErrorMessage();
-						logger.error("There was an error building the submission package " + error);
-						throw new Exception();
+						// Write the submision ticket
+						File file = new File(directory + File.separator + "submissionTicket-"
+								+ packageBuilder.getDate().getTime() + ".xml");
+						FileOutputStream stream = null;
 
-					}
+						try {
+							stream = new FileOutputStream(file);
+						} catch (FileNotFoundException e) {
+							// This exception is caught, the error message is written and then a new
+							// exception is thrown to
+							// handle displaying the error message.
+							error = "Unable to write ticket to location: " + directory + "submissionTicket-"
+									+ packageBuilder.getDate().getTime() + ".xml";
+							logger.error(error);
+							throw new Exception();
+						}
+						try {
+							JAXB.marshal(ticket, stream);
+						} catch (DataBindingException e) {
+							error = "JAXB cannot marshal the file.";
+							logger.error("There was an error marshalling the file " + error);
+							throw new Exception();
+						}
+						if (view != null) {
+							working.dispose();
+							view.configAll(true);
+						}
+						message = "A new submission file has been created in the " + "working directory.";
 
-					// Write the submision ticket
-					File file = new File(directory + File.separator + "submissionTicket-"
-							+ packageBuilder.getDate().getTime() + ".xml");
-					FileOutputStream stream = null;
+						if (view instanceof ValidationUploadManager) {
 
-					try {
-						stream = new FileOutputStream(file);
-					} catch (FileNotFoundException e) {
-						// This exception is caught, the error message is written and then a new exception is thrown to
-						// handle displaying the error message.
-						error = "Unable to write ticket to location: " + directory + "submissionTicket-"
-								+ packageBuilder.getDate().getTime() + ".xml";
-						logger.error(error);
-						throw new Exception();
-					}
-					try {
-						JAXB.marshal(ticket, stream);
-					} catch (DataBindingException e) {
-						error = "JAXB cannot marshal the file.";
-						logger.error("There was an error marshalling the file " + error);
-						throw new Exception();
-					}
-					if (view != null) {
-						working.dispose();
-						view.configAll(true);
-					}
-					message = "A new submission file has been created in the " + "working directory.";
+							// Get the name of the first CSV in the data
+							// submission to pass to the upload manager
+							Set<FileNode> set = submission.getDataNodes();
+							String name = "";
+							int count = 0;
 
-					if (view instanceof ValidationUploadManager) {
-
-						// Get the name of the first CSV in the data
-						// submission to pass to the upload manager
-						Set<FileNode> set = submission.getDataNodes();
-						String name = "";
-						int count = 0;
-
-						for (FileNode f : set) {
-							FileType type = f.getType();
-							if (type.equals(FileType.CSV) && f.isIncluded()) {
-								name = f.getName();
-								name = name.substring(0, name.lastIndexOf("."));
-								name += "-" + packageBuilder.getDate().getTime();
-								count++;
+							for (FileNode f : set) {
+								FileType type = f.getType();
+								if (type.equals(FileType.CSV) && f.isIncluded()) {
+									name = f.getName();
+									name = name.substring(0, name.lastIndexOf("."));
+									name += "-" + packageBuilder.getDate().getTime();
+									count++;
+								}
 							}
-						}
-						if (count > 1) {
-							name = "";
-						}
-						ValidationUploadManager client = (ValidationUploadManager) view;
-						client.populateSubmissionTicket(file, name);
+							if (count > 1) {
+								name = "";
+							}
+							ValidationUploadManager client = (ValidationUploadManager) view;
+							client.populateSubmissionTicket(file, allFields, (Study)studySelect.getSelectedItem());
 
-
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+						if (view != null) {
+							working.dispose();
+							view.configAll(true);
+						}
+						message = "An error occurred while building your Submission Package. :\n\n" + error + "\n\n"
+								+ "If the problem persists please contact your systems administrator.";
+					} finally {
+						latch.countDown();
 					}
-				} catch (Exception e) {
-					e.printStackTrace();
-					if (view != null) {
-						working.dispose();
-						view.configAll(true);
-					}
-					message = "An error occurred while building your Submission Package. :\n\n" + error + "\n\n"
-							+ "If the problem persists please contact your systems administrator.";
-				} finally {
-					latch.countDown();
+					return;
 				}
-				return;
+			}.start();
+			if (view == null) {
+				try {
+					latch.await();
+				} catch (InterruptedException e) {
+					message = "Error: CountDownLatch Exception! Please report this to an admin.";
+					e.printStackTrace();
+				}
 			}
-		}.start();
-		if (view == null) {
-			try {
-				latch.await();
-			} catch (InterruptedException e) {
-				message = "Error: CountDownLatch Exception! Please report this to an admin.";
-				e.printStackTrace();
-			}
-		}
 
-		if (message == null) {
-			message =
-					"Your Submission Package is complete. The Submission Ticket has been created in the working directory "
-							+ view.getSourceDir()
-							+ ".\n This Ticket will enable you to upload your data to the repository";
-		}
+			if (message == null) {
+				message = "Your Submission Package is complete. The Submission Ticket has been created in the working directory "
+						+ view.getSourceDir() + ".\n This Ticket will enable you to upload your data to the repository";
+			}
+		
 		return message;
 	}
 
@@ -777,7 +1033,7 @@ public class ValidationController implements ActionListener, TreeSelectionListen
 
 					try {
 
-						engine.validate(submission);
+						engine.validate(submission,isComingFromProforms);
 					} catch (JAXBException e) {
 						e.printStackTrace();
 						message = "There is an error with your translation rules.";
@@ -819,7 +1075,7 @@ public class ValidationController implements ActionListener, TreeSelectionListen
 						// case. Data is not valid, with or without excluding files. Stop here.
 						message = "The validated files contain errors.";
 					}
-
+					message = message.concat(" Click on a validated file from the list to view its warnings and/or errors.");
 					if (view != null) {
 						JOptionPane.showMessageDialog(view, message);
 

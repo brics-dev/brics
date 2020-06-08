@@ -1,5 +1,6 @@
 package gov.nih.tbi.repository.model.hibernate;
 
+import java.io.File;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -211,6 +212,12 @@ public class Study implements Serializable {
 
 	@Transient
 	private String principalInvestigator;
+	
+	@Transient
+	private String uploadFileName;
+	
+	@Transient
+	private File upload;
 
 
 	@Transient
@@ -619,6 +626,22 @@ public class Study implements Serializable {
 
 	public void setGraphicFile(UserFile graphicFile) {
 		this.graphicFile = graphicFile;
+	}
+
+	public String getUploadFileName() {
+		return uploadFileName;
+	}
+
+	public void setUploadFileName(String uploadFileName) {
+		this.uploadFileName = uploadFileName;
+	}
+
+	public File getUpload() {
+		return upload;
+	}
+
+	public void setUpload(File upload) {
+		this.upload = upload;
 	}
 
 	public String getDisplayKeywordSet() {

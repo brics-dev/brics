@@ -1,0 +1,16 @@
+[DB-TRG]
+host=ninr-dbdictionary-demo.cit.nih.gov
+database=dictionary_demo
+schema=dictionarydemo
+user=dictionarydemo
+label=TRG-DEMO-EYEGENE
+
+[DB-SRC]
+host=ibis-db-prod.cit.nih.gov
+database=dictionary_prod
+schema=dictionary
+user=dictionary
+label=SRC-PROD-IBIS
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\pgDelta\demoninr-prodibis.dict

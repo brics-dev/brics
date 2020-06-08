@@ -1,0 +1,12 @@
+target
+/target
+target/
+/.project
+/.classpath
+/.sts4-cache/
+.project
+.classpath
+/bin
+**/.sts4-cache/*
+/.sts4-cache/
+/test-output

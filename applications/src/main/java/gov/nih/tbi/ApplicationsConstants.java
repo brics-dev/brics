@@ -11,9 +11,12 @@ public class ApplicationsConstants
     public static final String LOC_COLUMN = "Column %d ";
     public static final String LOC_NAME_COLUMN = "The data element \"%s\", located at column %d ";
     public static final String LOC_NAME_GROUP = "The data element \"%s\" in repeatable group \"%s\" ";
-    public static final String LOC_ROW_COLUMN_NAME = "The data entry at row %d, column %d, for the data element \"%s.%s\" ";
-    public static final String LOC_GUID_ROW_COLUMN_NAME = "The data entry at guid %s, row %d, column %d, for the data element \"%s.%s\" ";
-    public static final String LOC_DATA_ROW_COLUMN_NAME = "The data '%s' at row %d, column %d, for the data element \"%s.%s\" ";
+    public static final String LOC_ROW_COLUMN_NAME = "The data entry at row %d, column %s, for the data element \"%s.%s\" ";
+    public static final String LOC_GUID_ROW_COLUMN_NAME = "The data entry at guid %s, row %d, column %s, for the data element \"%s.%s\" ";
+    public static final String LOC_GUID_ROW_NAME = "The data entry at guid %s, row %d, for the data element \"%s.%s\" ";
+    public static final String LOC_GUID_ROW = "For guid %s, row %d, ";
+    public static final String LOC_DATA_ROW_COLUMN_NAME = "The data '%s' at row %d, column %s, for the data element \"%s.%s\" ";
+    public static final String LOC_DATA_GUID_ROW_COLUMN_NAME = "The data '%s' at guid %s row %d, column %s, for the data element \"%s.%s\" ";
     public static final String LOC_FILE = "This file, containing the structure \"%s\" ";
 
     // Errors
@@ -24,6 +27,7 @@ public class ApplicationsConstants
     public static final String ERR_EMPTY_ONE_ELEMENT_REPEATABLE_GROUP =
     		"repeatable group with only one element of %s is empty";
 
+    public static final String ERR_BLANK_CSV = "CSV for %s form structure is empty and cannot be validated";
     public static final String ERR_RECORD_MISSING = "is missing the 'record' column which distinguishes new rows of data.";
     public static final String ERR_RECORD_LOCATION = "contains the 'record' column in the wrong place.";
 
@@ -50,42 +54,55 @@ public class ApplicationsConstants
 
     public static final String ERR_RESTRICT_ONLY_SINGLE = "has a SINGLE input restriction, but more than one input has been provided.";
 
-    public static final String ERR_TYPE_INCORRECT = "is not the correct type. The element must have a type %s.";
-    public static final String ERR_RANGE_INCORRECT = "is not within element's value range - %s";
+    public static final String ERR_TYPE_INCORRECT = "is not the correct type. The element must have a type %s";
+    public static final String ERR_RANGE_INCORRECT = "is not part of the multiple pre-defined value range %s";
     public static final String ERR_DUPLICATE_RANGE_VALUE = "contains duplicate values - %s";
     public static final String ERR_RANGE_DATE = "is an invalid date in the future.";
     public static final String ERR_INVALID_CHAR = "contains an invalid special character.";
 	public static final String WARN_INVALID_DATA_FORMAT =
 			"A record identifier was not found in column 1 row %d for form structure %s. Please make make sure your data starts on row 3 with a identifier in column 1.";
     public static final String ERR_UNKNOWN_FILE = "The file \"%s\" is unknown. This file must be excluded or associated with a data file to build a submission package.";
+    public static final String ERR_DATE_ADDENDUM = " in ISO 8601 Format (YYYY-MM-DDhh:mm:ss). Note: YYYY-MM-DD is required.";
+    public static final String ERR_SINGLE_SELECT_ADDENDUM = "This data element is restricted to a single predefined value; more than one option is currently selected";
+
     
     public static final String ERR_BLANK_REQUIRED = "is %s instead of the required blank";
     public static final String ERR_UNKNOWN_REQUIRED = "is %s instead of the required Unknown";
     public static final String ERR_UNTESTABLE_REQUIRED = "is %s instead of the required Untestable";
+    public static final String ERR_NOT_REQUIRED_VALUE = "is %s instead of the required %s";
     public static final String ERR_INCORRECT_SUM = "is %s instead of the correct sum = %s";
     public static final String ERR_INCORRECT_CALCULATION = "is %s instead of the correct calculation = %s";
     public static final String ERR_NOT_INTEGER = "is %s instead of being the required integer";
+    public static final String ERR_NOT_NUMBER = "is %s instead of being a number";
     public static final String ERR_NOT_PERMISSIBLE_VALUE = "is %s instead of being a permissible value in %s";
+    public static final String WARNING_TWO_VALUES_DIFFERENT =
+    		"is %s while %s is %s";
     public static final String WARNING_INCORRECT_CALCULATION = "is %s instead of the correct calculation = %s";
     public static final String ERR_INCORRECT_MINIMUM = "is %s instead of the correct minimum = %s";
+    public static final String ERR_INCORRECT_SCORE = "is %s instead of the correct score = %s";
     public static final String WARNING_INCORRECT_AGE = "is %s instead of the required %s";
     public static final String WARNING_BLANK_FOUND = "data has not been provided";
     public static final String WARNING_MISSING_REQUIRED_VALUE =
     		"has been calculated with 1 missing required value.";
     public static final String WARNING_MISSING_REQUIRED_VALUES =
     		"has been calculated with %d missing required values.";
+    public static final String WARNING_SUBSCORE_ONE_MISSING = "The %s subscore has been calculated with %s missing";
+    public static final String WARNING_SUBSCORE_TWO_MISSING = "The %s subscore has been calculated with %s and %s missing";
     public static final String ERR_BLANK_FOUND = "data has not been provided";
     public static final String WARNING_FEWER3_PHONEMIC = "data only submitted for %s phonemic trials instead of all 3";
     public static final String WARNING_FEWER3_SEMANTIC = "data only submitted for %s semantic trials instead of all 3";
+    
     public static final String ERR_TWO_NOT_EQUAL = "%s value of %s should equal %s value of %s";
     public static final String ERR_ILLEGAL_GROUNDSURFTYP = "GroundSurfTyp is an illegal %s instead of the required Firm or Foam";
     public static final String ERR_TOO_FEW_TRIALS = "has been calculated with only %d of the required %d trials";
-
+    public static final String ERR_TOO_MANY_WARNINGS = "Alert: More warnings for RECOMMENDED data elements missing data may exist. Only the first 1000 are shown";
+    
     // Other
     public static final int DATA_START_LINE = 3;
     public static final char ESCAPE_CHAR = 0; // Used for CSVReader
     public static final char QUOTE_CHAR = '"'; // Used for CSVReader
-
+    public static final String GUID = "guid";
+    
     // XML Attributes
     public static final String SHORT_NAME = "shortName";
     public static final String VERSION = "version";
@@ -124,7 +141,7 @@ public class ApplicationsConstants
     public static final String FRAME_ICON = TOOLS_ICON;
     public static final String APPLICATION_TITLE = "Upload Tool";
     public static final int MAXIMUM_CONCURRENT_UPLOAD = 1;
-    public static final int MAX_DATASET_NAME_LENGTH = 55;
+    public static final int MAX_DATASET_NAME_LENGTH = 256;
     public static final String COMBO_BOX_VALUE = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
     public static final String UPLOAD_THREADGROUP_NAME = "MULTI_THREAD_UPLOADING";
 

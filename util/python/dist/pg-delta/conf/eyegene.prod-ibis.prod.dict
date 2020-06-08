@@ -1,0 +1,16 @@
+[DB-SRC]
+host=ibis-db-prod.cit.nih.gov
+database=dictionary_prod
+schema=dictionary
+user=dictionary
+label=IBIS-SRC
+
+[DB-TRG]
+host=eyegene-dbdictionary-prod.cit.nih.gov
+database=dictionary_prod
+schema=dictionary
+user=dictionary
+label=EYEGENE-TRG
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\pgDelta\eyegeneprod-ibisprod-dict

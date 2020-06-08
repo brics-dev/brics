@@ -3,11 +3,15 @@ package gov.nih.tbi.store;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
+import java.util.List;
 
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.query.Query;
+import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Model;
+
+import gov.nih.tbi.pojo.QueryResult;
 
 /**
  * Generic interface used to operate with different metadata stores.
@@ -35,9 +39,9 @@ public interface MetadataStore {
 	 * The scopes, defined in MetadataStore, are: - INSTANCES (if just to query instance data) - SCHEMAS (if just to
 	 * query schemas and ontologies) - REASONING (instance plus schemas plus the reasoning provided by the store)
 	 */
-	ResultSet querySelect(String query, int scope);
+	QueryResult querySelect(String query, int scope);
 
-	ResultSet querySelect(Query query, int scope);
+	QueryResult querySelect(Query query, int scope);
 
 	// /**
 	// * Abstract method for querying the in-memory dictionary triples.

@@ -12,7 +12,6 @@ QT.RefineDataResultsView = BaseView.extend({
 	
 	events : {
 		"click #sendToMetaStudy" : "onSendToMetaStudy",
-		"click #dataTableViewTab" : "rerenderTable"
 	},
 	
 	initialize : function() {
@@ -23,9 +22,12 @@ QT.RefineDataResultsView = BaseView.extend({
 		EventBus.on("select:stepTab", this.onWindowResize, this);
 		EventBus.on("DataTableView:destroyTable", this.clearResultsCount, this);
 		EventBus.on("openDataTableViewTab",this.openDataTableViewTab, this);
+		EventBus.on("openSelectCriteriaViewTab",this.openSelectCriteriaViewTab, this);
 		EventBus.on("change:dataTab", this.changeTab, this);
 		EventBus.on("ready:accountInfo", this.updatePermissions, this);
 		EventBus.on("updateSchemaOptions", this.updateSchemaOptions, this);
+		EventBus.on("updateResultsCount", this.onQueryResultsChanged, this);
+		
 		
 		this.listenTo(this.model.get("query"), "change:tableResults", this.onQueryResultsChanged);
 	},
@@ -117,7 +119,11 @@ QT.RefineDataResultsView = BaseView.extend({
 		if (typeof recordCount != "undefined") {
 			text = "(" + recordCount + " Rows of Data)";
 		}
-		this.$("#queryResultsCount").text(text);
+		
+		if (this.$el.parent().parent().is(":visible")) {
+			this.$("#queryResultsCount").text(text);
+		}
+		
 	},
 	
 	clearResultsCount : function() {
@@ -177,7 +183,7 @@ QT.RefineDataResultsView = BaseView.extend({
 			}
 			this.view = view;
 			this.$container.tabs({
-				active: 1,
+				active: 0,
 				activate : function(event, ui) {
 					/*
 					 * event : jQuery UI Event
@@ -297,6 +303,10 @@ QT.RefineDataResultsView = BaseView.extend({
 	},
 	openDataTableViewTab : function() {
 		var index = this.Tabs.getTabIndex("resultsDatatable");
+		this.Tabs.goToTab(this, index);
+	},
+	openSelectCriteriaViewTab : function() {
+		var index = this.Tabs.getTabIndex("resultsSelectCriteria");
 		this.Tabs.goToTab(this, index);
 	}
 });

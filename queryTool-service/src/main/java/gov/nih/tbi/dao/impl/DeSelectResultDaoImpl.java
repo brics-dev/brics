@@ -1,10 +1,5 @@
 package gov.nih.tbi.dao.impl;
 
-import gov.nih.tbi.constants.QueryToolConstants;
-import gov.nih.tbi.dao.DeSelectResultDao;
-import gov.nih.tbi.pojo.DeSelectSearch;
-import gov.nih.tbi.service.RDFStoreManager;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.hp.hpl.jena.query.ResultSet;
+import gov.nih.tbi.constants.QueryToolConstants;
+import gov.nih.tbi.dao.DeSelectResultDao;
+import gov.nih.tbi.pojo.DeSelectSearch;
+import gov.nih.tbi.pojo.QueryResult;
+import gov.nih.tbi.service.RDFStoreManager;
 
 @Repository
 @Transactional
@@ -33,7 +32,7 @@ public class DeSelectResultDaoImpl implements DeSelectResultDao, Serializable {
 	@Autowired
 	private RDFStoreManager rdfStoreManager;
 	
-	public ResultSet deSelectQuery(DeSelectSearch searchParameters) {
+	public QueryResult deSelectQuery(DeSelectSearch searchParameters) {
 		StringBuffer sb = new StringBuffer();
 		sb.append("select * WHERE {").append(QueryToolConstants.NL);
 		sb.append("select DISTINCT ?de ?classification ?title ?varName WHERE {").append(QueryToolConstants.NL);
@@ -54,13 +53,13 @@ public class DeSelectResultDaoImpl implements DeSelectResultDao, Serializable {
 
 		String query = sb.toString();
 		
-		ResultSet elements = rdfStoreManager.querySelect(query);
+		QueryResult elements = rdfStoreManager.querySelect(query);
 		
 		return elements;
 	}
 
 	
-	public ResultSet deSelectCountQuery(DeSelectSearch searchParameters) {
+	public QueryResult deSelectCountQuery(DeSelectSearch searchParameters) {
 
 		StringBuffer sb = new StringBuffer();
 		sb.append("select (count(distinct ?de) as ?count) WHERE {").append(
@@ -75,7 +74,7 @@ public class DeSelectResultDaoImpl implements DeSelectResultDao, Serializable {
 		sb.append("}").append(QueryToolConstants.NL);
 		
 		String query = sb.toString();
-		ResultSet results = rdfStoreManager.querySelect(query);
+		QueryResult results = rdfStoreManager.querySelect(query);
 		
 		return results;
 	}
@@ -193,7 +192,7 @@ public class DeSelectResultDaoImpl implements DeSelectResultDao, Serializable {
 	}
 	
 	
-	public ResultSet getPopulationOptions() {
+	public QueryResult getPopulationOptions() {
 		
 		StringBuffer populationQuery = new StringBuffer();
 		populationQuery.append("select DISTINCT ?population").append(QueryToolConstants.NL);
@@ -202,12 +201,12 @@ public class DeSelectResultDaoImpl implements DeSelectResultDao, Serializable {
 		populationQuery.append(QueryToolConstants.NL);
 		populationQuery.append("}");
 
-		ResultSet populationResults =
+		QueryResult populationResults =
 				rdfStoreManager.querySelect(populationQuery.toString());
 		return populationResults;
 	}
 	
-	public ResultSet getDiseaseOption() {
+	public QueryResult getDiseaseOption() {
 		
 		StringBuffer diseasesQuery = new StringBuffer();
 		diseasesQuery.append("select DISTINCT ?disease").append(QueryToolConstants.NL);
@@ -215,7 +214,7 @@ public class DeSelectResultDaoImpl implements DeSelectResultDao, Serializable {
 		diseasesQuery.append("?o element:elementDisease ?disease.").append(QueryToolConstants.NL);
 		diseasesQuery.append("}");
 
-		ResultSet diseaseResults =
+		QueryResult diseaseResults =
 				rdfStoreManager.querySelect(diseasesQuery.toString());
 		return diseaseResults;
 	}

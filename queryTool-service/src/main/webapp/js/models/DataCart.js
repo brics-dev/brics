@@ -5,7 +5,8 @@
 QT.DataCart = BaseModel.extend({
 	defaults : {
 		countForms : 0,
-		countStudies : 0
+		countStudies : 0,
+		joinFormsAvailable : false , //This let's us know if the user has dragged forms to be joined
 	},
 
 	savedQueryLoadUtil : null,
@@ -24,6 +25,8 @@ QT.DataCart = BaseModel.extend({
 
 		EventBus.on("addToDataCart", this.addToDataCart, this);
 		EventBus.on("removeFromDataCart", this.removeFromDataCart, this);
+		EventBus.on("removeAllStudiesFromDataCart", this.removeAllStudiesFromDataCart, this);
+		EventBus.on("removeAllFormsFromDataCart", this.removeAllFormsFromDataCart, this);
 		EventBus.on("clearDataCart", this.clearDataCart, this);
 		EventBus.on("load:savedQuery", this.loadSingleDefinedQuery, this);
 	},
@@ -99,15 +102,17 @@ QT.DataCart = BaseModel.extend({
 		var dcForm = this.forms.get(formUri);
 		if (dcForm != null) {
 			var studyUris = dcForm.get("studies");
-			var countStudies = studyUris.length;
+			var countStudies = studyUris.length+1;
 			if (queryForms.indexOf(formUri) != -1) {
 				// the form is part of the query.  We either need to re-run the query or rest it
 				if (countStudies > 1) {
 					// the study/form being removed is NOT the last, so rerun
 					EventBus.trigger("query:reRun");
+					EventBus.trigger("set:queryState", 1);
 				}
 				else {
 					// the study/form being removed is the last, so reset
+					EventBus.trigger("set:queryState", 0);
 					EventBus.trigger("query:reset");
 					$.ibisMessaging("dialog", "info", "Because this form was entirely removed, the query has been reset");
 				}
@@ -121,6 +126,54 @@ QT.DataCart = BaseModel.extend({
 		if (this.get("countForms") == 0 && this.get("countStudies") == 0) {
 			EventBus.trigger("clearDataCart");
 		}
+	},
+	removeAllStudiesFromDataCart : function(formUri) {
+		var form = this.forms.get(formUri);
+		if (typeof form !== "undefined") {
+			// if we didn't pass a study URI, remove all studies for this form
+			// remove all studies in this form then the form itself
+			var formStudies = form.get("studies");
+			this._removeAllFormAndStudies(form, formStudies);
+		}
+		
+		this.removeAllFormFromServer(formUri);
+		EventBus.trigger("dataCart:update");
+		EventBus.trigger("set:queryState", 0);
+		EventBus.trigger("query:reset");
+		$.ibisMessaging("dialog", "info", "Because this form was entirely removed, the query has been reset");
+	
+		// no matter what else happens, update those counts
+		this.updateCounts();
+		this.updateCartButtons();
+		if (this.get("countForms") == 0 && this.get("countStudies") == 0) {
+			EventBus.trigger("clearDataCart");
+		}
+		
+	},
+	removeAllFormsFromDataCart : function(studyUri, forms) {
+		
+		for (var i = 0; i < forms.length; i++) {
+			var form = forms.at(i);
+			var formUri = form.get("uri");
+			var form = this.forms.get(formUri);
+			var formStudies = form.get("studies");
+			this._removeAllFormAndStudies(form, formStudies);
+			
+		}
+		
+		this.removeAllStudyFromServer(studyUri);
+		EventBus.trigger("dataCart:update");
+		EventBus.trigger("set:queryState", 0);
+		EventBus.trigger("query:reset");
+		$.ibisMessaging("dialog", "info", "Because this form was entirely removed, the query has been reset");
+	
+		// no matter what else happens, update those counts
+		this.updateCounts();
+		this.updateCartButtons();
+		if (this.get("countForms") == 0 && this.get("countStudies") == 0) {
+			EventBus.trigger("clearDataCart");
+		}
+		
 	},
 	
 	/**
@@ -156,6 +209,25 @@ QT.DataCart = BaseModel.extend({
 			this.removeForm(formUri);
 			EventBus.trigger("dataCart:update");
 		}
+	},
+	_removeAllFormAndStudies : function(form, arrStudies) {
+		var formUri = form.get("uri");
+		var len = arrStudies.length;
+		
+		for (var i = 0; i < len; i++) {
+			 // this stays 0 because we're removing them in this loop
+			 var studyUri = arrStudies[0];
+			 // does not remove from the includedStudies list...
+			 this.removeStudy(form, studyUri);
+			 // ... so check that
+			 if (!this.isStudyInOtherForms(studyUri)) {
+				 delete this.includedStudies[studyUri];
+			 }
+			 
+			 EventBus.trigger("dataCart:update", formUri, studyUri);
+		}
+		this.removeForm(formUri);
+		
 	},
 	
 	studyExistsInForm : function(form, studyUri) {
@@ -345,7 +417,7 @@ QT.DataCart = BaseModel.extend({
 			}
 		});
 	},
-
+	
 	removeFromServer : function(formUri, studyUri) {
 		var data = {
 			formUri : formUri,
@@ -357,6 +429,47 @@ QT.DataCart = BaseModel.extend({
 			type : "POST",
 			cache: false,
 			url : "service/dataCart/form/remove",
+			data : data,
+			success : function(data, textStatus, jqXHR) {
+				// TODO: fill in
+
+			},
+			error : function() {
+				// TODO: fill in
+			}
+		});
+	},
+
+	removeAllStudyFromServer : function(studyUri) {
+		var data = {
+			studyUri : studyUri
+		};
+
+		$.ajaxSettings.traditional = true;
+		$.ajax({
+			type : "POST",
+			cache: false,
+			url : "service/dataCart/study/removeAll",
+			data : data,
+			success : function(data, textStatus, jqXHR) {
+				// TODO: fill in
+
+			},
+			error : function() {
+				// TODO: fill in
+			}
+		});
+	},
+	removeAllFormFromServer : function(formUri) {
+		var data = {
+			formUri : formUri,
+		};
+
+		$.ajaxSettings.traditional = true;
+		$.ajax({
+			type : "POST",
+			cache: false,
+			url : "service/dataCart/form/removeAll",
 			data : data,
 			success : function(data, textStatus, jqXHR) {
 				// TODO: fill in

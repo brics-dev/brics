@@ -237,7 +237,7 @@ public class AccessRecordDaoImpl extends GenericDaoImpl<AccessRecord, Long> impl
 
 		if (pageData != null && pageData.getPage() != null) {
 
-			q.setMaxResults(pageData.getPageSize()).setFirstResult((pageData.getPageSize()) * (pageData.getPage() - 1));
+			q.setMaxResults(pageData.getPageSize()).setFirstResult((pageData.getPageLength()) * (pageData.getPage() - 1));
 		}
 		List<AccessRecord> list = q.getResultList();
 		

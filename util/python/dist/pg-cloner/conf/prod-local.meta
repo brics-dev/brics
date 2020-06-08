@@ -1,0 +1,14 @@
+[DB-SRC]
+host=fitbir-db-prod.cit.nih.gov
+database=tbi_prod
+schema=tbi_meta
+user=tbi_meta
+
+[DB-TRG]
+host=localhost
+database=metadb
+schema=metasch
+user=metauser
+
+[FILE-SYS]
+logbase=D:\\DEV\\appdata\\log\\pgCloner\\prod-local.meta

@@ -154,7 +154,7 @@
                return {
                      columns: [{
                          table: {
-                           widths: ['50%', '50%'],
+                           widths: ['30%', '70%'],
                            body: [
                              [{
                                image: IdtActions.getBase64Image(myGlyph),
@@ -275,12 +275,18 @@
              for(var i =0; i < columns.length; i++) {
                 columnsList.push(i);
              };
-             columnsList.shift();
-             var sConfig = jQuery.extend(true, {exportOptions: { modifier: { selected: true }, orthogonal: 'export', columns: columnsList } }, config);
-             var selected = dt.settings()[0].oInit.select;
-             // $.dialogMessage("dialog", "warning", "this is text",
-				// {container: "body", buttons: [{text: 'one', value: 'one'}]});
+             
+             if (jQuery.isEmptyObject(config.exportOptions)) {
+                 Object.assign(config.exportOptions, { orthogonal: 'export', columns: columnsList });
+             }
+
+             var selected = dt.settings()[0].oInit.select;             
+             
              if (selected.style == 'multi' || selected.style == 'single') {
+                 columnsList.shift();
+                 
+                 var sConfig = jQuery.extend(true, {exportOptions: { modifier: { selected: true }, orthogonal: 'export', columns: columnsList } }, config);
+            	 
             	 if (dt.rows({ selected: true }).indexes().length !== 0) {
 	                 $("#dialog").dialog({
 	                     modal: true,
@@ -317,22 +323,25 @@
 	                 });
             	 }
             	 else if (dt.rows({ selected: true }).indexes().length == 0 || undefined) {
-                     console.log("just check for row length", dt.rows({ selected: true }).indexes().length);
-                      config.exportOptions = {
-                          orthogonal: 'export',
-                          columns: columnsList
-                      };
-                      that.runExportAction(self, e, dt, button, config);
+
+            	 	$.when(that.runExportAction(self, e, dt, button, config)).done(function(e) {
+            	 		
+            	 		setTimeout(function(){dt.buttons(['.buttons-excel', '.buttons-csv', '.buttons-pdf', '.buttons-print']).enable()}, 5000);
+            	 	})
                   }
              } 
              else {
-                 that.runExportAction(self, e, dt, button, config);
+         	 	$.when(that.runExportAction(self, e, dt, button, config)).done(function(e) {
+        	 		
+        	 		setTimeout(function(){dt.buttons(['.buttons-excel', '.buttons-csv', '.buttons-pdf', '.buttons-print']).enable()}, 5000);
+        	 	})
              }
          }
      },
-
+     
      runExportAction: function(self, e, dt, button, config) {
     	 var that = this;
+    	 dt.buttons(['.buttons-excel', '.buttons-csv', '.buttons-pdf', '.buttons-print']).disable();
          if (dt.settings()[0].oInstance.fnSettings().oFeatures.bServerSide == true) {
              var oldStart = dt.settings()[0]._iDisplayStart;
              var recordsTotal = dt.settings()[0]._iRecordsTotal;

@@ -279,7 +279,6 @@ QTDT.FrozenResultsView = BaseView.extend({
 		if($("#frozenDataBody").length > 0 ) {
 			var containerHeight = $("#resultsDatatable").height();
 			var headerHeight = $("#frozenTableHeaders").height(); // maybe outerHeight()?
-			var menuHeight = $("#lengthMenuViewContainer").height();
 			var paginationHeight = $("#pagerContainer").height();
 			var scrollHeight = 0;
 			var biosampleOrderHeight = 0;
@@ -291,7 +290,7 @@ QTDT.FrozenResultsView = BaseView.extend({
 				scrollHeight = $("#frozenDataBody")[0].scrollHeight;
 			
 			
-			var newHeight = containerHeight - headerHeight - menuHeight - paginationHeight - biosampleOrderHeight;
+			var newHeight = containerHeight - headerHeight - paginationHeight - biosampleOrderHeight;
 			if( scrollHeight > newHeight) {
 				$("#frozenDataBody").height(newHeight);
 			} else if (scrollHeight != 0) {

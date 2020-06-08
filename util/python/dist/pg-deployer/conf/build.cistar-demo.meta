@@ -1,0 +1,6 @@
+[DB-TRG]
+host=cistar-db-demo.ninds.nih.gov
+database=cistar_demo
+schema=tbi_metademo
+user=tbi_metademo
+label=TARGET

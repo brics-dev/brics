@@ -135,7 +135,7 @@ public class AccountReportingReportGenerator {
 	    FileUtils.copyInputStreamToFile(inputStreamImage, tempImage);
 
 		htmlText = htmlText.replace(TOKEN_SYSTEM_LOGO, REPORT_LOGO_IMGSRC);
-		htmlText = htmlText.replace(TOKEN_ORG_NAME, orgName);
+		htmlText = htmlText.replace(TOKEN_ORG_NAME, orgName.replaceAll("_", " "));
 		
 		String dateRangeText = "";
 		

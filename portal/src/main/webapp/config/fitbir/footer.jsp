@@ -78,11 +78,8 @@
 			</ul>
 		</div>
 
-		<div class="contact build-notes">
-            <p>Version: <s:property value="%{buildID}" />
-            <br>Repository ID: <s:property value="%{deploymentID}" />
-            <br>Last Deployed: <s:property value="%{lastDeployed}" /></p>
-		</div>
+		<!-- Include the release info section -->
+		<jsp:include page="/common/release-info.jsp" />
 	</div>
 </div>
 <!-- end #footer -->

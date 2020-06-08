@@ -1,0 +1,4 @@
+1|sput|conf.meta|conf.meta
+2|sexec|work|ls -la
+3|sexec||/sbin/service tomcat-2nd status | wc -l
+4|sexec|work|[ -f catalina.out ] && echo "Found" || >&2 echo "Unfound"

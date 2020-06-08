@@ -1,19 +1,22 @@
 package gov.nih.tbi.dictionary.portal;
 
-import gov.nih.tbi.PortalConstants;
-import gov.nih.tbi.dictionary.model.hibernate.eform.Eform;
-import gov.nih.tbi.dictionary.model.hibernate.eform.QuestionAnswerOption;
-import gov.nih.tbi.dictionary.model.hibernate.eform.Section;
-import gov.nih.tbi.dictionary.model.hibernate.eform.SectionQuestion;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.TreeSet;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
+
+import gov.nih.tbi.PortalConstants;
+import gov.nih.tbi.dictionary.model.QuestionDisplayOrderComparator;
+import gov.nih.tbi.dictionary.model.hibernate.eform.Eform;
+import gov.nih.tbi.dictionary.model.hibernate.eform.QuestionAnswerOption;
+import gov.nih.tbi.dictionary.model.hibernate.eform.Section;
+import gov.nih.tbi.dictionary.model.hibernate.eform.SectionQuestion;
 
 
 
@@ -59,9 +62,10 @@ public class EformExportAction extends BaseDictionaryAction {
 					sq.getQuestion().setQuestionAnswerOption(sortedQAOList);
 				}
 			}
-			TreeSet<SectionQuestion> sortedSQList = new TreeSet<SectionQuestion>();
-			sortedSQList.addAll(section.getSectionQuestion());
-			section.setSectionQuestion(sortedSQList);
+
+				List<SectionQuestion> sortedSQList = new ArrayList<SectionQuestion>();
+				sortedSQList.addAll(section.getSectionQuestion());
+				Collections.sort(sortedSQList, new QuestionDisplayOrderComparator());
 		}
 		
 		TreeSet<Section> sortedSectionList = new TreeSet<Section>();

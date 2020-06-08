@@ -14,10 +14,10 @@ import au.com.bytecode.opencsv.CSVReader;
 public class JdbcAdminCreator {
 
 	public static void main(String[] args) {
-		String url = "jdbc:postgresql://REPLACED:5432/pdbp_data";
+		String url = "jdbc:postgresql://proforms-dev-db.cit.nih.gov:5432/pdbp_data";
 		Properties props = new Properties();
-		props.setProperty("user","REPLACED");
-		props.setProperty("password","REPLACED");
+		props.setProperty("user","proforms_app_dev");
+		props.setProperty("password","abcd");
 		Connection conn =null;
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;

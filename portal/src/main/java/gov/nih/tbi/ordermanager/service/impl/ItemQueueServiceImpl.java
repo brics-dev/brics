@@ -211,7 +211,7 @@ public class ItemQueueServiceImpl implements ItemQueueService
             
         item.setUnitNumber(itemMap.get(mapping.getUnitNumber()));
         item.setUnitMeasurement(itemMap.get(mapping.getUnitMeasurement()));
-        
+        item.setPdbpStudyId(itemMap.get(mapping.getPdbpStudyId()));
         items.add(item);
         queue.setItems(items);
         itemQueueDao.save(queue);

@@ -155,6 +155,9 @@ public class QuestionAttribute implements Serializable{
 	@Column(name = "CONDITIONAL_FOR_CALC")
 	private Boolean conditionalForCalc;
 	
+	@Column(name = "COUNT_FLAG")
+	private Boolean countFlag;
+	
 	
 
 	public QuestionAttribute(){}
@@ -199,6 +202,7 @@ public class QuestionAttribute implements Serializable{
 			this.setEmailTrigger(new EmailTrigger(questionAttribute.getEmailTrigger()));
 		}
 		this.setConditionalForCalc(questionAttribute.getConditionalForCalc());
+		this.setCountFlag(questionAttribute.getCountFlag());
 	}
 
 	public Long getId() {
@@ -504,6 +508,17 @@ public class QuestionAttribute implements Serializable{
 	public void setEmailTrigger(EmailTrigger emailTrigger) {
 		this.emailTrigger = emailTrigger;
 	}
+	
+	
+	
+
+	public Boolean getCountFlag() {
+		return countFlag;
+	}
+
+	public void setCountFlag(Boolean countFlag) {
+		this.countFlag = countFlag;
+	}
 
 	@Override
 	public int hashCode() {
@@ -546,6 +561,7 @@ public class QuestionAttribute implements Serializable{
 		result = prime * result + ((vAlign == null) ? 0 : vAlign.hashCode());
 		result = prime * result + ((xhtmlText == null) ? 0 : xhtmlText.hashCode());
 		result = prime * result + ((conditionalForCalc == null) ? 0 : conditionalForCalc.hashCode());
+		result = prime * result + ((countFlag == null) ? 0 : countFlag.hashCode());
 		return result;
 	}
 
@@ -733,6 +749,11 @@ public class QuestionAttribute implements Serializable{
 			if (other.xhtmlText != null)
 				return false;
 		} else if (!xhtmlText.equals(other.xhtmlText))
+			return false;
+		if (countFlag == null) {
+			if (other.countFlag != null)
+				return false;
+		} else if (!countFlag.equals(other.countFlag))
 			return false;
 		return true;
 	}

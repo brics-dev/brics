@@ -24,7 +24,7 @@ public class SelfReportingHomeDecorator extends ActionDecorator {
 		Integer aformId = selfReporting.getAdministeredFormId();
 
 		String status = selfReporting.getStatus();
-		String formName = selfReporting.getFormName();
+		String formName = selfReporting.getFormTitle();
 
 		if (CtdbConstants.DATACOLLECTION_STATUS_COMPLETED.equals(status)
 				|| CtdbConstants.DATACOLLECTION_STATUS_LOCKED.equals(status)) {

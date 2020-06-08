@@ -45,11 +45,23 @@ var QuestionCalculationRuleDecorator = {
 			"click #calcSqrt" : function(){this.paren(' sqrt(');},
 			"click #calcLeftP" : function(){this.paren(' (');},
 			"click #calcRightP" : function(){this.paren(') ');},
+			
+			"click #calcGreater" : function(){this.button('>');},
+			"click #calcGreaterEqual" : function(){this.button('>=');},
+			"click #calcLess" : function(){this.button('<');},
+			"click #calcLessEqual" : function(){this.button('<=');},
+			
+			"click #calcEqualEqual" : function(){this.button('==');},
+			"click #calcNotEqual" : function(){this.button('!=');},
+			"click #calcAnd" : function(){this.button('&&');},
+			"click #calcOr" : function(){this.button('||');},
+			
+			"click #calcIf" : function(){this.button('if (');},
+			"click #calcElse" : function(){this.button('else {');},
+			"click #calcElseIf" : function(){this.button('else if (');},
+			"click #calcOpenBrac" : function(){this.button(' { ');},
+			"click #calcCloseBrac" : function(){this.button(' } ');},
 		},
-		
-		
-		
-		
 		
 		validationRules : [
 		                   new ValidationRule({
@@ -271,11 +283,23 @@ var QuestionCalculationRuleDecorator = {
 		             		        return "Unmatched left parentheses";
 		             		    }
 		             		}
-		             	  })            
+		             	  }),
+		             	  
+		             	 new ValidationRule({
+		         			fieldName: "calculationDisplay",
+		         			description: "A question may not have both a count formula and a calculation rule",
+		         			match : function(model) {
+		         				var questionsInCount = model.get("questionsInCount");
+		         				var questionsInCalc = model.get("questionsToCalculate");
+		         				if (questionsInCount.length != 0 && questionsInCalc.length != 0) {
+		         					return false;
+		         				}
+		         				return true;
+		         			}
+		         		})
 		             		                   
 		             		                   
-		             		                   
-		             		],
+		],
 		
 		
 		             		
@@ -302,8 +326,6 @@ var QuestionCalculationRuleDecorator = {
 				this.listenTo(this.model, "change:answerType", this.onChangeAnswerTypeInCalc);
 				
 				//populate available questions to calculate is done in onChangeAnswerTypeInCalc()
-
-
 
 				
 				

@@ -106,9 +106,10 @@
 			<message key="errors.required" /> 
 		</field-validator> 
 	</field>
-	<field name="uploadFileName"> 
-		<field-validator type="studyuploadfilename">
-			<message key="errors.submissionDocument" />
+	<field name="studyDetailsForm.uploadFileName"> 
+		<field-validator type="regex">
+			<param name="regex"><![CDATA[(.*/)*.+\.(png|jpg|jpeg|PNG|JPG)$]]></param>
+			<message key="errors.pictureFileName" />
 		</field-validator>
 	</field>
 </validators>

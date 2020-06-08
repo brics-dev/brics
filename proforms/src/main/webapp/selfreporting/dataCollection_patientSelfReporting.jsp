@@ -39,37 +39,6 @@
 
 <jsp:include page='/formbuilder/templates/builder/processing.jsp' />
 
-<script type="text/javascript">
- // start up the processingview
- 
- var FormBuilder = {
-	page : {
-		processingView : null,
-		get : function(name) {
-			return FormBuilder.page[name];
-		}
-	} 
- };
- var processingView = null;
- $(document).ready(function() {
-	 var appName = "<s:property value="#systemPreferences.get('template.global.appName')" />";
-	 if(appName == 'cdrns'){
-		 $('.formName').hide();
-	 }
-	 FormBuilder.page.processingView = new ProcessingView();
-	 $("#selfReport_actionButtons").sticky({topSpacing: 0});
-
-	 $(".psrHeader").after("<div id=\"pageText\"></div>");
-	 $("#pageText").html($("#thisPageText").text()).css("margin-left","5%").css("margin-right","5%").css("margin-bottom","20px").css("font-size","13px");
-
-	 
-	 
- });
-</script>
-
-<script type="text" id="thisPageText">
-	<s:text name="selfreporting.selfreportingHome.instruction2" />
-</script>
 
 <%
 	String mode = (String) request.getAttribute(CtdbConstants.DATACOLLECTION_MODE); 
@@ -100,6 +69,82 @@
 	String token = (String) request.getAttribute(StrutsConstants.TOKEN);
 
 %>
+
+<script type="text/javascript">
+ // start up the processingview
+ 
+ var FormBuilder = {
+	page : {
+		processingView : null,
+		get : function(name) {
+			return FormBuilder.page[name];
+		}
+	} 
+ };
+ var processingView = null;
+ 
+ $(document).ready(function() {
+	 var appName = "<s:property value="#systemPreferences.get('template.global.appName')" />";
+	 if(appName == 'cdrns'){
+		 $('.formName').hide();
+	 }
+	 FormBuilder.page.processingView = new ProcessingView();
+	 $("#selfReport_actionButtons").sticky({topSpacing: 0});
+
+	 $(".psrHeader").after("<div id=\"pageText\"></div>");
+	 $("#pageText").html($("#thisPageText").text()).css("margin-left","5%").css("margin-right","5%").css("margin-bottom","20px").css("font-size","13px");
+
+	 $("#promis_saveLock").hide();
+	 
+	 
+	 //need to make all questions under Form Administration and Main to be readonly for CAT eforms
+	 
+	 var isCat = <%= isCat %>;
+	 if(isCat){
+		 var $main = $("div[name='Main']");
+		 var $fa = $("div[name='Form Administration']");
+		 $main.find("input,textarea,select").prop("readonly", true);
+		 $fa.find("input,textarea,select").prop("readonly", true);
+		 $fa.find('input:radio').prop('checked', false).prop("disabled",true);
+		 $main.find('input:radio').prop('checked', false).prop("disabled",true);
+		 $main.find('input:radio').click(function(){
+			    return false;
+		 });
+		 $main.find('input:checkbox').click(function(){
+			    return false;
+		 });
+		 $fa.find('input:radio').click(function(){
+			    return false;
+		 });
+		 $fa.find('input:checkbox').click(function(){
+			    return false;
+		 });
+		 $main.find('.hasDatepicker').css('pointer-events', 'none');
+		 $fa.find('.hasDatepicker').css('pointer-events', 'none');
+		 $(".goPROMIS").prop("readonly", false);
+	 }
+	 
+	 /*CISTAR-641:set table cell width to be 0 if no text in it*/
+	 $(".questionTextContainerTd").each(function(element) { 
+		 var $this = $(this); 
+		 var tblCellTxt = $this.find(".questionTextImmediateContainer").text();
+		 if (tblCellTxt.length == 0) { 
+			 $this.width(0); 
+		 } else if ($.trim(tblCellTxt).length == 0) { 
+			 //contains white spaces only, then reset width in percentage
+			 var widthPercent = tblCellTxt.length / $this.parent().width() * 100 + "%";
+			 $this.width(widthPercent);  
+		 }   
+	 });
+	 
+ });
+</script>
+
+<script type="text" id="thisPageText">
+	<s:text name="selfreporting.selfreportingHome.instruction2" />
+</script>
+
+
 
 <script type="text/config" id="formNameToBeSavedOrLocked"><s:property value="#request.formNameToBeSavedOrLocked" /></script>
 <script type="text/javascript">
@@ -740,6 +785,11 @@ $(document).ready(function() {
 		$("#lockButtonPatient").click();
 	});
 	
+	$("#promis_saveComplete").click(function(){
+		$("input:checkbox[name='markChecked']").prop( "checked", true );
+		completeForm();
+	});
+	
 	$("#promis_cancel").click(function(){
 		$("#exitBtn").click();
 	});
@@ -749,47 +799,66 @@ $(document).ready(function() {
 	//PSR forms can be configured to hide certain sections (along with its questions) and/or certain questions within sections
 	//so lets hide them here
 	
-	var idlist = JSON.parse($("#hiddenSectionsQuestionsElementIdsJSON").val());
-	for(var i=0;i<idlist.length;i++) {
+	var idlist = JSON.parse($("#hiddenSectionsQuestionsPVsElementIdsJSON").val());
+	for (var i = 0; i < idlist.length; i++) {
 		var elementId = idlist[i];
-		$("[hideid='" + elementId + "']").hide();
-		$("[hideid='" + elementId + "']").addClass("eformConfigureHidden");
-		
+		var $hideElement = $("[hideid='" + elementId + "']");
+		$hideElement.hide();
+		$hideElement.addClass("eformConfigureHidden");
 		
 		//handle repeatables
 		if (elementId.indexOf("questionContainer") === -1) {
 			//this is a section
-			var sectionId = elementId.substring(elementId.indexOf("sectionContainer")+17, elementId.length);
-			//add eformConfigureHidden class to child repeatables
-			var childRepeatables = $('[parent="' + sectionId + '"]');
-			childRepeatables.each(function(index) {
-				var childId = $(this).attr("id");
-				var childElementId = "sectionContainer_" + childId;
-				$("[hideid='" + childElementId + "']").hide();
-				$("[hideid='" + childElementId + "']").addClass("eformConfigureHidden");
-			});
+			//no need to hide the child sections since we are hiding the repeat button:
 			//hide repeat button
-			var repeatButton = $("[hideid='" + elementId + "']").next(".repeatButton");
-			repeatButton.removeClass("repeatButton");
-			repeatButton.hide();
+			var $repeatButton;
+			if(globalEditFlag == true) {
+				$repeatButton = $hideElement.parents("tr").first().next("tr").find(".repeatButton");
+			}else {
+				$repeatButton = $hideElement.next(".repeatButton");
+			}
+			$repeatButton.removeClass("repeatButton");
+			$repeatButton.addClass("eformConfigureHidden");
+			$repeatButton.hide();
 			
-		}else {
-			//this is a question
-			var sectionId = elementId.substring(elementId.indexOf("questionContainer")+18, elementId.lastIndexOf("_"));
-			var questionId = elementId.substring(elementId.lastIndexOf("_")+1, elementId.length);
+		} else {
+			//this is a question or pv
+			var isQuestion = true;
+			var sectionId;
+			var questionId;
+			var pvId;
+			
+			if (elementId.split("_").length - 1 == 3) { //handles pvs
+				isQuestion = false;
+				var s_q_p = elementId.substring(elementId.indexOf("questionContainer")+18, elementId.length);
+				sectionId = s_q_p.substring(0,s_q_p.indexOf("_"));
+				var q_p = s_q_p.substring(s_q_p.indexOf("_") + 1 ,s_q_p.length);
+				questionId = q_p.substring(0,q_p.indexOf("_"));
+				pvId = q_p.substring(q_p.indexOf("_") + 1, q_p.length);
+			} else { //handles questions
+				sectionId = elementId.substring(elementId.indexOf("questionContainer")+18, elementId.lastIndexOf("_"));
+				questionId = elementId.substring(elementId.lastIndexOf("_")+1, elementId.length);
+			}
+			
 			//hide children corresponding questions and add eformConfigureHidden class 
-			var childRepeatables = $('[parent="' + sectionId + '"]');
-			childRepeatables.each(function(index) {
-				var childId = $(this).attr("id");
-				var childElementId = "questionContainer_" + childId + "_" + questionId;
-
-				$("[hideid='" + childElementId + "']").hide();
-				$("[hideid='" + childElementId + "']").addClass("eformConfigureHidden");
+			var $childRepeatables = $('[parent="' + sectionId + '"]');
+			$childRepeatables.each(function(index) {
+				$this = $(this);
+				var childId = $this.attr("id");
+				var childElementId;
+				
+				if (isQuestion) {
+					childElementId = "questionContainer_" + childId + "_" + questionId;
+				} else {
+					childElementId = "questionContainer_" + childId + "_" + questionId + "_" + pvId;
+				}
+				
+				var $childElement = $this.find(("[hideid='" + childElementId + "']"));
+				$childElement.hide();
+				$childElement.addClass("eformConfigureHidden");
 			});
-
 		}
 	}
-	
 														
 });
 </script>
@@ -825,7 +894,7 @@ var LogoutWarning = {
 	},
 	
 	startTimer : function() {
-		this.timer = setTimeout(function(){LogoutWarning.openPopup();}, <s:property value="#systemPreferences.get('app.warningTimeout')"/>);
+		this.timer = setTimeout(function(){LogoutWarning.openPopup();}, <s:property value="#systemPreferences.get('app.warningTimeout')"/> * 60 * 1000);
 	},
 	
 	cancelLogout : function() {
@@ -1027,7 +1096,7 @@ function popupAttWindow(url) {
 
 /* added by Ching Heng for download the question file */
 function downloadQuestionFile(fileID,formID){
-	url = "<s:property value="#webRoot"/>/attachments/download.action?id="+fileID+"&associatedId="+formID+"&typeId=<%=AttachmentManager.FILE_COLLECTION%>";
+	url = "<s:property value="#webRoot"/>/selfreporting/download.action?id="+fileID+"&associatedId="+formID+"&typeId=<%=AttachmentManager.FILE_COLLECTION%>";
 	redirectWithReferrer(url);
 }
 
@@ -1050,7 +1119,8 @@ function resetVSandIM(){
 			<s:hidden name="dataEntryForm.userPassword" id="userPasswordId" />
 			<s:hidden name="dataEntryForm.clickedSectionFields" id="clickedSectionFieldsId" />
 			<s:hidden name="dataEntryForm.formType" id="formTypeId" />
-			<s:hidden name="hiddenSectionsQuestionsElementIdsJSON" id="hiddenSectionsQuestionsElementIdsJSON" />
+			<s:hidden name="hiddenSectionsQuestionsPVsElementIdsJSON" id="hiddenSectionsQuestionsPVsElementIdsJSON" />
+			<s:hidden name="aformCacheKey" />
 			<%-- <s:param name="struts.token.name" value="'token'"/> --%>
 			
 
@@ -1062,7 +1132,10 @@ function resetVSandIM(){
 		
 	
 	<div style="display: table; width: 100%; position: relative;"> 
-		<div id="selfReport_actionButtons">
+		<div id="divdataentryform"> 
+			<s:property value="#request.formdetail" escapeHtml="false" />
+		</div>
+		<div id="selfReport_actionButtons" style="right: 4%;">
 			<% if(!isCat || "shortForm".equals(mType)){ %>
 				<div>
 					<input id="saveAndExitBtn" type="button" class="boldText" value="<s:text name='button.Save' />"  />
@@ -1078,9 +1151,6 @@ function resetVSandIM(){
 				<div>
 					<input id="exitBtn" type="button" value="<s:text name='button.Exit' />"  />
 				</div>
-		</div>
-		<div id="divdataentryform"> 
-			<s:property value="#request.formdetail" escapeHtml="false" />
 		</div>
 	 </div> 
 	<br>

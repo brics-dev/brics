@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.struts2.interceptor.ServletRequestAware;
 import org.apache.struts2.interceptor.SessionAware;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -22,12 +23,15 @@ import com.opensymphony.xwork2.ActionSupport;
 
 import gov.nih.nichd.ctdb.common.navigation.LeftNavController;
 import gov.nih.nichd.ctdb.protocol.domain.Protocol;
+import gov.nih.nichd.ctdb.security.common.UserNotFoundException;
+import gov.nih.nichd.ctdb.security.domain.Role;
 import gov.nih.nichd.ctdb.security.domain.User;
+import gov.nih.nichd.ctdb.security.manager.SecurityManager;
+import gov.nih.nichd.ctdb.site.manager.SiteManager;
+import gov.nih.nichd.ctdb.util.common.SysPropUtil;
 import gov.nih.tbi.account.model.AccountUserDetails;
 import gov.nih.tbi.account.model.SessionAccount;
 import gov.nih.tbi.account.model.hibernate.Account;
-
-import gov.nih.nichd.ctdb.security.manager.SecurityManager;
 
 /**
  * Struts2 action base class
@@ -44,12 +48,12 @@ public class BaseAction extends ActionSupport implements ServletRequestAware, Se
 	private String deploymentVersion;
 	private String buildID;
 	private String deploymentID;
-	private String lastDeployed;
 	
 	@Autowired
 	protected SessionAccount sessionAccount;
 
 	@Autowired
+	@Qualifier("ProformsConstants")
 	protected ModulesConstants constants;
 	
 	@Override
@@ -67,7 +71,6 @@ public class BaseAction extends ActionSupport implements ServletRequestAware, Se
     }
     
     protected void buildLeftNav(int highlightIndex, int[] disableIndices) {
-
     	try {
 			LeftNavController controller = new LeftNavController(request, getUser());
     		controller.setHighlightedLink(highlightIndex);
@@ -79,6 +82,18 @@ public class BaseAction extends ActionSupport implements ServletRequestAware, Se
     		controller.save();
     	} catch(Exception e) {
     		System.out.println("Couldn't create left navigation bar.");
+    		e.printStackTrace();
+   		}
+    }
+    
+    protected void disableLinksForProtocolCloseout(int highlightIndex, int[] disableIndices){
+    	try {
+			LeftNavController controller = new LeftNavController(request, getUser());
+    		controller.setHighlightedLink(highlightIndex);
+    	
+   			controller.setDisabledLinks(disableIndices);
+    		controller.save();
+    	} catch(Exception e) {
     		e.printStackTrace();
    		}
     }
@@ -185,13 +200,31 @@ public class BaseAction extends ActionSupport implements ServletRequestAware, Se
 				|| sessionAccount.getAccount().getUserName().equals(CtdbConstants.ANONYMOUS_USER_NAME)) {
 			Authentication auth = (SecurityContextHolder.getContext().getAuthentication());
 			Account account = null;
-			account = ((AccountUserDetails) auth.getPrincipal()).getAccount();
+			if (auth == null) {
+				// fail fast here in case the security context holder fails
+				return null;
+			}
+ 			account = ((AccountUserDetails) auth.getPrincipal()).getAccount();
 			sessionAccount.setAccount(account);
 		}
 		
 		try {
 			SecurityManager sm = new SecurityManager();
-			return sm.getUser(sessionAccount.getAccount().getUserName());
+			User user = sm.getUser(sessionAccount.getAccount().getUserName());
+			
+			Protocol protocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
+			
+			if(protocol == null) {
+				return user;
+			} else {
+				Role role = sm.getUserRole(user.getId(), protocol.getId());
+				if(role != null) {
+					List<Role> roleList = new ArrayList<Role>();
+					roleList.add(role);
+					user.setRoleList(roleList);
+				}
+				return user;
+			}
 		}
 		catch(Exception e) {
 			return null;
@@ -245,8 +278,60 @@ public class BaseAction extends ActionSupport implements ServletRequestAware, Se
 		}
 		return this.deploymentID.substring(0, 11);
 	}
+	
+	public List<Integer> getUserAssignedSites() throws UserNotFoundException, CtdbException {
+		Protocol protocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
 
-	public String getLastDeployed() {
-		return constants.getLastDeployedTimeStamp();
+		int protocolId = protocol.getId();
+		SecurityManager sm = new SecurityManager();
+		SiteManager siteManager = new SiteManager();
+		
+		User user = sm.getUser(sessionAccount.getAccount().getUserName());
+		int userId = user.getId();
+		boolean isUsrAdmin = user.isSysAdmin();
+			
+		List<Integer> siteIds = new ArrayList<Integer>();
+		
+		if(!isUsrAdmin) {
+			
+			Role role = sm.getUserRole(user.getId(), protocol.getId());
+			int roleId = role.getId();
+		
+			siteIds = siteManager.getSiteIdsFromProtocolusrrole(protocolId, roleId, userId);
+
+		}
+		return siteIds;
 	}
+	
+	public Boolean isUserSiteAssigned() throws UserNotFoundException, CtdbException {
+		User user = getUser();
+		boolean isUsrAdmin = user.isSysAdmin();
+		boolean isUserSiteAssigned = false;
+			
+		List<Integer> siteIds = new ArrayList<Integer>();
+		
+		if(!isUsrAdmin) {
+			
+			siteIds = getUserAssignedSites();
+			if(siteIds.size() != 0) {
+				isUserSiteAssigned =true;
+			}
+			
+		}
+		return isUserSiteAssigned;
+	}
+	
+	public Boolean isUserSiteCheckNeeded() throws UserNotFoundException, CtdbException, NullPointerException {
+		User user = getUser();
+		boolean isUsrAdmin = user.isSysAdmin();
+		boolean isUserSiteAssigned = isUserSiteAssigned();
+		boolean isUserSiteCheckNeeded = true;
+		Boolean siteRestrictProp = Boolean.parseBoolean(SysPropUtil.getProperty(CtdbConstants.USER_WITH_SITE_LIMIT));
+		
+		if(isUsrAdmin || !isUserSiteAssigned || (siteRestrictProp != null && !siteRestrictProp)) {
+			 isUserSiteCheckNeeded = false;		
+		}
+		return isUserSiteCheckNeeded;
+	}
+	
 }

@@ -47,7 +47,7 @@ var handleCheckbox = function(model) {
 		$("#buttonDiv").addClass("disabled");
 	}
 
-	else if (dataTableFilters.filterStatus == "archived" || dataTableFilters.filterStatus == "deleted") {
+	else if (dataTableFilters.filterStatus == "deleted") {
 		$table.idtApi("disableSelection");
 		$table.idtApi("deselectAll");
 
@@ -93,6 +93,9 @@ var handleCheckbox = function(model) {
 		}
 		else if (dataTableFilters.filterStatus == "shared") {
 			$('#datasetStatusSelect').empty().append('<option selected value="Archive">Archive</option>');
+		}
+		else if (dataTableFilters.filterStatus == "archived") {
+			$('#datasetStatusSelect').empty().append('<option selected value="Delete">Delete</option>');
 		}
 		else if (dataTableFilters.filterStatus == "requestedDeletion"
 						|| dataTableFilters.filterStatus == "requestedSharing"
@@ -160,9 +163,9 @@ function updateStatusOptions(apiRow, api) {
 				disableStatusButton();
 			}
 			else if (status == "Archived") {
-				$statusSelect.prop('disabled', true).addAttr("disabled", "disabled");
-				$statusSelect.empty().append('<option selected value="">No Action</option>');
-				disableStatusButton();
+				$statusSelect.removeProp('disabled').removeAttr("disabled");
+				$statusSelect.empty().append('<option selected value="Delete">Delete</option>');
+				enableStatusButton();
 			}
 			else if (status == "Loading Data") {
 				$statusSelect.prop('disabled', true).attr("disabled", "disabled");

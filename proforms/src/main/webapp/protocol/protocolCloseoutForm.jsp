@@ -2,20 +2,18 @@
 <%@ page import="gov.nih.nichd.ctdb.protocol.domain.Protocol"%>
 <%@ page import="gov.nih.nichd.ctdb.common.CtdbConstants"%>
 <%@ taglib uri="/struts-tags" prefix="s"%>
+<%@ taglib uri="/WEB-INF/display.tld" prefix="display" %>
 
 <% 
 	Protocol protocol = (Protocol) session.getAttribute(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
 	int subjectDisplayType = protocol.getPatientDisplayType();
 	boolean enableEsignature = protocol.isEnableEsignature();
-	Boolean closedout = (Boolean)request.getAttribute("protocolclosedout");
+	Boolean closedout = (Boolean)session.getAttribute(CtdbConstants.PROTOCOL_CLOSED_SESSION_KEY);
 %>
 
 <html>
 
 <%-- Include Header --%>
-<s:set var="pageTitle" scope="request">
-	<s:text name="protocol.study.closeout" />
-</s:set>
 <jsp:include page="/common/header_struts2.jsp" />
 
 <style type="text/css">
@@ -57,6 +55,7 @@ $(document).ready(function() {
 
 function closeProtocol(){
 	if ($('#checkAndStudyCloseout').prop('checked')) {
+		$.ibisMessaging("close", {type:"primary"});
 		<% if (enableEsignature) { %>
 			$("#completeLockChkBx").prop('checked', true);
 			$('#completeLockChkBx').prop('disabled', true);
@@ -64,6 +63,9 @@ function closeProtocol(){
 		<% }  else { %>
 			saveCloseout();
 	<% } %>
+	} else {
+		$.ibisMessaging("close", {type:"primary"});
+		passwordErrorId = $.ibisMessaging("primary", "error", "Please select certify box and then click on \"Close Protocol\" button to close the protocol");
 	}
 }
 
@@ -181,20 +183,51 @@ function saveCloseout() {
 	});
 }
 
+function reopenProtocol(){
+	
+	var url = "<s:property value="#webRoot"/>/protocol/reopenProtocol!reopenClosedProtocol.action";
+	
+	 $.ajax({
+		 type: "POST",
+			url: url,
+			
+			error: function (xhr, ajaxOptions, thrownError) {
+				EventBus.trigger("close:processing");
+				$.ibisMessaging("close", {type:"primary"}); 
+				$.ibisMessaging("primary", "error", "Error occured while reopening the protocol");
+			}, 
+			
+			success: function(){
+				var protocolName = "<%=protocol.getName()%>";
+				$.ibisMessaging("primary", "success", "Protocol "+protocolName+" has been reopened successfully");
+				$('#reopenProtocol').prop('disabled', true);
+			}
+		});
+	
+}
+
 </script>
 
 <%if (closedout.booleanValue()){ %>
-	<div style="margin-top: 50px;margin-left: 80px;">
+	<div style="margin-top: 40px;margin-left: 20px;">
+	<div style="float:left">
 	<h3>Protocol <%=protocol.getName()%> is already closed out</h3>
+	</div>
+	<%Boolean protocolcloseduser = (Boolean)request.getAttribute("protocolcloseduser"); 
+	if (protocolcloseduser.booleanValue()){%>
+		<div style="float:left; margin-left:20px; margin-top:10px;">
+			<button id="reopenProtocol" onClick="reopenProtocol()" title="Reopen Protocol">Reopen</button>
+		</div>
+	<%}%>
 </div> 
 <%} else { %>
-<div id="chechbox"  class="center">
+<div id="chechbox"  style="margin-top: 40px; margin-left: 20px;">
 	<div>
 		<input type="checkbox" value="<s:text name="protocol.study.closeout.certify" />" id="checkAndStudyCloseout" title="<s:text name="protocol.study.closeout.certify" />" />
 		<label id="checkAndStudyCloseoutLabel" for="checkAndStudyCloseout">
 			<s:text name="protocol.study.closeout.certify" />
 		</label><br><br>
-		<div style="float:right">
+		<div>
 			<button id="closeProtocol" onClick="closeProtocol()">Close Protocol</button>
 		</div>
 	</div>

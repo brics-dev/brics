@@ -339,7 +339,7 @@ function AttributeObject() {
 	this.deleteTrigger=false;  //boolean
 	this.toEmailAddress='';//string
 	this.ccEmailAddress=''; //string
-	this.subject = 'Emailing from the IBIS'; //string
+	this.subject =''; //string
 	this.body=''; //string
 	this.triggerAnswers=new Array();  //string array
 	this.eMailTriggerId=<%=Integer.MIN_VALUE%>;  //int
@@ -2310,7 +2310,7 @@ function clearQuestionDetails(){
 	}
 		$('#_et_toAddr').val("");
 		$('#_et_ccAddr').val("");
-		$('#_et_subject').val("Emailing from the IBIS");
+		$('#_et_subject').val("");
 		$('#_et_body').val("");
 		$('#triggerAnswerDiv').html('<select  id="_et_answers" multiple="true"></select>');
 	

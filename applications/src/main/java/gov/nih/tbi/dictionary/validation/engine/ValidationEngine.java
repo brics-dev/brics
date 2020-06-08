@@ -55,7 +55,7 @@ public class ValidationEngine
         }
     }
 
-    public void validate(DataSubmission submission) throws IOException, JAXBException
+    public void validate(DataSubmission submission,boolean isComingFromProforms) throws IOException, JAXBException
     {
 
         submission.setDrafts(false);
@@ -78,14 +78,14 @@ public class ValidationEngine
                     }
                     DataStructureTable table = submission.getFileData(node);
                     tasks.add(new TableValidator(submission.getDictionary(), table,
-                            submission.getReferencedData(table), node, accClient));
+                            submission.getReferencedData(table), node, accClient,isComingFromProforms));
                     TableValidator.setTranslationRule(translationRule);
                 }
                 else
                 {
                     DataStructureTable table = submission.getFileData(node);
                     tasks.add(new TableValidator(submission.getDictionary(), table,
-                            submission.getReferencedData(table), node, accClient));
+                            submission.getReferencedData(table), node, accClient,isComingFromProforms));
                     if (!table.getStructure().getStatus().equals(StatusType.PUBLISHED))
                     {
                         submission.setDrafts(true);

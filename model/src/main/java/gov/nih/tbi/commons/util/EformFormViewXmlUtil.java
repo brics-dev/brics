@@ -1,6 +1,7 @@
 package gov.nih.tbi.commons.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -16,12 +17,6 @@ import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-
-
-
-
-
-
 import gov.nih.tbi.ModelConstants;
 import gov.nih.tbi.commons.model.AnswerType;
 import gov.nih.tbi.commons.model.QuestionType;
@@ -35,13 +30,14 @@ import gov.nih.tbi.dictionary.model.hibernate.eform.Section;
 import gov.nih.tbi.dictionary.model.hibernate.eform.SectionQuestion;
 import gov.nih.tbi.dictionary.model.hibernate.eform.SkipRuleQuestion;
 import gov.nih.tbi.dictionary.model.hibernate.eform.SkipRuleQuestionPk;
-import gov.nih.tbi.dictionary.model.hibernate.eform.VisualScale;
 
 public class EformFormViewXmlUtil {
 	
 	private static Logger logger = Logger.getLogger(EformFormViewXmlUtil.class);
 
 	private Eform eform;
+	public static final List<String> QUESTION_FILE_TYPES =
+			Collections.unmodifiableList(Arrays.asList("pdf", "doc", "docx","avi", "mov", "mpg","mp4","mpeg"));
 
 	public EformFormViewXmlUtil(Eform eform) {
 		setEform(eform);
@@ -826,14 +822,40 @@ public class EformFormViewXmlUtil {
 		 root.appendChild(scoreStrNode);
 		  
 		  if ((question.getQuestionDocument() != null) && !question.getQuestionDocument().isEmpty()){ 
-			  Element imagesNode = document.createElement("images"); 
-			  Element fileNameNode = null;
+
+			Element imagesNode = null;
+			Element filesNode = null;
+			Element fileNameNode = null;
+			for (QuestionDocument qd : question.getQuestionDocument()) {
+				String qFileName = qd.getQuestionDocumentPk().getFileName();
+				String qFileExtension = BRICSFilesUtils.getFileExtension(qFileName);
+				if (EformFormViewXmlUtil.QUESTION_FILE_TYPES.contains(qFileExtension.toLowerCase())) {
+					filesNode = document.createElement("files");
+				} else {
+					imagesNode = document.createElement("images");
+				}
+			}
 		  
-			  for ( QuestionDocument imageFileName : question.getQuestionDocument() ){ 
-				  fileNameNode = document.createElement("filename");
-				  fileNameNode.appendChild(document.createTextNode(imageFileName.getQuestionDocumentPk().getFileName())); imagesNode.appendChild(fileNameNode); 
-			  }
-			  root.appendChild(imagesNode);
+			for (QuestionDocument qd : question.getQuestionDocument()) {
+				String qFileName = qd.getQuestionDocumentPk().getFileName();
+				fileNameNode = document.createElement("filename");
+				fileNameNode.appendChild(document.createTextNode(qFileName));
+				String qFileExtension = BRICSFilesUtils.getFileExtension(qFileName);
+				if (EformFormViewXmlUtil.QUESTION_FILE_TYPES.contains(qFileExtension.toLowerCase())) {
+					String link =
+							"fileDownloadAction!download.action?fileId=" + String.valueOf(qd.getUserFile().getId());
+					fileNameNode.setAttribute("fileLink", link);
+					filesNode.appendChild(fileNameNode);
+				} else {
+					imagesNode.appendChild(fileNameNode);
+				}
+			}
+			if (imagesNode != null) {
+				root.appendChild(imagesNode);
+			}
+			if (filesNode != null) {
+				root.appendChild(filesNode);
+			}
 		  }
 		  
 		  

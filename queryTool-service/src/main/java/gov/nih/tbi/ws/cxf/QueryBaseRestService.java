@@ -15,9 +15,7 @@ import javax.ws.rs.core.Response;
 
 import org.apache.log4j.Logger;
 import org.jasig.cas.client.validation.Assertion;
-import org.openrdf.http.protocol.UnauthorizedException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.cas.authentication.CasAssertionAuthenticationToken;
 import org.springframework.security.cas.authentication.CasAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -46,10 +44,8 @@ public class QueryBaseRestService {
 	 * AccountRestService), then an anonymous ws call will be made to the AccountRestService to
 	 * 
 	 * @return
-	 * @throws UnsupportedEncodingException
-	 * @throws UnauthorizedException 
 	 */
-	protected Account getAuthenticatedAccount() throws UnsupportedEncodingException, UnauthorizedException {
+	protected Account getAuthenticatedAccount() {
 
 		// If the web services are set to not be secured (local env only), then we are going to load in the
 		// administrative user.
@@ -58,22 +54,25 @@ public class QueryBaseRestService {
 			logger.debug("Web services are not secured by CAS in this instance (local env).");
 			String accUrl = applicationConstants.getModulesAccountURL();
 
-			RestQueryAccountProvider accountProvider = new RestQueryAccountProvider(accUrl, QueryRestProviderUtils.getProxyTicket(accUrl));
-			Account account = accountProvider.getUserAccountByUserName(ADMIN_USER_NAME, applicationConstants.getAccountWebServiceURL());
+			RestQueryAccountProvider accountProvider =
+					new RestQueryAccountProvider(accUrl, QueryRestProviderUtils.getProxyTicket(accUrl));
+			Account account = accountProvider.getUserAccountByUserName(ADMIN_USER_NAME,
+					applicationConstants.getAccountWebServiceURL());
 			logger.debug("WS not handled in account module. Fetching with web service call. Username: "
 					+ account.getUserName() + " and disease key: " + account.getDiseaseKey());
 			return account;
 		} else {
 			logger.debug("Web services are secured by CAS in this instance.");
-			
+
 			Authentication auth = (SecurityContextHolder.getContext().getAuthentication());
 			CasAuthenticationToken casAuth = (CasAuthenticationToken) auth;
 			Account requestingAccount = ((AccountUserDetails) auth.getPrincipal()).getAccount();
-			logger.debug("This is the user accout information " + requestingAccount.getUserName() );
+			logger.debug("This is the user accout information " + requestingAccount.getUserName());
 			logger.debug("Is the user authenticated? " + casAuth.isAuthenticated());
-			/*if(requestingAccount.getUserName().equalsIgnoreCase(ANONYMOUS_USER_NAME) || requestingAccount.getUserName().equalsIgnoreCase("guest")){
-				throw new UnauthorizedException();
-			}*/
+			/*
+			 * if(requestingAccount.getUserName().equalsIgnoreCase(ANONYMOUS_USER_NAME) ||
+			 * requestingAccount.getUserName().equalsIgnoreCase("guest")){ throw new UnauthorizedException(); }
+			 */
 			return requestingAccount;
 		}
 
@@ -87,7 +86,7 @@ public class QueryBaseRestService {
 
 		return URLDecoder.decode(url, "UTF-8");
 	}
-	
+
 	protected String appendProxyTicket(String urlString, Assertion assertion) {
 		String ticketArg = getProxyTicket(assertion);
 		if (ticketArg != null && !ticketArg.isEmpty()) {
@@ -96,26 +95,23 @@ public class QueryBaseRestService {
 
 		return urlString;
 	}
-	
-	
+
+
 	protected String getProxyTicket(Assertion assertion) {
 		if (!ApplicationConstants.isWebservicesSecured()) {
 			return QueryToolConstants.EMPTY_STRING;
 		}
 
-		String url = applicationConstants.getModulesAccountURL()
-				+ "/j_spring_cas_security_check";
+		String url = applicationConstants.getModulesAccountURL() + "/j_spring_cas_security_check";
 
-		logger.debug("GetProxyTicket - for Principal: "
-				+ assertion.getPrincipal().getName());
+		logger.debug("GetProxyTicket - for Principal: " + assertion.getPrincipal().getName());
 
 		logger.debug("Service URL: " + url);
 
 		// Not really sure how this works, talk to Mike V
 		String proxyTicket = assertion.getPrincipal().getProxyTicketFor(url);
 
-		logger.debug("Proxy Ticket = " + proxyTicket
-				+ " for /j_spring_cas_security_check");
+		logger.debug("Proxy Ticket = " + proxyTicket + " for /j_spring_cas_security_check");
 
 		return "ticket=" + proxyTicket;
 	}
@@ -123,7 +119,7 @@ public class QueryBaseRestService {
 	protected boolean isSuccessfulResponse(int responseCode) {
 		return responseCode >= 200 && responseCode < 300;
 	}
-	
+
 	protected Response respondEmptyOk() {
 		return Response.ok("{}", MediaType.APPLICATION_JSON).build();
 	}

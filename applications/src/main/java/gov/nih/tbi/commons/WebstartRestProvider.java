@@ -28,6 +28,7 @@ import java.util.TreeSet;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.ws.rs.InternalServerErrorException;
+import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBException;
@@ -51,8 +52,6 @@ public class WebstartRestProvider {
 	protected final String repoRestServiceUrl = "portal/ws/webstart/repository/";
 	protected final String dictRestServiceUrl = "portal/ws/webstart/dictionary/";
 
-	protected final String USER_NAME = "REPLACED";
-	protected final String PASS = "REPLACED";
 	protected final String LOCAL_PATH = "localPath";
 	protected final String SERVER_PATH = "serverPath";
 
@@ -94,13 +93,13 @@ public class WebstartRestProvider {
 	 * @throws UnsupportedEncodingException
 	 */
 	@SuppressWarnings("unchecked")
-	public Set<Study> getStudies() throws UnsupportedEncodingException {
+	public Set<Study> getStudies() throws NotAuthorizedException, UnsupportedEncodingException {
 
 		String webString = serverUrl + repoRestServiceUrl + "Study/getStudies";
 
 		WebClient client = buildWebClient(webString);
-		client.header(USER_NAME, userName);
-		client.header(PASS, password);
+		client.header(ServiceConstants.USERNAME_PARAM, userName);
+		client.header(ServiceConstants.PASSWORD_PARAM, password);
 		ArrayList<Study> studies = (ArrayList<Study>) client.accept("text/xml").getCollection(Study.class);
 		Set<Study> study = new HashSet<Study>();
 		study.addAll(studies);
@@ -123,8 +122,8 @@ public class WebstartRestProvider {
 
 		String webString = serverUrl + repoRestServiceUrl + "Dataset/getDatasets?study=" + encodeUrlParam(studyName);
 		WebClient client = buildWebClient(webString);
-		client.header(USER_NAME, userName);
-		client.header(PASS, password);
+		client.header(ServiceConstants.USERNAME_PARAM, userName);
+		client.header(ServiceConstants.PASSWORD_PARAM, password);
 		ArrayList<Dataset> datasets = (ArrayList<Dataset>) client.accept("text/xml").getCollection(Dataset.class);
 		Set<Dataset> dataset = new HashSet<Dataset>();
 		dataset.addAll(datasets);
@@ -140,8 +139,8 @@ public class WebstartRestProvider {
 
 		String webString = serverUrl + repoRestServiceUrl + "Dataset/getDatasets?study=" + encodeUrlParam(studyName);
 		WebClient client = buildWebClient(webString);
-		client.header(USER_NAME, userName);
-		client.header(PASS, password);
+		client.header(ServiceConstants.USERNAME_PARAM, userName);
+		client.header(ServiceConstants.PASSWORD_PARAM, password);
 		ArrayList<Dataset> datasets = (ArrayList<Dataset>) client.accept("text/xml").getCollection(Dataset.class);
 		Set<Dataset> dataset = new HashSet<Dataset>();
 		dataset.addAll(datasets);
@@ -160,8 +159,8 @@ public class WebstartRestProvider {
 		String webString = serverUrl + repoRestServiceUrl + "Dataset/getUploadingDatasets";
 
 		WebClient client = buildWebClient(webString);
-		client.header(USER_NAME, userName);
-		client.header(PASS, password);
+		client.header(ServiceConstants.USERNAME_PARAM, userName);
+		client.header(ServiceConstants.PASSWORD_PARAM, password);
 		List<Dataset> dataset = (List<Dataset>) client.accept("text/xml").getCollection(Dataset.class);
 		return dataset;
 	}
@@ -179,8 +178,8 @@ public class WebstartRestProvider {
 		String webString = serverUrl + repoRestServiceUrl + "dataset/" + id + "/datasetFiles";
 
 		WebClient client = buildWebClient(webString);
-		client.header(USER_NAME, userName);
-		client.header(PASS, password);
+		client.header(ServiceConstants.USERNAME_PARAM, userName);
+		client.header(ServiceConstants.PASSWORD_PARAM, password);
 		ArrayList<DatasetFile> datasetFiles =
 				(ArrayList<DatasetFile>) client.accept("text/xml").getCollection(DatasetFile.class);
 		Set<DatasetFile> datasetFile = new TreeSet<DatasetFile>();
@@ -202,8 +201,8 @@ public class WebstartRestProvider {
 		String webString = serverUrl + repoRestServiceUrl + "DatasetFile/setToComplete?id=" + id;
 
 		WebClient client = buildWebClient(webString);
-		client.header(USER_NAME, userName);
-		client.header(PASS, password);
+		client.header(ServiceConstants.USERNAME_PARAM, userName);
+		client.header(ServiceConstants.PASSWORD_PARAM, password);
 
 		try {
 			Response response = client.accept("text/xml").get(Response.class);
@@ -225,8 +224,8 @@ public class WebstartRestProvider {
 		String webString = serverUrl + repoRestServiceUrl + "DatasetFile/setToComplete?id=" + id;
 
 		WebClient client = WebClient.create(webString);
-		client.header(USER_NAME, userName);
-		client.header(PASS, password);
+		client.header(ServiceConstants.USERNAME_PARAM, userName);
+		client.header(ServiceConstants.PASSWORD_PARAM, password);
 		try {
 			Response response = client.accept("text/xml").get(Response.class);
 
@@ -250,8 +249,8 @@ public class WebstartRestProvider {
 		String webString = serverUrl + repoRestServiceUrl + "Study/getFromDataset?id=" + id;
 
 		WebClient client = buildWebClient(webString);
-		client.header(USER_NAME, userName);
-		client.header(PASS, password);
+		client.header(ServiceConstants.USERNAME_PARAM, userName);
+		client.header(ServiceConstants.PASSWORD_PARAM, password);
 		BasicStudy study = client.accept("text/xml").get(BasicStudy.class);
 
 
@@ -272,8 +271,8 @@ public class WebstartRestProvider {
 		String url = serverUrl + repoRestServiceUrl + "Study/" + encodeUrlParam(studyName) + "/deleteByName?dataset="
 				+ encodeUrlParam(datasetName);
 		DeleteMethod deleteMethod = new DeleteMethod(url);
-		deleteMethod.addRequestHeader(USER_NAME, userName);
-		deleteMethod.addRequestHeader(PASS, password);
+		deleteMethod.addRequestHeader(ServiceConstants.USERNAME_PARAM, userName);
+		deleteMethod.addRequestHeader(ServiceConstants.PASSWORD_PARAM, password);
 		try {
 			getClient().executeMethod(deleteMethod);
 		} finally {
@@ -296,8 +295,8 @@ public class WebstartRestProvider {
 				+ "/deleteCascadeByName?dataset=" + encodeUrlParam(datasetName);
 		System.out.println("deleteDatasetCascasdeByName: url:" + url);
 		DeleteMethod deleteMethod = new DeleteMethod(url);
-		deleteMethod.addRequestHeader(USER_NAME, userName);
-		deleteMethod.addRequestHeader(PASS, password);
+		deleteMethod.addRequestHeader(ServiceConstants.USERNAME_PARAM, userName);
+		deleteMethod.addRequestHeader(ServiceConstants.PASSWORD_PARAM, password);
 		try {
 			getClient().executeMethod(deleteMethod);
 		} finally {
@@ -320,8 +319,8 @@ public class WebstartRestProvider {
 				serverUrl + repoRestServiceUrl + "upload/completedFiles?dataset=" + encodeUrlParam(datasetName);
 
 		WebClient client = buildWebClient(webString);
-		client.header(USER_NAME, userName);
-		client.header(PASS, password);
+		client.header(ServiceConstants.USERNAME_PARAM, userName);
+		client.header(ServiceConstants.PASSWORD_PARAM, password);
 		String completedFiles = client.accept("text/xml").get(String.class);
 		return completedFiles;
 	}
@@ -334,8 +333,8 @@ public class WebstartRestProvider {
 	public List<DownloadPackage> getDownloadPackage() {
 		String webString = serverUrl + repoRestServiceUrl + "download/DownloadPackage";
 		WebClient client = buildWebClient(webString);
-		client.header(USER_NAME, userName);
-		client.header(PASS, password);
+		client.header(ServiceConstants.USERNAME_PARAM, userName);
+		client.header(ServiceConstants.PASSWORD_PARAM, password);
 		List<DownloadPackage> downloadPackages =
 				(List<DownloadPackage>) client.accept("text/xml").getCollection(DownloadPackage.class);
 		return downloadPackages;
@@ -388,8 +387,8 @@ public class WebstartRestProvider {
 				}
 
 
-				connection.addRequestProperty(USER_NAME, userName);
-				connection.addRequestProperty(PASS, password);
+				connection.addRequestProperty(ServiceConstants.USERNAME_PARAM, userName);
+				connection.addRequestProperty(ServiceConstants.PASSWORD_PARAM, password);
 				connection.setDoOutput(true);
 				connection.setRequestMethod("POST");
 				connection.addRequestProperty("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
@@ -453,12 +452,12 @@ public class WebstartRestProvider {
 					+ urlList.substring(0, urlList.length() - 1);
 
 			HttpDelete httpDelete = new HttpDelete(url);
-			httpDelete.addHeader(USER_NAME, userName);
-			httpDelete.addHeader(PASS, password);
+			httpDelete.addHeader(ServiceConstants.USERNAME_PARAM, userName);
+			httpDelete.addHeader(ServiceConstants.PASSWORD_PARAM, password);
 
 			DeleteMethod deleteMethod = new DeleteMethod(url);
-			deleteMethod.addRequestHeader(USER_NAME, userName);
-			deleteMethod.addRequestHeader(PASS, password);
+			deleteMethod.addRequestHeader(ServiceConstants.USERNAME_PARAM, userName);
+			deleteMethod.addRequestHeader(ServiceConstants.PASSWORD_PARAM, password);
 			try {
 				httpClient.execute(httpDelete);
 				// client.ex
@@ -500,12 +499,12 @@ public class WebstartRestProvider {
 					+ urlList.substring(0, urlList.length() - 1);
 
 			HttpDelete httpDelete = new HttpDelete(url);
-			httpDelete.addHeader(USER_NAME, userName);
-			httpDelete.addHeader(PASS, password);
+			httpDelete.addHeader(ServiceConstants.USERNAME_PARAM, userName);
+			httpDelete.addHeader(ServiceConstants.PASSWORD_PARAM, password);
 
 			DeleteMethod deleteMethod = new DeleteMethod(url);
-			deleteMethod.addRequestHeader(USER_NAME, userName);
-			deleteMethod.addRequestHeader(PASS, password);
+			deleteMethod.addRequestHeader(ServiceConstants.USERNAME_PARAM, userName);
+			deleteMethod.addRequestHeader(ServiceConstants.PASSWORD_PARAM, password);
 			try {
 				httpClient.execute(httpDelete);
 				// client.ex
@@ -545,8 +544,8 @@ public class WebstartRestProvider {
 		String webString = serverUrl + repoRestServiceUrl + "dataset/processSubmissionTicket/";
 
 		WebClient client = buildWebClient(webString);
-		client.header(USER_NAME, userName);
-		client.header(PASS, password);
+		client.header(ServiceConstants.USERNAME_PARAM, userName);
+		client.header(ServiceConstants.PASSWORD_PARAM, password);
 		
 		try {
 			response = client.accept(MediaType.APPLICATION_XML).type(MediaType.APPLICATION_XML + "; charset=utf-8").post(submissionTicket);
@@ -575,8 +574,8 @@ public class WebstartRestProvider {
 		String webString = serverUrl + repoRestServiceUrl + "dataset/" + encodeUrlParam(encodeUrlParam(studyName)) + "/"
 				+ encodeUrlParam(encodeUrlParam(datasetName));
 		WebClient client = buildWebClient(webString);
-		client.header(USER_NAME, userName);
-		client.header(PASS, password);
+		client.header(ServiceConstants.USERNAME_PARAM, userName);
+		client.header(ServiceConstants.PASSWORD_PARAM, password);
 		Dataset dataset = client.accept("text/xml").get(Dataset.class);
 		return dataset;
 	}
@@ -657,8 +656,8 @@ public class WebstartRestProvider {
 
 		webString = webString + urlList.substring(0, urlList.length() - 1);
 		WebClient client = buildWebClient(webString);
-		client.header(USER_NAME, userName);
-		client.header(PASS, password);
+		client.header(ServiceConstants.USERNAME_PARAM, userName);
+		client.header(ServiceConstants.PASSWORD_PARAM, password);
 		StructuralFormStructureList dsl =
 				(StructuralFormStructureList) client.accept("text/xml").get(StructuralFormStructureList.class);
 		return dsl.getList();
@@ -736,8 +735,8 @@ public class WebstartRestProvider {
 		String webString = serverUrl + dictRestServiceUrl + "DataElement/name/" + encodeUrlParam(name)
 				+ "?portalDomain=" + encodeUrlParam(portalDomain);
 		WebClient client = buildWebClient(webString);
-		client.header(USER_NAME, userName);
-		client.header(PASS, password);
+		client.header(ServiceConstants.USERNAME_PARAM, userName);
+		client.header(ServiceConstants.PASSWORD_PARAM, password);
 		DataElement dataElement = (DataElement) client.accept("application/xml").get(DataElement.class);
 		return dataElement;
 	}

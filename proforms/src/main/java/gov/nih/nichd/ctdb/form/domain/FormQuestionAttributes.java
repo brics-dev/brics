@@ -41,6 +41,7 @@ public class FormQuestionAttributes extends CtdbDomainObject implements Serializ
 
     private InstanceType instanceType;
     private boolean calculatedQuestion = false;
+    private boolean countQuestion = false;
 
     private String rangeOperator;
     private String rangeValue1;
@@ -378,7 +379,16 @@ public class FormQuestionAttributes extends CtdbDomainObject implements Serializ
         this.calculatedQuestion = isCalculatedQuestion;
     }
 
-    /**
+
+    public boolean isCountQuestion() {
+		return countQuestion;
+	}
+
+	public void setIsCountQuestion(boolean isCountQuestion) {
+		this.countQuestion = isCountQuestion;
+	}
+
+	/**
      * Gets the section ID.
      *
      * @return  The section ID

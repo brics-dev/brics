@@ -27,7 +27,10 @@
 
 		</action>
 		
-	
+		<!-- File Download -->
+        <action name="download" class="gov.nih.nichd.ctdb.attachments.action.FileAction" method="downloadFile">
+            <result name="exception">/common/error_struts2.jsp</result>
+        </action>
 		
 		
 	</package>

@@ -1,0 +1,6 @@
+[DB-TRG]
+host=ninr-db-stage.cit.nih.gov
+database=ninr_stage
+schema=ninr_metastg
+user=ninr_metastg
+label=TARGET

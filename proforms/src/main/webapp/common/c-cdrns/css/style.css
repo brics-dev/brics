@@ -1975,7 +1975,7 @@ body {
   top: 300px;
   width: 10px;
   height: 2px;
-  font-family: ∩┐╜Trebuchet MS∩┐╜, Helvetica, sans-serif;
+  font-family: �Trebuchet MS�, Helvetica, sans-serif;
   font-size: 12px;
   font-weight: normal;
   text-shadow: 0px 0px 1px #333;
@@ -2119,6 +2119,9 @@ table.dataTable th {
     background: linear-gradient(to bottom, #1E2A7C 0%, #1E2A7C 80%);
     /* W3C */ }
 
+@media print {
+  .no-print, .no-print * {
+    display: none !important; } }
 /* It's not only colors that change */
 #logo {
   background: url("../images/logo.png") no-repeat;
@@ -2182,6 +2185,10 @@ table.dataTable tr.odd.row_selected {
   float: left;
   height: 100%; }
 
+#footer .branding a {
+  display: block;
+  padding: 20px; }
+
 #footer .hhs {
   background: url("../images/logo-hhs.png") no-repeat;
   width: 64px; }
@@ -2194,6 +2201,11 @@ table.dataTable tr.odd.row_selected {
   background: url("../images/logo-usa.png") no-repeat;
   width: 120px; }
 
+.build-notes {
+  float: left;
+  clear: both;
+  margin: 10px -20px 20px 0; }
+
 #primary-nav li .missingPermission {
   background: #362f2d;
   color: #ececec;
@@ -2201,9 +2213,7 @@ table.dataTable tr.odd.row_selected {
   font-weight: bold;
   padding: 8px 15px; }
   
-@media print {    
-   .no-print, .no-print * {
-       display: none !important;
-   }
-}
+.selfReportingPSRHeader ol{
+	padding-left: 15px; }
+
 /*# sourceMappingURL=style.css.map */

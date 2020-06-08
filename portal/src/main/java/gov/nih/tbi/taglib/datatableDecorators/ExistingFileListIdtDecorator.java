@@ -20,11 +20,6 @@ public class ExistingFileListIdtDecorator extends IdtDecorator {
 	public String getFileName() {	
 		UserFile userFile = (UserFile) this.getObject();
 		return "<a href=\"fileDownloadAction!download.action?fileId=" + userFile.getId() + "\">" + userFile.getName() + "</a>";
-		/*if(inAccountReviewer) {
-			return "<a href=\"fileDownloadAction!download.action?fileId=" + userFile.getId() + "\">" + userFile.getName() + "</a>";
-		}else {
-			return "<a href=\"fileDownloadAction!download.action?fileId=" + userFile.getId() + "\">" + userFile.getName() + "</a>"  + "&nbsp;&nbsp;&nbsp;" +  "<a href=\"javascript:void(0);\" onclick=\"changeFileNameLightbox(" + userFile.getId() + ",'"   + userFile.getName()   +   "')\">" + "Change File Name" + "</a>";
-		}*/	
 	}
 	
 	public String getFileType() {

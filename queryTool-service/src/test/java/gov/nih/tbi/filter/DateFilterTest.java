@@ -10,6 +10,7 @@ import org.testng.annotations.Test;
 import com.google.gson.JsonObject;
 
 import gov.nih.tbi.commons.model.BRICSTimeDateUtil;
+import gov.nih.tbi.commons.model.DataType;
 import gov.nih.tbi.pojo.DataElement;
 import gov.nih.tbi.pojo.FilterType;
 import gov.nih.tbi.pojo.FormResult;
@@ -18,29 +19,6 @@ import gov.nih.tbi.repository.model.InstancedRow;
 import gov.nih.tbi.repository.model.NonRepeatingCellValue;
 
 public class DateFilterTest {
-
-	@Test
-	public void testFactory() {
-		FormResult form = new FormResult();
-		form.setShortName("testForm");
-		form.setVersion("1.0");
-
-		RepeatableGroup rg = new RepeatableGroup();
-		rg.setUri("testRg");
-		rg.setName("testRg");
-
-		DataElement de = new DataElement();
-		de.setUri("testDe");
-		de.setName("testDe");
-
-		Filter f1 = FilterFactory.createDateFilter(form, rg, de, false,
-				BRICSTimeDateUtil.parseTwoDigitSlashDate("11/12/11"),
-				BRICSTimeDateUtil.parseTwoDigitSlashDate("11/11/11"));
-		DateFilter f2 = new DateFilter(form, rg, de, false, BRICSTimeDateUtil.parseTwoDigitSlashDate("11/12/11"),
-				BRICSTimeDateUtil.parseTwoDigitSlashDate("11/11/11"));
-
-		Assert.assertEquals(f1, f2);
-	}
 
 	@Test
 	public void testEquals() {
@@ -56,10 +34,10 @@ public class DateFilterTest {
 		de.setUri("testDe");
 		de.setName("testDe");
 
-		DateFilter f1 = new DateFilter(form, rg, de, false, BRICSTimeDateUtil.parseTwoDigitSlashDate("11/12/11"),
-				BRICSTimeDateUtil.parseTwoDigitSlashDate("11/11/11"));
-		DateFilter f2 = new DateFilter(form, rg, de, false, BRICSTimeDateUtil.parseTwoDigitSlashDate("11/12/11"),
-				BRICSTimeDateUtil.parseTwoDigitSlashDate("11/11/11"));
+		DateFilter f1 = new DateFilter(form, rg, de, BRICSTimeDateUtil.parseTwoDigitSlashDate("11/12/11"),
+				BRICSTimeDateUtil.parseTwoDigitSlashDate("11/11/11"), "f1", null, null, null);
+		DateFilter f2 = new DateFilter(form, rg, de, BRICSTimeDateUtil.parseTwoDigitSlashDate("11/12/11"),
+				BRICSTimeDateUtil.parseTwoDigitSlashDate("11/11/11"), "f1", null, null, null);
 
 		Assert.assertEquals(f1, f2);
 
@@ -82,10 +60,10 @@ public class DateFilterTest {
 		de.setUri("testDe");
 		de.setName("testDe");
 
-		DateFilter f1 = new DateFilter(form, rg, de, false, BRICSTimeDateUtil.parseTwoDigitSlashDate("11/12/11"),
-				BRICSTimeDateUtil.parseTwoDigitSlashDate("11/11/11"));
-		DateFilter f2 = new DateFilter(form, rg, de, false, BRICSTimeDateUtil.parseTwoDigitSlashDate("11/12/11"),
-				BRICSTimeDateUtil.parseTwoDigitSlashDate("11/11/11"));
+		DateFilter f1 = new DateFilter(form, rg, de, BRICSTimeDateUtil.parseTwoDigitSlashDate("11/12/11"),
+				BRICSTimeDateUtil.parseTwoDigitSlashDate("11/11/11"), "f1", null, null, null);
+		DateFilter f2 = new DateFilter(form, rg, de, BRICSTimeDateUtil.parseTwoDigitSlashDate("11/12/11"),
+				BRICSTimeDateUtil.parseTwoDigitSlashDate("11/11/11"), "f1", null, null, null);
 
 		Assert.assertEquals(f1.hashCode(), f2.hashCode());
 
@@ -108,14 +86,13 @@ public class DateFilterTest {
 		de.setUri("testDe");
 		de.setName("testDe");
 
-		DateFilter f = new DateFilter(form, rg, de, false, BRICSTimeDateUtil.parseTwoDigitSlashDate("11/12/11"),
-				BRICSTimeDateUtil.parseTwoDigitSlashDate("11/11/11"));
+		DateFilter f = new DateFilter(form, rg, de, BRICSTimeDateUtil.parseTwoDigitSlashDate("11/12/11"),
+				BRICSTimeDateUtil.parseTwoDigitSlashDate("11/11/11"), "f1", null, null, null);
 		JsonObject j = f.toJson();
 		Assert.assertEquals("testRg", j.get("groupUri").getAsString());
 		Assert.assertEquals("testDe", j.get("elementUri").getAsString());
 		Assert.assertEquals("2011-11-11", j.get("dateMin").getAsString());
 		Assert.assertEquals("2011-11-12", j.get("dateMax").getAsString());
-		Assert.assertEquals(false, j.get("blank").getAsBoolean());
 		Assert.assertEquals(FilterType.DATE.name(), j.get("filterType").getAsString());
 	}
 
@@ -133,17 +110,17 @@ public class DateFilterTest {
 		de.setUri("testDe");
 		de.setName("testDe");
 
-		DateFilter f = new DateFilter(form, rg, de, false, BRICSTimeDateUtil.parseTwoDigitSlashDate("11/12/11"),
-				BRICSTimeDateUtil.parseTwoDigitSlashDate("11/11/11"));
+		DateFilter f = new DateFilter(form, rg, de, BRICSTimeDateUtil.parseTwoDigitSlashDate("11/12/11"),
+				BRICSTimeDateUtil.parseTwoDigitSlashDate("11/11/11"), "f", null, null, null);
 		InstancedRow row = mock(InstancedRow.class);
-		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue("2011-11-12T00:00:00Z");
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.DATE, "2011-11-12T00:00:00Z");
 		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
 
 		boolean eval = f.evaluate(row);
 
 		assertTrue(eval);
 	}
-	
+
 	@Test
 	public void testEval2() {
 		FormResult form = new FormResult();
@@ -158,17 +135,17 @@ public class DateFilterTest {
 		de.setUri("testDe");
 		de.setName("testDe");
 
-		DateFilter f = new DateFilter(form, rg, de, false, BRICSTimeDateUtil.parseTwoDigitSlashDate("11/12/11"),
-				BRICSTimeDateUtil.parseTwoDigitSlashDate("11/11/11"));
+		DateFilter f = new DateFilter(form, rg, de, BRICSTimeDateUtil.parseTwoDigitSlashDate("11/12/11"),
+				BRICSTimeDateUtil.parseTwoDigitSlashDate("11/11/11"), "f", null, null, null);
 		InstancedRow row = mock(InstancedRow.class);
-		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue("2011-11-11T00:00:00Z");
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.DATE, "2011-11-11T00:00:00Z");
 		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
 
 		boolean eval = f.evaluate(row);
 
 		assertTrue(eval);
 	}
-	
+
 	@Test
 	public void testEval3() {
 		FormResult form = new FormResult();
@@ -183,43 +160,17 @@ public class DateFilterTest {
 		de.setUri("testDe");
 		de.setName("testDe");
 
-		DateFilter f = new DateFilter(form, rg, de, false, BRICSTimeDateUtil.parseTwoDigitSlashDate("11/12/11"),
-				BRICSTimeDateUtil.parseTwoDigitSlashDate("11/11/11"));
+		DateFilter f = new DateFilter(form, rg, de, BRICSTimeDateUtil.parseTwoDigitSlashDate("11/12/11"),
+				BRICSTimeDateUtil.parseTwoDigitSlashDate("11/11/11"), "f", null, null, null);
 		InstancedRow row = mock(InstancedRow.class);
-		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue("2011-11-13T00:00:00Z");
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.DATE, "2011-11-13T00:00:00Z");
 		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
 
 		boolean eval = f.evaluate(row);
 
 		assertFalse(eval);
 	}
-	
-	@Test
-	public void testEval4() {
-		FormResult form = new FormResult();
-		form.setShortName("testForm");
-		form.setVersion("1.0");
 
-		RepeatableGroup rg = new RepeatableGroup();
-		rg.setUri("testRg");
-		rg.setName("testRg");
-
-		DataElement de = new DataElement();
-		de.setUri("testDe");
-		de.setName("testDe");
-
-		DateFilter f = new DateFilter(form, rg, de, false, BRICSTimeDateUtil.parseTwoDigitSlashDate("11/12/11"),
-				BRICSTimeDateUtil.parseTwoDigitSlashDate("11/11/11"));
-		f.setBlank(true);
-		InstancedRow row = mock(InstancedRow.class);
-		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue("");
-		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
-
-		boolean eval = f.evaluate(row);
-
-		assertTrue(eval);
-	}
-	
 	@Test
 	public void testEval5() {
 		FormResult form = new FormResult();
@@ -234,15 +185,36 @@ public class DateFilterTest {
 		de.setUri("testDe");
 		de.setName("testDe");
 
-		DateFilter f = new DateFilter(form, rg, de, false, BRICSTimeDateUtil.parseTwoDigitSlashDate("11/12/11"),
-				BRICSTimeDateUtil.parseTwoDigitSlashDate("11/11/11"));
-		f.setBlank(false);
+		DateFilter f = new DateFilter(form, rg, de, BRICSTimeDateUtil.parseTwoDigitSlashDate("11/12/11"),
+				BRICSTimeDateUtil.parseTwoDigitSlashDate("11/11/11"), "f", null, null, null);
 		InstancedRow row = mock(InstancedRow.class);
-		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue("");
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.DATE, "");
 		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
 
 		boolean eval = f.evaluate(row);
 
 		assertFalse(eval);
+	}
+
+	@Test
+	public void testToString() {
+		FormResult form = new FormResult();
+		form.setShortName("testForm");
+		form.setVersion("1.0");
+
+		RepeatableGroup rg = new RepeatableGroup();
+		rg.setUri("testRg");
+		rg.setName("testRg");
+
+		DataElement de = new DataElement();
+		de.setUri("testDe");
+		de.setName("testDe");
+
+		DateFilter f = new DateFilter(form, rg, de, BRICSTimeDateUtil.parseTwoDigitSlashDate("11/12/11"),
+				BRICSTimeDateUtil.parseTwoDigitSlashDate("11/11/11"), "f", null, null, null);
+
+		String actualString = f.toString();
+		String expectedString = "(testForm.testRg.testDe >= 2011-11-11 AND testForm.testRg.testDe <= 2011-11-12)";
+		assertEquals(actualString, expectedString);
 	}
 }

@@ -1,0 +1,1 @@
+python pgCloner.py --props=.\conf\prod.eyegene-local.dict --logDir=%WORK_SPACE%\log\util\pgclone\prodeyegene-local-dict

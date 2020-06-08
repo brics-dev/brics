@@ -50,7 +50,7 @@ public class CodeMapping implements Serializable {
 		Integer outputCode = null;
 
 		if (currentPermissibleValueMap != null) {
-			ValueRange currentValueRange = currentPermissibleValueMap.get(deValue);
+			ValueRange currentValueRange = currentPermissibleValueMap.get(deValue.toUpperCase());
 
 			if (currentValueRange != null) {
 				outputCode = currentValueRange.getOutputCode();
@@ -176,7 +176,7 @@ public class CodeMapping implements Serializable {
 			return new HashMap<String, String>();
 		}
 
-		ValueRange valueRange = valueRangeMap.get(permissibleValue);
+		ValueRange valueRange = valueRangeMap.get(permissibleValue.toUpperCase());
 
 		if (valueRange == null) {
 			return new HashMap<String, String>();
@@ -201,7 +201,13 @@ public class CodeMapping implements Serializable {
 			case MULTIPLE:
 				return buildMultiSelectSchemaPvMap(dataElement, deValue);
 			case FREE_FORM:
-				return buildSingleSelectSchemaPvMap(dataElement, deValue);
+				// there can be multi-select free-form data elements. In this case, we want to treat the data element
+				// as a multi-select.
+				if (dataElement.getPermissibleValues() != null && !dataElement.getPermissibleValues().isEmpty()) {
+					return buildMultiSelectSchemaPvMap(dataElement, deValue);
+				} else {
+					return buildSingleSelectSchemaPvMap(dataElement, deValue);
+				}
 			default:
 				throw new CodeMappingException("Data element has an unhandled input restriction");
 		}
@@ -222,10 +228,10 @@ public class CodeMapping implements Serializable {
 					new HashMap<String, String>());
 		}
 
-		String outputCode = getOutputCode(de, deValue.toUpperCase());
+		String outputCode = getOutputCode(de, deValue);
 
 		// map of schema name to it's permissible value
-		Map<String, String> schemaOutputCodeMap = getSchemaPvMap(de, deValue.toUpperCase());
+		Map<String, String> schemaOutputCodeMap = getSchemaPvMap(de, deValue);
 
 		return new CellValueCode(deValue, outputCode, hasValueRange, schemaOutputCodeMap);
 	}

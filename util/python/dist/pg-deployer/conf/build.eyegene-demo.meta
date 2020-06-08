@@ -1,0 +1,7 @@
+[DB-TRG]
+host=eyegene-db-demo.cit.nih.gov
+database=eyegene_demo
+schema=eyegene_metademo
+user=eyegene_metademo
+label=TARGET
+

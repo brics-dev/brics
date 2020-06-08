@@ -21,7 +21,7 @@
 					</label>
 					<s:textarea label="reason" cols="60" rows="4"
 								cssClass="textfield required" name="reason" escapeHtml="true"
-								escapeJavaScript="true" id="reason" required='true' />
+								escapeJavaScript="true" id="reason"/>
 					 <span id="validateStatusReason" style="display: none">
 									<img class="icon-warning" alt="" src="/portal/images/brics/common/icon-warning.gif">
 									<span class="required"><strong>Approval/Rejection is a  required field</strong></span>
@@ -44,7 +44,7 @@
 					</label>
 					<s:textarea for="reason" cols="60" rows="4"
 						cssClass="textfield required" name="statusReason" id="statusReason"
-						escapeHtml="true" escapeJavaScript="true" required='true' />
+						escapeHtml="true" escapeJavaScript="true"/>
 					  <span id="validateReason" style="display: none">
 								<img class="icon-warning" alt="" src="/portal/images/brics/common/icon-warning.gif">
 								<span class="required"><strong>Reason is a required field</strong></span>

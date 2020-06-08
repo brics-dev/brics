@@ -1,5 +1,5 @@
 /**
- *
+ * model: SavedQuery
  */
 QT.SaveQueryDialogView = BaseView.extend({
 	model : null,
@@ -58,6 +58,15 @@ QT.SaveQueryDialogView = BaseView.extend({
 	render : function() {
 		var templateModel = this.serializeModel();
 		
+		//format date
+		if(templateModel.lastUpdated != "") {
+			var lastUpdatedDate = new Date(templateModel.lastUpdated);
+			templateModel.lastUpdated = $.datepicker.formatDate('yy-mm-dd', lastUpdatedDate);
+		}
+		if(templateModel.dateCreated != "") {
+			var dateCreatedDate = new Date(templateModel.dateCreated);
+			templateModel.dateCreated = $.datepicker.formatDate('yy-mm-dd', dateCreatedDate);
+		}
 		// Add in the available user collection.
 		templateModel.availableUsers = this.availableUsers.toJSON();
 		
@@ -339,6 +348,7 @@ QT.SaveQueryDialogView = BaseView.extend({
 		// Sync the model with the form fields.
 		this.model.set("name", this.$("#queryName").val());
 		this.model.set("description", this.$("#queryDesc").val());
+		this.model.set("outputCode", QueryTool.page.get("query").get("outputCodeSelection"));
 		
 		// If the model data is valid, continue with the save process.
 		if ( this.validateModelData() ) {
@@ -812,7 +822,11 @@ QT.SaveQueryDialogView = BaseView.extend({
 					$button.removeClass("disabled");
 				}
 				else {
-					$button.addClass("disabled");
+					$button.prop("disabled", true).addClass("disabled");
+					if (data == "linked") {
+						$.ibisMessaging("primary", "info", "This Saved Query is linked to a Meta Study and cannot be deleted.", 
+								{container: $("#saveQueryMsgs")});
+					}
 				}
 			},
 			error : function() {

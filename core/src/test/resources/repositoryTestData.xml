@@ -6,7 +6,7 @@
 	<user_file file_name="z.txt" file_description="z" file_path="testFolder/" datafile_endpoint_info_id="1" user_id="1" id="4" />
 	<user_file file_name="f.txt" file_description="f" file_path="testFolder/" datafile_endpoint_info_id="1" user_id="1" id="5" />
 	
-	<DATAFILE_ENDPOINT_INFO id="1" ENDPOINT_NAME="name" CONN_URL="url" CONN_NAME="cName" CONN_PASS="REPLACED" CONN_PORT="111" />
+	<DATAFILE_ENDPOINT_INFO id="1" ENDPOINT_NAME="name" CONN_URL="url" CONN_NAME="cName" CONN_PASS="cPass" CONN_PORT="111" />
 	
 	<DATASTORE_BINARY_INFO id="-1" DATAFILE_ENDPOINT_INFO_ID="1" PATH="path" />
 	

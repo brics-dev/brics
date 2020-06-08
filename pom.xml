@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>brics</groupId>
 	<artifactId>brics</artifactId>
-	<version>4.0.0</version>
+	<version>6.0.0</version>
 	<packaging>pom</packaging>
 	<name>brics-parent</name>
 
@@ -20,15 +20,20 @@
 		<module>cas</module>
 		<module>centralized-guid</module>
 		<module>proforms</module>
+		<module>auth</module>
+		<module>query-api</module>
+		<module>gateway</module>
+		<module>downloadTool-service</module>
+		<module>file-repository</module>
 	</modules>
 
 	<properties>
-		<spring.version>5.1.5.RELEASE</spring.version>
-		<spring.security.version>5.1.4.RELEASE</spring.security.version>
-		<struts2-version>2.5.17</struts2-version>
+		<spring.version>5.1.12.RELEASE</spring.version>
+		<spring.security.version>5.1.7.RELEASE</spring.security.version>
+		<struts2-version>2.5.20</struts2-version>
 		<cxf.version>3.2.7</cxf.version>
-		<hibernate.version>5.2.11.Final</hibernate.version>
-		<postgresql.version>42.2.5</postgresql.version>
+		<hibernate.version>5.2.18.Final</hibernate.version>
+		<postgresql.version>42.2.9</postgresql.version>
 		<hikaricp.version>3.3.1</hikaricp.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -170,11 +175,6 @@
 			</dependency>
 	  		
 			<!-- Jakarta Commons -->
-			<dependency>
-				<groupId>commons-fileupload</groupId>
-				<artifactId>commons-fileupload</artifactId>
-				<version>1.3.3</version>
-			</dependency>
 			
 			<dependency>
 				<groupId>org.postgresql</groupId>
@@ -276,7 +276,7 @@
 			</snapshots>
 			<id>tbi_artifactory_central</id>
 			<name>TBI libs-release</name>
-			<url>artifactory_url</url>
+			<url>http://fitbir-dev-repo.cit.nih.gov:8082/artifactory/libs-release</url>
 		</repository>
 		<repository>
 			<snapshots>
@@ -284,12 +284,12 @@
 			</snapshots>
 			<id>tbi_artifactory_snapshots</id>
 			<name>TBI libs-snapshot</name>
-			<url>artifactory_url</url>
+			<url>http://fitbir-dev-repo.cit.nih.gov:8082/artifactory/libs-snapshot</url>
 		</repository>
 		<repository>
 			<id>Central-Repository</id>
 			<name>Central Repository</name>
-			<url>http://repo1.maven.org/maven2</url>
+			<url>https://repo1.maven.org/maven2</url>
 		</repository>				
 	</repositories>
 
@@ -303,12 +303,12 @@
 		<repository>
 			<id>tbi_artifactory_server</id>
 			<name>libs-release</name>
-			<url>artifactory_url</url>
+			<url>http://fitbir-dev-repo.cit.nih.gov:8082/artifactory/libs-release-local</url>
 		</repository>
 		<snapshotRepository>
 			<id>tbi_artifactory_server</id>
 			<name>libs-snapshot</name>
-			<url>artifactory_url</url>
+			<url>http://fitbir-dev-repo.cit.nih.gov:8082/artifactory/libs-snapshot-local</url>
 		</snapshotRepository>
 	</distributionManagement>
 

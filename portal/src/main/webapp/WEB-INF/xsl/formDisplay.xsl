@@ -1810,7 +1810,12 @@
 			<tr align='left'>
 	            <td colspan="2" id="S_{$questionSectionNode}_Q_{$qid}_link">
 	                <xsl:for-each select="images/filename">
-	                  	    <img class="imgThumb" src="" imageName="{.}" questionId="{$qid}" alt="Question Image" border="0"  style="cursor: pointer"/>&#160;&#160;
+	                  	<img class="imgThumb" src="" imageName="{.}" questionId="{$qid}" alt="Question Image" border="0"  style="cursor: pointer"/>&#160;&#160;
+	                </xsl:for-each>
+	                <xsl:for-each select="files/filename">
+	                	<xsl:variable name="fileLink" select="@fileLink"/>
+	                	<xsl:variable name="fileLink" select="@fileLink"/>
+	                  	<a href="{@fileLink}" fileName="{.}" questionId="{$qid}" alt="Question File"><xsl:value-of select="current()"/></a>&#160;&#160;
 	                </xsl:for-each>
 	            </td> 
 	        </tr> 

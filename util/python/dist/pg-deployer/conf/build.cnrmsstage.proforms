@@ -1,0 +1,6 @@
+[DB-TRG]
+host=Proforms-stage-db.cit.nih.gov
+database=cnrm_data
+schema=proforms_app_stg
+user=proforms_app_stg
+label=TARGET

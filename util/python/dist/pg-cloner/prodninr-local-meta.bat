@@ -1,0 +1,1 @@
+python pgCloner.py --props=.\conf\prod.ninr-local.meta

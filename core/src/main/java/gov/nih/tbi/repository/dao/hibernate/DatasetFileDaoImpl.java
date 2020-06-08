@@ -1,5 +1,6 @@
 package gov.nih.tbi.repository.dao.hibernate;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -70,6 +71,18 @@ public class DatasetFileDaoImpl extends GenericDaoImpl<DatasetFile, Long> implem
 		idQuery.setParameter(1, datasetId);
 		idQuery.setParameter(2, DatasetFileStatus.PENDING.getId());
 		BigInteger count = (BigInteger) idQuery.getSingleResult();
+		return count;
+	}
+	
+	@Override
+	public BigDecimal getTotalFilesSizeByDatasetId(Long datasetId) {
+		String hql = "select SUM(u.user_file_size) from dataset_file f "
+				 + "join user_file u on f.user_file_id = u.id "
+				 + "where (f.dataset_id = ?);";
+						
+		NativeQuery query = getSession().createNativeQuery(hql);
+		query.setParameter(1, datasetId);
+		BigDecimal count = (BigDecimal) query.getSingleResult();
 		return count;
 	}
 }

@@ -1,0 +1,426 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>auth</artifactId>
+	<packaging>jar</packaging>
+	<name>auth</name>
+
+ 	<parent>
+ 		<groupId>brics</groupId>
+ 		<artifactId>brics</artifactId>
+ 		<version>6.0.0</version>
+ 	</parent>
+ 
+ 	<properties>
+ 		<java.version>1.8</java.version>
+ 		<start-class>gov.nih.brics.auth.Application</start-class>
+ 		
+ 		<!-- Hibernate -->
+ 		<hibernate.version>5.4.2.Final</hibernate.version>
+ 		
+ 		<!-- Spring boot -->
+ 		<spring-boot.version>2.1.13.RELEASE</spring-boot.version>
+
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>8</maven.compiler.source>
+		<maven.compiler.target>8</maven.compiler.target>
+		<!-- java dependencies -->
+		<jjwt.version>0.9.1</jjwt.version>
+		<swagger.version>2.9.2</swagger.version>
+		<swagger-annotations.version>1.5.22</swagger-annotations.version>
+		
+		<!-- SonarQube configuration -->
+		<sonar.host.url>http://localhost:9000</sonar.host.url>
+		<sonar.java.source>1.8</sonar.java.source>
+		<sonar.scm.provider>git</sonar.scm.provider>
+		<sonar.coverage.exclusions>**/*Configuration.java, **/Application.java</sonar.coverage.exclusions>
+		<sonar.cpd.exclusions>**/model/**, **/controller/*Api.java</sonar.cpd.exclusions>
+	
+	<!-- maven plugins -->
+		<jacoco-maven-plugin.version>0.8.4</jacoco-maven-plugin.version>
+		<sonar.maven-plugin.version>3.6.1.1688</sonar.maven-plugin.version>
+		<swagger-codegen-maven-plugin.version>3.0.8</swagger-codegen-maven-plugin.version>
+	</properties>
+  
+	<dependencies>
+		<!-- brics -->
+		<dependency>
+			<groupId>brics</groupId>
+			<artifactId>model</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.google.code.gson</groupId>
+					<artifactId>gson</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.google.guava</groupId>
+					<artifactId>guava</artifactId>	 
+				</exclusion>
+				<exclusion>
+					<groupId>javax.servlet</groupId>
+					<artifactId>javax.servlet-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.security</groupId>
+					<artifactId>spring-security-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.security</groupId>
+					<artifactId>spring-security-taglibs</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.security</groupId>
+					<artifactId>spring-security-acl</artifactId>
+				</exclusion>											
+				<exclusion>
+					<groupId>org.springframework.security</groupId>
+					<artifactId>spring-security-cas</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.servlet.jsp.jstl</groupId>
+					<artifactId>jstl-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-httpclient</groupId>
+					<artifactId>commons-httpclient</artifactId>
+				</exclusion>
+				
+				<!-- trying to resolve tomcat issues -->
+				<exclusion>
+					<groupId>org.apache.cxf</groupId>
+					<artifactId>cxf-rt-transports-http-jetty</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.openrdf.sesame</groupId>
+					<artifactId>sesame-repository-http</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+	
+	    <!-- Setup Spring Boot -->
+	    <dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+			<version>${spring-boot.version}</version>					
+		</dependency>
+	    <dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+			<version>${spring-boot.version}</version>
+ 			<exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </exclusion>
+            </exclusions>
+		</dependency>
+		
+		<!-- <dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-jdbc</artifactId>
+			<version>${spring-boot.version}</version>
+		</dependency> -->
+		<dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <version>${spring-boot.version}</version>
+        </dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-tomcat</artifactId>
+			<version>${spring-boot.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+			<version>${spring-boot.version}</version>
+		</dependency>
+		<!-- <dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-mail</artifactId>
+		    <version>${spring-boot.version}</version>
+		</dependency> -->
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-commons</artifactId>
+			<version>${spring-boot.version}</version>
+		</dependency>
+		
+		<!-- tomcat dependencies -->
+		<!-- 
+		<dependency>
+		    <groupId>org.apache.tomcat</groupId>
+		    <artifactId>tomcat-dbcp</artifactId>
+		    <version>9.0.1</version>
+		</dependency>
+		 -->
+		
+		<!-- unit testing dependencies -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<version>${spring-boot.version}</version>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.junit.vintage</groupId>
+					<artifactId>junit-vintage-engine</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+		<!-- login JWT -->
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt</artifactId>
+			<version>${jjwt.version}</version>
+		</dependency>
+		
+		<!-- Swagger -->
+		<dependency>
+			<groupId>io.swagger</groupId>
+			<artifactId>swagger-annotations</artifactId>
+			<version>${swagger-annotations.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger2</artifactId>
+			<version>${swagger.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger-ui</artifactId>
+			<version>${swagger.version}</version>
+		</dependency>
+
+        <!-- PostgreSQL -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>
+        
+        <!-- commons codec -->
+        <dependency>
+		    <groupId>commons-codec</groupId>
+		    <artifactId>commons-codec</artifactId>
+		    <version>1.13</version>
+		</dependency>
+		
+		<!-- Eureka Client -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+		</dependency>
+		
+		<!-- HttpClient for some swagger compilation -->
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.5.10</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpmime</artifactId>
+			<version>4.5.10</version>
+		</dependency>
+		
+		<!-- GSON version upgrade to fix some issues in spring -->
+		<dependency>
+		    <groupId>com.google.code.gson</groupId>
+		    <artifactId>gson</artifactId>
+		    <version>2.8.6</version>
+		</dependency>
+		
+	</dependencies>
+	
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<!-- Version mapping can be found here: https://spring.io/projects/spring-cloud under "release trains" -->
+				<version>Greenwich.RELEASE</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+	
+	<profiles>
+		<profile>
+			<id>sonar</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.sonarsource.scanner.maven</groupId>
+						<artifactId>sonar-maven-plugin</artifactId>
+						<version>${sonar.maven-plugin.version}</version>
+						<executions>
+							<execution>
+								<phase>compile</phase>
+								<goals>
+									<goal>sonar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+	
+	
+	
+	
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>2.2.2.RELEASE</version>
+				<executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+					<mainClass>gov.nih.brics.auth.Application</mainClass>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<failOnMissingWebXml>false</failOnMissingWebXml>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.6.1</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco-maven-plugin.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<excludes>
+						<exclude>**/Application.*</exclude>
+						<exclude>**/*Configuration.*</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>io.swagger.codegen.v3</groupId>
+				<artifactId>swagger-codegen-maven-plugin</artifactId>
+				<version>${swagger-codegen-maven-plugin.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>${project.basedir}/src/main/resources/swagger.yaml</inputSpec>
+							<output>${project.basedir}</output>
+
+							<!-- use Spring @RequestMapping, @PathVariable, @RequestBody, etc -->
+							<language>spring</language>
+							<library>spring-mvc</library>
+
+							<!-- codegen template dir, for custom api.mustache -->
+							<templateDirectory>${project.basedir}/src/main/resources/swagger-codegen-templates</templateDirectory>
+
+							<!-- generate controllers and models -->
+							<apiPackage>gov.nih.brics.${project.artifactId}.controller</apiPackage>
+							<modelPackage>gov.nih.brics.${project.artifactId}.model</modelPackage>
+
+							<!-- don't generate these -->
+							<generateApiTests>false</generateApiTests>
+							<generateModelTests>false</generateModelTests>
+							<generateSupportingFiles>false</generateSupportingFiles>
+
+							<!-- don't overwrite existing files -->
+							<skipOverwrite>true</skipOverwrite>
+
+							<!-- force MutipartFile -->
+							<typeMappings>
+								<typeMapping>File=org.springframework.web.multipart.MultipartFile</typeMapping>
+							</typeMappings>
+
+							<configOptions>
+								<!-- don't use ThreeTen, use Java8 for date-time types -->
+								<dateLibrary>java8</dateLibrary>
+								<interfaceOnly>true</interfaceOnly>
+								<singleContentTypes>true</singleContentTypes>
+								<sourceFolder>src/main/java</sourceFolder>
+							</configOptions>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+		
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>io.swagger.codegen.v3</groupId>
+										<artifactId>swagger-codegen-maven-plugin</artifactId>
+										<versionRange>[1.0,)</versionRange>
+										<goals>
+											<goal>generate</goal>
+											<goal>generate-sources</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<execute>
+											<runOnIncremental>false</runOnIncremental>
+										</execute>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+</project>

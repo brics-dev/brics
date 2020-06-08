@@ -1,0 +1,7 @@
+[DB-TRG]
+host=pdbp-db-stage.cit.nih.gov
+database=pd_stg
+schema=tbi_metastg
+user=tbi_metastg
+label=TARGET
+

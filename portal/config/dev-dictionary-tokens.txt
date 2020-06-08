@@ -1,0 +1,4 @@
+<value>file:///c:/brics/ = <value>file:///opt/apache-tomcat/brics/
+.log4j.logger.org.hibernate.SQL\=.* = log4j.logger.org.hibernate.SQL\=ERROR
+log4j.logger.gov.nih.tbi\=.* = log4j.logger.gov.nih.tbi\=INFO
+mipav.launch.link \= .* = mipav.launch.link \= http://mipav.cit.nih.gov/fitbir_jws/mipav_fitbir_stage_jws.php

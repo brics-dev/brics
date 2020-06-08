@@ -62,7 +62,7 @@ public class PatientVisitIdtDecorator extends ActionIdtDecorator {
 			tokenLink = " ";
 		}
 		else {
-			tokenLink = "<a href=\"javascript:showTokenLink('" + pv.getGuid() + "','" + this.getWebRoot()
+			tokenLink = "<a href=\"javascript:showTokenLink('" + pv.getGuid() + "','" + pv.getEmail() + "','" + pv.getIntervalClinicalPointId() + "','" + this.getWebRoot()
 					+ "/selfreporting/list?token=" + pv.getToken() + "')\">" + pv.getToken() + "</a>";
 		}
 		

@@ -3,6 +3,9 @@ package gov.nih.tbi.query.model;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+
 /**
  * Holds the results of a summary query request from Virtuoso.  This is a map of key/values which correlates with "data" and "count" results from Virtuoso.
  * 
@@ -13,10 +16,13 @@ public class SummaryResult {
 	
 	private Map<String, String> results;
 	
+	private Multimap<String, String> resultsMultiMap;
+	
 	private String jsonResults;
 	
 	public SummaryResult() {
 		this.results = new LinkedHashMap<String, String>();
+		this.resultsMultiMap = ArrayListMultimap.create();
 		this.jsonResults = null;
 	}
 
@@ -45,6 +51,14 @@ public class SummaryResult {
 
 	public void setJsonResults(String jsonResults) {
 		this.jsonResults = jsonResults;
+	}
+
+	public Multimap<String, String> getResultsMultiMap() {
+		return resultsMultiMap;
+	}
+
+	public void setResultsMultiMap(Multimap<String, String> resultsMultiMap) {
+		this.resultsMultiMap = resultsMultiMap;
 	}
 
 }

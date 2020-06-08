@@ -1,0 +1,17 @@
+[DB-SRC]
+host=fitbir-db-prod.cit.nih.gov
+database=tbi_prod
+schema=tbi_meta
+user=tbi_meta
+label=SOURCE
+
+[DB-TRG]
+host=fitbir-db-dev.cit.nih.gov
+database=tbi_dev
+schema=tbi_metadev
+user=tbi_metadev
+label=TARGET
+
+[FILE-SYS]
+logDir=D:\\DEV\\appdata\\log\\pgCloner\\prodtbi-devtbi-meta
+workDir=D:\\DEV\\appdata\\dump\\pgCloner\\prodtbi-devtbi-meta

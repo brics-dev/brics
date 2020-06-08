@@ -1,0 +1,7 @@
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\propPasswdUtil\demo-tbi-host
+passFile=D:\DATA\secur\.pgpass
+
+[DEPLOY]
+trgRoot=D:\DEV\workspace\conf\demo\tbi-host
+srcRoot=D:\DEV\BRIX\local\prop\demo\tbi-host

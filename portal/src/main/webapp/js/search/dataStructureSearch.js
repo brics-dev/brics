@@ -65,6 +65,10 @@ function dataStructureSearch() {
 	    return this.value;
 	}).get();
 	
+	var formLabelValue = $('input[name="selectedFormLabelOptions"]:checked').map(function() {
+	    return this.value;
+	}).get();
+	
 	var requiredValue = $('input[name="selectedRequiredOptions"]:checked').map(function() {
 	    return this.value;
 	}).get();
@@ -102,6 +106,7 @@ function dataStructureSearch() {
 	        		{"name":"selectedRequiredOptions", "value": requiredValue.toString()},
 	        		{"name":"selectedStatusOptions", "value": statusValue.toString()},
 	        		{"name":"selectedStandardizationOptions", "value": standardizationValue.toString()},
+	        		{"name":"selectedFormLabelOptions", "value": formLabelValue.toString()},
 	        		{"name":"selectedFormTypeOptions", "value": formTypeValue.toString()},
 	        		{"name":"selectedDiseaseOptions", "value": diseaseValue.toString()},
 	        		{"name":"selectedCopyRightOptions", "value": copyRightValue.toString()},
@@ -122,6 +127,7 @@ function dataStructureSearch() {
 	    "bFilter": false,
 	    "sPaginationType": "full_numbers",
 	    "sDom": '<"H"ilfr>t<"F"ip>',
+	    "scrollY": "1000px",
 	    "sScrollX": "100%",
 	    "bScrollCollapse": true,
 	    "bAutoWidth": false,

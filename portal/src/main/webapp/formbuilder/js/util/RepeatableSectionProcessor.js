@@ -81,6 +81,7 @@ var RepeatableSectionProcessor = {
 		
 		this.updateSkipRule(clonedQuestion, sectionModel);
 		this.updateCalcRule(questionModel, sectionModel);
+		this.updateCountRule(questionModel, sectionModel);
 		
 		return clonedQuestion;
 	},
@@ -196,6 +197,9 @@ var RepeatableSectionProcessor = {
 				qModel.set("minCharacters", questionModel.get("minCharacters"));
 				qModel.set("skipRuleDependent", questionModel.get("skipRuleDependent"));
 				qModel.set("skiprule", questionModel.get("skiprule"));
+				qModel.set("countFlag", questionModel.get("countFlag"));
+				qModel.set("countFormula", questionModel.get("countFormula"));
+				qModel.set("questionsInCount", questionModel.get("questionsInCount"));
 			});
 		}
 	},
@@ -530,9 +534,56 @@ var RepeatableSectionProcessor = {
 							
 							// replace the parent section ID with the question's immediate section ID
 							//does the replaceall version of: calculation = calculation.replace(secId, repSectId);
-							calculation = _.replaceAll(calculation, secId, repSectId);
 							
-							repQuestion.set("calculation",calculation);
+							var splitStr = calculation.split(secId);
+							var finalStr = splitStr.join(repSectId);
+							
+							
+							repQuestion.set("calculation",finalStr);
+						}
+					}	
+				});
+			} // end if
+		}); // end for
+	}, // end function
+	
+	/**
+	 * Looks for repeated sections and, if any are found, looks for questions
+	 * within them that have count rules based on the same section.  Changes
+     * the references to always point to the current section instead of the
+     * repeated parent.
+	 * 
+	 * @param questionModel the question to update
+	 * @param targetSectionModel the question's new section model
+	 */
+	updateCountRule : function(questionModel, targetSectionModel) {
+		// look at all sections in the page
+		var sections = FormBuilder.form.sections;
+		sections.forEach(function(section) {
+			// only look at repeatable parents, we don't care about others
+			if (section.get("isRepeatable") && section.get("repeatedSectionParent") == "-1") {
+				var secId = section.get("id");
+				section.questions.forEach(function(parentQuestion) {
+					var questionsInCountJoined = parentQuestion.get("questionsInCount").join("+");
+					if (parentQuestion.get("countFlag") && questionsInCountJoined.indexOf(secId) != -1) {
+						// this question has a count rule and it contains a reference to this section
+						
+						var repeatedQuestions = RepeatableSectionProcessor.getQuestionRepeatedCopies(parentQuestion, section);
+						for (var j = 0; j < repeatedQuestions.length; j++) {
+							var repQuestion = repeatedQuestions[j];
+							var repSectId = repQuestion.get("sectionId");
+							// the .slice() makes a copy of the array because otherwise questionsInCount would refer to the
+							// SAME array as parentQuestion.get("questionsInCount")
+							var questionsInCount = repQuestion.get("questionsInCount").slice();
+							// for each question in questionsInCount
+							for (var k = 0, qCountLen = questionsInCount.length; k < qCountLen; k++) {
+								var countQuestion = questionsInCount[k];
+								// replace the parent section ID with the question's immediate section ID
+								var splitStr = countQuestion.split(secId);
+								var finalStr = splitStr.join(repSectId);
+								questionsInCount[k] = finalStr;
+							}
+							repQuestion.set("questionsInCount", questionsInCount);
 						}
 					}	
 				});

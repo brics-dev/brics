@@ -1,0 +1,1 @@
+python pgDelta.py --props=.\conf\dev.pd-prod.pd.meta

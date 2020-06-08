@@ -1,0 +1,17 @@
+[DB-SRC]
+host=cistar-db-prod.ninds.nih.gov
+database=cistar_prod
+schema=tbi_meta
+user=tbi_meta
+label=SOURCE
+
+[DB-TRG]
+host=cistar-db-stage.cit.nih.gov
+database=cistar_stage
+schema=tbi_metastg
+user=tbi_metastg
+label=TARGET
+
+[FILE-SYS]
+logDir=/var/lib/brics/log/pgCloner/prodcistar-stagecistar-meta
+workDir=/var/lib/brics/data/pgCloner/prodcistar-stagecistar-meta

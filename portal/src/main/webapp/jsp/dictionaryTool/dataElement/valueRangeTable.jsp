@@ -12,7 +12,7 @@
 	</div>
 	
 	<div class="form-field form-field-vert">
-		<label for="permissible">Description of Value:
+		<label for="permissible">Description of Value <span class="required">* </span>:
 		</label>
 		<s:textarea id="descriptionField" name="valueDescription" class="textfield"/>
 		<s:fielderror fieldName="valueDescription" />

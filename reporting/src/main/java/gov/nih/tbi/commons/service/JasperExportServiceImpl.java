@@ -241,9 +241,9 @@ public class JasperExportServiceImpl implements JasperExportService {
 			reportConfig.setSizePageToContent(true);
 			reportConfig.setForceLineBreakPolicy(false);
 			SimplePdfExporterConfiguration exportConfig = new SimplePdfExporterConfiguration();
-			exportConfig.setMetadataAuthor("REPLACED");
+			exportConfig.setMetadataAuthor("NTI");
 			exportConfig.setEncrypted(true);
-			exportConfig.setOwnerPassword("REPLACED");
+			exportConfig.setOwnerPassword("NTI");
 			exportConfig.setAllowedPermissionsHint("PRINTING");
 			exporter.setConfiguration(reportConfig);
 			exporter.setConfiguration(exportConfig);

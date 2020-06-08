@@ -19,6 +19,7 @@
 		<!-- PD workflow -->
 		<action name="ducAction" class="gov.nih.tbi.account.portal.AccountAction">
 			<result name="input"> /jsp/account/accountRequest.jsp</result> 
+			<result name="duc"> /jsp/account/accountRequest.jsp</result> 
 			<result name="success"> /jsp/account/requestSuccess.jsp</result>		
 			<allowed-methods>duc</allowed-methods>
 		</action>
@@ -102,6 +103,8 @@
 		<action name="accountSignatureValidationAction" class="gov.nih.tbi.account.portal.AccountAction">
 			<result name="input"> /jsp/account/accountRequestPrivileges.jsp </result>
 			<result name="success"> /jsp/account/requestSuccess.jsp</result>
+			<result name="duc"> /jsp/account/accountRequest.jsp</result>
+			<allowed-methods>duc</allowed-methods>
 		</action>
 	</package>
 	
@@ -208,7 +211,7 @@
 			<allowed-methods>changePassword</allowed-methods>
 		</action>
 		
-		<!-- Request additional privilegs from User action mappings -->		
+		<!-- Request additional privileges from User action mappings -->		
 		<action name="privilegesAction" class="gov.nih.tbi.account.portal.AccountAction">
 			<result name="view"> /jsp/account/viewMyPrivileges.jsp</result>
 		</action>
@@ -272,7 +275,26 @@
 			<result name="success"> /jsp/account/includes/addAdministrativeNoteInterface.jsp </result>
 			<allowed-methods>addAccountAdmininistrativeNote</allowed-methods>
 		</action>
-
+		
+		<action name="renewalRequestAction" class="gov.nih.tbi.account.portal.RenewalRequestAction">
+			<result name="input"> /jsp/account/accountRenewalRequest.jsp</result>
+			<result name="success"> /jsp/account/accountRenewalRequest.jsp </result>
+			<allowed-methods>getExistingPrivileges,getExistingFiles,submitRenewal</allowed-methods>
+		</action>
+		<action name="documentationValidationAction" class="gov.nih.tbi.account.portal.RenewalRequestAction">
+			<result name="input"> /jsp/account/includes/uploadUserFileLightbox.jsp</result>
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonResponse</param>
+			</result>		
+			<allowed-methods>uploadFile</allowed-methods>
+		</action>
+		<action name="renewalDocumentationAction" class="gov.nih.tbi.account.portal.RenewalRequestAction">
+			<result name="addFileLightbox"> /jsp/account/includes/uploadUserFileLightbox.jsp</result>
+			<allowed-methods>addFileLightbox,uploadFile</allowed-methods>
+		</action>
+		
 	</package>
 	
 	
@@ -784,7 +806,16 @@
 				<param name="bufferSize"> 1024
 				</param>
 			</result>
-			<allowed-methods>renewalList,requestList,reportingList,getAccountsForRenewal,getAutomatedRenewalReportLightbox,saveEmailReportSetting,getAccountRequests,getAutomatedRequestReportLightbox,getContactUserDashBoard,contactUser,getRenewPrivilegesDialogue,renewPrivileges,getAccountReportingLogs,downloadReport</allowed-methods>
+			<allowed-methods>renewalList,requestList,reportingList,getAccountsForRenewal,getAutomatedRenewalReportLightbox,saveEmailReportSetting,getAccountRequests,getAutomatedRequestReportLightbox,getContactUserDashBoard,contactUser,getRenewPrivilegesDialogue,getAccountReportingLogs,downloadReport</allowed-methods>
+		</action>
+		
+		<action name="renewAccountAction" class="gov.nih.tbi.account.portal.AccountReportsAction">
+			<result name="success" type="redirectAction">
+				<param name="actionName">viewAccountRequest</param>
+				<param name="method">viewAccountRequest</param>
+				<param name="accountId">${currentAccount.id}</param>
+			</result>	
+			<allowed-methods>renewAccount</allowed-methods>
 		</action>
 		
 		<action name="viewProfile" class="gov.nih.tbi.account.portal.AccountAction">

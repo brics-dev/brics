@@ -144,6 +144,25 @@ public class SearchFormStructureQueryConstructionUtil extends QueryConstructionU
 
 						body.addElementFilter(new ElementFilter(filterListToOrs(listOr)));
 					}
+				} else if (FormStructureFacet.FORM_LABEL.equals(facet)) {
+
+					List<String> formLabelIdList = new ArrayList<String>(values);
+
+					if (formLabelIdList.size() == 1) {
+						Node formLabelNode = NodeFactory.createURI(RDFConstants.FS_LABEL_URI + formLabelIdList.get(0));
+						block.addTriple(Triple.create(RDFConstants.URI_NODE, RDFConstants.PROPERTY_FS_LABEL_NODE_N,
+								formLabelNode));
+					} else if (formLabelIdList.size() > 1) {
+						ElementUnion union = new ElementUnion();
+						body.addElement(union);
+						for (String labelValue : values) {
+							Node formLabelNode = NodeFactory.createURI(RDFConstants.FS_LABEL_URI + labelValue);
+							ElementTriplesBlock currentBlock = new ElementTriplesBlock();
+							union.addElement(currentBlock);
+							currentBlock.addTriple(Triple.create(RDFConstants.URI_NODE,
+									RDFConstants.PROPERTY_FS_LABEL_NODE_N, formLabelNode));
+						}
+					}
 				} else if (FormStructureFacet.REQUIRED.equals(facet)) {
 
 					List<String> requiredList = new ArrayList<String>(values);

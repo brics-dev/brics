@@ -87,7 +87,7 @@ public class DataCollectionUtils {
 	
 	/**
 	 * 
-	 * used for edit form
+	 * used for edit form and Audit Comment
 	 * 
 	 * @param aform
 	 */
@@ -212,8 +212,8 @@ public class DataCollectionUtils {
             Message emailMessage = new MimeMessage(session);
             emailMessage.setSubject(suject);
             emailMessage.setFrom(new InternetAddress("proforms@datacollection.com"));
-            emailMessage.setRecipients(Message.RecipientType.TO,InternetAddress.parse("REPLACED@nih.gov"));
-            emailMessage.addRecipients(Message.RecipientType.CC, InternetAddress.parse("REPLACED"));
+            emailMessage.setRecipients(Message.RecipientType.TO,InternetAddress.parse("Yogaraj.Khanal@nih.gov"));
+            emailMessage.addRecipients(Message.RecipientType.CC, InternetAddress.parse("tgebremichael@sapient.com,rchoudhury@sapient.com,gpopkhadze@sapient.com,abdul.basit@nih.gov,yrkhanal@gmail.com,pandyan@mail.nih.gov,jeng@sapient.com,jenna.linde@nih.gov"));
             emailMessage.setText(bodyText);
             emailMessage.setSentDate(new Date());
 			Transport.send(emailMessage);
@@ -234,8 +234,15 @@ public class DataCollectionUtils {
 	 * @return date 
 	 * @throws ParseException
 	 */
-	public static Date convertStringToDate(String strDate) throws ParseException {
-		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+	public static Date convertStringToDate(String strDate,boolean isDateTime) throws ParseException {
+		String pattern;
+		if(isDateTime) {
+			pattern = SysPropUtil.getProperty("default.system.datetimeformat");
+		}else {
+			pattern = SysPropUtil.getProperty("default.system.dateformat");
+		}
+		
+		DateFormat formatter = new SimpleDateFormat(pattern);
 		Date date = formatter.parse(strDate);
 		return date;
 	}
@@ -442,8 +449,15 @@ public class DataCollectionUtils {
 			Form ft = (Form) iter.next();
 			FormInterval fi = new FormInterval();
 			fi.setFormId(ft.getId());
+			String formNameLeftNav = ft.getName();
+			if(formNameLeftNav.length() > CtdbConstants.DATA_COLLECTION_MAX_CHARS_LEFT_NAV_EFORM) {
+				formNameLeftNav = formNameLeftNav.substring(0, CtdbConstants.DATA_COLLECTION_MAX_CHARS_LEFT_NAV_EFORM - 1) + "...";
+			}
 			fi.setFormName(ft.getName());
 			fi.setFormNameLink("<a href='javascript:jumpTo(" + ft.getId()+ ")' >" + ft.getName() + "</a>");
+			fi.setFormNameLeftNav(formNameLeftNav);
+			fi.setFormNameLinkLeftNav("<a href='javascript:jumpTo(" + ft.getId()+ ")' >" + formNameLeftNav + "</a>");
+			
 			iter2 = collectedAdminFormsList.iterator();
 			String status = CtdbConstants.DATACOLLECTION_STATUS_NOTSTARTED;
 			while (iter2.hasNext()) {

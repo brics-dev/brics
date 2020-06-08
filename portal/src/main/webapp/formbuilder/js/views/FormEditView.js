@@ -112,7 +112,6 @@ var FormEditView = EditorView
 				this.formNameRender();
 				this.formStatusRender();
 				
-				
 				//need to show/hide the form type
 				var formTypeId = this.model.get("formtypeid");
 				if(formTypeId == 10) {
@@ -225,17 +224,18 @@ var FormEditView = EditorView
 					$.ajax({
 						  type: "POST",
 						  url: baseUrl+"validateEformAction!validateEform.action",
-						  data: {shortName:this.model.get("shortName")},
+						  data: {shortName:this.model.get("shortName"),eFormAction:"continue"},
 						  dataType :"json",
 						  success: function(response, status, jqxhr) {
 							  $.ibisMessaging("close", {type:"primary"}); 
 							  var data = $.parseJSON(response);
 							  for (var i=0; i<data.length; i++){
-								  	$.ibisMessaging("primary", "error", "Short Name "+data[i].msgType,{container: "#errorContainer"});
+								  	$.ibisMessaging("primary", "error", data[i].msgType,{container: "#errorContainer"});
 							  }
 							  EventBus.trigger("close:processing");
 							  if(data.length==0){
 								  view.addEditFormInfor(formInfoURL, view.model.serializeModel());
+								  this.closeDialog();
 							  }
 							
 						  },

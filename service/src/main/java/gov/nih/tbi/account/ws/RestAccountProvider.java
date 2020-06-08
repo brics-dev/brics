@@ -412,10 +412,18 @@ public class RestAccountProvider extends RestAuthenticationProvider {
 
 		PostMethod postMethod;
 		if (!isProxyTicketNull() && !getTicketProperty().equals(ServiceConstants.EMPTY_STRING)) {
+			
+			logger.debug("Entity Map to be registered on "+ serverUrl+ " accountId: "+ accountVal+" entityId: "+
+					entityId+" permission: "+permission);
+			
 			postMethod = new PostMethod(serverUrl + restServiceUrl + "entityMap/register?accountId=" + accountVal
 					+ "&entityType=" + type + "&entityId=" + entityId + "&permission=" + permission
 					+ "&permissionGroupId=" + permGroupVal + "&" + getTicketProperty());
 		} else {
+			
+			logger.debug("Entity Map to be registered on "+ serverUrl+ " accountId: "+ accountVal+" entityId: "+
+					entityId+" permission: "+permission);
+			
 			postMethod = new PostMethod(serverUrl + restServiceUrl + "entityMap/register?accountId=" + accountVal
 					+ "&entityType=" + type + "&entityId=" + entityId + "&permission=" + permission
 					+ "&permissionGroupId=" + permGroupVal);
@@ -706,11 +714,11 @@ public class RestAccountProvider extends RestAuthenticationProvider {
 	 * @return
 	 * @throws UnsupportedEncodingException
 	 */
-	public String keepSessionAlive() throws UnsupportedEncodingException {
+	public Response keepSessionAlive() throws UnsupportedEncodingException {
 
 		ticketValid();
 		WebClient client = WebClient.create(serverUrl + restServiceUrl + "keepAlive");
-		String response = client.accept("text/xml").toString();
+		Response response = client.get();
 		cleanup();
 
 		return response;

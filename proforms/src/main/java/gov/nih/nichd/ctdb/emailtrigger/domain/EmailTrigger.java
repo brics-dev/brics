@@ -1,7 +1,7 @@
 package gov.nih.nichd.ctdb.emailtrigger.domain;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -27,12 +27,14 @@ public class EmailTrigger extends CtdbDomainObject {
     private String toEmailAddress = "";
     public static final String fromEmailAddress = "no-reply@ctdb.nichd.nih.gov";
     private String ccEmailAddress = "";
-    private String subject = "Emailing from the IBIS ";
+    private String subject = "";
     private String body = "";
-    @XmlElementWrapper(name="Answers")
-    private List<String> triggerAnswers = new ArrayList<String>();
+	// @XmlElementWrapper(name="Answers")
+	// private List<String> triggerAnswers = new ArrayList<String>();
+	// private String[] selectedAnswers = new String [0];
+	@XmlElementWrapper(name = "TriggerValues")
+	private Set<EmailTriggerValue> triggerValues = new HashSet<EmailTriggerValue>();
     private String[] selectedAnswers = new String [0];
-    
 
 
     public int getQuestionattributesid() {
@@ -75,14 +77,28 @@ public class EmailTrigger extends CtdbDomainObject {
         this.body = body;
     }
 
-    public List <String> getTriggerAnswers() {
-        return triggerAnswers;
-    }
+	// public List <String> getTriggerAnswers() {
+	// return triggerAnswers;
+	// }
+	//
+	// public void setTriggerAnswers(List <String>triggerAnswers) {
+	// this.triggerAnswers = triggerAnswers;
+	// }
 
-    public void setTriggerAnswers(List <String>triggerAnswers) {
-        this.triggerAnswers = triggerAnswers;
-    }
+	public Set<EmailTriggerValue> getTriggerValues() {
+		if (this.triggerValues == null) {
+			this.triggerValues = new HashSet<EmailTriggerValue>();
+		}
+		return triggerValues;
+	}
 
+	public void setTriggerValues(Set<EmailTriggerValue> triggerValues) {
+		this.triggerValues = triggerValues;
+	}
+
+	public void addToTriggerValues(EmailTriggerValue triggerValue) {
+		getTriggerValues().add(triggerValue);
+	}
 
     public String[] getSelectedAnswers() {
         return selectedAnswers;

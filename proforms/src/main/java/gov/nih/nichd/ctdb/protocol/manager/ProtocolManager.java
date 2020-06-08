@@ -8,11 +8,15 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONException;
 
 import gov.nih.nichd.ctdb.audit.manager.AuditManager;
 import gov.nih.nichd.ctdb.common.CtdbConstants;
@@ -40,7 +44,9 @@ import gov.nih.nichd.ctdb.protocol.domain.Procedure;
 import gov.nih.nichd.ctdb.protocol.domain.Protocol;
 import gov.nih.nichd.ctdb.protocol.domain.ProtocolClosingOut;
 import gov.nih.nichd.ctdb.protocol.domain.ProtocolLink;
+import gov.nih.nichd.ctdb.protocol.domain.ProtocolRandomization;
 import gov.nih.nichd.ctdb.protocol.domain.ProtocolUser;
+import gov.nih.nichd.ctdb.response.dao.ResponseManagerDao;
 import gov.nih.nichd.ctdb.security.domain.Role;
 import gov.nih.nichd.ctdb.security.domain.User;
 import gov.nih.nichd.ctdb.security.manager.SecurityManager;
@@ -516,11 +522,11 @@ public class ProtocolManager extends CtdbManager
 		}
 	}
 	
-	public void associateProtocolUser(int protocolId, int siteId, int roleId, int userId) throws CtdbException {
+	public void associateProtocolUser(int protocolId, JSONArray siteIds , int roleId, int userId) throws CtdbException, JSONException {
 		Connection conn = null;
 		conn = CtdbManager.getConnection();
 		try {
-			ProtocolManagerDao.getInstance(conn).associateProtocolUser(protocolId, siteId, roleId, userId);
+			ProtocolManagerDao.getInstance(conn).associateProtocolUser(protocolId, siteIds, roleId, userId);
 		}
 		finally {
 			this.close(conn);
@@ -785,6 +791,51 @@ public class ProtocolManager extends CtdbManager
 		}
 		
 		return visitType;
+	}
+	
+	
+	/**
+	 * Gets list of Eforms that are set to be unassociated from VT that has collections
+	 * @param visitType
+	 * @return
+	 * @throws CtdbException
+	 */
+	public List<String> getEformsToBeDeletedWithActiveCollections(Interval visitType) throws CtdbException {
+		Connection conn = null;
+		ArrayList<String> eformsToBeDeletedWithCollections = new ArrayList<String>();
+		try {
+			conn = CtdbManager.getConnection();
+			ProtocolManagerDao dao = ProtocolManagerDao.getInstance(conn);
+			List<BasicEform> eformsFromDB = dao.getEformsForInterval(visitType.getId());
+			List<BasicEform> eformsFromUser = visitType.getIntervalEFormList();
+			
+			boolean formFound = false;
+			
+			// Determine which forms should be removed
+			
+			Set<BasicEform> eformsToRemoveSet = new HashSet<BasicEform>(eformsFromDB);
+			eformsToRemoveSet.removeAll(eformsFromUser);
+			
+			if(eformsToRemoveSet.size() > 0) {
+				//now check to see if any of these eforms have collections.
+				
+				ResponseManagerDao rdao = ResponseManagerDao.getInstance(conn);
+				int visistTypeId = visitType.getId();
+				for (BasicEform be : eformsToRemoveSet) {
+					String eformShortName = be.getShortName();
+					int numCollections = rdao.getNumAdminFormsForEformAndVisitType(eformShortName, visistTypeId);
+					if(numCollections > 0) {
+						eformsToBeDeletedWithCollections.add(eformShortName);
+					}
+				}
+				
+				
+			}
+		}
+		finally {
+			this.close(conn);
+		}
+		return eformsToBeDeletedWithCollections;
 	}
 	
 	/**
@@ -1203,7 +1254,25 @@ public class ProtocolManager extends CtdbManager
 	}
 	
 	
-	
+	/**
+	 * Determines if eForm is Configured (Hiding sections, questions, and/or pvs)
+	 * @param eformid
+	 * @return
+	 * @throws CtdbException
+	 */
+	public boolean isEformConfigured(int eformid) throws CtdbException {
+		
+		Connection conn = null;
+		try
+		{
+			conn = CtdbManager.getConnection();
+			return ProtocolManagerDao.getInstance(conn).isEformConfigured(eformid);
+		}
+		finally
+		{
+			this.close(conn);
+		}
+	}
 
 	
 	/**
@@ -1952,13 +2021,57 @@ public class ProtocolManager extends CtdbManager
 		return closingOutList;
 	}
 	
-	public void saveProtocolClosingout(ProtocolClosingOut pco) throws CtdbException {
+	public boolean saveProtocolClosingout(ProtocolClosingOut pco) throws CtdbException {
 		Connection conn = null;
+		boolean protocolClosed = false;
 		
 		try{
 			conn = CtdbManager.getConnection(CtdbManager.AUTOCOMMIT_FALSE);
 			ProtocolManagerDao dao = ProtocolManagerDao.getInstance(conn);
-			dao.saveProtocolClosingout(pco);
+			protocolClosed = dao.saveProtocolClosingout(pco);
+			this.commit(conn);
+		} finally {
+			this.rollback(conn);
+			this.close(conn);
+		}
+		return protocolClosed;
+	}
+	
+	public boolean checkProtocolClosed(int protocolId) throws CtdbException {
+		Connection conn = null;
+		boolean protocolClosed = false;
+
+		try {
+			conn = CtdbManager.getConnection();
+			ProtocolManagerDao dao = ProtocolManagerDao.getInstance(conn);
+			protocolClosed = dao.checkProtocolClosed(protocolId);
+		} finally {
+			this.close(conn);
+		}
+		return protocolClosed;
+	}
+
+	public Long getProtocolClosedBricsUserId(int protocolId) throws CtdbException {
+		Connection conn = null;
+		Long closingUserId;
+		
+		try{
+			conn = CtdbManager.getConnection();
+			ProtocolManagerDao dao = ProtocolManagerDao.getInstance(conn);
+			closingUserId = dao.getProtocolClosedBricsUserId(protocolId);
+		} finally {
+			this.close(conn);
+		}
+		return closingUserId;
+	}
+
+	public void reopenClosedProtocol(ProtocolClosingOut pco) throws CtdbException {
+		Connection conn = null;
+
+		try {
+			conn = CtdbManager.getConnection(CtdbManager.AUTOCOMMIT_FALSE);
+			ProtocolManagerDao dao = ProtocolManagerDao.getInstance(conn);
+			dao.reopenClosedProtocol(pco);
 			this.commit(conn);
 		} finally {
 			this.rollback(conn);
@@ -1966,19 +2079,63 @@ public class ProtocolManager extends CtdbManager
 		}
 	}
 	
-	public boolean checkProtocolClosed(int protocolId) throws CtdbException {
+	public void updateEformsForProtocol(int protoId, Map<String, BasicEform> efMap)
+			throws ObjectNotFoundException, DuplicateObjectException, CtdbException, DuplicateArchiveObjectException {
 		Connection conn = null;
-		boolean closedout = false;
+		
+		try {
+			conn = CtdbManager.getConnection(CtdbManager.AUTOCOMMIT_FALSE);
+			ProtocolManagerDao dao = ProtocolManagerDao.getInstance(conn);
+			
+			dao.updateEformsForProtocol(protoId, efMap);
+			this.commit(conn);
+		} finally {
+			this.rollback(conn);
+			this.close(conn);
+		}
+	}
+	
+	public boolean checkIfProtoHasRandomization(int protocolId) throws CtdbException {
+		Connection conn = null;
+		boolean hasRandomization = false;
+
+		try {
+			conn = CtdbManager.getConnection();
+			ProtocolManagerDao dao = ProtocolManagerDao.getInstance(conn);
+			hasRandomization = dao.checkIfProtoHasRandomization(protocolId);
+		} finally {
+			this.close(conn);
+		}
+		return hasRandomization;
+	}
+	
+	public List<ProtocolRandomization> getProtoRandomizationListByProto(int protocolId) throws CtdbException {
+		Connection conn = null;
+		List<ProtocolRandomization> randomizationList = new ArrayList<ProtocolRandomization>();
 		
 		try{
 			conn = CtdbManager.getConnection();
 			ProtocolManagerDao dao = ProtocolManagerDao.getInstance(conn);
-			closedout = dao.checkProtocolClosed(protocolId);
+			randomizationList = dao.getProtoRandomizationListByProto(protocolId);
 		} finally {
 			this.close(conn);
 		}
-		
-		return closedout;
+		return randomizationList;
 	}
 	
+	public int createProtoRandomization(ProtocolRandomization protoRandom) throws CtdbException{
+		Connection conn = null;
+
+		try	{
+			conn = CtdbManager.getConnection(CtdbManager.AUTOCOMMIT_FALSE);
+			ProtocolManagerDao dao = ProtocolManagerDao.getInstance(conn);
+			dao.createProtoRandomization(protoRandom);
+			this.commit(conn);
+		} finally {
+			this.rollback(conn);
+			this.close(conn);
+		}
+
+		return protoRandom.getId();
+	}
 }

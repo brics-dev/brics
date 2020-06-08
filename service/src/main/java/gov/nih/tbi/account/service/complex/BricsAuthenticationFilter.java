@@ -21,8 +21,8 @@ import gov.nih.tbi.commons.ws.HashMethods;
 
 public class BricsAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
-	public static final String SPRING_SECURITY_FORM_USERNAME_KEY = "j_username";
-	public static final String SPRING_SECURITY_FORM_PASSWORD_KEY = "j_password";
+	public static final String SPRING_SECURITY_FORM_USERNAME_KEY = "abcd";
+	public static final String SPRING_SECURITY_FORM_PASSWORD_KEY = "abcd";
 
 	@Autowired
 	ModulesConstants modulesConstants;

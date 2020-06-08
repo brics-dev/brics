@@ -3,6 +3,18 @@ package gov.nih.nichd.ctdb.common;
 import org.springframework.beans.factory.annotation.Value;
 
 public class ModulesConstants {
+	
+	/******************** Mail Messages *****************************/
+	public final static String MAIL_RESOURCE_EMAIL_PSR = "emailPsr";
+
+	public final static String MAIL_RESOURCE_TO = ".to";
+	public final static String MAIL_RESOURCE_SUBJECT = ".subject";
+	public final static String MAIL_RESOURCE_HEADER = ".header";
+	public final static String MAIL_RESOURCE_BODY = ".body";
+	public final static String MAIL_RESOURCE_FOOTER = ".footer";
+	public final static String MAIL_RESOURCE_PD = ".pd";
+
+	
 	@Value("#{applicationProperties['modules.org.name']}")
 	private String modulesOrgName;
 	
@@ -19,10 +31,6 @@ public class ModulesConstants {
 	// There is a hack here to support autowiring of a static field. (The set property is defined in context.xml)
 	@Value("#{applicationProperties['modules.webservices.secured']}")
 	private boolean wsSecured;
-
-	//added to display last deployed timestamp in proforms footer
-	@Value("#{applicationProperties['Last-Deployed']}")
-	private String lastDeployedTimeStamp;
 	
 	public String getModulesOrgName() {
 		return modulesOrgName;
@@ -45,13 +53,5 @@ public class ModulesConstants {
 	}
 	public boolean getWsSecured() {
 		return wsSecured;
-	}
-
-	public String getLastDeployedTimeStamp() {
-		return lastDeployedTimeStamp;
-	}
-
-	public void setLastDeployedTimeStamp(String lastDeployedTimeStamp) {
-		this.lastDeployedTimeStamp = lastDeployedTimeStamp;
 	}
 }

@@ -39,8 +39,7 @@ public class BaseManagerImpl implements BaseManager, Serializable
 
         Collection<? extends GrantedAuthority> authorities = null;
 
-        authorities = roleHierarchy.getReachableGrantedAuthorities(AccountDetailService.getAuthorities(account
-                .getAccountRoleList()));
+        authorities = roleHierarchy.getReachableGrantedAuthorities(AccountDetailService.getAuthorities(account));
 
         if (authorities.contains(new SimpleGrantedAuthority(role.getName())))
         {

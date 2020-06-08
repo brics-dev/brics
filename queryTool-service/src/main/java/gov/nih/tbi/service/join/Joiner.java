@@ -178,11 +178,6 @@ public class Joiner {
 				}
 
 				if (match) {
-					//for a combination with more than one form
-					if (combo.length > 1) {
-						cache.setHasMatchingGuid(true);
-					}
-
 					records.addAll(createRecords(guid, combo));
 					break;
 				}
@@ -201,9 +196,10 @@ public class Joiner {
 	 * @return
 	 */
 	private List<InstancedRecord> createRecords(String guid, Integer[] combo) {
-		if (!formList[combo[0]].equals(formList[0])) {
-			return new ArrayList<InstancedRecord>();
-		}
+		// uncomment this to bring back left outer join.
+		// if (!formList[combo[0]].equals(formList[0])) {
+		// return new ArrayList<InstancedRecord>();
+		// }
 
 		// gather all the data with the given guid into a 2D array. Linked list is used here because we will need the
 		// poll method later.

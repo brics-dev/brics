@@ -4,6 +4,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
 
+import javax.ws.rs.InternalServerErrorException;
+
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.transport.http.HTTPConduit;
@@ -26,7 +28,7 @@ public class RestAuthenticationProvider {
 
 	private final static long RECEIVE_TIMEOUT = 60000L;
 	private final static long CONNECTION_TIMEOUT = 30000L;
-	
+
 	private final String TICKET_PROPERTY = "ticket=";
 
 	protected String serverUrl = null;
@@ -125,12 +127,16 @@ public class RestAuthenticationProvider {
 	 * @return The encoded version of the proxy ticket;
 	 * @throws UnsupportedEncodingException When there is an error encoding the proxy ticket.
 	 */
-	protected String getEncodedTicket() throws UnsupportedEncodingException {
+	protected String getEncodedTicket() {
 		if (!wsSecure) {
 			return QueryToolConstants.EMPTY_STRING;
 		}
 		if (proxyTicket != null) {
-			return URLEncoder.encode(proxyTicket, "UTF-8");
+			try {
+				return URLEncoder.encode(proxyTicket, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				throw new InternalServerErrorException("Error occured while encoding the proxy ticket");
+			}
 		}
 
 		return QueryToolConstants.EMPTY_STRING;
@@ -195,7 +201,7 @@ public class RestAuthenticationProvider {
 		StringBuilder builder = new StringBuilder();
 
 		if (variables.length != parameters.length) {
-			throw new RuntimeException("Number of variables and parameters must be the same!");
+			throw new IllegalArgumentException("Number of variables and parameters must be the same!");
 		}
 
 		// counts the number of parameters

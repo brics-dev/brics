@@ -1,12 +1,12 @@
 package gov.nih.tbi.ws.provider;
 
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -23,7 +23,7 @@ import gov.nih.tbi.query.model.hibernate.SavedQuery;
 public class RestSavedQueryProvider extends RestAuthenticationProvider {
 
 	private static final Logger log = LogManager.getLogger(RestSavedQueryProvider.class);
-	
+
 	/**
 	 * A constructor for a rest provider in which the serverLocation provided is the domain of the web service call
 	 * being made. In the case that any path information other than a domain (such as /portal), that information is
@@ -34,7 +34,6 @@ public class RestSavedQueryProvider extends RestAuthenticationProvider {
 	 * 
 	 * @param serverLocation
 	 * @param proxyTicket
-	 * @throws MalformedURLException
 	 */
 	public RestSavedQueryProvider(String serverLocation, String proxyTicket) {
 
@@ -62,15 +61,18 @@ public class RestSavedQueryProvider extends RestAuthenticationProvider {
 	 * @param assertion
 	 * @return True if and only if the given query name is unique, and does not correspond to any saved query XML file
 	 *         name.
-	 * @throws UnsupportedEncodingException When a proxy ticket could not be generated for the call to a web service.
-	 * @throws WebApplicationException When there is an HTTP error returned by the web service.
 	 */
 	public boolean isQueryNameUnique(String queryName,
-			String path /* constants.getSavedQueryNameUniqueWebServiceURL() */)
-			throws UnsupportedEncodingException, WebApplicationException {
+			String path /* constants.getSavedQueryNameUniqueWebServiceURL() */) {
 
 		// check if name exists for saved query, if it exists we will return false
-		WebClient client = createWebClient(path + "/" + URLEncoder.encode(queryName, "UTF-8"));
+		WebClient client;
+		try {
+			client = createWebClient(path + "/" + URLEncoder.encode(queryName, "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			throw new InternalServerErrorException(Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("Error occured while encoding saved query name").build());
+		}
 
 		client.query("ticket", getEncodedTicket(), "UTF-8");
 		log.debug("isQueryNameUnique url: " + client.getCurrentURI().toString());
@@ -85,12 +87,9 @@ public class RestSavedQueryProvider extends RestAuthenticationProvider {
 	 * Saves the query using the query tool rest service. See the QueryToolRestService.java class
 	 * 
 	 * @param savedQuery - The SavedQuery object to send to the web service.
-	 * @throws UnsupportedEncodingException When the proxy ticket is invalid or couldn't be encoded.
-	 * @throws WebApplicationException When the call to the web services results in a HTTP error response.
 	 */
 	public SavedQuery saveSavedQuery(SavedQuery savedQuery,
-			String path /* constants.getSavedQueryCreateSavedQueryWebServiceURL() */)
-			throws UnsupportedEncodingException, WebApplicationException {
+			String path /* constants.getSavedQueryCreateSavedQueryWebServiceURL() */) {
 		WebClient client = createWebClient(path);
 		log.info("Saving the query named " + savedQuery.getName());
 
@@ -110,12 +109,9 @@ public class RestSavedQueryProvider extends RestAuthenticationProvider {
 	 *
 	 * @param savedQueryId
 	 * @param accountName
-	 * @throws UnsupportedEncodingException When there is an error URL encoding the proxy ticket.
-	 * @throws WebApplicationException When a the delete call to the web service was not successful.
 	 */
 	public int removeSavedQuery(Long savedQueryId,
-			String path /* constants.getSavedQueryRemoveSavedQueryWebServiceURL() */)
-			throws UnsupportedEncodingException, WebApplicationException {
+			String path /* constants.getSavedQueryRemoveSavedQueryWebServiceURL() */) {
 		WebClient client = createWebClient(path + "/" + savedQueryId);
 
 		client.query("ticket", getEncodedTicket());
@@ -132,14 +128,12 @@ public class RestSavedQueryProvider extends RestAuthenticationProvider {
 	 * @param accountName
 	 * @param path
 	 * @return
-	 * @throws UnsupportedEncodingException When there is an error URL encoding the proxy ticket.
-	 * @throws WebApplicationException When the web service call returns a HTTP error response.
 	 */
-	public List<SavedQuery> getSavedQueries(String accountName, String path /*constants.getUserSavedQueryListWebServiceURL()*/)
-			throws UnsupportedEncodingException, WebApplicationException {
+	public List<SavedQuery> getSavedQueries(String accountName,
+			String path /* constants.getUserSavedQueryListWebServiceURL() */) {
 
 		WebClient client = createWebClient(path + "/" + accountName);
-		
+
 		// sets the list of saved queries to only return non copied saved queries
 		client.query("isCopy", false);
 		client.query("ticket", getEncodedTicket());
@@ -152,8 +146,7 @@ public class RestSavedQueryProvider extends RestAuthenticationProvider {
 	}
 
 
-	public SavedQuery getSavedQueryById(Long queryId, String path /* constants.getSavedQueryGetWebServiceURL() */)
-			throws UnsupportedEncodingException, WebApplicationException {
+	public SavedQuery getSavedQueryById(Long queryId, String path /* constants.getSavedQueryGetWebServiceURL() */) {
 		WebClient client = createWebClient(path + "/" + queryId);
 
 		client.query("ticket", getEncodedTicket());
@@ -170,11 +163,8 @@ public class RestSavedQueryProvider extends RestAuthenticationProvider {
 	 * 
 	 * @param path
 	 * @return
-	 * @throws UnsupportedEncodingException When there is an error while URL encoding the proxy ticket.
-	 * @throws WebApplicationException When the web service sends a HTTP error response.
 	 */
-	public Map<Long, MetaStudy> getMetaStudies(String path /* constants.getUserMetaStudyListWebServiceURL() */)
-			throws UnsupportedEncodingException, WebApplicationException {
+	public Map<Long, MetaStudy> getMetaStudies(String path /* constants.getUserMetaStudyListWebServiceURL() */) {
 		WebClient client = createWebClient(path);
 
 		client.query("ticket", getEncodedTicket());
@@ -200,10 +190,9 @@ public class RestSavedQueryProvider extends RestAuthenticationProvider {
 	 * @param metaStudyId
 	 * @param savedQueryId
 	 * @param path
-	 * @throws UnsupportedEncodingException When there is an error URL encoding the proxy ticket.
-	 * @throws WebApplicationException When the web service call sends a HTTP error response.
 	 */
-	public void linkSavedQueryMetaStudy(Long metaStudyId, Long savedQueryId, String path /*constants.linkSavedQueryMetaStudyServiceURL()*/)
+	public void linkSavedQueryMetaStudy(Long metaStudyId, Long savedQueryId,
+			String path /* constants.linkSavedQueryMetaStudyServiceURL() */)
 			throws UnsupportedEncodingException, WebApplicationException {
 
 		WebClient client = createWebClient(path + "/" + savedQueryId + "/" + metaStudyId);
@@ -213,17 +202,23 @@ public class RestSavedQueryProvider extends RestAuthenticationProvider {
 
 		client.get();
 	}
-	
-	
-	public boolean isFileNameUniquePerMetaStudy(String fileName, long metaStudyId,
-			String path /*constants.getSavedQueryFileNameUniqueWebServiceURL()*/)
-			throws UnsupportedEncodingException {
 
-		WebClient client = createWebClient(path + "/" + URLEncoder.encode(fileName, "UTF-8"));
+
+	public boolean isFileNameUniquePerMetaStudy(String fileName, long metaStudyId,
+			String path /* constants.getSavedQueryFileNameUniqueWebServiceURL() */) {
+
+		WebClient client;
+
+		try {
+			client = createWebClient(path + "/" + URLEncoder.encode(fileName, "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			throw new InternalServerErrorException(Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("Error occured while encoding fileName name").build());
+		}
 
 		client.query("ticket", getEncodedTicket(), "UTF-8");
 		log.debug("isFileNameUnique url: " + client.getCurrentURI().toString());
-		
+
 		client.query("metaStudyId", metaStudyId);
 
 		Boolean isNameUnique = client.accept(MediaType.TEXT_PLAIN).get(Boolean.class);
@@ -232,13 +227,19 @@ public class RestSavedQueryProvider extends RestAuthenticationProvider {
 	}
 
 	public boolean isSavedQueryUniquePerMetaStudy(String queryName, long metaStudyId,
-			String path /*constants.getSavedQueryNameUniquePerMetaStudyPath()*/) throws UnsupportedEncodingException {
-		
-		WebClient client = createWebClient(path + "/" + URLEncoder.encode(queryName, "UTF-8"));
+			String path /* constants.getSavedQueryNameUniquePerMetaStudyPath() */) {
+
+		WebClient client;
+		try {
+			client = createWebClient(path + "/" + URLEncoder.encode(queryName, "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			throw new InternalServerErrorException(Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("Error occured while encoding saved query name").build());
+		}
 
 		client.query("ticket", getEncodedTicket(), "UTF-8");
 		log.debug("isQueryNameUnique url: " + client.getCurrentURI().toString());
-				
+
 		client.query("metaStudyId", metaStudyId);
 
 		Boolean isNameUnique = client.accept(MediaType.TEXT_PLAIN).get(Boolean.class);
@@ -246,21 +247,37 @@ public class RestSavedQueryProvider extends RestAuthenticationProvider {
 		return isNameUnique.booleanValue();
 	}
 	
+	public boolean isQueryLinkedToMetaStudy(long savedQueryId, String path) {
+
+		WebClient client = createWebClient(path + "/" + savedQueryId);
+		client.query("ticket", getEncodedTicket());
+		log.debug("isQueryLinkedToMetaStudy link URL: " + client.getCurrentURI().toString());
+
+		Boolean isLinked = client.accept(MediaType.TEXT_PLAIN).get(Boolean.class);
+		return isLinked.booleanValue();
+	}
+
 	public SavedQuery getSavedQueryByNameAndMetaStudy(String queryName, long metaStudyId,
-			String path /*constants.getSavedQueryByNameAndMetaStudyPath()*/) throws UnsupportedEncodingException {
-		
-		WebClient client = createWebClient(path + "/" + URLEncoder.encode(queryName, "UTF-8"));
+			String path /* constants.getSavedQueryByNameAndMetaStudyPath() */) {
+
+		WebClient client;
+		try {
+			client = createWebClient(path + "/" + URLEncoder.encode(queryName, "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			throw new InternalServerErrorException(Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("Error occured while encoding saved query name").build());
+		}
 
 		client.query("ticket", getEncodedTicket(), "UTF-8");
 		log.debug("getSavedQueryByNameAndMetaStudy url: " + client.getCurrentURI().toString());
-				
+
 		client.query("metaStudyId", metaStudyId);
 
 		SavedQuery savedQ = client.accept(MediaType.APPLICATION_XML).get(SavedQuery.class);
 
 		return savedQ;
 	}
-	
-	
+
+
 
 }

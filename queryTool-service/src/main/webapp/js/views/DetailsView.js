@@ -2,19 +2,11 @@
  * 
  */
 QT.DetailsView = BaseView.extend({
-	Dialog : null,
-	dialogConfig : {
-		buttons : []
-	},
-	
 	events : {
-		
 		
 	},
 	
 	initialize : function() {
-		this.Dialog = new QT.Dialog();
-		this.template = TemplateManager.getTemplate("details");
 		EventBus.on("open:details",this.open,this);
 		EventBus.on("close:details", this.close, this);
 	},
@@ -25,12 +17,7 @@ QT.DetailsView = BaseView.extend({
 	},
 	
 	setup : function() {
-		if (!this.initialized) {
-			this.$el = $("#detailsDialog");
-			var localConfig = $.extend({}, this.dialogConfig, {$container: this.$el});
-			this.Dialog.init(this, this.model, localConfig);
-			this.initialized = true;
-		}
+		this.$el = $("#detailsDialog");
 	},
 	
 	open : function(model) {
@@ -71,34 +58,8 @@ QT.DetailsView = BaseView.extend({
 			}
 		}
 		if (proceed) {
-			this.$el.html(this.template({}));			
-			this.$("#detailsFr").attr("height", Config.getMaxDialogHeight() - 50).attr("src",url);
-			this.Dialog.open();
+			window.open(url, "_blank", "width=100%, height="+Config.getMaxDialogHeight() - 50);
 		}
 		
-	},
-	
-	styleDialog : function() {
-		// Private
-		// inject the query CSS styles into an iframe
-		// takes a string that is the ID element of a frame
-		var id = "detailsFr";
-		var iframe = this.iframeRef(document.getElementById(id));
-		// drop in our styles but override body background color
-		$("body", iframe).css($("body", iframe).css("background-color", "#fff"));
-	},
-	
-	iframeRef: function (frameRef) {
-		return frameRef.contentWindow ? frameRef.contentWindow.document
-				: frameRef.contentDocument
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
 });

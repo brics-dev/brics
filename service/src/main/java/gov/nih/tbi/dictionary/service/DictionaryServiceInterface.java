@@ -4,6 +4,7 @@ package gov.nih.tbi.dictionary.service;
 import gov.nih.tbi.account.model.hibernate.Account;
 import gov.nih.tbi.account.ws.exception.UserAccessDeniedException;
 import gov.nih.tbi.commons.model.EntityType;
+import gov.nih.tbi.commons.model.EventType;
 import gov.nih.tbi.commons.model.SeverityLevel;
 import gov.nih.tbi.commons.service.BaseManager;
 import gov.nih.tbi.commons.service.UserPermissionException;
@@ -14,7 +15,10 @@ import gov.nih.tbi.dictionary.model.FormStructureFacet;
 import gov.nih.tbi.dictionary.model.SeverityRecord;
 import gov.nih.tbi.dictionary.model.hibernate.DataElement;
 import gov.nih.tbi.dictionary.model.hibernate.DictionaryEventLog;
+import gov.nih.tbi.dictionary.model.hibernate.DictionarySupportingDocumentation;
+import gov.nih.tbi.dictionary.model.hibernate.FormLabel;
 import gov.nih.tbi.dictionary.model.hibernate.FormStructure;
+import gov.nih.tbi.dictionary.model.hibernate.PublishedFormStructure;
 import gov.nih.tbi.dictionary.model.rdf.SemanticDataElement;
 import gov.nih.tbi.dictionary.model.rdf.SemanticFormStructure;
 import gov.nih.tbi.dictionary.service.rulesengine.model.RulesEngineException;
@@ -83,6 +87,9 @@ public interface DictionaryServiceInterface extends BaseManager
     public List<SemanticDataElement> semanticDataElementSearch(Account account, DictionarySearchFacets facets,
             Map<FacetType, Set<String>> searchKeywords, boolean exactMatch, boolean onlyOwned, 
             PaginationData pageData, String[] proxyTickets);
+    
+    public int semanticDataElementSearchCount(DictionarySearchFacets facets,
+            Map<FacetType, Set<String>> searchKeywords, boolean exactMatch, boolean onlyOwned);
 
     /**
      * Service level data element search.
@@ -205,5 +212,23 @@ public interface DictionaryServiceInterface extends BaseManager
     public Set<DictionaryEventLog> getAllDEEventLogs(Long entityId);
     
     public Set<DictionaryEventLog> getAllFSEventLogs(Long entityID);
+    
+    public List<FormLabel> getFormLabels();
+    
+    public FormLabel getFormLabel(Long formLabelId);
+    
+    public boolean isFormLabelUnique(String formLabel);
+    
+    public FormLabel saveFormLabel(FormLabel formLabel);
+    
+    public void updateFormLabel(FormLabel formLabel, String newLabel);
+    
+	public void deleteFormLabelById(Long formLabelId);
+	
+	public boolean isFormStructurePublished(Long formStructureId, Long diseaseId);
+	
+	public void saveFormStructurePublished(PublishedFormStructure publishedFormStructure);
+	
+	public DictionaryEventLog saveEventLog(DictionaryEventLog eventLog, FormStructure formStructure, Set<DictionarySupportingDocumentation> docList,String statusChangeComment, EventType eventType);
 
 }

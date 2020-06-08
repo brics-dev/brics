@@ -32,9 +32,12 @@ import org.apache.struts2.ServletActionContext;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Document;
 
 import gov.nih.nichd.ctdb.attachments.domain.Attachment;
+import gov.nih.nichd.ctdb.btris.domain.BtrisObject;
+import gov.nih.nichd.ctdb.btris.manager.BtrisManager;
 import gov.nih.nichd.ctdb.common.BaseAction;
 import gov.nih.nichd.ctdb.common.CasProxyTicketException;
 import gov.nih.nichd.ctdb.common.CtdbConstants;
@@ -43,6 +46,7 @@ import gov.nih.nichd.ctdb.common.DuplicateObjectException;
 import gov.nih.nichd.ctdb.common.ObjectNotFoundException;
 import gov.nih.nichd.ctdb.common.ResourceNotAvailableException;
 import gov.nih.nichd.ctdb.common.StrutsConstants;
+import gov.nih.nichd.ctdb.common.cache.AformCache;
 import gov.nih.nichd.ctdb.common.navigation.LeftNavController;
 import gov.nih.nichd.ctdb.common.util.Utils;
 import gov.nih.nichd.ctdb.common.util.XslTransformer;
@@ -50,13 +54,13 @@ import gov.nih.nichd.ctdb.form.common.FormConstants;
 import gov.nih.nichd.ctdb.form.domain.Form;
 import gov.nih.nichd.ctdb.form.manager.FormManager;
 import gov.nih.nichd.ctdb.form.util.FormDataStructureUtility;
-import gov.nih.nichd.ctdb.patient.common.PatientResultControl;
 import gov.nih.nichd.ctdb.patient.domain.Patient;
 import gov.nih.nichd.ctdb.patient.domain.PatientVisit;
 import gov.nih.nichd.ctdb.patient.manager.PatientManager;
 import gov.nih.nichd.ctdb.protocol.domain.Interval;
 import gov.nih.nichd.ctdb.protocol.domain.Protocol;
 import gov.nih.nichd.ctdb.protocol.manager.ProtocolManager;
+import gov.nih.nichd.ctdb.question.domain.Question;
 import gov.nih.nichd.ctdb.question.domain.QuestionType;
 import gov.nih.nichd.ctdb.question.manager.QuestionManager;
 import gov.nih.nichd.ctdb.response.common.DuplicateDataEntriesException;
@@ -74,6 +78,7 @@ import gov.nih.nichd.ctdb.response.manager.DataSubmissionManager;
 import gov.nih.nichd.ctdb.response.manager.ResponseManager;
 import gov.nih.nichd.ctdb.response.util.DataCollectionUtils;
 import gov.nih.nichd.ctdb.response.util.XMLManipulator;
+import gov.nih.nichd.ctdb.security.common.SecurityConstants;
 import gov.nih.nichd.ctdb.security.domain.User;
 import gov.nih.nichd.ctdb.security.manager.SecurityManager;
 import gov.nih.nichd.ctdb.security.util.SecuritySessionUtil;
@@ -81,6 +86,7 @@ import gov.nih.nichd.ctdb.site.manager.SiteManager;
 import gov.nih.nichd.ctdb.util.common.SysPropUtil;
 import gov.nih.tbi.account.model.hibernate.Account;
 import gov.nih.tbi.commons.ws.HashMethods;
+import gov.nih.tbi.dictionary.model.hibernate.eform.BasicEform;
 
 
 /**
@@ -104,7 +110,12 @@ public class DataCollectionAction extends BaseAction {
 
 	private String action;
 	private String mode;
+	private Boolean audit;
+	private String sqshow;
+	private String sId;
+	private String qId;
 	private boolean nextPreviousJumpToFormTracker;
+	private String aformCacheKey;
 	private DataEntrySetupForm dataEntryForm = new DataEntrySetupForm();
 	
     // Special handling for file type questions 
@@ -112,13 +123,38 @@ public class DataCollectionAction extends BaseAction {
     private List<String> fileUploadFileName = new ArrayList<String>();
     private List<String> fileUploadContentType = new ArrayList<String>();
     
-    private String hiddenSectionsQuestionsElementIdsJSON = "[]";
+    private String hiddenSectionsQuestionsPVsElementIdsJSON = "[]";
     
     // For mapping each uploaded file to the corresponding question
-    private List<String> fileUploadKey = new ArrayList<String>();    
+    private List<String> fileUploadKey = new ArrayList<String>();
+    private List<Integer> siteIds = new ArrayList<Integer>(); 
+    
+   private boolean catValidate = false;
+   
+    
+    @Autowired
+    private AformCache aformCache;
 	
 	public String execute() throws Exception{
 
+		// buildLeftNav(LeftNavController.LEFTNAV_COLLECT_COLLECT);
+		
+		audit = Boolean.parseBoolean(request.getParameter(CtdbConstants.DATACOLLECTION_AUDIT));
+		if (audit != null && audit) {
+			request.setAttribute(CtdbConstants.DATACOLLECTION_AUDIT, "true"); 
+		}
+		
+		sqshow  = request.getParameter(CtdbConstants.DATACOLLECTION_SQ_SHOW);
+		sId  = request.getParameter(CtdbConstants.DATACOLLECTION_SID);
+		qId  = request.getParameter(CtdbConstants.DATACOLLECTION_QID);
+		if(sqshow!=null && ("true").equalsIgnoreCase(sqshow) 
+		   && sId!=null && !sId.isEmpty() && qId!=null && !qId.isEmpty()
+		   )
+		{
+			request.setAttribute(CtdbConstants.DATACOLLECTION_SQ_SHOW, "true"); 
+			request.setAttribute(CtdbConstants.DATACOLLECTION_SID, sId); 
+			request.setAttribute(CtdbConstants.DATACOLLECTION_QID, qId); 
+		}
 
 		action = request.getParameter(StrutsConstants.ACTION);
 		nextPreviousJumpToFormTracker = false;
@@ -130,12 +166,14 @@ public class DataCollectionAction extends BaseAction {
 		Protocol protocol = null;
 		
 		
-
-		if(!action.equals(StrutsConstants.FETCHFORMPSR ) &&  !action.equals(StrutsConstants.EDITFORMPSR) && !action.equals(StrutsConstants.SAVEFORMPSR) ) {
+		User user = getUser();
+		if(!action.equals(StrutsConstants.FETCHFORMPSR ) 
+				&&  !action.equals(StrutsConstants.EDITFORMPSR) 
+				&& !action.equals(StrutsConstants.SAVEFORMPSR) 
+				&& user != null) {
 		
 			buildLeftNav(LeftNavController.LEFTNAV_COLLECT_COLLECT);
 			
-			User user = getUser();
 			String userFullName = user.getFirstName() + " " + user.getLastName();
 			dataEntryForm.setUserFullName(userFullName);
 			
@@ -255,15 +293,28 @@ public class DataCollectionAction extends BaseAction {
 		
 		// New action to load next/previous Form on click of the Next/Previous
 		// button or jumpTo certain form onClick on jumpto link
+		audit = Boolean.parseBoolean(request.getParameter(CtdbConstants.DATACOLLECTION_AUDIT));
+		if (audit == null) {
+			audit = (boolean) request.getAttribute(CtdbConstants.DATACOLLECTION_AUDIT);
+		}
 		if (action.equals(StrutsConstants.NEXTFORM) || action.equals(StrutsConstants.PREVIOUSFORM) || 
 			action.equals(StrutsConstants.JUMPTOFORM)) {
-			
-			String af = this.nextPreviousJumpToNavigation(rm, pm, fm, protoMan);
-			// If there is forward this means there are errors in the form 
-			// so go there for correction else continue with normal flow
-			if (af != null) {
-				
-				return af;
+			if (audit != null && audit) {
+				String af = this.nextPreviousJumpToNavigationAudit(rm, pm, fm, protoMan);
+				// If there is forward this means there are errors in the form
+				// so go there for correction else continue with normal flow
+				if (af != null) {
+
+					return af;
+				}
+			} else {
+				String af = this.nextPreviousJumpToNavigation(rm, pm, fm, protoMan);
+				// If there is forward this means there are errors in the form
+				// so go there for correction else continue with normal flow
+				if (af != null) {
+
+					return af;
+				}
 			}
 		}
 
@@ -272,8 +323,11 @@ public class DataCollectionAction extends BaseAction {
 
 			if (mode.equals(CtdbConstants.DATACOLLECTION_FORMPATIENT)) {
 				String shortName = fm.getEFormShortNameByEFormId(currentFormId);
-
-				setPatientIntervalsList(currentFormId, shortName , pm, protocol, protoMan, fm, currentFormId);
+				/*CRIT-11445: replace form name with eform title from dictionary */
+				FormDataStructureUtility fsUtil = new FormDataStructureUtility();
+				Form form = fsUtil.getEformFromBrics(request, shortName);
+				String eformTitle = form.getName();
+				setPatientIntervalsList(currentFormId, eformTitle, pm, protocol, protoMan, fm, currentFormId);
 
 				Date todDate = new Date();
 				SimpleDateFormat sf = new SimpleDateFormat(SysPropUtil.getProperty("default.system.datetimeformat"));
@@ -351,7 +405,7 @@ public class DataCollectionAction extends BaseAction {
 			
 			if (mode.equals(CtdbConstants.DATACOLLECTION_FORMPATIENT)) {
 				try {
-					return this.editSubjectForm(rm, fm, qm, protoMan, pm);
+					return this.editSubjectForm(rm, fm, qm, protoMan, pm); //edit //audit
 				} catch (RuntimeException e) {
 					logger.error("Error in retrieving form", e);
 					addActionError(getText(StrutsConstants.ERROR_RESPONSE_LOADINGFORM));
@@ -559,9 +613,24 @@ public class DataCollectionAction extends BaseAction {
 				jsonObj.put("disabled", false);
 				jsonReturnArray.put(jsonObj);
 				
+				List<String> shortNameList = new ArrayList<String>();
+				for (Form form : forms) {
+					shortNameList.add(form.getShortName());
+				}
+				FormDataStructureUtility fsUtil = new FormDataStructureUtility();
+				List<BasicEform> basicEforms = fsUtil.getBasicEforms(request, shortNameList);
+
 				for (Form f : forms) {
 					jsonObj = new JSONObject();
 					jsonObj.put("id", String.valueOf(f.getId()));
+					// CRIT-11445: using eform title from dictionary in form name
+					for (BasicEform beForm : basicEforms) {
+						if (f.getShortName().equals(beForm.getShortName())) {
+							String efTitle = beForm.getTitle();
+							f.setName(efTitle);
+							break;
+						}
+					}
 					jsonObj.put("name", f.getName());
 
 					if ( eformIds.contains(Integer.valueOf(f.getId())) ) {
@@ -582,6 +651,31 @@ public class DataCollectionAction extends BaseAction {
 			out.flush();
 			return null;
 
+		} else if (action.equals(StrutsConstants.AUDITCOMMENTS)) {
+			logger.info(DataCollectionUtils.getUserIdSessionIdString(request) + "DataCollectinAction->auditComments");
+			if (mode.equals(CtdbConstants.DATACOLLECTION_FORMPATIENT)) {
+				try {
+					return this.auditCommentSubjectForm(rm, fm, qm, protoMan, pm); // edit //audit
+				} catch (RuntimeException e) {
+					logger.error("Error in retrieving form", e);
+					addActionError(getText(StrutsConstants.ERROR_RESPONSE_LOADINGFORM));
+					session.put(DataCollectionAction.ACTION_ERRORS_KEY, getActionErrors());
+					return StrutsConstants.MY_COLLECTIONS;
+				} catch (JAXBException e) {
+					logger.error("Error in retrieving form", e);
+					addActionError(getText(StrutsConstants.ERROR_RESPONSE_LOADINGFORM));
+					session.put(DataCollectionAction.ACTION_ERRORS_KEY, getActionErrors());
+					return StrutsConstants.MY_COLLECTIONS;
+				} catch (Exception e) {
+					logger.error("Error in retrieving form", e);
+					addActionError(getText(StrutsConstants.ERROR_RESPONSE_LOADINGFORM));
+					session.put(DataCollectionAction.ACTION_ERRORS_KEY, getActionErrors());
+					return StrutsConstants.MY_COLLECTIONS;
+				}
+			}
+		} else if (action.equals("getBtrisData")) {
+			this.getBtrisData();
+			return null;
 		} else {
 			request.setAttribute(CtdbConstants.DATACOLLECTION_MODE, mode);
 		}
@@ -618,7 +712,12 @@ public class DataCollectionAction extends BaseAction {
 		dataEntryForm.setFormName(aform.getForm().getName());
 		//dataEntryForm.setVisitDate(aform.getVisitDateStringyyyyMMddHHmm());
 		
-		request.setAttribute(FormConstants.FORMDETAIL, getFormHtml(aform, true, false, null));
+		boolean isEditInProgressCAT = false;
+		if(aform.isCAT() && aform.getEntryOneStatus() != null && getAformFormStatus(aform,patient.getId()).equals(CtdbConstants.DATACOLLECTION_STATUS_INPROGRESS)) {
+			isEditInProgressCAT = true;
+		}
+		
+		request.setAttribute(FormConstants.FORMDETAIL, getFormHtml(aform, true, false, null,isEditInProgressCAT));
 	}
 	
 	/**
@@ -630,7 +729,7 @@ public class DataCollectionAction extends BaseAction {
 	 * @return The form html
 	 * @throws Exception Thrown if any errors occur while processing
 	 */
-	private String getFormHtml(AdministeredForm aform, boolean firstTime, boolean onMobile, PatientVisit pvPSR) throws CtdbException{
+	private String getFormHtml(AdministeredForm aform, boolean firstTime, boolean onMobile, PatientVisit pvPSR, boolean isEditInProgressCAT) throws CtdbException{
 		logger.info("getFormHtml->populating form XSD with content");
 		String xsl;
 		if (onMobile) {
@@ -657,7 +756,12 @@ public class DataCollectionAction extends BaseAction {
 					xsl = SysPropUtil.getProperty("form.tab.xsl.tabAnswerDisplay");
 				} else {
 					if(aform.isCAT() && !mType.equals(StrutsConstants.SHORT_FORM)) {
-						xsl = SysPropUtil.getProperty("form.xsl.answerdisplayPROMIS");
+						if(isEditInProgressCAT) {
+							xsl = SysPropUtil.getProperty("form.xsl.displayPROMIS");
+						}else {
+							xsl = SysPropUtil.getProperty("form.xsl.answerdisplayPROMIS");
+						}
+						
 					}else {
 						xsl = SysPropUtil.getProperty("form.xsl.answerdisplay");
 					}
@@ -701,6 +805,100 @@ public class DataCollectionAction extends BaseAction {
 		return status;
 	}
 	
+	/**
+	 * //edit //audit
+	 * Notes: call by editSubjectForm (and saveAuditComment) for both edit and audit pages.
+	 * set JsResponse.js by Response.java
+	 * --rm.getLastAuditComment for buttons showing on edit page, and for default comment.
+	 */
+	/**
+	 * Method to get JS responses
+	 * @param responses
+	 * @param aform TODO
+	 * @return
+	 * @throws UnsupportedEncodingException
+	 */
+	private StringBuffer getJsResponsesAudit(List<Response> responses, AdministeredForm aform) 
+				throws UnsupportedEncodingException, CtdbException {
+		StringBuffer sb = new StringBuffer();
+		sb.append(" var jsResponses = new HashMap();\n");
+
+		audit = Boolean.parseBoolean(request.getParameter(CtdbConstants.DATACOLLECTION_AUDIT));
+		if (audit != null && audit) {
+			request.setAttribute(CtdbConstants.DATACOLLECTION_AUDIT, "true"); 
+		}
+		FormManager fm = new FormManager();
+		ResponseManager rm = new ResponseManager();
+		
+		for (Response r : responses) {
+			String response1 = "";
+			String response2 = "";
+			List<String> answers1 = r.getAnswers();
+			
+			if (r.getQuestion().getType() == QuestionType.File) {
+				if (answers1 != null && answers1.size() > 0) {
+					String answer1 = answers1.get(0);
+					if (answer1 != null && !answer1.equals("")) {
+						if (answer1.contains(":")) {
+							String fileName = answer1.substring(0, answer1.indexOf(":"));
+							response1 = fileName;
+						} else {
+							response1 = answer1;
+						}
+					}
+				}
+			} else {
+				response1 =  cleanUp(r.getAnswers()); 
+			}
+
+			sb.append("  var res = new JsResponse();\n"); 
+			sb.append("    res.setAnswer1 (URLDecode(\""+ response1 + "\"));\n");
+			sb.append("    res.setAnswer2 (URLDecode(\""+ response2 + "\"));\n");
+			sb.append("    res.setFinalAnswer (URLDecode(\""+ cleanUp(r.getAnswers()) + "\"));\n");
+			sb.append("    res.setQuestionId (" + r.getQuestion().getId()+ "); \n");
+			sb.append("    res.setSectionId (" + r.getQuestion().getSectionId()+ "); \n");
+			sb.append("    res.setResponseId (" + r.getId() + ");\n");
+			
+			String text = URLEncoder.encode(r.getQuestion().getText(), "UTF-8");
+			text = formatJsLineLenghts(text);
+			sb.append("    res.setQText(URLDecode(\"" + text + "\")); \n\n");
+			
+			if (r.getEditReason() != null) {
+				sb.append("res.setChangeReason(\"" + r.getEditReason() + "\");");
+			}
+
+			List auditpair = rm.getLastAuditComment(aform.getId(), 
+											r.getQuestion().getSectionId(), r.getQuestion().getId()); //loggedInUser
+			if(auditpair!=null && auditpair.size()!=0) {		
+				String editAuditComment = (String) auditpair.get(0);
+				editAuditComment = URLEncoder.encode(editAuditComment, "UTF-8");
+				editAuditComment = formatJsLineLenghts(editAuditComment);
+				if (editAuditComment != null) {
+					sb.append("res.setChangeAuditComment(URLDecode(\"" + editAuditComment + "\"));");
+				} else {
+					sb.append("res.setChangeAuditComment(\"\");");
+				}			
+				String auditStatus = (String) auditpair.get(1);
+				if (auditStatus != null) {
+					auditStatus = URLEncoder.encode(auditStatus, "UTF-8"); //NullPointException
+					auditStatus = formatJsLineLenghts(auditStatus);
+				}
+				if (auditStatus != null) {
+					sb.append("res.setAuditStatus(URLDecode(\"" + auditStatus + "\"));");
+				} else {
+					sb.append("res.setAuditStatus(\"\");");
+				}
+			}
+			else {
+				sb.append("res.setChangeAuditComment(\"\");");
+				sb.append("res.setAuditStatus(\"\");");
+			}
+			sb.append("  jsResponses.put (" + "\"S_" + r.getQuestion().getSectionId() + "_Q_" + 
+					r.getQuestion().getId() + "\"" + ", res);\n\n");
+		}
+		return sb;
+	}
+
 	/**
 	 * Method to get JS responses
 	 * @param responses
@@ -854,19 +1052,20 @@ public class DataCollectionAction extends BaseAction {
 	 * @param currentFormId
 	 * @throws CtdbException
 	 */
-	private void setPatientIntervalsList(int eformid, String shortname , PatientManager pm, Protocol protocol, 
+	private void setPatientIntervalsList(int eformid, String eformTitle, PatientManager pm, Protocol protocol,
 			ProtocolManager protoMan, FormManager fm, int currentFormId) throws CtdbException {
-		int protocolId = protocol.getId();
 		
-		PatientResultControl prc = new PatientResultControl();
-		prc.setProtocolId(protocolId);
-		prc.setInProtocol(true);
-		prc.setActiveInProtocol("");
-		prc.setSortBy(PatientResultControl.SORT_BY_ORDERVAL);
-		prc.setSortOrder(PatientResultControl.SORT_ASC);
-		prc.setFormId(eformid);
+				
+		List<Patient> patients = null;
+		int protocolId = protocol.getId();
 
-		List<Patient> patients = pm.getMinimalPatients(prc);
+		if(!isUserSiteCheckNeeded()) {
+			patients = pm.getMinPatientsByProtocolIdSiteIds(protocolId,null);		
+		}else {
+			siteIds = getUserAssignedSites();
+			patients = pm.getMinPatientsByProtocolIdSiteIds(protocolId,siteIds);	
+		}
+		
 		pm.updatePatientSubjectNumbers(patients, protocol);
 		request.setAttribute("patientList", patients);
 
@@ -874,7 +1073,7 @@ public class DataCollectionAction extends BaseAction {
 		List<Interval> intervals = protoMan.getIntervalsForForm(protocolId, eformid);
 		this.populateIntervalOptions(intervals);
 
-		dataEntryForm.setFormName(shortname);
+		dataEntryForm.setFormName(eformTitle);
 		//10 is Subject form
 		dataEntryForm.setFormTypeString(CtdbConstants.FORM_TYPE_SUBJECT_STRING);
 		request.setAttribute("formType", String.valueOf(CtdbConstants.FORM_TYPE_SUBJECT));
@@ -909,7 +1108,11 @@ public class DataCollectionAction extends BaseAction {
 			boolean eMode = Boolean.valueOf(request.getParameter(CtdbConstants.DATACOLLECTION_EDITMODE));
 			request.setAttribute(CtdbConstants.DATACOLLECTION_EDITMODE, eMode);
 
-			AdministeredForm aform = (AdministeredForm) session.get(ResponseConstants.AFORM_SESSION_KEY);
+
+			String acKey = getAformCacheKey();
+			AdministeredForm aform = aformCache.get(acKey);
+			
+			
 			int aformId = aform.getId();
 			//User user = this.getEditUser(rm, aformId);
 			int entryOneUserId = aform.getUserOneEntryId();
@@ -946,6 +1149,15 @@ public class DataCollectionAction extends BaseAction {
 
 			boolean validate = markCompleted;
 			List<String> inputErrors;
+			
+			//For CAT eforms, PI can prefill main and form administration sections and click on CAT Save And Exit...in this case, we do 
+			//want validation to happen so that when the link goes out to as PSR, validation has already happened
+			if(request.getParameter("catValidate") != null) {
+				catValidate = Boolean.valueOf(request.getParameter("catValidate"));
+				if(catValidate) {
+					validate = true;
+				}
+			}
 
 			if (currentStatus.equals(CtdbConstants.DATACOLLECTION_STATUS_COMPLETED)) {
 				inputErrors = InputHandler.getEditedAnswers(aform,request,dataEntryForm);
@@ -1008,11 +1220,9 @@ public class DataCollectionAction extends BaseAction {
 							"#DataCollectionAction->saveSubjectForm->#Success#->aformId:\t" + aform.getId());
 				}
 
-				//Don't remove from session if they do save and stay...only remove if they do normal save and exit or from next prev
+				//only remove if they do normal save and exit or from next prev...not save and stay
 				if(!isSaveAndStay) {
-					session.remove(ResponseConstants.AFORM_SESSION_KEY);
-				}else {
-					session.put(ResponseConstants.AFORM_SESSION_KEY, aform);
+					aformCache.remove(acKey);
 				}
 				return null;
 			}
@@ -1131,7 +1341,9 @@ public class DataCollectionAction extends BaseAction {
 			boolean eMode = Boolean.valueOf(request.getParameter(CtdbConstants.DATACOLLECTION_EDITMODE));
 			request.setAttribute(CtdbConstants.DATACOLLECTION_EDITMODE, eMode);
 			
-			AdministeredForm aform = (AdministeredForm) session.get(ResponseConstants.AFORM_SESSION_KEY);
+
+			String acKey = getAformCacheKey();
+			AdministeredForm aform = aformCache.get(acKey);
 			int aformId = aform.getId();
 			//SecurityManager sm = new SecurityManager();
 			//User patientUser = sm.getPatientUser();
@@ -1186,6 +1398,27 @@ public class DataCollectionAction extends BaseAction {
 				//ok now check to see if aform has been created
 				if(aform.getId() == Integer.MIN_VALUE) {
 					rm.create(aform, patientUser);
+				}else {
+					//need to reassign to patient user to handle the case
+					//of PI or data manager starting a CAT collection 
+					//and then letting patient user complete it in PSR
+					SecurityManager sm = new SecurityManager();
+					User currentAformUser = this.getEditUser(rm, aformId);
+					User subjectUser = sm.getUser(-1);
+					if(currentAformUser.getId() != -1) {
+						//need to reassign
+						EditAssignment ea = new EditAssignment();
+						int dataEntryDraftId = aform.getDataEntryDraftId();
+						ea.setDataEntryDraftId(dataEntryDraftId);
+						ea.setCurrentBy(-1);//Subject
+						ea.setPreviousBy(currentAformUser.getId());
+						ea.setAssignedBy(-1);
+						ea.setAssignedByName(subjectUser.getUsername());
+						ea.setDataEntryFlag(1);
+
+						rm.saveDataEntryReAssign(ea);
+						
+					}
 				}
 				
 				
@@ -1204,7 +1437,8 @@ public class DataCollectionAction extends BaseAction {
 				out.flush();
 				logger.info("Subject:"+sessionId+"#DataCollectionAction->saveSubjectFormPSR->#Success#->aformId:\t"+aform.getId());
 				
-				session.remove(ResponseConstants.AFORM_SESSION_KEY);
+
+				aformCache.remove(acKey);
 				return null;
 			}
 			else { // THERE ARE ERRORS
@@ -1317,7 +1551,9 @@ public class DataCollectionAction extends BaseAction {
 			boolean eMode = Boolean.valueOf(request.getParameter(CtdbConstants.DATACOLLECTION_EDITMODE));
 			request.setAttribute(CtdbConstants.DATACOLLECTION_EDITMODE, eMode);
 
-			AdministeredForm aform = (AdministeredForm) session.get(ResponseConstants.AFORM_SESSION_KEY);
+
+			String acKey = getAformCacheKey();
+			AdministeredForm aform = aformCache.get(acKey);
 			int aformId = aform.getId();
 			
 			
@@ -1402,7 +1638,7 @@ public class DataCollectionAction extends BaseAction {
 					out.print("lockForm1Success");
 				}
 				
-				session.put(ResponseConstants.AFORM_SESSION_KEY, aform);
+
 
 			} else {
 				// prepare form
@@ -1456,10 +1692,13 @@ public class DataCollectionAction extends BaseAction {
 	private String lockFormStep2(ResponseManager rm) throws Exception {
 		HttpServletResponse response = ServletActionContext.getResponse();
 		AdministeredForm aform = null;
+		String acKey = "";
 		try{
 			logger.info(DataCollectionUtils.getUserIdSessionIdString(request) +"#DataCollectionAction->lockFormStep2->------------------------------------");	
 			
-			aform = (AdministeredForm) session.get(ResponseConstants.AFORM_SESSION_KEY);
+
+			acKey = getAformCacheKey();
+			aform = aformCache.get(acKey);
 			int aformId = aform.getId();
 
 			User user = this.getEditUser(rm, aformId);
@@ -1491,31 +1730,31 @@ public class DataCollectionAction extends BaseAction {
 			logger.error(DataCollectionUtils.getUserIdSessionIdString(request) +"An error occurred in lock step 2-->DuplicateObjectException", doe);			
 			addActionError(getText(StrutsConstants.DUPLICATE_AND_OTHER_EXCEPTIONS)+"<br/>Form Name : "+aform.getForm().getName()+"<br/>Visit Type : "+dataEntryForm.getIntervalName()+"<br/>Patient Id : "+dataEntryForm.getPatientId());
 			session.put(DataCollectionAction.ACTION_ERRORS_KEY, getActionErrors());
-			session.remove(ResponseConstants.AFORM_SESSION_KEY);
+			aformCache.remove(acKey);
 			return StrutsConstants.MY_COLLECTIONS;
 			//out.print("duplicateData");
 		} catch (CtdbException e){			
 			logger.error(DataCollectionUtils.getUserIdSessionIdString(request) +"An error occurred in lock step 2-->CtdbException", e);
 			addActionError(getText(StrutsConstants.DUPLICATE_AND_OTHER_EXCEPTIONS)+"<br/>Form Name : "+aform.getForm().getName()+"<br/>Visit Type : "+dataEntryForm.getIntervalName()+"<br/>Patient Id : "+dataEntryForm.getPatientId());
 			session.put(DataCollectionAction.ACTION_ERRORS_KEY, getActionErrors());
-			session.remove(ResponseConstants.AFORM_SESSION_KEY);
+			aformCache.remove(acKey);
 			return StrutsConstants.MY_COLLECTIONS;
 		} catch (RuntimeException e){
 			logger.error(DataCollectionUtils.getUserIdSessionIdString(request) +"An error occurred in lock step 2-->RuntimeException", e);
 			addActionError(getText(StrutsConstants.DUPLICATE_AND_OTHER_EXCEPTIONS)+"<br/>Form Name : "+aform.getForm().getName()+"<br/>Visit Type : "+dataEntryForm.getIntervalName()+"<br/>Patient Id : "+dataEntryForm.getPatientId());
 			session.put(DataCollectionAction.ACTION_ERRORS_KEY, getActionErrors());
-			session.remove(ResponseConstants.AFORM_SESSION_KEY);
+			aformCache.remove(acKey);
 			return StrutsConstants.MY_COLLECTIONS;
 		} catch ( Exception e) {
 			logger.error(DataCollectionUtils.getUserIdSessionIdString(request) +"An error occurred in lock step 2-->Exception", e);
 			addActionError(getText(StrutsConstants.DUPLICATE_AND_OTHER_EXCEPTIONS)+"<br/>Form Name : "+aform.getForm().getName()+"<br/>Visit Type : "+dataEntryForm.getIntervalName()+"<br/>Patient Id : "+dataEntryForm.getPatientId());
 			session.put(DataCollectionAction.ACTION_ERRORS_KEY, getActionErrors());
-			session.remove(ResponseConstants.AFORM_SESSION_KEY);
+			aformCache.remove(acKey);
 			return StrutsConstants.MY_COLLECTIONS;
 			
 		}
 		
-		session.remove(ResponseConstants.AFORM_SESSION_KEY);
+		aformCache.remove(acKey);
 		return StrutsConstants.MY_COLLECTIONS;
 	}
 	
@@ -1537,6 +1776,7 @@ public class DataCollectionAction extends BaseAction {
 		
 		//=================================================
 		AdministeredForm aform = null;
+		String acKey = "";
 		try{
 			logger.info(getUser() + "#DataCollectionAction->lockFormPSR->------------------------------------");
 			
@@ -1550,7 +1790,8 @@ public class DataCollectionAction extends BaseAction {
 			request.setAttribute(CtdbConstants.DATACOLLECTION_MODE, request.getParameter(CtdbConstants.DATACOLLECTION_MODE));
 			boolean eMode = Boolean.valueOf(request.getParameter(CtdbConstants.DATACOLLECTION_EDITMODE));
 			request.setAttribute(CtdbConstants.DATACOLLECTION_EDITMODE, eMode);
-			aform = (AdministeredForm) session.get(ResponseConstants.AFORM_SESSION_KEY);
+			acKey = getAformCacheKey();
+			aform = aformCache.get(acKey);
 			
 			int entryOneUserId = aform.getUserOneEntryId();
 			User user = getUser(rm,entryOneUserId);
@@ -1652,7 +1893,8 @@ public class DataCollectionAction extends BaseAction {
 			JSONObject jsonObj = new JSONObject();
 			jsonObj.put("status", "exception");		
 		}		
-		session.remove(ResponseConstants.AFORM_SESSION_KEY);
+
+		aformCache.remove(acKey);
 		//=================================================		
 		JSONArray returnArray = getJSONArrayResponses(aform.getResponses()); 
 		JSONObject jsonObj = new JSONObject();
@@ -1677,7 +1919,8 @@ public class DataCollectionAction extends BaseAction {
 		JSONObject jsonObj = new JSONObject();
 		StringBuffer sb = new StringBuffer();
 		PrintWriter out = response.getWriter();
-		AdministeredForm aform = (AdministeredForm) session.get(ResponseConstants.AFORM_SESSION_KEY);
+		String acKey = getAformCacheKey();
+		AdministeredForm aform = aformCache.get(acKey);
 		inputErrors = InputHandler.getResponses(aform, request, true, isSelfReporting,dataEntryForm); // validation
 
 		if (inputErrors.isEmpty() && !this.hasErrors()) { // NO ERRORS SAVE NOW
@@ -1731,8 +1974,8 @@ public class DataCollectionAction extends BaseAction {
 
 		User user = this.getEditUser(rm, aformId);
 
-		//AdministeredForm aform = rm.getAdministeredForm(aformId, false);
-		AdministeredForm aform = (AdministeredForm) session.get(ResponseConstants.AFORM_SESSION_KEY);
+		String acKey = getAformCacheKey();
+		AdministeredForm aform = aformCache.get(acKey);
 		if(currentFormId==null){
 			currentFormId= String.valueOf(aform.getForm().getId());
 		}
@@ -1764,7 +2007,6 @@ public class DataCollectionAction extends BaseAction {
 				aform.setFiles(this.buildFileMap());
 			} 
 
-			session.put(ResponseConstants.AFORM_SESSION_KEY, aform);
 			
 			List<String> errorList = InputHandler.getEditedAnswers(aform,request,dataEntryForm);
 			
@@ -1859,7 +2101,7 @@ public class DataCollectionAction extends BaseAction {
 				session.remove("_editAnswerSrc");
 
 				session.put(ResponseConstants.FORM_SESSION_KEY, aform.getForm());
-				session.remove(ResponseConstants.AFORM_SESSION_KEY);
+				aformCache.remove(acKey);
 				
 				JSONObject jsonObj = new JSONObject();
 				jsonObj.put("status", "saveFormSuccess");
@@ -1893,7 +2135,7 @@ public class DataCollectionAction extends BaseAction {
 		return null;
 	}
 	
-	
+	//edit //audit
 	public String editSubjectForm(ResponseManager rm, FormManager fm, QuestionManager qm, 
 				ProtocolManager protoMan, PatientManager pm) throws RuntimeException, IOException, JAXBException,  Exception  {
 		Protocol protocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
@@ -1919,11 +2161,19 @@ public class DataCollectionAction extends BaseAction {
 			request.setAttribute(StrutsConstants.MARKASCOMPLETESTATUSINACTION, af.isMarkAsCompleted());
 		}
 		
-		User user = this.getEditUser(rm, aformId);
+		
+		//gets logged in user
+		User user = getUser();
+		if (user.isSysAdmin() || user.hasAnyPrivilege(new String[]{SecurityConstants.RESPOND_TO_AUDIT_COMMENTS_PRIV, "editanswer"})) {
+			// if user is sysadmin then we get the user the collection is assigned to so they can edit it
+			user = this.getEditUser(rm, aformId);  
+		}
+
 
 		AdministeredForm aform = null;
 		List<Response> responseList = new ArrayList<Response>();
 		FormDataStructureUtility fsUtil = new FormDataStructureUtility();
+		int eformid = -1;
 		
 		try {
 			logger.info(DataCollectionUtils.getUserIdSessionIdString(request) +"#DataCollectionAction->editSubjectForm#---------------------------------------------");
@@ -1933,38 +2183,40 @@ public class DataCollectionAction extends BaseAction {
 			String shortName = fm.getEFormShortNameByAFormId(aformId);
 			
 			aform = rm.getAdministeredForm(aformId, user);
-			int eformid = aform.getEformid();
-			Form form = fsUtil.getEformFromBrics(request, shortName);
+			int intervalid = aform.getInterval().getId();
+			Interval interval = protoMan.getInterval(intervalid);
+			aform.setInterval(interval);
+			eformid = aform.getEformid();
+			Form form = fsUtil.getEformFromBrics(request, shortName); //get eform from brics
 			form.setId(eformid);
 			form.setProtocolId(protocol.getId());
 			aform.setForm(form);
 			aform.setUserOneEntryId(user.getId());
 			
+			//check to see if eform is configured
+			boolean isConfigured = protoMan.isEformConfigured(eformid);
+			request.setAttribute(CtdbConstants.IS_EFORM_CONFIGURED,isConfigured);
+			
 			Date sDate = aform.getScheduledVisitDate();
 			String sDateString = "";
+			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 			if(sDate != null) {
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 				sDateString =  dateFormat.format(sDate);
 			}
 			
+			Date vDate = aform.getVisitDate();
+			String vDateString = "";
+			vDateString =  dateFormat.format(vDate);
+			
 			dataEntryForm.setFormId(eformid);
-			dataEntryForm.setVisitDate(sDateString);
+			dataEntryForm.setVisitDate(vDateString);
 			dataEntryForm.setScheduledVisitDate(sDateString);
-			session.put("currentVisitDate", sDateString);
+			session.put("currentVisitDate", vDateString);
 			session.put("scheduledVisitDate", sDateString);
 			
-			if(aform.isCAT()) {
-				// The PROMIS forms can NOT be edited
-				String mType = aform.getForm().getMeasurementType();
-				if(StrutsConstants.ADAPTIVE.equals(mType) || StrutsConstants.AUTO_SCORING.equals(mType)) {
-					addActionError(getText("The PROMIS Adaptive Instrument or Auto-Scoring forms can not be edited"));
-					session.put(DataCollectionAction.ACTION_ERRORS_KEY, getActionErrors());
-					return StrutsConstants.MY_COLLECTIONS;
-				}
-			}
-			
+
 			DataCollectionUtils.completeAform(aform);
-			responseList = aform.getResponses();
+			responseList = aform.getResponses(); //get responses
 			
 			if (intervalId == Integer.MIN_VALUE && patientId == Integer.MIN_VALUE) {
 				intervalId = aform.getInterval().getId();
@@ -2080,12 +2332,15 @@ public class DataCollectionAction extends BaseAction {
 		
 		//if (formStatus.equals(CtdbConstants.DATACOLLECTION_STATUS_FINALLOCKED) || formStatus.equals(CtdbConstants.DATACOLLECTION_STATUS_COMPLETED)) {
 			request.setAttribute("responseList", aform.getResponses());
-			request.setAttribute("jsResponseList", getJsResponses(aform.getResponses()));
+			/* for audit comments on both audit page and edit pages //edit //audit */ 
+		String jsResponsesAudit = getJsResponsesAudit(aform.getResponses(), aform).toString();
+		request.setAttribute("jsResponseList", jsResponsesAudit);
+		// request.setAttribute("jsResponseList", getJsResponses(aform.getResponses()));
 		//}
 		
 		aform.setResponses(responseList);
 		
-		
+		request.setAttribute(CtdbConstants.FORM_DS_NAME_REQUEST_ATTR, String.valueOf(f.getDataStructureName()));
 		request.setAttribute(CtdbConstants.FORM_TYPE_REQUEST_ATTR, String.valueOf(f.getFormType()));
 		dataEntryForm.setFormType(String.valueOf(CtdbConstants.FORM_TYPE_SUBJECT));
 		dataEntryForm.setFormTypeString(CtdbConstants.FORM_TYPE_SUBJECT_STRING);
@@ -2107,6 +2362,16 @@ public class DataCollectionAction extends BaseAction {
 		
 		session.put(StrutsConstants.DELETEONCANCELFLAG, false);		
 		session.put(ResponseConstants.AFORM_SESSION_KEY, aform);
+		
+		
+		String acKey = patient.getId() + "_" + aform.getInterval().getId() + "_" + eformid;
+		setAformCacheKey(acKey);
+		aformCache.add(acKey, aform);
+		request.setAttribute(CtdbConstants.AFORM_CACHE_KEY,acKey);
+		//need to check to see if there are any sections or questions that need to be hidden
+		List<String> hiddenSectionsQuestionsPVsElementIdsList = rm.getHiddenSectionsQuestionsPVsElementIds(protocol.getId(), eformid);
+		JSONArray jsonReturnArray = new JSONArray(hiddenSectionsQuestionsPVsElementIdsList);
+		hiddenSectionsQuestionsPVsElementIdsJSON = jsonReturnArray.toString();
 		
 		return SUCCESS;
 	}
@@ -2154,7 +2419,7 @@ public class DataCollectionAction extends BaseAction {
 		Date startDate = null;
 		
 		if(visitDate != null && !(visitDate.equals(""))) {
-			desDate = DataCollectionUtils.convertStringToDate(visitDate);
+			desDate = DataCollectionUtils.convertStringToDate(visitDate,true);
 			startDate = new Date(Long.parseLong(SysPropUtil.getProperty("default.system.visitDateMinimum.milliseconds").trim()));
 		}
 		
@@ -2172,6 +2437,10 @@ public class DataCollectionAction extends BaseAction {
 			Form form = fsUtil.getEformFromBrics(request, shortName);
 			form.setId(eformid);
 			form.setProtocolId(protocol.getId());
+			
+			//check to see if eform is configured
+			boolean isConfigured = protoMan.isEformConfigured(eformid);
+			request.setAttribute(CtdbConstants.IS_EFORM_CONFIGURED,isConfigured);
 
 			session.put(ResponseConstants.FORM_SESSION_KEY, form);
 			
@@ -2187,7 +2456,7 @@ public class DataCollectionAction extends BaseAction {
 				
 			}
 			
-			aform.setVisitDate(DataCollectionUtils.convertStringToDate(visitDate));
+			aform.setVisitDate(DataCollectionUtils.convertStringToDate(visitDate,true));
 			if (Boolean.valueOf(request.getParameter("startVisitType"))) {
 				session.put("currentVisitDate", visitDate);
 			}
@@ -2196,7 +2465,7 @@ public class DataCollectionAction extends BaseAction {
 			if(scheduledVisitDate == null || scheduledVisitDate.equals("")) {
 				aform.setScheduledVisitDate(null);
 			}else {
-				aform.setScheduledVisitDate(DataCollectionUtils.convertStringToDate(scheduledVisitDate));
+				aform.setScheduledVisitDate(DataCollectionUtils.convertStringToDate(scheduledVisitDate,true));
 			}
 			
 			
@@ -2206,13 +2475,12 @@ public class DataCollectionAction extends BaseAction {
 			
 			session.put("scheduledVisitDate", scheduledVisitDate);
 			
-			if (formIntervalId > 0) {
-				Interval interval = new Interval();
-				interval.setId(formIntervalId);
-				aform.setInterval(interval);
-			} else {
-				aform.setInterval(null);
-			}
+			
+
+			
+			Interval interval = protoMan.getInterval(formIntervalId);
+			aform.setInterval(interval);
+
 			
 			time2 = System.nanoTime();
 			logger.info("#		DataCollectionAction->fetchSubjectForm# 5------------------elapsed: " + String.valueOf(time2-time1));
@@ -2316,13 +2584,22 @@ public class DataCollectionAction extends BaseAction {
 
 			this.setButtonDisable(rm, formIntervalId, collectedAdminForms);
 			
-			session.put(ResponseConstants.AFORM_SESSION_KEY, aform);
+			
+			String acKey = patientId + "_" + formIntervalId + "_" + eformid;
+			setAformCacheKey(acKey);
+			aformCache.add(acKey, aform);
+			request.setAttribute(CtdbConstants.AFORM_CACHE_KEY,acKey);
 			session.put(StrutsConstants.DELETEONCANCELFLAG, true);
 			time2 = System.nanoTime();
 			logger.info("#		DataCollectionAction->fetchSubjectForm# 10------------------elapsed: " + String.valueOf(time2-time1));
 			time1 = time2;
 			
 			request.setAttribute(CtdbConstants.DATACOLLECTION_DISPLAY_VISITDATE_WARNING, true);
+			
+			//need to check to see if there are any sections or questions that need to be hidden
+			List<String> hiddenSectionsQuestionsPVsElementIdsList = rm.getHiddenSectionsQuestionsPVsElementIds(protocol.getId(), eformid);
+			JSONArray jsonReturnArray = new JSONArray(hiddenSectionsQuestionsPVsElementIdsList);
+			hiddenSectionsQuestionsPVsElementIdsJSON = jsonReturnArray.toString();
 		}
 	}
 	
@@ -2378,19 +2655,16 @@ public class DataCollectionAction extends BaseAction {
 			String psrScheduledVisitDateString = (String)session.get(CtdbConstants.PSR_SCHEDULED_VISIT_DATE);
 			Date psrScheduledVisitDate = null;
 			if(psrScheduledVisitDateString != null && !psrScheduledVisitDateString.equals("")) {
-				psrScheduledVisitDate = DataCollectionUtils.convertStringToDate(psrScheduledVisitDateString);
+				psrScheduledVisitDate = DataCollectionUtils.convertStringToDate(psrScheduledVisitDateString,true);
 			}
 			aform.setScheduledVisitDate(psrScheduledVisitDate);
 			
 			
 	
-			if (formIntervalId > 0) {
-				Interval interval = new Interval();
-				interval.setId(formIntervalId);
-				aform.setInterval(interval);
-			} else {
-				aform.setInterval(null);
-			}
+			ProtocolManager protoMan = new ProtocolManager();
+			Interval interval = protoMan.getInterval(formIntervalId);
+			aform.setInterval(interval);
+
 				
 			Patient patient = this.getPatientForCollection(rm, protocol.getId(), patientId);
 			aform.setPatient(patient);
@@ -2428,18 +2702,22 @@ public class DataCollectionAction extends BaseAction {
 			request.setAttribute(CtdbConstants.FORM_ID_REQUEST_ATTR, form.getId());
 			
 			request.setAttribute(StrutsConstants.DELETEONCANCELFLAG, true);
-			request.setAttribute(FormConstants.FORMDETAIL, getFormHtml(aform, true, false, pv));
+			request.setAttribute(FormConstants.FORMDETAIL, getFormHtml(aform, true, false, pv,false));
 			request.setAttribute("token", token);
 			//added by Ching-Heng
 			request.setAttribute(CtdbConstants.IS_CAT, form.isCAT());
 			request.setAttribute(CtdbConstants.MEASUREMENT_TYPE, form.getMeasurementType());
-			session.put(ResponseConstants.AFORM_SESSION_KEY, aform);
+			
+			
+			String acKey = patientId + "_" + formIntervalId + "_" + proformsFormId;
+			setAformCacheKey(acKey);
+			aformCache.add(acKey, aform);
 			
 			
 			//need to check to see if there are any sections or questions that need to be hidden
-			List<String> hiddenSectionsQuestionsElementIdsList = rm.getHiddenSectionsQuestionsElementIds(protocol.getId(), proformsFormId);
-			JSONArray jsonReturnArray = new JSONArray(hiddenSectionsQuestionsElementIdsList);
-			hiddenSectionsQuestionsElementIdsJSON = jsonReturnArray.toString();
+			List<String> hiddenSectionsQuestionsPVsElementIdsList = rm.getHiddenSectionsQuestionsPVsElementIds(protocol.getId(), proformsFormId);
+			JSONArray jsonReturnArray = new JSONArray(hiddenSectionsQuestionsPVsElementIdsList);
+			hiddenSectionsQuestionsPVsElementIdsJSON = jsonReturnArray.toString();
 
 			return StrutsConstants.DATA_COLLECTION_PSR;
 		}
@@ -2469,12 +2747,32 @@ public class DataCollectionAction extends BaseAction {
 			
 			FormDataStructureUtility fsUtil = new FormDataStructureUtility();
 			String shortName = fm.getEFormShortNameByAFormId(aformId);
-			aform = rm.getAdministeredForm(aformId, patientUser);
+			
+			//if collection is started by someone other than patient, still allow then to edit it
+			//this handles case of when data manager or someone else prefills a CAT eform
+			//but then wants the patient to conitinue with it
+			User currentAformUser = this.getEditUser(rm, aformId);
+			boolean isEditInProgressCAT = false;
+			if(currentAformUser.getId() != -1) {
+				aform = rm.getAdministeredForm(aformId, currentAformUser);
+				isEditInProgressCAT = true;
+			}else {
+				aform = rm.getAdministeredForm(aformId, patientUser);
+				isEditInProgressCAT = false;
+			}
+			
+			
+			ProtocolManager protoMan = new ProtocolManager();
+			int intervalid = aform.getInterval().getId();
+			Interval interval = protoMan.getInterval(intervalid);
+			aform.setInterval(interval);
 			int eformid = aform.getEformid();			
 			Form form = fm.getFormWithoutSession(shortName);		
 			form.setId(eformid);
 			form.setProtocolId(protocol.getId());
 			aform.setForm(form);
+			Patient patient = this.getPatientForCollection(rm, protocol.getId(), aform.getPatient().getId());
+			aform.setPatient(patient);
 			DataCollectionUtils.completeAform(aform);
 			
 			responseList = aform.getResponses();
@@ -2510,7 +2808,7 @@ public class DataCollectionAction extends BaseAction {
 			// prepare form
 			aform.setLoggedInUserId(patientUser.getId());
 			aform.setUserOneEntryId(patientUser.getId());
-			request.setAttribute(FormConstants.FORMDETAIL, getFormHtml(aform, true, false, pv));
+			request.setAttribute(FormConstants.FORMDETAIL, getFormHtml(aform, true, false, pv,isEditInProgressCAT));
 		
 			Form f = aform.getForm();
 			aform.setResponses(responseList);
@@ -2523,13 +2821,16 @@ public class DataCollectionAction extends BaseAction {
 			//added by Ching-Heng
 			request.setAttribute(CtdbConstants.IS_CAT, f.isCAT());
 			request.setAttribute(CtdbConstants.MEASUREMENT_TYPE, f.getMeasurementType());
+			request.setAttribute(CtdbConstants.DATACOLLECTION_EDITMODE, true);
 			
-			session.put(ResponseConstants.AFORM_SESSION_KEY, aform);
+			String acKey = aform.getPatient().getId() + "_" + aform.getInterval().getId() + "_" + eformid;
+			setAformCacheKey(acKey);
+			aformCache.add(acKey, aform);
 			
 			//need to check to see if there are any sections or questions that need to be hidden
-			List<String> hiddenSectionsQuestionsElementIdsList = rm.getHiddenSectionsQuestionsElementIds(protocol.getId(), eformid);
-			JSONArray jsonReturnArray = new JSONArray(hiddenSectionsQuestionsElementIdsList);
-			hiddenSectionsQuestionsElementIdsJSON = jsonReturnArray.toString();
+			List<String> hiddenSectionsQuestionsPVsElementIdsList = rm.getHiddenSectionsQuestionsPVsElementIds(protocol.getId(), eformid);
+			JSONArray jsonReturnArray = new JSONArray(hiddenSectionsQuestionsPVsElementIdsList);
+			hiddenSectionsQuestionsPVsElementIdsJSON = jsonReturnArray.toString();
 			
 		} catch (CtdbException ce) {
 			logger.error("Subject:" + sessionId + " Database error occured.", ce);
@@ -2611,13 +2912,15 @@ public class DataCollectionAction extends BaseAction {
 		// the forms common elements
 		// Putting visit date in session so that others form in the interval can
 		// get the same date unless they save or cancel will be on start mode
+		String acKey = "";
 		try {
 			Protocol protocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
 			String currentVisitDate = (String) session.get("currentVisitDate");
 			String scheduledVisitDate = (String) session.get("scheduledVisitDate");
 			String currentSubjectId = request.getParameter("currentSubjectId");
 			int currentFormId = Integer.parseInt(request.getParameter(CtdbConstants.FORM_ID_REQUEST_ATTR));
-			AdministeredForm aform = (AdministeredForm) session.get(ResponseConstants.AFORM_SESSION_KEY);
+			acKey = getAformCacheKey();
+			AdministeredForm aform = aformCache.get(acKey);
 			int aformId = aform.getId();
 			int currentIntervalId = Integer.valueOf(request.getParameter("currentIntervalId"));
 			String currentIntervalName = request.getParameter("currentIntervalName");
@@ -2708,16 +3011,11 @@ public class DataCollectionAction extends BaseAction {
 				// NO ERRORS SO SAVE FORM....BUT DELETE IT IF THERE ARE NO ANSWERS
 				String mType = aform.getForm().getMeasurementType();
 				
-				
-				
-				
-				
-				
-				
+				boolean isStartMeasurementClicked = Boolean.valueOf(request.getParameter("isStartMeasurementClicked"));
 				
 				if(aformId == Integer.MIN_VALUE) {
 					if (aform.isAreThereAnswers()) {
-						if(StrutsConstants.ADAPTIVE.equals(mType) || StrutsConstants.AUTO_SCORING.equals(mType)) {
+						if((StrutsConstants.ADAPTIVE.equals(mType) || StrutsConstants.AUTO_SCORING.equals(mType)) && isStartMeasurementClicked) {
 							// if it is a adaptive form or a auto-scroing PROMIS form, still delete it
 							logger.info(DataCollectionUtils.getUserIdSessionIdString(request) +"DataCollectionAction->nextPreviousJumpToNavigation->Deleting Form since there are no answers:\t" +
 									aform.getId() + " User who deleted this:\t" + user.getId());
@@ -2803,14 +3101,14 @@ public class DataCollectionAction extends BaseAction {
 			logger.error(DataCollectionUtils.getUserIdSessionIdString(request) +"A database error occurred in save method in next previous jumpTo navigation.", e);
 			addActionError("Something went wrong in data collection process please retry your collection again.");
 			session.put(DataCollectionAction.ACTION_ERRORS_KEY, getActionErrors());
-			session.remove(ResponseConstants.AFORM_SESSION_KEY);
+			aformCache.remove(acKey);
 			return StrutsConstants.DATA_COLLECTION;
 		}
 		catch ( MessagingException me ) {
 			logger.error(DataCollectionUtils.getUserIdSessionIdString(request) +"Error occurred while creating the notification email in next previous jumpTo navigation.", me);
 			addActionError("Something went wrong in data collection process please retry your collection again.");
 			session.put(DataCollectionAction.ACTION_ERRORS_KEY, getActionErrors());
-			session.remove(ResponseConstants.AFORM_SESSION_KEY);
+			aformCache.remove(acKey);
 			return StrutsConstants.DATA_COLLECTION;
 		}
 		catch ( IOException ie )
@@ -2818,37 +3116,135 @@ public class DataCollectionAction extends BaseAction {
 			logger.error(DataCollectionUtils.getUserIdSessionIdString(request) +"Something went wrong whiling writing to JSP.See stack track for details in next previous jumpTo navigation. ",ie);	
 			addActionError("Something went wrong in data collection process please retry your collection again.");
 			session.put(DataCollectionAction.ACTION_ERRORS_KEY, getActionErrors());
-			session.remove(ResponseConstants.AFORM_SESSION_KEY);
+			aformCache.remove(acKey);
 			return StrutsConstants.DATA_COLLECTION;
 		}
 		catch ( Exception e) {
 			logger.error(DataCollectionUtils.getUserIdSessionIdString(request) +"An error occurred in save method next previous jumpTo navigation..", e);
 			addActionError("Something went wrong in data collection process please retry your collection again.");
 			session.put(DataCollectionAction.ACTION_ERRORS_KEY, getActionErrors());
-			session.remove(ResponseConstants.AFORM_SESSION_KEY);
+			aformCache.remove(acKey);
 			return StrutsConstants.DATA_COLLECTION;
 			
 		}
 		
-		session.remove(ResponseConstants.AFORM_SESSION_KEY);
+		aformCache.remove(acKey);
 		return null;
 	}
 	
-	
-	
-	private User getEditUser(ResponseManager rm, int formId) throws CtdbException {
-		
-		User user = null;
-		if (session.get(StrutsConstants.EDITUSER) == null) {
-			user = getUser();
-		} else {
-			int editUserNum = 1;  //only handling single entry forms
-			EditAssignment ea = rm.getEditAssignment(formId, editUserNum);
-			
-			SecurityManager sm = new SecurityManager();
-			user = sm.getUser(ea.getCurrentBy());
+	/**
+	 * Method for next previous and jumpTo navigation from audit comments page
+	 */
+	private String nextPreviousJumpToNavigationAudit(ResponseManager rm, PatientManager pm, FormManager fm,
+			ProtocolManager protoMan) {
+
+		String acKey = "";
+		try {
+			Protocol protocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
+			String currentVisitDate = (String) session.get("currentVisitDate");
+			String scheduledVisitDate = (String) session.get("scheduledVisitDate");
+			String currentSubjectId = request.getParameter("currentSubjectId");
+			int currentFormId = Integer.parseInt(request.getParameter(CtdbConstants.FORM_ID_REQUEST_ATTR));
+			acKey = getAformCacheKey();
+			AdministeredForm aform = aformCache.get(acKey);
+			int aformId = aform.getId();
+			int currentIntervalId = Integer.valueOf(request.getParameter("currentIntervalId"));
+			String currentIntervalName = request.getParameter("currentIntervalName");
+
+			// To get user for edit mode navigation
+			int entryOneUserId = aform.getUserOneEntryId();
+			User user = getUser(rm, entryOneUserId);
+
+			if (this.getFileUpload() != null && !this.getFileUpload().isEmpty() && this.getFileUploadFileName() != null
+					&& !this.getFileUploadFileName().isEmpty()) {
+				aform.setFiles(this.buildFileMap());
+			}
+
+			int intervalId = aform.getInterval().getId();
+			int patientId = aform.getPatient().getId();
+
+			List<AdministeredForm> collectedAdminForms = rm.getAdminFormForSubjectIntervalAndStudy(currentIntervalId,
+					Integer.valueOf(currentSubjectId), protocol.getId());
+
+			List<FormInterval> fiList = rm.getActiveFormsListInInterval(intervalId);
+			// Will return the next formId to navigate based on current and collection status situation
+			// (skip the locked collections) and by any coll by other users
+			logger.info("collectedAdminForms size:\t" + collectedAdminForms.size() + "fiList size:\t" + fiList.size());
+			logger.info("action in next previous jump2--->" + action);
+			int nextFormId = -1;
+			if (action.equals(StrutsConstants.JUMPTOFORM)) {
+				nextFormId = Integer.valueOf(request.getParameter("jumptoformId"));
+			}
+			logger.info(DataCollectionUtils.getUserIdSessionIdString(request) + "Next form Id is:\t" + nextFormId);
+
+			if (!collectedAdminForms.isEmpty()) {
+				for (AdministeredForm collectedAdminForm : collectedAdminForms) {
+					if (collectedAdminForm.getForm().getId() != nextFormId) {
+						addActionError(
+								getText("There is no data in the form jumping to. Please start collecting data before adding any auditor comments."));
+						session.put(DataCollectionAction.ACTION_ERRORS_KEY, getActionErrors());
+						return StrutsConstants.DATA_COLLECTION;
+					} else {
+						nextPreviousJumpToFormTracker = true;
+						action = StrutsConstants.AUDITCOMMENTS;
+						mode = CtdbConstants.DATACOLLECTION_FORMPATIENT;
+						request.setAttribute(CtdbConstants.DATACOLLECTION_AUDIT, "true");
+						break;
+					}
+				}
+			}
+
+			dataEntryForm.setFormId(nextFormId);
+			dataEntryForm.setVisitDate(currentVisitDate);
+			dataEntryForm.setScheduledVisitDate(scheduledVisitDate);
+			dataEntryForm.setIntervalId(intervalId);
+			dataEntryForm.setPatientId(patientId);
+
+			Patient patient = this.getPatientForCollection(rm, protocol.getId(), patientId);
+			this.setPatientDispalyValue(dataEntryForm, patient, protocol);
+
+			dataEntryForm.setIntervalName(currentIntervalName);
+			dataEntryForm.setIntervalId(currentIntervalId);
+			dataEntryForm.setClickedSectionFields("");
+
+			logger.info(DataCollectionUtils.getUserIdSessionIdString(request)
+					+ "New action in audit comments jumpTo:\t" + action);
+		} catch (CtdbException e) {
+			logger.error(DataCollectionUtils.getUserIdSessionIdString(request)
+					+ "A database error occurred in audit comment jumpTo navigation.", e);
+			addActionError("Something went wrong in data collection process please retry your collection again.");
+			session.put(DataCollectionAction.ACTION_ERRORS_KEY, getActionErrors());
+			aformCache.remove(acKey);
+			return StrutsConstants.DATA_COLLECTION;
+		} catch (Exception e) {
+			logger.error(DataCollectionUtils.getUserIdSessionIdString(request)
+					+ "An error occurred in audit comment jumpTo navigation..", e);
+			addActionError("Something went wrong in data collection process please retry your collection again.");
+			session.put(DataCollectionAction.ACTION_ERRORS_KEY, getActionErrors());
+			aformCache.remove(acKey);
+			return StrutsConstants.DATA_COLLECTION;
+
 		}
-		
+
+		aformCache.remove(acKey);
+		return null;
+	}
+	
+	/**
+	 * Gets the user the collection is assigned to
+	 * @param rm
+	 * @param formId
+	 * @return
+	 * @throws CtdbException
+	 */
+	private User getEditUser(ResponseManager rm, int formId) throws CtdbException {
+		User user = null;
+
+		int editUserNum = 1;  //only handling single entry forms
+		EditAssignment ea = rm.getEditAssignment(formId, editUserNum);
+		SecurityManager sm = new SecurityManager();
+		user = sm.getUser(ea.getCurrentBy());
+
 		return user;
 	}
 	
@@ -2867,14 +3263,28 @@ public class DataCollectionAction extends BaseAction {
 		return user;
 	}
 
-
-	
-	private void populateActiveForms(ProtocolManager protoMan, int intervalId) throws CtdbException {
+	private void populateActiveForms(ProtocolManager protoMan, int intervalId)
+			throws CtdbException, WebApplicationException, CasProxyTicketException {
 
 		Map<String, String> activeFormMap = new LinkedHashMap<String, String>();
 		List<Form> activeForms = protoMan.getActiveFormsForInterval(intervalId);
 		
+		List<String> shortNameList = new ArrayList<String>();
 		for (Form f : activeForms) {
+			shortNameList.add(f.getShortName());
+		}
+		FormDataStructureUtility fsUtil = new FormDataStructureUtility();
+		List<BasicEform> basicEforms = fsUtil.getBasicEforms(request, shortNameList);
+
+		for (Form f : activeForms) {
+			// CRIT-11445: using eform title from dictionary in form name
+			for (BasicEform beForm : basicEforms) {
+				if (f.getShortName().equals(beForm.getShortName())) {
+					String efTitle = beForm.getTitle();
+					f.setName(efTitle);
+					break;
+				}
+			}
 			activeFormMap.put(Integer.toString(f.getId()), f.getName());
 		}
 		if (activeForms.isEmpty()) {
@@ -2883,36 +3293,32 @@ public class DataCollectionAction extends BaseAction {
 		session.put(FormConstants.ACTIVEFORMS, activeFormMap);
 	}
 	
-	private void setButtonDisable(ResponseManager rm, int intervalId, 
-			List<AdministeredForm> collectedAdminForms) throws CtdbException {
-		
+	private void setButtonDisable(ResponseManager rm, int intervalId, List<AdministeredForm> collectedAdminForms)
+			throws CtdbException {
+
 		List<FormInterval> fiList = rm.getActiveFormsListInInterval(intervalId);
-		
-		int previousFormId = DataCollectionUtils.returnPreviousFormId(fiList, 
-				dataEntryForm.getFormId(), collectedAdminForms, request);
+
+		int previousFormId = DataCollectionUtils.returnPreviousFormId(fiList, dataEntryForm.getFormId(),
+				collectedAdminForms, request);
 		if (previousFormId < 0) {
 			dataEntryForm.setPreviousButtonDisable(true);
 		}
-		
-		int nextFormId = DataCollectionUtils.returnNextFormId(fiList, 
-				dataEntryForm.getFormId(), collectedAdminForms, request);
+
+		int nextFormId =
+				DataCollectionUtils.returnNextFormId(fiList, dataEntryForm.getFormId(), collectedAdminForms, request);
 		if (nextFormId < 0) {
 			dataEntryForm.setNextButtonDisable(true);
 		}
 	}
 
-	
 	private void populateIntervalOptions(List<Interval> intervals) {
-		
 		Map<String, String> intervalOptions = new LinkedHashMap<String, String>();
 		for (Interval i : intervals) {
-			intervalOptions.put( String.valueOf(i.getId()), i.getName());
+			intervalOptions.put(String.valueOf(i.getId()), i.getName());
 		}
-		
-		//intervalOptions.put("-1", "Other");		
+
 		request.setAttribute(CtdbConstants.VISIT_TYPE_OPTIONS, intervalOptions);
 	}
-	
 	
 	public String getAction() {
 		return action;
@@ -2966,29 +3372,34 @@ public class DataCollectionAction extends BaseAction {
 		return fileUploadContentType;
 	}
 
-
 	public void setFileUploadContentType(List<String> fileUploadContentType) {
 		this.fileUploadContentType = fileUploadContentType;
 	}
 	
-	
-
-	
-	public String getHiddenSectionsQuestionsElementIdsJSON() {
-		return hiddenSectionsQuestionsElementIdsJSON;
+	public String getHiddenSectionsQuestionsPVsElementIdsJSON() {
+		return hiddenSectionsQuestionsPVsElementIdsJSON;
 	}
 
-	public void setHiddenSectionsQuestionsElementIdsJSON(String hiddenSectionsQuestionsElementIdsJSON) {
-		this.hiddenSectionsQuestionsElementIdsJSON = hiddenSectionsQuestionsElementIdsJSON;
+	public void setHiddenSectionsQuestionsPVsElementIdsJSON(String hiddenSectionsQuestionsPVsElementIdsJSON) {
+		this.hiddenSectionsQuestionsPVsElementIdsJSON = hiddenSectionsQuestionsPVsElementIdsJSON;
+	}
+
+	public String getAformCacheKey() {
+		return aformCacheKey;
+	}
+
+	public void setAformCacheKey(String aformCacheKey) {
+		this.aformCacheKey = aformCacheKey;
 	}
 
 	/**
-
-	Common method to handle subject site setting for current protocol form patinet protocol table
-	@param Patient p
-	@param AdministeredForm af
-	@param Protocol protocol
-	*/
+	 * 
+	 * Common method to handle subject site setting for current protocol form patinet protocol table
+	 * 
+	 * @param Patient p
+	 * @param AdministeredForm af
+	 * @param Protocol protocol
+	 */
 	private void setSubjectSite(Patient p, AdministeredForm af, Protocol protocol) {
 		SiteManager sm = new SiteManager();
 		ResponseManager rm = new ResponseManager();
@@ -2999,7 +3410,6 @@ public class DataCollectionAction extends BaseAction {
 			logger.error("Looks like you don't have site associated to subject for the study or protocol");
 		}
 	}
-	
 	
 	/**
 	 * Method to setup all patient identifier for data collection
@@ -3024,47 +3434,35 @@ public class DataCollectionAction extends BaseAction {
 		try {
 			patient = rm.getPatientForCollection(protocolId, patientId);
 		} catch (CtdbException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return patient;
 	}
-	
-
 
 	public Map<String, Attachment> buildFileMap() {
-		HttpServletResponse response = ServletActionContext.getResponse();
-		PrintWriter out;
 		Map<String, Attachment> fileMap = new HashMap<String, Attachment>();
-		try {
-			out = response.getWriter();
-	
-		
-		
 		List<String> fileUploadKeyList = this.getFileUploadKey();
-		
-		Iterator iter = fileUploadKeyList.iterator();
-		while(iter.hasNext()) {
-			String key = (String)iter.next();
-			if(key.equals("")) {
+
+		Iterator<String> iter = fileUploadKeyList.iterator();
+		while (iter.hasNext()) {
+			String key = iter.next();
+			if (key.equals("")) {
 				iter.remove();
 			}
 		}
-		
-		
-		if (this.getFileUpload() != null && this.getFileUploadFileName() != null) {
 
+		if (this.getFileUpload() != null && this.getFileUploadFileName() != null) {
 			for (int i = 0; i < this.getFileUpload().size(); i++) {
 				File file = this.getFileUpload().get(i);
 				String fileName = this.getFileUploadFileName().get(i);
-				
-					if(CtdbConstants.IMAGE_FORMATS.contains(FilenameUtils.getExtension(fileName))){
-						
-					}
-				
+
+				if (CtdbConstants.IMAGE_FORMATS.contains(FilenameUtils.getExtension(fileName))) {
+
+				}
+
 				String fileContentType = this.getFileUploadContentType().get(i);
 				String key = this.getFileUploadKey().get(i);
-					
+
 				if (file != null && !Utils.isBlank(fileName) && !Utils.isBlank(key)) {
 					Attachment a = new Attachment();
 					a.setAttachFile(file);
@@ -3074,18 +3472,11 @@ public class DataCollectionAction extends BaseAction {
 					fileMap.put(key, a);
 				}
 			}
-		} 
-		
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
-		
-		
-		
+
 		return fileMap;
 	}
-	
+
 	public AdministeredForm setAformFormStatus(AdministeredForm aform, int userId) throws CtdbException {
 		ResponseManager rm = new ResponseManager();
 		AdministeredForm aformToReturn = aform;
@@ -3095,5 +3486,388 @@ public class DataCollectionAction extends BaseAction {
 		aformToReturn.setEntryOneStatus(dataEntryList.get(0).getStatus());
 		
 		return aformToReturn;
+	}
+
+	// audit comment saving
+	public String auditComment() throws Exception {
+
+		audit = Boolean.parseBoolean(request.getParameter(CtdbConstants.DATACOLLECTION_AUDIT));
+		if (audit != null && audit) {
+			request.setAttribute(CtdbConstants.DATACOLLECTION_AUDIT, "true");
+		}
+
+		action = request.getParameter(StrutsConstants.ACTION);
+
+		Protocol protocol = null;
+		protocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
+
+		if (protocol == null) {
+			logger.info(DataCollectionUtils.getUserIdSessionIdString(request) + "Current Protocol is null.");
+			return StrutsConstants.SELECTPROTOCOL;
+		}
+
+		// Current formId form the request scope
+		int currentFormId = -1;
+		if (request.getParameter(CtdbConstants.FORM_ID_REQUEST_ATTR) != null) {
+			currentFormId = Integer.parseInt(request.getParameter(CtdbConstants.FORM_ID_REQUEST_ATTR));
+		} else {
+			currentFormId = dataEntryForm.getFormId();
+		}
+
+
+		// Managers inAction
+		PatientManager pm = new PatientManager();
+		ResponseManager rm = new ResponseManager();
+		FormManager fm = new FormManager();
+		ProtocolManager protoMan = new ProtocolManager();
+
+		request.setAttribute(FormConstants.RANGE_VALIDATION_JS_OBJS, "");
+		request.setAttribute(CtdbConstants.DATACOLLECTION_EDITMODE, false);
+		mode = request.getParameter(CtdbConstants.DATACOLLECTION_MODE);
+
+		String shortName = fm.getEFormShortNameByEFormId(currentFormId);
+		setPatientIntervalsList(currentFormId, shortName, pm, protocol, protoMan, fm, currentFormId);
+
+		return this.saveAuditComment(rm, protoMan, pm, fm);
+	}
+	
+	public void clearAform() {
+		String acKey = request.getParameter("aformCacheKey");
+		aformCache.remove(acKey);
+	}
+
+	/**
+	 * Method to save audit comment (saveSubj)
+	 */
+	private String saveAuditComment(ResponseManager rm, ProtocolManager protoMan, PatientManager pm, FormManager fm)
+			throws Exception {
+		HttpServletResponse response = ServletActionContext.getResponse();
+		PrintWriter out = response.getWriter();
+
+		try {
+			logger.info(DataCollectionUtils.getUserIdSessionIdString(request)
+					+ "#DataCollectionAction->saveAuditComment#---------------------------------------");
+
+			String acKey = request.getParameter("aformCacheKey");
+			AdministeredForm aform = aformCache.get(acKey);
+			int entryOneUserId = aform.getUserOneEntryId();
+			User user = getUser(rm, entryOneUserId);
+			User loggedInUser = getUser();
+
+			String currentStatus = getAformFormStatus(aform, user.getId());
+
+			List<String> inputErrors;
+			inputErrors = InputHandler.getAuditComments(aform, request, dataEntryForm); // response.answer??//set
+																						 // Response.java from ui
+			request.setAttribute("responseList", aform.getResponses());		// FL
+			request.setAttribute("jsResponseList", getJsResponsesAudit(aform.getResponses(), aform)); // edit //audit
+																										 // //TODO:
+																										 // after
+																										 // rm.saveFinalAuditComments
+
+			if (inputErrors.isEmpty() && !this.hasErrors()) { // NO ERRORS SAVE NOW
+				/* save Response.java to db */
+				if (CtdbConstants.DATACOLLECTION_STATUS_INPROGRESS.equals(currentStatus)) {
+					rm.saveFinalAuditComments(aform, loggedInUser, CtdbConstants.YES);
+				} else {
+					rm.saveFinalAuditComments(aform, loggedInUser, null);
+				}
+
+				JSONObject jsonObj = new JSONObject();
+
+				jsonObj.put("status", "saveFormSuccess");
+				jsonObj.put("fName", aform.getForm().getName()); // FL
+
+				out.print(jsonObj);
+				out.flush();  // not in FL
+				return null;
+			} else { // THERE ARE ERRORS
+				aform.setLoggedInUserId(user.getId()); // not in FL
+
+				StringBuffer sb = new StringBuffer();
+
+				for (String errorMsg : inputErrors) {
+					addActionError(errorMsg);
+					String s = "<li style=\"margin-left:20px\">" + errorMsg + "</li>";
+					sb.append(s);
+				}
+
+				JSONObject jsonObj = new JSONObject();
+				jsonObj.put("status", sb.toString());
+				JSONArray returnArray = getJSONArrayResponses(aform.getResponses());
+				jsonObj.put("returnArray", returnArray);
+				out.print(jsonObj);
+			}
+		} catch (DuplicateObjectException doe) {
+			logger.error(DataCollectionUtils.getUserIdSessionIdString(request) + "An error occurred in lock step 1.",
+					doe);
+			JSONObject jsonObj = new JSONObject();
+			jsonObj.put("status", "duplicateData");
+		} catch (IOException ie) {
+			logger.error(DataCollectionUtils.getUserIdSessionIdString(request) + "A I/O error occurred in save method.",
+					ie);
+			JSONObject jsonObj = new JSONObject();
+			jsonObj.put("status", "dataCollectionException");
+			out.print(jsonObj);
+		} catch (Exception e) {
+			logger.error(DataCollectionUtils.getUserIdSessionIdString(request) + "An error occurred in save method.",
+					e);
+			JSONObject jsonObj = new JSONObject();
+			jsonObj.put("status", "dataCollectionException");
+			out.print(jsonObj);
+		}
+
+		out.flush();
+		return null;
+	}
+
+	/* Auditors add audit comments page */
+	public String auditCommentSubjectForm(ResponseManager rm, FormManager fm, QuestionManager qm,
+			ProtocolManager protoMan, PatientManager pm)
+			throws RuntimeException, IOException, JAXBException, Exception {
+		Protocol protocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
+
+		// dataEntryForm.setEditHideNextPrevious(true);
+		int aformId = Integer.parseInt(request.getParameter(CtdbConstants.AFORM_ID_REQUEST_ATTR));
+
+		int intervalId = dataEntryForm.getIntervalId();
+		int patientId = dataEntryForm.getPatientId();
+		List<AdministeredForm> collectedAdminForms = null;
+
+		if (nextPreviousJumpToFormTracker) {
+			dataEntryForm.setEditHideNextPrevious(false);
+			AdministeredForm af = rm.getAdminFormForSubjectIntervalStudyForGivenForm(dataEntryForm.getFormId(),
+					intervalId, patientId, protocol.getId());
+			aformId = af.getId();
+		}
+
+		// gets logged in user
+		User user = getUser();
+		if (user.isSysAdmin() || user.hasAnyPrivilege(SecurityConstants.AUDITOR_COMMENTS_PRIV_ARR)) {
+			// if user is sysadmin or in audit mode
+			user = this.getEditUser(rm, aformId);
+		}
+
+
+		AdministeredForm aform = null;
+		List<Response> responseList = new ArrayList<Response>();
+		FormDataStructureUtility fsUtil = new FormDataStructureUtility();
+
+		try {
+			logger.info(DataCollectionUtils.getUserIdSessionIdString(request)
+					+ "#DataCollectionAction->auditCommentSubjectForm#---------------------------------------------");
+			logger.info(DataCollectionUtils.getUserIdSessionIdString(request)
+					+ "#DataCollectionAction->auditCommentSubjectForm#->Getting aform object for aformid:\t" + aformId
+					+ " and user:\t" + user.getId());
+
+			String shortName = fm.getEFormShortNameByAFormId(aformId);
+
+			aform = rm.getAdministeredForm(aformId, user);
+			int eformid = aform.getEformid();
+			Form form = fsUtil.getEformFromBrics(request, shortName); // get eform from brics
+			form.setId(eformid);
+			form.setProtocolId(protocol.getId());
+			aform.setForm(form);
+			aform.setUserOneEntryId(user.getId());
+
+			Date sDate = aform.getScheduledVisitDate();
+			String sDateString = "";
+			if (sDate != null) {
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+				sDateString = dateFormat.format(sDate);
+			}
+
+			dataEntryForm.setFormId(eformid);
+			dataEntryForm.setVisitDate(sDateString);
+			dataEntryForm.setScheduledVisitDate(sDateString);
+			session.put("currentVisitDate", sDateString);
+			session.put("scheduledVisitDate", sDateString);
+
+			DataCollectionUtils.completeAform(aform);
+			responseList = aform.getResponses(); // get responses
+
+			if (intervalId == Integer.MIN_VALUE && patientId == Integer.MIN_VALUE) {
+				intervalId = aform.getInterval().getId();
+				patientId = aform.getPatient().getId();
+			}
+
+			logger.info(DataCollectionUtils.getUserIdSessionIdString(request)
+					+ "#DataCollectionAction->auditCommentSubjectForm#->PatientId:\t" + aform.getPatient().getId());
+			if (aform.getInterval() == null) {
+				logger.info(DataCollectionUtils.getUserIdSessionIdString(request)
+						+ "#DataCollectionAction->auditCommentSubjectForm#->Visit Type:\tOther");
+			} else {
+				logger.info(DataCollectionUtils.getUserIdSessionIdString(request)
+						+ "#DataCollectionAction->auditCommentSubjectForm#->Visit Type:\t"
+						+ aform.getInterval().getId());
+			}
+			logger.info(DataCollectionUtils.getUserIdSessionIdString(request)
+					+ "#DataCollectionAction->auditCommentSubjectForm#->Form:\t" + aform.getForm().getId());
+			logger.info(DataCollectionUtils.getUserIdSessionIdString(request)
+					+ "#DataCollectionAction->auditCommentSubjectForm#->UserId:\t" + user.getId());
+
+			request.setAttribute(StrutsConstants.MARKASCOMPLETESTATUSINACTION, aform.isMarkAsCompleted());
+
+		} catch (CtdbException e) {
+			logger.error(DataCollectionUtils.getUserIdSessionIdString(request) + "editSubjectForm method has got error",
+					e);
+			addActionError(getText(StrutsConstants.ERROR_RESPONSE_NOTUSER));
+			session.put(DataCollectionAction.ACTION_ERRORS_KEY, getActionErrors());
+			return StrutsConstants.MY_COLLECTIONS;
+		}
+
+		DataEntryHeader dataEntryHeader = new DataEntryHeader();
+		dataEntryHeader.setFormDisplay(aform.getForm().getName());
+		dataEntryHeader.setDateDisplay(aform.getVisitDateStringyyyyMMddHHmm());
+		dataEntryHeader.setScheduledVisitDateDisplay(aform.getScheduledVisitDateStringyyyyMMddHHmm());
+
+		String intervalName = null;
+		if (aform.getInterval() != null && aform.getInterval().getId() > 0) {
+			Interval i = protoMan.getInterval(aform.getInterval().getId());
+			intervalName = i.getName();
+		} else {
+			intervalName = StrutsConstants.OTHER;
+		}
+		dataEntryHeader.setIntervalDisplay(intervalName);
+		Patient patient = this.getPatientForCollection(rm, protocol.getId(), aform.getPatient().getId());
+		aform.setPatient(patient);
+		dataEntryHeader.setPatientDisplay(patient.getDisplayLabel(protocol.getPatientDisplayType(), protocol.getId()));
+		dataEntryHeader.setGuid(patient.getGuid());
+		dataEntryHeader.setStudyName(protocol.getName());
+		dataEntryHeader.setStudyNum(String.valueOf(protocol.getProtocolNumber()));
+		dataEntryHeader.setSingleDoubleKeyFlag(CtdbConstants.SINGLE_ENTRY_FORM);
+
+		session.put(ResponseConstants.DATAENTRYHEADER_SESSION_KEY, dataEntryHeader);
+
+		request.setAttribute("dataEntry", String.valueOf(aform.getDataEntrySession()));
+		if (aform.getDataEntrySession() == 1) {
+			dataEntryHeader.setEntry(user.getUsername());
+		} else {
+			dataEntryHeader.setEntry2(user.getUsername());
+			dataEntryHeader.setDateDisplay2(aform.getVisitDate2StringyyyyMMddHHmm());
+		}
+
+		// prepare form
+		aform.setLoggedInUserId(user.getId());
+
+		String formStatus = getAformFormStatus(aform, user.getId());
+		dataEntryForm.setFormStatus(formStatus);
+		dataEntryForm.setIntervalId(aform.getInterval().getId());
+		dataEntryForm.setPatientId(aform.getPatient().getId());
+
+		collectedAdminForms = rm.getAdminFormForSubjectIntervalAndStudy(intervalId, patientId, protocol.getId());
+
+		this.setupPage(patient, collectedAdminForms, aform);
+
+
+		// since we are now allowing naviagation during editing, we need to remove the current
+		// aform from collectedAdminForms so that the function setButtonDisable will disable correctly the
+		// next and prev buttons
+		if (aform.getId() != Integer.MIN_VALUE) {
+			Iterator<AdministeredForm> iterAF = collectedAdminForms.iterator();
+			while (iterAF.hasNext()) {
+				AdministeredForm aff = iterAF.next();
+				if (aff.getId() == aform.getId()) {
+					iterAF.remove();
+					break;
+				}
+			}
+		}
+		// this.setButtonDisable(rm, intervalId, collectedAdminForms);
+		Form f = aform.getForm();
+
+		request.setAttribute("responseList", aform.getResponses());
+		String jsResponsesAudit = getJsResponsesAudit(aform.getResponses(), aform).toString();
+		request.setAttribute("jsResponseList", jsResponsesAudit);
+
+		aform.setResponses(responseList);
+
+		request.setAttribute(CtdbConstants.FORM_DS_NAME_REQUEST_ATTR, String.valueOf(f.getDataStructureName()));
+		request.setAttribute(CtdbConstants.FORM_TYPE_REQUEST_ATTR, String.valueOf(f.getFormType()));
+		dataEntryForm.setFormType(String.valueOf(CtdbConstants.FORM_TYPE_SUBJECT));
+		dataEntryForm.setFormTypeString(CtdbConstants.FORM_TYPE_SUBJECT_STRING);
+
+		request.setAttribute(CtdbConstants.PATIENT_ID_REQUEST_ATTR, aform.getPatient().getId());
+		request.setAttribute(CtdbConstants.FORM_ID_REQUEST_ATTR, f.getId());
+		request.setAttribute(StrutsConstants.FORMSTATUS, formStatus);
+		request.setAttribute(StrutsConstants.FORMFETCHED, true);
+		request.setAttribute(CtdbConstants.AFORM_ID_REQUEST_ATTR, String.valueOf(aform.getId()));
+		request.setAttribute(StrutsConstants.ATTACHFILES, f.isAttachFiles());
+
+		request.setAttribute(CtdbConstants.IS_CAT, f.isCAT());
+		request.setAttribute(CtdbConstants.MEASUREMENT_TYPE, f.getMeasurementType());
+		// session variable to track that it is coming from dataCollection page
+		// This gives primany key in patient table that maps to patient id
+		session.put(StrutsConstants.SUBJECT_COLLECTING_DATA, patient.getId());
+
+		request.setAttribute(CtdbConstants.DATACOLLECTION_EDITMODE, true);
+
+		session.put(StrutsConstants.DELETEONCANCELFLAG, false);
+		
+		String acKey = patientId + "_" + aform.getInterval().getId() + "_" + aform.getForm().getId();
+		setAformCacheKey(acKey);
+		aformCache.add(acKey, aform);
+
+		return SUCCESS;
+	}
+
+
+	public String getBtrisData() throws IOException, CtdbException, JSONException {
+		String sqIdStr = request.getParameter("sectionQuestionId");
+		AdministeredForm aform = (AdministeredForm) session.get(ResponseConstants.AFORM_SESSION_KEY);
+		Form form = aform.getForm();
+		HashMap<String, Question> questionMap = form.getQuestionMap();
+		Question q = questionMap.get(sqIdStr);
+		
+		int aformId = aform.getId();
+		JSONObject qBOJsonObj = new JSONObject();
+
+		String mrn = aform.getPatient().getMrn();
+		BtrisManager bm = new BtrisManager();
+		BtrisObject bo = bm.getBtrisDataByBtrisObject(q.getBtrisObject(), mrn, q.getType());
+		qBOJsonObj.put("questionType", q.getType().getDispValue());
+		String qText = q.getText().replaceAll("\\<[^>]*>", ""); // remove html tags
+		qBOJsonObj.put("questionText", qText);
+	
+		String qName = q.getName().toLowerCase();
+		if(qName.contains(CtdbConstants.BTRIS_DATA_ELEMENT_RANGE)) {
+			if (!bo.getBtrisRange().isEmpty()) {
+				qBOJsonObj.put("btrisValue", bo.getBtrisRange());
+			}else {
+				qBOJsonObj.put("btrisValue", "");
+			}
+		}else if(qName.contains(CtdbConstants.BTRIS_DATA_ELEMENT_UNIT)) {
+			
+			if (!bo.getBtrisUnitOfMeasure().isEmpty()) {
+				qBOJsonObj.put("btrisValue", bo.getBtrisUnitOfMeasure());
+			}else {
+				qBOJsonObj.put("btrisValue", "");
+			}
+		}else if(qName.contains(CtdbConstants.BTRIS_DATA_ELEMENT_COMMENT)) {
+			if (!bo.getBtrisValueNameComment().isEmpty()) {
+				qBOJsonObj.put("btrisValue", bo.getBtrisValueNameComment());
+			}else {
+				qBOJsonObj.put("btrisValue", "");
+			}
+		}else if(qName.contains(CtdbConstants.BTRIS_DATA_ELEMENT_DATE)) {
+			
+			if (!bo.getBtrisPrimaryDateTime().equals(null)) {
+				qBOJsonObj.put("btrisValue", bo.getBtrisPrimaryDateTime());
+			}else {
+				qBOJsonObj.put("btrisValue", "");
+			}
+		}else if (!bo.getBtrisValueText().isEmpty()) {
+			qBOJsonObj.put("btrisValue", bo.getBtrisValueText());
+		} else if (!bo.getBtrisValueNumeric().isEmpty()) {
+			qBOJsonObj.put("btrisValue", bo.getBtrisValueNumeric());
+		} else {
+			qBOJsonObj.put("btrisValue", "");
+		}
+
+		HttpServletResponse response = ServletActionContext.getResponse();
+		PrintWriter out = response.getWriter();
+		out.print(qBOJsonObj);
+		out.flush();
+		return null;
 	}
 }

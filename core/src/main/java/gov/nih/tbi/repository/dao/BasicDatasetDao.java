@@ -16,11 +16,11 @@ public interface BasicDatasetDao extends GenericDao<BasicDataset, Long> {
 	List<BasicDataset> getByIds(Set<Long> datasets);
 
 	/**
-	 * Returns a projection of ids of all basic dataset objects that do not have a status "archived"
+	 * Returns a projection of ids of all basic dataset objects that are in Private or Shared status
 	 * 
 	 * @return
 	 */
-	public List<Long> getNonArchivedDatasetIds();
+	public List<Long> getPrivateSharedDatasetIds();
 
 	public List<BasicDataset> getPrivateSharedDatasets();
 

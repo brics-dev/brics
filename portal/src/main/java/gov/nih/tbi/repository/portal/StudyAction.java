@@ -114,7 +114,7 @@ public class StudyAction extends BaseRepositoryAction {
 
 	@Autowired
 	private StudyDao studyDao;
-	
+
 	private Study currentStudy;
 	private StudyDetailsForm studyDetailsForm;
 	private ClinicalStudy currentClinicalStudy;
@@ -254,11 +254,11 @@ public class StudyAction extends BaseRepositoryAction {
 	}
 
 	public StudyType[] getStudyTypes() {
-		
+
 		List<StudyType> studyTypeList = staticManager.getStudyTypeList();
 		StudyType[] studyTypeArray = new StudyType[studyTypeList.size()];
 		studyTypeList.toArray(studyTypeArray);
-		
+
 		return studyTypeArray;
 	}
 
@@ -331,7 +331,8 @@ public class StudyAction extends BaseRepositoryAction {
 		// Set the permissions list. Looks different based on namespace (current user permissions or owner permissions).
 		if (!getInAdmin()) {
 			boolean getPublic = false;
-			setPermissionList(accountManager.listUserAccessEntities(getAccount(), EntityType.STUDY, permission, getPublic));
+			setPermissionList(
+					accountManager.listUserAccessEntities(getAccount(), EntityType.STUDY, permission, getPublic));
 		} else {
 			// This list is generated in the service function list studies and could be reused to
 			// increase performance.
@@ -367,15 +368,15 @@ public class StudyAction extends BaseRepositoryAction {
 		}
 
 		getSessionStudy().saveKeywords();
-		
+
 		getSessionStudy().setTherapeuticAgentSet(studyDetailsForm.getTherapeuticAgentSet());
 		getSessionStudy().setTherapeuticTargetSet(studyDetailsForm.getTherapeuticTargetSet());
 		getSessionStudy().setTherapyTypeSet(studyDetailsForm.getTherapyTypeSet());
 		getSessionStudy().setModelNameSet(studyDetailsForm.getModelNameSet());
 		getSessionStudy().setModelTypeSet(studyDetailsForm.getModelTypeSet());
-		
+
 		getSessionStudy().setStudy(currentStudy);
-		
+
 	}
 
 	/**
@@ -398,17 +399,22 @@ public class StudyAction extends BaseRepositoryAction {
 		return PortalConstants.ACTION_INPUT;
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	private void initializeFormEntries() {
 		studyDetailsForm = new StudyDetailsForm(currentStudy);
-		
-		if(getSessionStudy().getStudy() != null && getSessionStudy().getStudy().getId() != null) {
-			studyDetailsForm.setTherapeuticAgentSet(new HashSet(studyDao.getStudyTherapeuticAgents(getSessionStudy().getStudy().getId().toString())));
-			studyDetailsForm.setTherapeuticTargetSet(new HashSet(studyDao.getStudyTherapeuticTargets(getSessionStudy().getStudy().getId().toString())));
-			studyDetailsForm.setTherapyTypeSet(new HashSet(studyDao.getStudyTherapyTypes(getSessionStudy().getStudy().getId().toString())));
-			studyDetailsForm.setModelNameSet(new HashSet(studyDao.getStudyModelNames(getSessionStudy().getStudy().getId().toString())));
-			studyDetailsForm.setModelTypeSet(new HashSet(studyDao.getStudyModelTypes(getSessionStudy().getStudy().getId().toString())));
-		}else {
+
+		if (getSessionStudy().getStudy() != null && getSessionStudy().getStudy().getId() != null) {
+			studyDetailsForm.setTherapeuticAgentSet(
+					new HashSet(studyDao.getStudyTherapeuticAgents(getSessionStudy().getStudy().getId().toString())));
+			studyDetailsForm.setTherapeuticTargetSet(
+					new HashSet(studyDao.getStudyTherapeuticTargets(getSessionStudy().getStudy().getId().toString())));
+			studyDetailsForm.setTherapyTypeSet(
+					new HashSet(studyDao.getStudyTherapyTypes(getSessionStudy().getStudy().getId().toString())));
+			studyDetailsForm.setModelNameSet(
+					new HashSet(studyDao.getStudyModelNames(getSessionStudy().getStudy().getId().toString())));
+			studyDetailsForm.setModelTypeSet(
+					new HashSet(studyDao.getStudyModelTypes(getSessionStudy().getStudy().getId().toString())));
+		} else {
 			studyDetailsForm.setTherapeuticAgentSet(new HashSet());
 			studyDetailsForm.setTherapeuticTargetSet(new HashSet());
 			studyDetailsForm.setTherapyTypeSet(new HashSet());
@@ -418,16 +424,18 @@ public class StudyAction extends BaseRepositoryAction {
 
 		try {
 			UserFile studyPicture = currentStudy.getGraphicFile();
-			
+
 			File tempFile = null;
 			String graphicFileName = "";
-			if(studyPicture!=null) {
+			if (studyPicture != null) {
 				tempFile = repositoryManager.getFile(studyPicture);
 				graphicFileName = studyPicture.getName();
 			}
 
 			studyDetailsForm.setUpload(tempFile);
-			studyDetailsForm.setUploadFileName(graphicFileName);	
+			studyDetailsForm.setUploadFileName(graphicFileName);
+			getSessionUploadFile().setUploadFile(tempFile);
+			getSessionUploadFile().setUploadFileFileName(graphicFileName);
 		} catch (Exception e) {
 			logger.error("There was an error loading study picture", e);
 		}
@@ -660,7 +668,7 @@ public class StudyAction extends BaseRepositoryAction {
 	 * @throws IOException
 	 * @throws SocketException
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public String submit() throws SocketException, IOException, JSchException {
 
 		logger.info("Submit Study " + getSessionStudy().getStudy().getTitle());
@@ -671,21 +679,23 @@ public class StudyAction extends BaseRepositoryAction {
 		String result;
 
 		if (getSessionUploadFile().getUploadFile() != null && upload == null) {
+			studyDetailsForm.setUpload(getSessionUploadFile().getUploadFile());
 			upload = getSessionUploadFile().getUploadFile();
 		}
+
 		// upload the data submission document if new study
 		if (getIsCreate()) {
 			currentStudy.setDateCreated(new Date());
-			if (!StringUtils.isEmpty(uploadFileName)){			
+			if (!StringUtils.isEmpty(uploadFileName)) {
 				UserFile submissionFile = repositoryManager.uploadFile(getUser().getId(), upload, uploadFileName, null,
 						ServiceConstants.FILE_TYPE_STUDY, new Date());
 				currentStudy.setDataSubmissionDocument(submissionFile);
 			}
-			if(studyDetailsForm.getUpload() != null) {
-			UserFile graphicFile = repositoryManager.uploadFile(getUser().getId(), studyDetailsForm.getUpload(), 
-					studyDetailsForm.getUploadFileName(), null, ServiceConstants.FILE_TYPE_STUDY, new Date());
+			if (studyDetailsForm.getUpload() != null) {
+				UserFile graphicFile = repositoryManager.uploadFile(getUser().getId(), studyDetailsForm.getUpload(),
+						studyDetailsForm.getUploadFileName(), null, ServiceConstants.FILE_TYPE_STUDY, new Date());
 
-			currentStudy.setGraphicFile(graphicFile);
+				currentStudy.setGraphicFile(graphicFile);
 			}
 
 			if (!accountManager.hasRole(getAccount(), RoleType.ROLE_STUDY_ADMIN)) {
@@ -712,55 +722,75 @@ public class StudyAction extends BaseRepositoryAction {
 			getSessionStudy().getEntityMapList().remove(toRemove);
 		}
 
-		
-		if(studyDetailsForm.getUpload() != null){
 
-		UserFile graphicFile = repositoryManager.uploadFile(getUser().getId(), studyDetailsForm.getUpload(), 
-				studyDetailsForm.getUploadFileName(), "Study Profile Picture: " + currentStudy.getId() , ServiceConstants.FILE_TYPE_STUDY, new Date());
-		
+		if (studyDetailsForm.getUpload() != null) {
+
+			UserFile graphicFile = repositoryManager.uploadFile(getUser().getId(), studyDetailsForm.getUpload(),
+					studyDetailsForm.getUploadFileName(), "Study Profile Picture: " + currentStudy.getId(),
+					ServiceConstants.FILE_TYPE_STUDY, new Date());
+
 			currentStudy.setGraphicFile(graphicFile);
 		}
 
-		accountManager.unregisterEntity(getSessionStudy().getRemovedMapList());
+		List<EntityMap> entitiesToRemove = getSessionStudy().getRemovedMapList();
+
+		// if a permission was added and removed immediately, then the permission has not yet been saved in the db. no
+		// need to delete these.
+		Iterator<EntityMap> entitiesToRemoveIterator = entitiesToRemove.iterator();
+
+		while (entitiesToRemoveIterator.hasNext()) {
+			EntityMap currentEntityMap = entitiesToRemoveIterator.next();
+
+			if (currentEntityMap.getId() == null) {
+				entitiesToRemoveIterator.remove();
+			}
+		}
+		
+		accountManager.unregisterEntity(entitiesToRemove);
 		accountManager.registerEntity(getSessionStudy().getEntityMapList());
-		
-		
+
+
 		// while saving new study if study has model name set it to null
-		if(currentStudy.getId() == null) {
+		if (currentStudy.getId() == null) {
 			currentStudy.setModelTypeSet(null);
 			currentStudy.setModelNameSet(null);
 			currentStudy.setTherapeuticAgentSet(null);
 			currentStudy.setTherapyTypeSet(null);
 			currentStudy.setTherapeuticTargetSet(null);
 		}
-		
+
 		currentStudy = repositoryManager.saveStudy(getAccount(), currentStudy);
 
-		
-		//adding DAO calls to save sets seperately
-		repositoryManager.saveStudyTherapeuticAgent(studyDetailsForm.getTherapeuticAgentSet(), String.valueOf(currentStudy.getId()));
-		repositoryManager.saveStudyTherapyType(studyDetailsForm.getTherapyTypeSet(), String.valueOf(currentStudy.getId()));
-		repositoryManager.saveStudyTherapeuticTarget(studyDetailsForm.getTherapeuticTargetSet(), String.valueOf(currentStudy.getId()));
+
+		// adding DAO calls to save sets seperately
+		repositoryManager.saveStudyTherapeuticAgent(studyDetailsForm.getTherapeuticAgentSet(),
+				String.valueOf(currentStudy.getId()));
+		repositoryManager.saveStudyTherapyType(studyDetailsForm.getTherapyTypeSet(),
+				String.valueOf(currentStudy.getId()));
+		repositoryManager.saveStudyTherapeuticTarget(studyDetailsForm.getTherapeuticTargetSet(),
+				String.valueOf(currentStudy.getId()));
 		repositoryManager.saveStudyModelType(studyDetailsForm.getModelTypeSet(), String.valueOf(currentStudy.getId()));
 		repositoryManager.saveStudyModelName(studyDetailsForm.getModelNameSet(), String.valueOf(currentStudy.getId()));
 
-		
+
 		Long studyId = null;
-		
-		if(getSessionStudy().getStudy() != null) {
+
+		if (getSessionStudy().getStudy() != null) {
 			studyId = getSessionStudy().getStudy().getId();
-		}else {
+		} else {
 			studyId = currentStudy.getId();
 		}
-		
-		if(studyId != null) {
-			studyDetailsForm.setTherapeuticAgentSet(new HashSet(studyDao.getStudyTherapeuticAgents(studyId.toString())));
-			studyDetailsForm.setTherapeuticTargetSet(new HashSet(studyDao.getStudyTherapeuticTargets(studyId.toString())));
+
+		if (studyId != null) {
+			studyDetailsForm
+					.setTherapeuticAgentSet(new HashSet(studyDao.getStudyTherapeuticAgents(studyId.toString())));
+			studyDetailsForm
+					.setTherapeuticTargetSet(new HashSet(studyDao.getStudyTherapeuticTargets(studyId.toString())));
 			studyDetailsForm.setTherapyTypeSet(new HashSet(studyDao.getStudyTherapyTypes(studyId.toString())));
 			studyDetailsForm.setModelNameSet(new HashSet(studyDao.getStudyModelNames(studyId.toString())));
-			studyDetailsForm.setModelTypeSet(new HashSet(studyDao.getStudyModelTypes(studyId.toString())));		
+			studyDetailsForm.setModelTypeSet(new HashSet(studyDao.getStudyModelTypes(studyId.toString())));
 		}
-		
+
 		logger.info("Saved the Study " + currentStudy.getTitle());
 
 		getSessionStudy().setStudy(currentStudy);
@@ -945,9 +975,9 @@ public class StudyAction extends BaseRepositoryAction {
 
 	public String addResearchManagement() throws SocketException, IOException, JSchException {
 		ResearchManagement resMgmt = new ResearchManagement(researchMgmtEntry);
-		
+
 		resMgmt.setId(Long.valueOf(getSessionStudy().getNewResearchManagement()));
-		getSessionStudy().setNewResearchManagement(getSessionStudy().getNewResearchManagement()-1);
+		getSessionStudy().setNewResearchManagement(getSessionStudy().getNewResearchManagement() - 1);
 
 		if (getSessionUploadFile().getUploadFile() != null && picture == null) {
 			picture = getSessionUploadFile().getUploadFile();
@@ -966,13 +996,13 @@ public class StudyAction extends BaseRepositoryAction {
 			picture = null;
 		}
 
-		getSessionStudy().addResearchMgmt(resMgmt.getId(),resMgmt);
+		getSessionStudy().addResearchMgmt(resMgmt.getId(), resMgmt);
 		getCurrentStudy().getResearchMgmtSet().add(resMgmt);
 
 		researchMgmtEntry = new ResearchManagement(); // Clear the entry fields
 		return PortalConstants.ACTION_EDIT_RESEARCH_MANAGEMENT;
 	}
-	
+
 	public String getEmptyResMgmtEntryToAdd() {
 		researchMgmtEntry = new ResearchManagement();
 		return PortalConstants.ACTION_EDIT_RESEARCH_MANAGEMENT;
@@ -980,42 +1010,44 @@ public class StudyAction extends BaseRepositoryAction {
 
 	public String getResMgmtEntryToEdit() throws SocketException, IOException, JSchException, SftpException {
 		String researchMgmtEntryJson = URLDecoder.decode(getRequest().getParameter("researchMgmtEntryJson"), "UTF-8");
-		
+
 		JsonParser jsonParser = new JsonParser();
 		JsonObject resMgmtMetaJsonObj = jsonParser.parse(researchMgmtEntryJson).getAsJsonObject();
 		researchMgmtEntry = convertJsonStrToResMgmtObj(resMgmtMetaJsonObj);
 
 		UserFile pictureFile = null;
-		
-		Map<Long,ResearchManagement> resMgmtSet = getSessionStudy().getResearchMgmtMap();
-		if(resMgmtSet!=null && resMgmtSet.containsKey(researchMgmtEntry.getId())){
+
+		Map<Long, ResearchManagement> resMgmtSet = getSessionStudy().getResearchMgmtMap();
+		if (resMgmtSet != null && resMgmtSet.containsKey(researchMgmtEntry.getId())) {
 			pictureFile = resMgmtSet.get(researchMgmtEntry.getId()).getPictureFile();
 		}
-		
-		if(pictureFile == null && researchMgmtEntry.getId() != null && researchMgmtEntry.getId()>0){
+
+		if (pictureFile == null && researchMgmtEntry.getId() != null && researchMgmtEntry.getId() > 0) {
 			pictureFile = repositoryManager
 					.getStudyManagementImage(getCurrentStudy().getId(), researchMgmtEntry.getId()).getPictureFile();
-		} 
-			
+		}
+
 		if (pictureFile != null) {
 			pictureFileName = pictureFile.getName();
 
 		} else {
 			pictureFileName = "";
 		}
-		
+
 		return PortalConstants.ACTION_EDIT_RESEARCH_MANAGEMENT;
 	}
 
 	public ResearchManagement convertJsonStrToResMgmtObj(JsonObject resMgmtJsonObj) {
 
 		logger.debug("convertJsonStrToResMgmtMetaObj: " + resMgmtJsonObj);
-		
-		if(!resMgmtJsonObj.get("id").toString().replaceAll("^\"|\"$", "").equals("")) { //remove leading and trailing quotation marks
+
+		if (!resMgmtJsonObj.get("id").toString().replaceAll("^\"|\"$", "").equals("")) { // remove leading and trailing
+																						 // quotation marks
 			Gson gson = new Gson();
-			return (ResearchManagement) gson.fromJson(resMgmtJsonObj, ResearchManagement.class);	
+			return (ResearchManagement) gson.fromJson(resMgmtJsonObj, ResearchManagement.class);
 		} else {
-			ResearchManagement resMgmtEntry= new ResearchManagement();
+			ResearchManagement resMgmtEntry = new ResearchManagement();
+
 			resMgmtEntry.setRole(Long.valueOf(resMgmtJsonObj.get("role").toString().replaceAll("^\"|\"$", "")));
 			resMgmtEntry.setFirstName(resMgmtJsonObj.get("firstName").toString().replaceAll("^\"|\"$", ""));
 			resMgmtEntry.setMi(resMgmtJsonObj.get("mi").toString().replaceAll("^\"|\"$", ""));
@@ -1024,16 +1056,18 @@ public class StudyAction extends BaseRepositoryAction {
 			resMgmtEntry.setEmail(resMgmtJsonObj.get("email").toString().replaceAll("^\"|\"$", ""));
 			resMgmtEntry.setOrgName(resMgmtJsonObj.get("orgName").toString().replaceAll("^\"|\"$", ""));
 			resMgmtEntry.setOrcId(resMgmtJsonObj.get("orcId").toString().replaceAll("^\"|\"$", ""));
+		
 			return resMgmtEntry;
 		}
-		
+
 	}
 
 	public String editResearchManagement() throws SocketException, IOException, JSchException {
 		logger.debug("selectedResMgmtToEdit: " + selectedResMgmtToEdit);
 
 		JsonParser jsonParser = new JsonParser();
-		JsonObject resMgmtJsonObj = jsonParser.parse(URLDecoder.decode(selectedResMgmtToEdit, "UTF-8")).getAsJsonObject();
+		JsonObject resMgmtJsonObj =
+				jsonParser.parse(URLDecoder.decode(selectedResMgmtToEdit, "UTF-8")).getAsJsonObject();
 		ResearchManagement resMgmtToEdit = convertJsonStrToResMgmtObj(resMgmtJsonObj); // old entry
 		ResearchManagement resMgmtEdited = new ResearchManagement(researchMgmtEntry);
 
@@ -1041,15 +1075,16 @@ public class StudyAction extends BaseRepositoryAction {
 		UserFile pictureFileOld = null;
 		boolean isRemoved = false;
 
-		if (resMgmtToEditId!=null && resMgmtToEditId >0) { /* add attached new userfile to existing entry */
+		if (resMgmtToEditId != null && resMgmtToEditId > 0) { /* add attached new userfile to existing entry */
 
 			isRemoved = removeResearchManagementObj(resMgmtToEdit);
 			if (!isRemoved) {
 				logger.error("Failed to remove the old ResearchManagement Entry!");
 			} else {
-				ResearchManagement rearchMgt = repositoryManager.getStudyManagementImage(getCurrentStudy().getId(), resMgmtToEditId);
+				ResearchManagement rearchMgt =
+						repositoryManager.getStudyManagementImage(getCurrentStudy().getId(), resMgmtToEditId);
 				resMgmtEdited.setId(resMgmtToEditId);
-				
+
 				if (pictureFileName != null) {
 					UserFile picFile = repositoryManager.uploadFile(getUser().getId(), picture, pictureFileName, null,
 							ServiceConstants.FILE_TYPE_RESEARCHER_PICTURE, new Date());
@@ -1057,10 +1092,10 @@ public class StudyAction extends BaseRepositoryAction {
 						rearchMgt.setPictureFile(picFile);
 						resMgmtEdited.setPictureFile(picFile);
 					}
-				} else{
+				} else {
 					resMgmtEdited.setPictureFile(rearchMgt.getPictureFile());
 				}
-				getSessionStudy().addResearchMgmt(resMgmtEdited.getId(),resMgmtEdited);
+				getSessionStudy().addResearchMgmt(resMgmtEdited.getId(), resMgmtEdited);
 				getCurrentStudy().getResearchMgmtSet().add(resMgmtEdited);
 			}
 
@@ -1083,7 +1118,7 @@ public class StudyAction extends BaseRepositoryAction {
 					resMgmtEdited.setPictureFile(picFile);
 				}
 			}
-			getSessionStudy().addResearchMgmt(resMgmtEdited.getId(),resMgmtEdited);
+			getSessionStudy().addResearchMgmt(resMgmtEdited.getId(), resMgmtEdited);
 			getCurrentStudy().getResearchMgmtSet().add(resMgmtEdited);
 
 		}
@@ -1116,6 +1151,12 @@ public class StudyAction extends BaseRepositoryAction {
 	public String removeResearchMgmt() {
 
 		String researchMgmtJson = getRequest().getParameter("researchMgmtJson");
+		try {
+			researchMgmtJson = URLDecoder.decode(researchMgmtJson, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			logger.error("Error parsing research management info", e);
+		}
+		
 		JsonParser jsonParser = new JsonParser();
 		JsonElement element = jsonParser.parse(researchMgmtJson.replaceAll("^\"+|\"+$", ""));
 		JsonArray resMgmtJsonArr = element.getAsJsonArray();
@@ -1341,7 +1382,7 @@ public class StudyAction extends BaseRepositoryAction {
 	 */
 	public String searchReports() throws UserPermissionException {
 		// Permission Check. This search is only visible to admins and those with admin acces to the current study.
-		if (!getIsPortalAdmin() && !getHasAdminAccess()) {
+		if (!getIsStudyAdmin() && !getHasAdminAccess()) {
 
 			throw new UserPermissionException(ServiceConstants.ADMIN_ACCESS_DENIED);
 		}
@@ -1351,20 +1392,20 @@ public class StudyAction extends BaseRepositoryAction {
 			idt = new Struts2IdtInterface();
 			IdtRequest request = idt.getRequest();
 
-			int countTotalRcord = repositoryManager.countAccessRecordsStudy(getCurrentStudy().getId());
+			int countTotalRecord = repositoryManager.countAccessRecordsStudy(getCurrentStudy().getId());
 
-			idt.setTotalRecordCount(countTotalRcord);
+			idt.setTotalRecordCount(countTotalRecord);
 
 			updateAccessRecordOrder(request.getOrderColumn());
 			updateAccessRecordFilter(request.getFilters());
-			//updateAccessRecordSearch(request);
+			// updateAccessRecordSearch(request);
 
 			PaginationData pageData = new PaginationData();
 			// these parameters are set by the methods above
 			pageData.setAscending(ascending);
 			pageData.setSort(sort);
-//			pageData.setPageSize(request.getLength());
-//			pageData.setPage(request.getPageNumber());
+			pageData.setPageSize(countTotalRecord);
+			pageData.setPage(request.getPageNumber());
 			pageData.setPageLength(request.getPageLength());
 			long startTime = System.nanoTime();
 
@@ -1372,8 +1413,9 @@ public class StudyAction extends BaseRepositoryAction {
 			List<AccessRecord> recordList =
 					repositoryManager.searchAccessRecords(getCurrentStudy(), key, daysOld, pageData);
 
-			/*getting the search value from data table search box and the values of the selected columns 
-			 * from idt search drop checkboxes. And filtering data from the data table search input and selected columns.
+			/*
+			 * getting the search value from data table search box and the values of the selected columns from idt
+			 * search drop checkboxes. And filtering data from the data table search input and selected columns.
 			 */
 			List<IdtColumnDescriptor> columns = new ArrayList<IdtColumnDescriptor>(request.getColumnDescriptions());
 			// pre-filter out columns we don't want to search
@@ -1386,50 +1428,65 @@ public class StudyAction extends BaseRepositoryAction {
 			}
 			List<AccessRecord> displayRecordList = new ArrayList<AccessRecord>();
 			String searchVal = request.getSearchVal();
-			if (columns.size() != 0 && !searchVal.isEmpty()){
-				for(AccessRecord ar : recordList) {
+			if (columns.size() != 0 && !searchVal.isEmpty()) {
+				for (AccessRecord ar : recordList) {
 					boolean isInList = false;
-					for(IdtColumnDescriptor column : columns){
+					for (IdtColumnDescriptor column : columns) {
 						String checkedColumn = column.getName();
 						switch (checkedColumn) {
-						case "id":
-							if (String.valueOf(ar.getDataset().getId()).toLowerCase().contains(searchVal)) isInList = true;
-							break;
-						case "name":
-							if (ar.getDataset().getName().toLowerCase().contains(searchVal)) isInList = true;
-							break;
-						case "status":
-							if (ar.getDataset().getDatasetStatus().getName().toLowerCase().contains(searchVal)) isInList = true;
-							break;
-						case "username":
-							if (ar.getAccount().getDisplayName().toLowerCase().contains(searchVal)) isInList = true;
-							break;
-						case "date":
-							if (BRICSTimeDateUtil.dateToDateString(ar.getQueueDate()).toLowerCase().contains(searchVal)) isInList = true;
-							break;
-						case "recordCount":
-							if (String.valueOf(ar.getRecordCount()).toLowerCase().contains(searchVal)) isInList = true;
-							break;
-						case "source":
-							if (ar.getDataSource().getName().toLowerCase().contains(searchVal)) isInList = true;
-							break;
+							case "id":
+								if (String.valueOf(ar.getDataset().getId()).toLowerCase().contains(searchVal))
+									isInList = true;
+								break;
+							case "name":
+								if (ar.getDataset().getName().toLowerCase().contains(searchVal))
+									isInList = true;
+								break;
+							case "status":
+								if (ar.getDataset().getDatasetStatus().getName().toLowerCase().contains(searchVal))
+									isInList = true;
+								break;
+							case "username":
+								if (ar.getAccount().getDisplayName().toLowerCase().contains(searchVal))
+									isInList = true;
+								break;
+							case "date":
+								if (BRICSTimeDateUtil.dateToDateString(ar.getQueueDate()).toLowerCase()
+										.contains(searchVal))
+									isInList = true;
+								break;
+							case "recordCount":
+								if (String.valueOf(ar.getRecordCount()).toLowerCase().contains(searchVal))
+									isInList = true;
+								break;
+							case "source":
+								if (ar.getDataSource().getName().toLowerCase().contains(searchVal))
+									isInList = true;
+								break;
 						}
-						if(isInList){
+						if (isInList && (getIsRepositoryAdmin())) {
 							displayRecordList.add(ar);
-							isInList = false;
-						}
+						}else if(isInList && (getHasAdminAccess() || getHasOwnerAccess()) && !ar.getAccount().isRepositoryAdmin()) {
+							displayRecordList.add(ar);
+						} 
 					}
 				}
-			} else if(searchVal.isEmpty()){
-				displayRecordList.addAll(recordList);
+			} else if (searchVal.isEmpty()) {
+				for (AccessRecord ar : recordList) {
+					if ((getIsRepositoryAdmin())) {
+						displayRecordList.add(ar);
+					}else if((getHasAdminAccess() || getHasOwnerAccess()) && !ar.getAccount().isRepositoryAdmin()) {
+						displayRecordList.add(ar);
+					}
+				}
 			}
-			
+
 			getSessionStudy().setAccessRecordList(recordList);
 			ArrayList<AccessRecord> outputAr = new ArrayList<AccessRecord>(displayRecordList);
-			
+
 			idt.setTotalRecordCount(outputAr.size());
 			idt.setFilteredRecordCount(outputAr.size());
-	
+
 
 			idt.setList(outputAr);
 			idt.decorate(new AccessReportIdtListDecorator());
@@ -1467,7 +1524,7 @@ public class StudyAction extends BaseRepositoryAction {
 	}
 
 	public String adminDownloadReport() throws UserPermissionException {
-		if (!getIsPortalAdmin()) {
+		if (!getIsStudyAdmin()) {
 			throw new UserPermissionException(ServiceConstants.ADMIN_ACCESS_DENIED);
 		}
 		long startTime = System.nanoTime();
@@ -1555,9 +1612,8 @@ public class StudyAction extends BaseRepositoryAction {
 			output.addProperty("doi", cStudy.getDoi());
 			responseJson = output.toString();
 		} catch (DoiWsValidationException dwve) {
-			logger.error(
-					"Validation error from the minter service, when creating a DOI for the " + cStudy.getPrefixedId()
-							+ " study.", dwve);
+			logger.error("Validation error from the minter service, when creating a DOI for the "
+					+ cStudy.getPrefixedId() + " study.", dwve);
 			errRespMsg = dwve.getMessage();
 
 			return ERROR;
@@ -1784,9 +1840,13 @@ public class StudyAction extends BaseRepositoryAction {
 	public void validate() {
 		if (hasFieldErrors()) {
 			logger.debug("validate() has field errors: " + getFieldErrors().size());
-			getSessionUploadFile().clear();
-			/*Note: upload and picture are not validated at the same time 
-			 * since picture in research management is added/edited in a dialog*/
+			if(getSessionUploadFile().getUploadFile() != null) {
+				this.setUpload(getSessionUploadFile().getUploadFile());
+			}
+			/*
+			 * Note: upload and picture are not validated at the same time since picture in research management is
+			 * added/edited in a dialog
+			 */
 			File tempFile = null;
 
 			if (upload != null) {
@@ -1812,7 +1872,7 @@ public class StudyAction extends BaseRepositoryAction {
 	public List<TherapeuticAgent> getAllTherapeuticAgents() {
 		return studyDao.getAllTherapeuticAgents();
 	}
-	
+
 	public List<TherapyType> getAllTherapyTypes() {
 		return studyDao.getAllTherapyTypes();
 	}
@@ -1820,15 +1880,15 @@ public class StudyAction extends BaseRepositoryAction {
 	public List<TherapeuticTarget> getAllTherapeuticTargets() {
 		return studyDao.getAllTherapeuticTargets();
 	}
-	
+
 	public List<ModelName> getAllModelNames() {
 		return studyDao.getAllModelNames();
 	}
-	
+
 	public List<ModelType> getAllModelTypes() {
 		return studyDao.getAllModelTypes();
 	}
-	
+
 	public void setStudyList(List<Study> studyList) {
 		this.studyList = studyList;
 	}

@@ -1,0 +1,15 @@
+[DB-SRC]
+host=fitbir-db-prod.cit.nih.gov
+database=tbi_prod
+schema=tbi_repos
+user=tbi_repos
+
+[DB-TRG]
+host=fitbir-db-test.cit.nih.gov
+database=tbi_test
+schema=tbi_repostest
+user=tbi_repostest
+
+[FILE-SYS]
+logDir=/var/lib/brics/log/pgCloner/prod-test-repo
+dumpDir=/var/lib/brics/data/pgCloner/prod-test-repo

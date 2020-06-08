@@ -9,7 +9,6 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.hibernate.HibernateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -28,6 +27,7 @@ import gov.nih.tbi.commons.service.UserPermissionException;
 import gov.nih.tbi.commons.util.SavedQueryUtil;
 import gov.nih.tbi.commons.util.ValUtil;
 import gov.nih.tbi.metastudy.dao.MetaStudyDao;
+import gov.nih.tbi.metastudy.dao.MetaStudyDataDao;
 import gov.nih.tbi.metastudy.model.hibernate.MetaStudy;
 import gov.nih.tbi.metastudy.model.hibernate.MetaStudyData;
 import gov.nih.tbi.query.dao.SavedQueryDao;
@@ -66,6 +66,9 @@ public class QueryToolManagerImpl implements QueryToolManager, Serializable
 	MetaStudyDao metaStudyDao;
 	
 	@Autowired
+	MetaStudyDataDao metaStudyDataDao;
+	
+	@Autowired
 	StudySubmittedFormsSparqlDao studySubmittedFormsSparqlDao;
 
     public List<String> getAllStudyTitles()
@@ -100,9 +103,6 @@ public class QueryToolManagerImpl implements QueryToolManager, Serializable
 		if (query.getCopyFlag() != null && query.getCopyFlag() && !accountManager.hasRole(account, RoleType.ROLE_ADMIN))  {
     		throw new IllegalArgumentException("Copied Queries cannot be edited by non-admins");
 		}
-
-		// Set last updated to now.
-		query.setLastUpdated(new Date());
 
 		query = savedQueryDao.save(query);
 		
@@ -171,8 +171,8 @@ public class QueryToolManagerImpl implements QueryToolManager, Serializable
 	 * @return A Summary Result for the query or null.
 	  */
 	@Override
-	public SummaryResult getSummaryData(String shortname) {
-		return getSummaryData(shortname, null, null);
+	public SummaryResult getSummaryData(String shortname, SummaryQuery query) {
+		return getSummaryData(shortname, query, null, null,null,null);
 	}
 
 	/**
@@ -184,10 +184,7 @@ public class QueryToolManagerImpl implements QueryToolManager, Serializable
 	 * @return A Summary Result for the query or null.
 	 */
 	@Override
-	public SummaryResult getSummaryData(String shortname, String site,
-			String study) {
-
-		SummaryQuery query = summaryQueryDao.getSummaryByName(shortname);
+	public SummaryResult getSummaryData(String shortname, SummaryQuery query, String site, String study, Long number, String text) {
 		
 		if (query == null) {
 			return null;
@@ -207,8 +204,38 @@ public class QueryToolManagerImpl implements QueryToolManager, Serializable
 			}
 			query.setQuery(modifyQuery(query.getQuery(), "STUDY", study));
 		}
+		
+		if (query.getRequiresNumber()) {
+			if (number == null) { 
+		        throw new RuntimeException("query failed because required number is missing");
+			}			
+			query.setQuery(modifyQuery(query.getQuery(), "NUMBERVAR", number.toString()));
+		}
+		
+		if (query.getRequiresText()) {
+			if (text == null || text.isEmpty()) { 
+				 throw new RuntimeException("query failed because the required text is missing");
+			}
+			query.setQuery(modifyQuery(query.getQuery(), "TEXTVAR", text));
+		}
+		
+		SummaryResult summaryResult = null;
+		if (query.getRequiresPostgres()) {
+			//if(query.getRequiresSparql()) {
+				summaryResult = summaryQueryDao.getWithQuery(query.getQuery());
 
-		SummaryResult summaryResult = summaryQuerySparqlDao.get(query.getQuery());
+			//} 
+		} else if(query.getNeedsObjectMapping()) {
+			summaryResult = summaryQuerySparqlDao.getResultsMapping(query.getQuery());
+		} else {
+			if(!query.getRequiresSparql()) {
+				summaryResult = summaryQuerySparqlDao.get(query.getQuery());
+			} else {
+			
+				summaryResult = summaryQuerySparqlDao.getResultJson(query.getQuery());
+			}
+		}
+		
 		
 		return summaryResult;
 	}
@@ -281,7 +308,7 @@ public class QueryToolManagerImpl implements QueryToolManager, Serializable
 		
 		if (query.getRequiresNumber()) {
 			if (number == null) { 
-				System.out.println("query failed because study is missing");
+				System.out.println("query failed because required number is missing");
 				return null; 
 			}
 			
@@ -290,7 +317,7 @@ public class QueryToolManagerImpl implements QueryToolManager, Serializable
 		
 		if (query.getRequiresText()) {
 			if (text == null || text.isEmpty()) { 
-				System.out.println("query failed because study is missing");
+				System.out.println("query failed because the required text is missing");
 				return null; 
 			}
 			query.setQuery(modifyQuery(query.getQuery(), "TEXTVAR", text));
@@ -301,12 +328,16 @@ public class QueryToolManagerImpl implements QueryToolManager, Serializable
 		return summaryResult;
 	}
 	
-	public List<SummaryQuery> getAllStudySummaryQueriesShortnames() {
-		return summaryQueryDao.getAllStudySummaryQueriesShortnames();
+	public SummaryQuery getSummaryByName(String shortName) {
+		return summaryQueryDao.getSummaryByName(shortName);
 	}
 	
-	public List<SummaryQuery> getAllProgramSummaryQueriesShortnames() {
-		return summaryQueryDao.getAllProgramSummaryQueriesShortnames();
+	public List<SummaryQuery> getAllStudySummaryQueriesShortnames(String instance) {
+		return summaryQueryDao.getAllStudySummaryQueriesShortnames(instance);
+	}
+	
+	public List<SummaryQuery> getAllProgramSummaryQueriesShortnames(String instance) {
+		return summaryQueryDao.getAllProgramSummaryQueriesShortnames(instance);
 	}
 	
 	public List<SavedQuery> searchSavedQuery(Set<Long> savedQueryIdsList, String savedQueryName, 
@@ -414,6 +445,15 @@ public class QueryToolManagerImpl implements QueryToolManager, Serializable
 		return true;
 	}
 	
+	/**
+	 * This methods checks if the given saved query Id has been linked to any meta study.
+	 * @param savedQueryId
+	 * @return true if thre is any meta study linked with the given saved query Id.
+	 */
+	public boolean isQueryLinkedToMetaStudy(Long savedQueryId) {
+		return metaStudyDataDao.isQueryLinkedToMetaStudy(savedQueryId);
+	}
+	
 	@Override
 	public SavedQuery getSavedQueryByNameAndMetaStudy(String savedQueryName,Long metaStudyId) {
 		
@@ -446,9 +486,9 @@ public class QueryToolManagerImpl implements QueryToolManager, Serializable
 	}
 	
 	@Override
-	public Multimap<String, StudySubmittedForm> getAllStudySubmittedForms() {
+	public Multimap<Long, StudySubmittedForm> getAllStudySubmittedForms() {
 		
-		Multimap<String, StudySubmittedForm> allStudySubmittedForms = studySubmittedFormsSparqlDao.getAllStudySubmittedForms();
+		Multimap<Long, StudySubmittedForm> allStudySubmittedForms = studySubmittedFormsSparqlDao.getAllStudySubmittedForms();
 		
 		return allStudySubmittedForms;
 	}
@@ -468,7 +508,7 @@ public class QueryToolManagerImpl implements QueryToolManager, Serializable
 	
 	@Override
 	public Integer getSubjectCountByStudy(String studyId){
-		return studySubmittedFormsSparqlDao.getSubjectCountByStudy(studyId);
+		return summaryQueryDao.getSubjectCountByStudy(studyId);
 	}
 	
 	@Override

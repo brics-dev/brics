@@ -32,6 +32,7 @@
 			<result name="success">patientForm.jsp</result>
 			<result name="error" type="redirectAction">patientHome</result>
 		</action>
+		
 		<action name="getAttachmentsListForDT" class="gov.nih.nichd.ctdb.patient.action.PatientAction" method="getAttachmentsListForDT">
 			<result name="success" type="json">
 				<param name="noCache">true</param>
@@ -130,6 +131,10 @@
 			<result name="success">patientVisitHome.jsp</result>
             <result name="exception">patientVisitHome.jsp</result>
 		</action>
+		<action name="sendEmailPSR" class="gov.nih.nichd.ctdb.patient.action.PatientVisitHomeAction" method="sendEmailPSR">
+			<result name="success">patientVisitHome.jsp</result>
+			<result name="exception">patientVisitHome.jsp</result>
+		</action>
 		<action name="patientVisitHomeJsonAction" class="gov.nih.nichd.ctdb.patient.action.PatientVisitHomeAction">
 			<result name="success" type="json">
 				<param name="noCache">true</param>
@@ -151,6 +156,38 @@
 		<!-- PatientVisit JSON for workspace -->
 		<action name="patientJson" class="gov.nih.nichd.ctdb.patient.action.PatientVisitsJSONAction" />
 		
+		<action name="getSubjectFromBTRIS" class="gov.nih.nichd.ctdb.btris.action.BtrisAction" method="getSubjectFromBtris">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonString</param>
+			</result>
+			<result name="badRequest" type="httpheader">
+				<param name="error">400</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<allowed-methods>getSubjectFromBtris</allowed-methods>
+		</action>
+
+		<action name="getGuidInfoFromBTRIS" class="gov.nih.nichd.ctdb.btris.action.BtrisAction" method="getGuidInfoFromBtris">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonString</param>
+			</result>
+			<result name="badRequest" type="httpheader">
+				<param name="error">400</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<allowed-methods>getGuidInfoFromBtris</allowed-methods>
+		</action>
 	</package>
-	
 </struts>

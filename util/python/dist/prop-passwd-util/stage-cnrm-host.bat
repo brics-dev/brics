@@ -1,0 +1,1 @@
+propPasswdUtil.py --props=.\conf\stage-cnrm.host

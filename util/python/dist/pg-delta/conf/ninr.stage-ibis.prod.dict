@@ -1,0 +1,17 @@
+[DB-SRC]
+host=ibis-db-prod.cit.nih.gov
+database=dictionary_prod
+schema=dictionary
+user=dictionary
+label=PROD
+
+[DB-TRG]
+host=ninr-dbdictionary-stage.cit.nih.gov
+database=dictionary_stage
+schema=dictionarystg
+user=dictionarystg
+label=NINR-STAGE
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\pgDelta\ninr.stage-prod-dict
+

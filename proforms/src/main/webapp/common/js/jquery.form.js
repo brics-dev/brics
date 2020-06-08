@@ -762,7 +762,7 @@ $.fn.ajaxFormUnbind = function() {
  * Each object in the array has both a 'name' and 'value' property.  An example of
  * an array for a simple login form might be:
  *
- * [ { name: 'username', value: 'jresig' }, { name: 'password', value: 'secret' } ]
+ * [ { name: 'username', value: 'abcd' }, { name: 'password', value: 'abcd' } ]
  *
  * It is this array that is passed to pre-submit callback functions provided to the
  * ajaxSubmit() and ajaxForm() methods.

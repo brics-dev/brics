@@ -1,0 +1,17 @@
+[DB-SRC]
+host=ibis-db-stage.cit.nih.gov
+database=dictionary_stage
+schema=dictionarystg
+user=dictionarystg
+label=SOURCE
+
+[DB-TRG]
+host=localhost
+database=dictdb
+schema=dictsch
+user=dictuser
+label=TARGET
+
+[FILE-SYS]
+logDir=D:\\DEV\\appdata\\log\\pgCloner\\stage-local-dict
+workDir=D:\\DEV\\appdata\\dump\\pgCloner\\stage-local-dict

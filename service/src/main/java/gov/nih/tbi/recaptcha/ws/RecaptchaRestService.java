@@ -56,7 +56,7 @@ public class RecaptchaRestService extends AbstractRestService {
 	public String verifyCaptcha(@FormParam("response") String response, @Context HttpServletRequest request) throws WebApplicationException {
 		String remoteip = request.getRemoteAddr();
 		try {
-			recaptcha.setSecret("REPLACED");
+			recaptcha.setSecret("abcd");
 			ReCaptchaResponse verifyResponse = recaptcha.checkAnswer(response, remoteip);
 			return verifyResponse.getErrorMessage();
 		} catch (Exception e) {

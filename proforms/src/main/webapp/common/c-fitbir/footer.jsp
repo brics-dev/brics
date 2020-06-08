@@ -26,7 +26,7 @@
 							<p>
 								<strong>Phone: </strong>				
 								301-594-3532
-								<br /> <a href="<s:property value="#bricsHomeUrl"/>jsp/about/contact-us.jsp"><span>Contact Us</span></a> <br />
+								<br /> <a href="<s:property value="#bricsHomeUrl"/>content/contact-us"><span>Contact Us</span></a> <br />
 							</p>
 				
 						</div>
@@ -57,8 +57,8 @@
 				
 						<div class="contact">
 							<ul class="footer-links">
-								<li><a href="<s:property value="#bricsHomeUrl"/>jsp/about/contact-us.jsp"><span>Privacy</span></a>&nbsp;|</li>
-								<li><a href="<s:property value="#bricsHomeUrl"/>jsp/general/disclaimer.jsp"><span>Disclaimer</span></a>&nbsp;|</li>
+								<li><a href="https://www.cit.nih.gov/privacy-policy" target="_blank" class="ext-link reverse">Privacy</a>&nbsp;|</li>
+								<li><a href="https://www.cit.nih.gov/disclaimers" target="_blank" class="ext-link reverse">Disclaimer</a>&nbsp;|</li>
 								<li><a href="http://www.nih.gov/about/access.htm" target="_blank" class="ext-link reverse">Accessibility</a>&nbsp;|</li>
 								<li><a href="http://www.nih.gov/icd/od/foia/index.htm" target="_blank" class="ext-link reverse">FOIA</a></li>
 							</ul>
@@ -107,11 +107,8 @@
 							</ul>
 						</div>
 				
-						<div class="contact build-notes" style="margin: -38px 11px -28px 20px;">
-								<p class="left">Build Version:<s:property value="%{buildID}" /></br>
-								Repository ID: <s:property value="%{deploymentID}" /></br>
-								Last Deployed: <s:property value="%{lastDeployed}" /></p>
-						</div>
+						<!-- Include release info section -->
+						<jsp:include page="/common/release-info.jsp" />
 					</div>
 				</div>
 			</div>

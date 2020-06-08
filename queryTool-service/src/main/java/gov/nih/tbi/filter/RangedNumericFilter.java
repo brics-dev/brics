@@ -3,14 +3,8 @@ package gov.nih.tbi.filter;
 import java.io.Serializable;
 
 import com.google.gson.JsonObject;
-import com.hp.hpl.jena.sparql.expr.E_GreaterThanOrEqual;
-import com.hp.hpl.jena.sparql.expr.E_LessThanOrEqual;
-import com.hp.hpl.jena.sparql.expr.E_LogicalAnd;
-import com.hp.hpl.jena.sparql.expr.Expr;
-import com.hp.hpl.jena.sparql.expr.ExprVar;
-import com.hp.hpl.jena.sparql.expr.nodevalue.NodeValueDecimal;
-import com.hp.hpl.jena.sparql.syntax.ElementFilter;
 
+import gov.nih.tbi.constants.QueryToolConstants;
 import gov.nih.tbi.pojo.DataElement;
 import gov.nih.tbi.pojo.FilterType;
 import gov.nih.tbi.pojo.FormResult;
@@ -22,9 +16,9 @@ public class RangedNumericFilter extends DataElementFilter implements Filter, Se
 	private Double maximum;
 	private Double minimum;
 
-	public RangedNumericFilter(FormResult form, RepeatableGroup group, DataElement element, boolean blank,
-			Double maximum, Double minimum) {
-		super(form, group, element, blank);
+	public RangedNumericFilter(FormResult form, RepeatableGroup group, DataElement element, Double maximum,
+			Double minimum, String name, String logicBefore, Integer groupingBefore, Integer groupingAfter) {
+		super(form, group, element, name, logicBefore, groupingBefore, groupingAfter);
 		this.maximum = maximum;
 		this.minimum = minimum;
 	}
@@ -47,14 +41,10 @@ public class RangedNumericFilter extends DataElementFilter implements Filter, Se
 
 	@Override
 	public JsonObject toJson() {
-		JsonObject filterJson = new JsonObject();
+		JsonObject filterJson = super.toJson();
 
-		filterJson.addProperty("groupUri", getGroup().getUri());
-		filterJson.addProperty("elementUri", getElement().getUri());
 		filterJson.addProperty("maximum", maximum);
 		filterJson.addProperty("minimum", minimum);
-		filterJson.addProperty("blank", isBlank());
-		filterJson.addProperty("filterType", getFilterType().name());
 
 		return filterJson;
 	}
@@ -62,19 +52,6 @@ public class RangedNumericFilter extends DataElementFilter implements Filter, Se
 	@Override
 	public FilterType getFilterType() {
 		return FilterType.RANGED_NUMERIC;
-	}
-
-	@Override
-	public ElementFilter toElementFilter(String variable) {
-		if(isEmpty()) {
-			return null;
-		}
-		
-		ExprVar exprVar = new ExprVar(variable);
-		Expr minExpr = new E_GreaterThanOrEqual(exprVar, NodeValueDecimal.makeDecimal(minimum.doubleValue()));
-		Expr maxExpr = new E_LessThanOrEqual(exprVar, NodeValueDecimal.makeDecimal(maximum.doubleValue()));
-		Expr filterExpression = new E_LogicalAnd(minExpr, maxExpr);
-		return new ElementFilter(filterExpression);
 	}
 
 	@Override
@@ -119,11 +96,7 @@ public class RangedNumericFilter extends DataElementFilter implements Filter, Se
 	 */
 	public boolean evaluate(String cellValue) {
 		if (cellValue == null || cellValue.isEmpty()) {
-			if (isBlank()) {
-				return true;
-			} else {
-				return false;
-			}
+			return false;
 		}
 
 		Double doubleCellValue = Double.valueOf(cellValue);
@@ -136,6 +109,21 @@ public class RangedNumericFilter extends DataElementFilter implements Filter, Se
 
 		if (minimum != null) {
 			output = output && doubleCellValue >= minimum;
+		}
+
+		return output;
+	}
+
+
+	@Override
+	public String toString() {
+		String output = QueryToolConstants.EMPTY_STRING;
+
+		if (!isEmpty()) {
+			// filter name, minimum, filter name, maximum
+			final String queryFormat = "(%s >= %.2f AND %s <= %.2f)";
+			output += String.format(queryFormat, getReadableFilterName(), getMinimum(), getReadableFilterName(),
+					getMaximum());
 		}
 
 		return output;

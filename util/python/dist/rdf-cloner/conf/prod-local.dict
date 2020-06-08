@@ -1,0 +1,9 @@
+[DEFAULT]
+source=http://ibis-rdfstore.cit.nih.gov:8890/sparql/
+graph=http://ninds.nih.gov:8080/allTriples.ttl
+datadir=D:\\SOFT\\Virtuoso\\import
+isqlPort=1112
+batchSize=7500
+target=http://localhost:8891/sparql/
+logBase=D:\\DEV\\appdata\\log\\rdfCloner
+procName=prod-local

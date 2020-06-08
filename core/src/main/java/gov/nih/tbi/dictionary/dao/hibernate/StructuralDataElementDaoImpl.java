@@ -76,10 +76,11 @@ public class StructuralDataElementDaoImpl<T, PK extends Serializable> extends Ge
 		root.fetch("supportingDocumentationSet", JoinType.LEFT);
 
 		StructuralDataElement de = null;
-		
+
 		try {
 			de = createQuery(query).setMaxResults(1).getSingleResult();
-		} catch (NoResultException ex) { }
+		} catch (NoResultException ex) {
+		}
 
 		if (de != null) {
 			getLazyLoadedChildren(de);
@@ -194,24 +195,24 @@ public class StructuralDataElementDaoImpl<T, PK extends Serializable> extends Ge
 				+ " item(s)");
 		List<StructuralDataElement> fullList = new ArrayList<StructuralDataElement>();
 
-		String hql="";
+		String hql = "";
 		String forHqlNameVersion = "";
-		
+
 		for (List<NameAndVersion> smallerList : chunkedList) {
-			int counter =0 ;
+			int counter = 0;
 			for (NameAndVersion nameAndVersion : smallerList) {
 				counter++;
 				String name = nameAndVersion.getName();
 				String version = nameAndVersion.getVersion();
 
-				forHqlNameVersion += "('"+name+"','"+version+"')";
-				if(counter != smallerList.size()) {
-					forHqlNameVersion +=",";
+				forHqlNameVersion += "('" + name + "','" + version + "')";
+				if (counter != smallerList.size()) {
+					forHqlNameVersion += ",";
 				}
 			}
-			hql = "from StructuralDataElement sd where (sd.name, sd.version) in ("+forHqlNameVersion+")";
+			hql = "from StructuralDataElement sd where (sd.name, sd.version) in (" + forHqlNameVersion + ")";
 			TypedQuery<StructuralDataElement> q = getSession().createQuery(hql);
-			
+
 			fullList.addAll(q.getResultList());
 			forHqlNameVersion = "";
 		}
@@ -426,8 +427,8 @@ public class StructuralDataElementDaoImpl<T, PK extends Serializable> extends Ge
 	 * {@inheritDoc}
 	 */
 	public List<NameAndVersion> getAllDraftAndArchivedById(Set<Long> dsIdList) {
-		
-	        if (dsIdList == null || dsIdList.isEmpty()) {
+
+		if (dsIdList == null || dsIdList.isEmpty()) {
 			return new ArrayList<NameAndVersion>();
 		}
 
@@ -440,8 +441,8 @@ public class StructuralDataElementDaoImpl<T, PK extends Serializable> extends Ge
 		query.multiselect(root.get(CoreConstants.NAME), root.get(CoreConstants.VERSION)).distinct(true);
 
 		List<Object[]> rows = createQuery(query).getResultList();
-		
-		
+
+
 		List<NameAndVersion> nameAndVersionList = new ArrayList<NameAndVersion>();
 
 		for (Object[] row : rows) {
@@ -452,28 +453,28 @@ public class StructuralDataElementDaoImpl<T, PK extends Serializable> extends Ge
 		return nameAndVersionList;
 
 	}
-	
-	public List<NameAndVersion> getAllDraftAndArchivedByIdMax(Set<Long> dsIdList){
-        
-	   List<NameAndVersion> fullList = new ArrayList<>();
-	   
-	   if(dsIdList.size() < 32000){
-	       return getAllDraftAndArchivedById(dsIdList);
-	   }
-	   
-	   Iterable<List<Long>> splitSets  = Iterables.partition(dsIdList, 32000);
-	   List<Set<Long>> listOfSets = new ArrayList<>();
-	   for(List<Long> list: splitSets){
-	       Set<Long> tempSet = new HashSet<>();
-	       tempSet.addAll(list);
-	       listOfSets.add(tempSet);
-	   }
-	   
-	   for(Set<Long> set: listOfSets){
-	       fullList.addAll(getAllDraftAndArchivedById(set));
-	   }
-	   
-	   return fullList;
+
+	public List<NameAndVersion> getAllDraftAndArchivedByIdMax(Set<Long> dsIdList) {
+
+		List<NameAndVersion> fullList = new ArrayList<>();
+
+		if (dsIdList.size() < 32000) {
+			return getAllDraftAndArchivedById(dsIdList);
+		}
+
+		Iterable<List<Long>> splitSets = Iterables.partition(dsIdList, 32000);
+		List<Set<Long>> listOfSets = new ArrayList<>();
+		for (List<Long> list : splitSets) {
+			Set<Long> tempSet = new HashSet<>();
+			tempSet.addAll(list);
+			listOfSets.add(tempSet);
+		}
+
+		for (Set<Long> set : listOfSets) {
+			fullList.addAll(getAllDraftAndArchivedById(set));
+		}
+
+		return fullList;
 	}
 
 	/**
@@ -587,7 +588,7 @@ public class StructuralDataElementDaoImpl<T, PK extends Serializable> extends Ge
 		subquery.where(cb.equal(subroot.get("name"), root.get("name")));
 		query.where(cb.and(root.get("name").in(deNames), cb.equal(root.get("id"), subquery)));
 
-//		List<Object[]> rows = createQuery(query).getResultList();
+		// List<Object[]> rows = createQuery(query).getResultList();
 		TypedQuery<Object[]> q = createQuery(query);
 		List<Object[]> rows = q.getResultList();
 		Map<String, Map<String, ValueRange>> dePVMap = new HashMap<String, Map<String, ValueRange>>();
@@ -601,7 +602,7 @@ public class StructuralDataElementDaoImpl<T, PK extends Serializable> extends Ge
 			}
 
 			ValueRange vr = null;
-			String pv = ((String) row[1]).toUpperCase();
+			String pv = (String) row[1];
 
 			if (dePVMap.get(deName).containsKey(pv)) {
 				vr = dePVMap.get(deName).get(pv);
@@ -619,6 +620,15 @@ public class StructuralDataElementDaoImpl<T, PK extends Serializable> extends Ge
 			sp.setPermissibleValue((String) row[6]);
 			sp.setSchemaDeId((String) row[7]);
 			vr.getSchemaPvs().add(sp);
+
+			// add the permissible value description as a schema PV
+			// this is for use in query tool so we can map data in query tool to its applicable
+			// permissible value description.
+			SchemaPv descriptionSchema = new SchemaPv();
+			descriptionSchema.setSchema(new Schema());
+			descriptionSchema.getSchema().setName("Permissible Value Description");
+			descriptionSchema.setPermissibleValue((String) row[3]);
+			vr.getSchemaPvs().add(descriptionSchema);
 
 			dePVMap.get(deName).put(pv, vr);
 		}
@@ -656,8 +666,8 @@ public class StructuralDataElementDaoImpl<T, PK extends Serializable> extends Ge
 		CriteriaQuery<StructuralDataElement> query = cb.createQuery(StructuralDataElement.class);
 		Root<StructuralDataElement> root = query.from(StructuralDataElement.class);
 
-		query.where(cb.and(
-				cb.equal(root.get(CoreConstants.NAME), name), cb.equal(root.get(CoreConstants.VERSION), "1.0")));
+		query.where(
+				cb.and(cb.equal(root.get(CoreConstants.NAME), name), cb.equal(root.get(CoreConstants.VERSION), "1.0")));
 
 		StructuralDataElement dataElement = getUniqueResult(query);
 		return dataElement;

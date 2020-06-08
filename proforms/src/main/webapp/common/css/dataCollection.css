@@ -22,6 +22,7 @@
  	vertical-align: top;
  	border-left: 1px ridge #000000;
  	border-right: 1px ridge #000000;
+ 	padding: 10px;
  }
  
  table {
@@ -43,9 +44,9 @@
  
  .questionTR .questionText {
  	/*! width: 90%; */
- 	width: calc(96% - 25px);
+ 	width: calc(85% - 5px);
 	float: left;
- 	margin-left: 10px;
+ 	margin-left: 5px;
 	display:inline-block;
 	/*! overflow:hidden; */
 	vertical-align:top;
@@ -387,3 +388,27 @@ label {
 .dashboartooltip:hover .tooltiptext {
   visibility: visible;
 }
+
+#table_id  {
+    display: block;
+}
+  
+#table_id td {
+    display: inline-block;
+    min-height: 25px;
+}
+
+.showHiddenElementBG {
+	background-color: #ffd0c9 !important;
+}
+
+.showHiddenElementBG .sectionContainerTable > tbody > tr, .showHiddenElementBG .sectionNameTd {
+	background-color: #ffd0c9 !important;
+}
+
+.selectShowHideBorder {
+	border: 2px double #eaa79d;
+}
+
+
+

@@ -1,0 +1,7 @@
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\propPasswdUtil\stage-nti-sched
+passFile=D:\DATA\secur\.pgpass
+
+[DEPLOY]
+trgRoot=D:\DEV\workspace\conf\stage\nti-sched
+srcRoot=D:\DEV\BRIX\local\prop\stage\nti-sched

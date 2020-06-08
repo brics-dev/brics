@@ -1,0 +1,164 @@
+openapi: 3.0.0
+info:
+  description: Provides authentication for users of the BRICS application
+  version: 1.0.0
+  title: BRICS Authentication
+servers:
+  - url: 'https://brics.cit.nih.gov/auth'
+tags:
+  - name: auth
+    description: Authentication service
+paths:
+  /user/login:
+    post:
+      tags:
+      - auth
+      summary: Log in using user credentials to get a JWT
+      description: ""
+      operationId: login
+      requestBody:
+        description: User credentials
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                username: 
+                  type: string
+                password:
+                  type: string
+              required:
+                - username
+                - password
+      responses:
+        200:
+          description: Login Successful
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: JWT the user should use for authorization
+        401:
+          description: Username or password was incorrect
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: message describing the error
+        403:
+          description: User credentials are correct but user is unauthorized (normally, account locked or expired)
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: message describing the error
+                
+  /user/bricslogin:
+    post:
+      tags:
+      - auth
+      summary: Log in provided for the BRICS system (already logged in through CAS)
+      description: This is a temporary method allowing the BRICS system to log in an already-authenticated user from the portal/etc server back-end to get a valid microservice JWT.  This is temporary pending move away from CAS for standard user login.
+      operationId: bricsLogin
+      deprecated: true
+      requestBody:
+        description: User credentials
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                username: 
+                  type: string
+                  description: username for the user who needs access
+                password:
+                  type: string
+                  description: password for the user hashed using HashMethods.getServerHash(username, HashMethods.convertFromByte(account.getPassword())).  It is deprecated from inception because it should not be used when another option is available.
+              required:
+                - username
+                - password
+      responses:
+        200:
+          description: Login Successful
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: JWT the user should use for authorization
+        401:
+          description: Username or password was incorrect
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: message describing the error
+        403:
+          description: User credentials are correct but user is unauthorized (normally, account locked or expired)
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: message describing the error
+
+  /user/logout:
+    get:
+      tags:
+      - auth
+      security:
+        - bearerAuth: []
+      summary: log out user from the system
+      operationId: logout
+      responses:
+        200:
+          description: logout successful
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+          
+  /user/renew:
+    get:
+      tags:
+      - auth
+      security:
+      - bearerAuth: []
+      summary: giving a valid login, get a new one with extended expiration
+      operationId: renew
+      responses:
+        200:
+          description: Renewal Successful
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: JWT the user should use for authorization
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+          
+  /user/verify:
+    get:
+      tags:
+      - auth
+      security:
+      - bearerAuth: []
+      summary: receives a (potentially) valid JWT and responds with a message about whether the JWT is valid or not
+      operationId: verify
+      responses:
+        200:
+          description: The JWT is valid
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+       type: http
+       scheme: bearer
+       bearerFormat: JWT
+       
+  responses:
+    UnauthorizedError:
+      description: Access token is missing or invalid
+  
+security:
+  - bearerAuth: []

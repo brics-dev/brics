@@ -7,6 +7,9 @@ import gov.nih.tbi.pojo.StudyResult;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.Map;
+
+import com.google.common.collect.Multimap;
 
 
 /**
@@ -15,7 +18,7 @@ import java.util.List;
  * @author Francis Chen, Nimesh Patel
  * 
  */
-public interface ResultManager{
+public interface ResultManager {
 
 	/**
 	 * Runs the stored meta data query, parse the resultset, and get the detailed properties of each result object For
@@ -43,10 +46,10 @@ public interface ResultManager{
 	 * Queries the dictionary meta data using the in-memory meta data cache maps
 	 */
 	public List<StudyResult> searchStudies(String text);
-	
+
 	public List<FormResult> searchDeForms(String text, List<String> deUris);
 
-	//public ResultSet getFacetPopulationDetails(Facet facet, boolean addFilter);
+	// public ResultSet getFacetPopulationDetails(Facet facet, boolean addFilter);
 
 	public Facet getDeFacetDetails(boolean addFilter);
 
@@ -58,4 +61,32 @@ public interface ResultManager{
 			throws InstantiationException, IllegalAccessException, IllegalArgumentException, SecurityException,
 			InvocationTargetException, NoSuchMethodException;
 
+	public Multimap<String, FormResult> searchFormsByDeNames(List<String> deNames);
+
+	public Multimap<String, String> getSeeAlso(List<String> deNames);
+
+	public Map<String, String> getDeTitles(List<String> deNames);
+
+	/**
+	 * Returns a list of studyResult objects with the given prefixedIds
+	 * @param prefixedIds
+	 * @return
+	 */
+	public List<StudyResult> getStudyByPrefixedIds(List<String> prefixedIds);
+	
+	/**
+	 * Returns a list of studyResult objects that are associated with one of the given form structure short names
+	 * @param formNames
+	 * @return
+	 */
+	public List<StudyResult> searchStudyByFormNames(List<String> formNames);
+	
+	/**
+	 * Returns a list of FormResult objects that are associated with one of the given study prefixed IDs
+	 * @param prefixedIds - Prefixed IDs of the study
+	 * @return
+	 */
+	public Multimap<String, FormResult> searchFormsByStudyPrefixedIds(List<String> prefixedIds);
+	
+	public FormResult getFormByShortName(String name);
 }

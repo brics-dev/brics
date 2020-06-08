@@ -12,7 +12,7 @@
 <%@ taglib uri="/WEB-INF/display.tld" prefix="display"%>
 <%@ taglib uri="/WEB-INF/security.tld" prefix="security"%>
 
-<security:check privileges="dataentry, dataentryoversight" />
+<security:check privileges="dataentry, dataentryoversight, addeditauditorcomments" />
 
 <s:set var="pageTitle" scope="request">
 	<s:text name="response.collect.title.display2" />
@@ -38,7 +38,7 @@
 <script type="text/javascript" src="<s:property value='#webRoot'/>/common/conversionTable.js"></script>
 
 <jsp:include page='/formbuilder/templates/builder/processing.jsp' />
-
+<s:set var="allowingPII"	value="#systemPreferences.get('guid_with_non_pii')" />
 <script type="text/javascript">
  // start up the processingview
  var FormBuilder = {
@@ -50,14 +50,18 @@
 	} 
  };
  var processingView = null;
- 
+ var basePath = "<s:property value='#webRoot'/>";
  $(document).ready(function() {
 	FormBuilder.page.processingView = new ProcessingView(); 	
  });
 </script>
-
+<script type="text/javascript" src="<s:property value='#webRoot'/>/response/btrisData.js"></script>
 <%
 	String mode = (String) request.getAttribute(CtdbConstants.DATACOLLECTION_MODE); 
+    String audit = (String) request.getAttribute(CtdbConstants.DATACOLLECTION_AUDIT); 
+    String sqshow = (String) request.getAttribute(CtdbConstants.DATACOLLECTION_SQ_SHOW); 
+    String sId = (String) request.getAttribute(CtdbConstants.DATACOLLECTION_SID); 
+    String qId = (String) request.getAttribute(CtdbConstants.DATACOLLECTION_QID); 
 	String formType = (String) request.getAttribute(CtdbConstants.FORM_TYPE_REQUEST_ATTR);
 
 	String formId = "";
@@ -70,6 +74,7 @@
 	String visitDate = (String) request.getAttribute(StrutsConstants.VISITDATE);
 	String pVisitDate = (String) request.getAttribute(StrutsConstants.SUBJECT_VISIT_DATE);
 	String pIntervName = (String) request.getAttribute(StrutsConstants.SUBJECT_INTERVAL_NAME);
+	String formDSName = (String) request.getAttribute(CtdbConstants.FORM_DS_NAME_REQUEST_ATTR); //TODO: dsname
 
 	boolean formFetched = (Boolean) request.getAttribute(StrutsConstants.FORMFETCHED);
 	boolean editMode = (Boolean) request.getAttribute(CtdbConstants.DATACOLLECTION_EDITMODE);
@@ -102,6 +107,17 @@
 	if (request.getAttribute(CtdbConstants.DATACOLLECTION_DISPLAY_VISITDATE_WARNING) != null) {
 		displayVisitDateWarning = true;
 	}
+	
+	boolean isEformConfigured = false;
+	if (request.getAttribute(CtdbConstants.IS_EFORM_CONFIGURED) != null) {
+		isEformConfigured = (Boolean)request.getAttribute(CtdbConstants.IS_EFORM_CONFIGURED);
+	}
+	
+	String acKey = "";
+	if (request.getAttribute(CtdbConstants.AFORM_CACHE_KEY) != null) {
+		acKey = (String)request.getAttribute(CtdbConstants.AFORM_CACHE_KEY);
+	}
+
 
 %>
 
@@ -120,21 +136,52 @@ var globalEditFlag = <%=editMode%>;
 var globalDeleteOnCancel = <%=deleteOnCancelFlag%>;
 var $disabledInputs;
 var globalFormStatus = '<%=formStatus%>';
+var acKey = '<%=acKey%>';
 var passwordErrorId = "";
+var isStartMeasurementClicked = false;
+<%-- on load of form, if eform is configurd that elements are hidden--%>	
+var areElementsHidden = true;  
 
 	<%-- Action on jumpTo link click --%>	
 	function jumpTo(jumptoformId) {
+		if(isStartMeasurementClicked) {
+			var catStartMeasDialogId = $.ibisMessaging(
+					"dialog", 
+					"warning", 
+					"<s:text name='response.startMeasurement.warning' />", 
+					{
+						buttons: [{
+							text: "Cancel", 
+							click: function(){
+								$.ibisMessaging("close", {id: catStartMeasDialogId});
+							}
+						},
+							{text: "Yes",
+							click: function(){
+								$.ibisMessaging("close", {id: catStartMeasDialogId});
+								doJump(jumptoformId);
+							}}],
+						modal: true,
+						draggable:false
+					}
+			);
+		}else {
+			doJump(jumptoformId);
+		}
+		
+
+		
+	}
+	
+	
+	function doJump(jumptoformId){
 		EventBus.trigger("open:processing", "Going to selected eForm...");
 		setHiddenFileInputs();
 
 		if(globalFormStatus==="Completed") {	
 			addReasonsToForm();
 		}
-		
-		
-		
 
-		
 		disableActionControls();
 		doClickedSectionIds();
 		LeavePageWarning.save();
@@ -149,11 +196,19 @@ var passwordErrorId = "";
 		var visitDateElm7 = $('[name="dataEntryForm.visitDate"]').eq(0);
 		var currentDateVal= visitDateElm7.val();
 		var form = document.getElementById("myForm");
-		
+		var action = "<%=action%>";
 		form.action = "<s:property value="#webRoot"/>/response/dataCollection.action?action=jumpToForm&markAsCompletedCheckBoxStatus=" +
-				markAsCompletedCheckBoxStatus+"&currentIntervalId="+currentIntervalId+"&jumptoformId="+jumptoformId+"&formId="+formId+"&currentFormName=" +
-				currentFormName+"&currentSubjectId="+currentSubjectId+"&currentDateVal="+currentDateVal+"&aformId="+<%=aformId%> +
-				"&fileExist="+fileExist+"&assocFileQuestionIds="+assocFileQuestionIds;
+		markAsCompletedCheckBoxStatus+"&currentIntervalId="+currentIntervalId+"&jumptoformId="+jumptoformId+"&formId="+formId+"&currentFormName=" +
+		currentFormName+"&currentSubjectId="+currentSubjectId+"&currentDateVal="+currentDateVal+"&aformId="+<%=aformId%> +
+		"&fileExist="+fileExist+"&assocFileQuestionIds="+assocFileQuestionIds+"&isStartMeasurementClicked="+isStartMeasurementClicked;
+		
+		if(action!=null && action == 'auditComments') { //audit comment
+			form.action = "<s:property value="#webRoot"/>/response/dataCollection.action?action=jumpToForm&currentIntervalId="+currentIntervalId+"&jumptoformId="+jumptoformId+"&formId="+formId+"&currentFormName=" +
+					currentFormName+"&currentSubjectId="+currentSubjectId+"&currentDateVal="+currentDateVal+"&aformId="+<%=aformId%> +
+					"&assocFileQuestionIds="+assocFileQuestionIds+"&audit=true&isStartMeasurementClicked="+isStartMeasurementClicked;
+			
+		}
+		//console.log("audit form.action: "+form.action);
 		form.submit();
 	}
 
@@ -192,6 +247,9 @@ function disableActionControls() {
 		}
 	});
 }
+
+
+	
 
 /**
  * Re-enables all disabled inputs and links that were disabled via
@@ -301,6 +359,115 @@ function commonSaveExitLockTask(){
 
 
 $(document).ready(function() {
+	//remove the title from eform names in left nav that dont have ...
+	$("div .leftNavFormName:not(:contains('...'))").removeAttr('title');
+	
+	//if editing a completed or locked CAT collection, make questions in all sections readonly other than form admin and main
+	 var isCat = <%= isCat %>;
+	 if(isCat && globalFormStatus !="In Progress"){
+		 $("table").find("[name][name!='Main'][name!='Form Administration'] input,textarea,select").prop("readonly", true);
+		 $("table").find("[name][name!='Main'][name!='Form Administration'] input:radio").click(function(){
+			 return false;
+		 });
+		 $("table").find("[name][name!='Main'][name!='Form Administration'] .hasDatepicker").css('pointer-events', 'none');
+	 }
+	
+	 /*CISTAR-641:set table cell width to be 0 if no text in it*/
+	 $(".questionTextContainerTd").each(function(element) { 
+		 var $this = $(this); 
+		 var tblCellTxt = $this.find(".questionTextImmediateContainer").text();
+		 if (tblCellTxt.length == 0) { 
+			 $this.width(0); 
+		 } else if ($.trim(tblCellTxt).length == 0) { 
+			 //contains white spaces only, then reset width in percentage
+			 var widthPercent = tblCellTxt.length / $this.parent().width() * 100 + "%";
+			 $this.width(widthPercent);  
+		 }   
+	}); 
+	
+	var audit = "<%=audit%>";	
+	if(audit!=null && audit=='true') { //audit comment
+		$('.enterAuditComment').attr('style', 'display: table-cell; float: right; margin-right: 10%;');
+		$('.repeatButton').attr('disabled',true);
+		$("input,textarea,select").not('#rComment').not('[type="button"]').prop("disabled", true);
+		$("input,textarea,select").attr("onchange" , "");
+		$('.btrisMappingInfo').hide();
+		$('.allBtrisDataBtn').prop('disabled',true);
+	}
+	
+	var sqshow = "<%=sqshow%>";
+	var csid = "<%=sId%>";	
+	var cqid = "<%=qId%>";	
+	if(sqshow!=null && sqshow=='true' 
+		&& csid!=null && ''!=trim(csid) && cqid!=null && ''!=trim(cqid) ) { //audit comment
+		var csqId='S_'+csid+'_Q_'+cqid; //S_9607_Q_19568
+		document.getElementById(csqId).focus();
+		//$('#csqId').focus();
+		//document.getElementById(csqId).closest('td').focus(); //wrong
+		//document.getElementById(csqId).closest('tr').focus();
+	}
+	
+		//ArchivesListTable for audit comment ht (history list)
+		$('#responseListTable2').idtTable({
+			idtUrl: "<s:property value='#webRoot'/>/response/getEditArchivesListByQId.action",
+
+		    "language": {
+		        "emptyTable": "There are no audit comment to display at this time."
+		    },
+			columns: [
+				{
+					title:"Name",
+					data: "username",
+					name:"username",
+					parameter: "username"
+				},
+				{
+					title:"Date/Time",
+					data: "editDate",
+					name:"editDate",
+					parameter: "editDate",
+					render: IdtActions.formatDate()
+				},
+				{
+					title:"Section Name",
+					data: "sectionName",
+					name:"sectionName",
+					parameter: "sectionName"
+				},
+				{
+					title:"Data Element Name",
+					data: "dataElementName",
+					name:"dataElementName",
+					parameter: "dataElementName"
+				},
+				{
+					title:"Question Text",
+					data: "questionText",
+					name:"questionText",
+					parameter: "questionText"
+				},
+				{
+					title:"Answers Before",
+					data: "preAnswers",
+					name:"preAnswers",
+					parameter: "preAnswers"
+				},
+				{
+					title:"Answers After",
+					data: "postAnswers",
+					name:"postAnswers",
+					parameter: "postAnswers"
+				},
+				{
+					title:"Audit Comment",
+					data: "auditcommentForEdit",
+					name:"auditcommentForEdit",
+					parameter: "auditcommentForEdit"
+				}						
+			]
+		});
+		$(".fancyBoxContainerAudit").hide();
+	
 	 fileExist = getAttchmentIds();
 	 var dataCollectionErrorMsg = "<s:text name="response.errors.duplicate.data"/><br/>"+
 		"FormName: "+$('[name="dataEntryForm.formName"]').val()+"<br\>"+
@@ -439,11 +606,18 @@ $(document).ready(function() {
 		}
 		commonSaveExitLockTask();
 		LeavePageWarning.save();
+		
+		var catValidate = false;
+		if(isCat) {
+			catValidate = true;
+		}
+		
+		
 		var url = "<s:property value="#webRoot"/>/response/collectDataPreviousHome.action";
     	$('#myForm').ajaxSubmit({
     	data: {clickedSectionFields:$("#clickedSectionFieldsId").val(), formTypeId:$("#formTypeId").val(), modeId:$("#modeId").val()},
 		url: "<s:property value="#webRoot"/>/response/dataCollection.action?action=saveForm&markAsCompletedCheckBoxStatus="+markAsCompletedCheckBoxStatus+
-				"&aformId=" +<%=aformId%>+ "&editMode=" + globalEditFlag+"&fileExist="+fileExist+"&assocFileQuestionIds="+assocFileQuestionIds,	
+				"&aformId=" +<%=aformId%>+ "&editMode=" + globalEditFlag+"&fileExist="+fileExist+"&assocFileQuestionIds="+assocFileQuestionIds + "&catValidate=" + catValidate,	
 		success: function(response, status, jqxhr) {
 				EventBus.trigger("close:processing");
 				var data = JSON.parse(response);
@@ -563,11 +737,100 @@ $(document).ready(function() {
 	  	return false; 
 	}); 
 	
-	
+	/* Those are Cancel/Verified/Save buttons for Final Lock Audit comment    */
+	 $('#cancelAuditCommentBtn').click(function() {
+		 $(".fancyBoxContainerAudit").dialog("close"); 	 
+	 });
+	 $('#verifiedAuditCommentBtn').click(function(e) {//at audit page		 
+		 if(!addAuditCommentVerified()){
+			saveAuditBtn(e, "L"); //Audit Status Locked
+		 }
+	 });
+	 $('#saveAuditCommentBtn').click(function(e) {//at audit page
+		 $('#verifiedAuditCommentBtn').html("Verify");
+		 if(!addAuditComment()){
+			 saveAuditBtn(e, "I"); //Audit Status InProgress
+		 }		 
+	 });
+	 $('#saveEditCommentBtn').click(function(e) {//at edit page
+		if(!addAuditCommentHT()){
+			saveAuditBtn(e, "C"); //Audit Status Complete
+		}
+	 });
+
+
+	 function saveAuditBtn (e, auditstatus) { //e has to be added here.
+		   	EventBus.trigger("open:processing", "Saving your eForm comment...");	   	
+		   	setHiddenFileInputs();
+		   	commonSaveExitLockTask();
+			//In edit mode take to my collections page on cancel click
+			//url = "<s:property value='#webRoot'/>/response/collectDataPreviousHome.action";
+		    addAuditCommentsToForm(); //ui to pre-db
+		    LeavePageWarning.save();
+		   	
+		   	var url = "<s:property value="#webRoot"/>/response/collectDataPreviousHome.action";
+		   	var key = $("#aformCacheKey").val();
+		   	
+		   	$('#myForm').ajaxSubmit({ //action=saveForm; saveFormFL
+		   		data: {clickedSectionFields:$("#clickedSectionFieldsId").val(), formTypeId:$("#formTypeId").val(), modeId:$("#modeId").val()},			
+			   		url :  "<s:property value="#webRoot"/>/response/dataCollection!auditComment.action?action=save&markAsCompletedCheckBoxStatus="+
+					markAsCompletedCheckBoxStatus+"&aformId=" +<%=aformId%>+ "&editMode=" + globalEditFlag+"&assocFileQuestionIds="+assocFileQuestionIds+'&audit=true&aformCacheKey=' + key,
+
+					success: function(response, status, jqxhr) {
+					EventBus.trigger("close:processing");
+					var data = JSON.parse(response);
+			  		var st = data.status;
+			  		if (st.toLowerCase().indexOf("<li")==0) {
+			        	$.ibisMessaging("close", {type:"primary"}); 
+						$.ibisMessaging("primary", "error", '<s:text name="errors.text"/></b>'+st, {hideDelay: 3000});
+
+			  		}else if (st == "saveFormSuccess") {
+			  			var fname = data.fName;	
+ 			  			/* $.ibisMessaging("store", "primary", {message: 
+								"The administered form "+ fname +" has been saved successfully.", level: "success"}); */
+							//redirectWithReferrer(url);
+			  			//window.location.reload(true);
+			  		
+				  		if('C'.toUpperCase()==auditstatus.toUpperCase()) {
+			    			$('#imgAuditComment_'+currQId).attr('src', '../images/icons/comment_yellow.png');
+			    		}
+			    		else if('L'.toUpperCase()==auditstatus.toUpperCase()) {
+			    			$('#imgAuditComment_'+currQId).attr('src', '../images/icons/comment_green.png');
+			    			/*'L' - enabled at audit page */
+			    		}
+			    		else if('I'.toUpperCase()==auditstatus.toUpperCase()) {
+			    			$('#imgAuditComment_'+currQId).attr('src', '../images/icons/comment_red.png');
+			    		}
+			  					  			
+			  			
+			  			$.ibisMessaging("close", {type:"primary"}); 
+						$.ibisMessaging("flash", "success", "Data Saved Successfully.", {hideDelay: 3000});  			
+			  		}
+			  		else {
+			  			$.ibisMessaging("close", {type:"primary"}); 
+			  			$.ibisMessaging("store", "primary", {message: dataCollectionErrorMsg, level: "error"});
+			  			redirectWithReferrer(url);  		
+			  		}
+			  		enableActionControls();	
+					
+				},
+		   		error: function (xhr, ajaxOptions, thrownError) {
+		        	EventBus.trigger("close:processing");
+		  			$.ibisMessaging("close", {type:"primary"}); 
+		  			$.ibisMessaging("store", "primary", {message: dataCollectionErrorMsg, level: "error"});
+		  			redirectWithReferrer(url);
+		        }
+		   		
+		   }); 
+		   	return false;
+	 };
+	  
 	var mode = "<%=mode%>";	
-	LogoutWarning.init();
 	LeavePageWarning.init();
-	AutoSaver.init(); 
+	//disable auto save for PROMIS form
+	if(!isCat && audit != "true"){
+		AutoSaver.init(); 
+	}
 	<%-- Get the mark as complete checkbox status set in action and apply in JSP --%>
 	var markAsCompletedStatusInAction = <%=markAsCompleted%>;
 	if (markAsCompletedStatusInAction) {
@@ -646,6 +909,33 @@ $(document).ready(function() {
 	
 	<%-- Action on next button click --%>	 
 	 $("#nextButton").click(function() {
+		 if(isStartMeasurementClicked) {
+				var catStartMeasDialogId = $.ibisMessaging(
+						"dialog", 
+						"warning", 
+						"<s:text name='response.startMeasurement.warning' />", 
+						{
+							buttons: [{
+								text: "Cancel", 
+								click: function(){
+									$.ibisMessaging("close", {id: catStartMeasDialogId});
+								}
+							},
+								{text: "Yes",
+								click: function(){
+									$.ibisMessaging("close", {id: catStartMeasDialogId});
+									doNext();
+								}}],
+							modal: true,
+							draggable:false
+						}
+				);
+			}else {
+				doNext();
+			}
+	});   
+	 
+	function doNext() {
 		EventBus.trigger("open:processing", "Going to next eForm...");
 		setHiddenFileInputs();
 		if(globalFormStatus==="Completed") {	
@@ -669,9 +959,9 @@ $(document).ready(function() {
 		form.action = "<s:property value="#webRoot"/>/response/dataCollection.action?action=nextForm&markAsCompletedCheckBoxStatus="
 			+markAsCompletedCheckBoxStatus+"&currentIntervalId="+currentIntervalId+"&formId="+formId+"&currentFormName="
 			+currentFormName+"&currentSubjectId="+currentSubjectId+"&currentDateVal="+currentDateVal+"&aformId="+<%=aformId%>
-			+"&fileExist="+fileExist+"&assocFileQuestionIds="+assocFileQuestionIds;
+			+"&fileExist="+fileExist+"&assocFileQuestionIds="+assocFileQuestionIds+"&isStartMeasurementClicked="+isStartMeasurementClicked;
 		form.submit();
-	});   
+	}
 	
 	 
 	 $("#markAsCompletedCheckBox").click(function() {
@@ -694,6 +984,33 @@ $(document).ready(function() {
 	
 	<%-- Action on previous button click --%>	
 	$("#previousButton").click(function() {
+		if(isStartMeasurementClicked) {
+			var catStartMeasDialogId = $.ibisMessaging(
+					"dialog", 
+					"warning", 
+					"<s:text name='response.startMeasurement.warning' />", 
+					{
+						buttons: [{
+							text: "Cancel", 
+							click: function(){
+								$.ibisMessaging("close", {id: catStartMeasDialogId});
+							}
+						},
+							{text: "Yes",
+							click: function(){
+								$.ibisMessaging("close", {id: catStartMeasDialogId});
+								doPrevious();
+							}}],
+						modal: true,
+						draggable:false
+					}
+			);
+		}else {
+			doPrevious();
+		}
+	});
+	
+	function doPrevious() {
 		EventBus.trigger("open:processing", "Going to previous eForm...");
 		setHiddenFileInputs();
 		if(globalFormStatus==="Completed") {	
@@ -717,9 +1034,9 @@ $(document).ready(function() {
 		form.action = "<s:property value="#webRoot"/>/response/dataCollection.action?action=previousForm&markAsCompletedCheckBoxStatus="
 			+markAsCompletedCheckBoxStatus+"&currentIntervalId="+currentIntervalId+"&formId="+formId+"&currentFormName="
 			+currentFormName+"&currentSubjectId="+currentSubjectId+"&currentDateVal="+currentDateVal+"&aformId="+<%=aformId%>
-			+"&fileExist="+fileExist+"&assocFileQuestionIds="+assocFileQuestionIds;
+			+"&fileExist="+fileExist+"&assocFileQuestionIds="+assocFileQuestionIds+"&isStartMeasurementClicked="+isStartMeasurementClicked;
 		form.submit();
-	});
+	}
 	
 	if (showSavedMessage) {
 		if (formNameToBeSavedOrLocked != null) {
@@ -728,7 +1045,7 @@ $(document).ready(function() {
 	}
 	
 	<%--This is the second document ready that was merged in the first one so that it maintains the order of handler that are registered --%>	
-	initialize('<%=mode%>', '<%=formId%>', <%=formFetched%>, <%=editMode%>);
+	initialize('<%=mode%>', '<%=formId%>', <%=formFetched%>, <%=editMode%>, '<%=audit%>', '<%=action%>');
 	$(".fancyBoxContainer").dialog({
 		width: 1055, 
 		autoOpen: false,
@@ -751,9 +1068,40 @@ $(document).ready(function() {
 			click: function() {
 				addReason();
 			}
+		},
+		{ 	text: "Cancel",
+			click: function() {
+				$(this).dialog('close');
+			}			
 		}]
 	});
-		
+	/* audit comment ht (history list) */
+	$(".fancyBoxContainerAudit").dialog({  //3
+		width: 1055, 
+		autoOpen: false,
+		modal: true,
+		closeOnEscape: false,
+		open: function( event, ui ) {
+			//close X button while lunching this dialog.
+			//$(".ui-dialog-titlebar-close").hide();
+			 $(".fancyBoxContainerAudit").parent().css("position", "relative");
+			 $(".fancyBoxContainerAudit").parent().position({
+				 of: window,
+				 my: 'center top+50',
+				 at: 'center top'
+			 });
+			 $(".fancyBoxContainerAudit").find("input, textarea").css("width", "auto");
+				//jsResponses.get(currQId).setEdited(true);
+		},
+		close: function() {
+			$('#errorContainerHT').empty();
+			 $("#errorContainerHT").hide();
+			 $('#errorContainer').empty();
+			 $("#errorContainer").show();
+		},
+		title: "<s:text name="response.auditcomment.auditcomment" />"
+	});
+	
 	$(".finalLock").dialog({
 		width: 785, 
 		autoOpen: false,
@@ -953,6 +1301,9 @@ $(document).ready(function() {
 		    		$('div[name="Main"]').hide();
 		    		$('div[name="Form Administration"]').hide();
 		    		$('#acknowledgement').hide();
+		    		$('#saveAndExitBtn').hide();
+		    		$('#promis_saveComplete').hide();
+		    		isStartMeasurementClicked = true;
 		    		initiateCATs();
 		    	}
 		    },	
@@ -970,10 +1321,85 @@ $(document).ready(function() {
 	$("#promis_cancel").click(function(){
 		$("#goCancel").click();
 	});
+	
+	
+	//PSR forms can be configured to hide certain sections (along with its questions) and/or certain questions within sections
+	//so lets hide them here
+	
+	var idlist = JSON.parse($("#hiddenSectionsQuestionsPVsElementIdsJSON").val());
+	for (var i = 0; i < idlist.length; i++) {
+		var elementId = idlist[i];
+		var $hideElement = $("[hideid='" + elementId + "']");
+		$hideElement.hide();
+		$hideElement.addClass("eformConfigureHidden");
+		
+		//handle repeatables
+		if (elementId.indexOf("questionContainer") === -1) {
+			//this is a section
+			//no need to hide the child sections since we are hiding the repeat button:
+			//hide repeat button
+			var $repeatButton;
+			if(globalEditFlag == true) {
+				$repeatButton = $hideElement.parents("tr").first().next("tr").find(".repeatButton");
+			}else {
+				$repeatButton = $hideElement.next(".repeatButton");
+			}
+			$repeatButton.removeClass("repeatButton");
+			$repeatButton.addClass("eformConfigureHidden");
+			$repeatButton.hide();
+			
+		} else {
+			//this is a question or pv
+			var isQuestion = true;
+			var sectionId;
+			var questionId;
+			var pvId;
+			
+			if (elementId.split("_").length - 1 == 3) { //handles pvs
+				isQuestion = false;
+				var s_q_p = elementId.substring(elementId.indexOf("questionContainer")+18, elementId.length);
+				sectionId = s_q_p.substring(0,s_q_p.indexOf("_"));
+				var q_p = s_q_p.substring(s_q_p.indexOf("_") + 1 ,s_q_p.length);
+				questionId = q_p.substring(0,q_p.indexOf("_"));
+				pvId = q_p.substring(q_p.indexOf("_") + 1, q_p.length);
+
+			} else { //handles questions
+				sectionId = elementId.substring(elementId.indexOf("questionContainer")+18, elementId.lastIndexOf("_"));
+				questionId = elementId.substring(elementId.lastIndexOf("_")+1, elementId.length);
+			}
+			
+			//hide children corresponding questions and add eformConfigureHidden class 
+			var $childRepeatables = $('[parent="' + sectionId + '"]');
+			$childRepeatables.each(function(index) {
+				$this = $(this);
+				var childId = $this.attr("id");
+				var childElementId;
+				
+				if (isQuestion) {
+					childElementId = "questionContainer_" + childId + "_" + questionId;
+				} else {
+					childElementId = "questionContainer_" + childId + "_" + questionId + "_" + pvId;
+				}
+				
+				var $childElement = $this.find(("[hideid='" + childElementId + "']"));
+				$childElement.hide();
+				$childElement.addClass("eformConfigureHidden");
+			});
+		}
+	}
+	
 	// ====================
 
     //calling intervalOnChange to initialize disabling/enabling of eforms in the eform list dropdown
 	intervalOnChange();
+	
+	//Show Get Btris Data button
+	<s:if test="#allowingPII == 0">		
+		<%if (subjectDisplayType == CtdbConstants.PATIENT_DISPLAY_MRN) { %>
+			$(".allBtrisDataBtn").show();
+			$(".btrisMappingInfo").show();
+		<% } %>
+	</s:if>
 														
 });
 
@@ -1029,71 +1455,19 @@ function saveFLAjax() {
 	var intervalsArray = new Array();
 	
 	<s:property value="#request.jsResponseList" escapeHtml="false" />
-    
-var LogoutWarning = {
-	timer : null,
-	logoutAfterTimer : null,
-	logoutWarningId : null,
-	html : 'Your authentication session is about to expire due to inactivity.  <b>All unsaved data will be lost</b>.  Please click the button below to extend your session.',	
-	init : function() {
-		this.startTimer();
-	},
-	
-	openPopup : function() {
-		this.logoutWarningId = $.ibisMessaging(
-				"dialog", 
-				"warning", 
-				this.html, 
-				{
-					buttons: [{
-						text: "Extend My Session", 
-						click: function(){LogoutWarning.cancelLogout();}
-					}]
-				}
-		);
-		this.startLogoutTimer();
-	},
-	
-	startTimer : function() {
-		this.timer = setTimeout(function(){LogoutWarning.openPopup();}, <s:property value="#systemPreferences.get('app.warningTimeout')"/>);
-	},
-	
-	cancelLogout : function() {
-		$.ibisMessaging("close", {id: LogoutWarning.logoutWarningId});
-		this.cancelLogoutTimer();
-		this.startTimer();
-	},
-	
-	logout : function() {
-		this.redirectToLogout();
-	},
-	
-	redirectToLogout : function() {
-		top.location.href = '<s:property value="#webRoot"/>/logout';
-	},
-	
-	startLogoutTimer : function() {
-		this.logoutAfterTimer = setTimeout(function(){LogoutWarning.logout();}, 120000);
-	},
-	
-	cancelLogoutTimer : function() {
-		window.clearTimeout(this.logoutAfterTimer);
-		this.logoutAfterTimer = null;
-	}
-};
-
 
 var AutoSaver = {
 	noticeTimer : null,
 	saveTimer : null,	
 	init : function() {
 		if ('<%=formStatus%>' == '<%=CtdbConstants.DATACOLLECTION_STATUS_INPROGRESS%>'){
-			//this.startTimer();
+			this.startTimer();
 		}
 	},
 	
 	startTimer : function() {
-		this.saveTimer = setInterval(function(){AutoSaver.start();}, <s:property value="#systemPreferences.get('app.autoSaveTimeout')"/>);
+		this.saveTimer = setInterval(function(){AutoSaver.start();}, 
+			<s:property value="#systemPreferences.get('app.autoSaveTimeout')"/>* 60 * 1000);
 	},
 	
 	/**
@@ -1106,7 +1480,7 @@ var AutoSaver = {
 			var form = $("#myForm").serialize();			
 			// start the ajax!
 			$.post(
-				"<s:property value="#webRoot"/>/response/dataCollection.action?action=saveForm&comingFromAutoSaver=true&method=ajax&aformId="+
+				"<s:property value="#webRoot"/>/response/dataCollection.action?action=save&comingFromAutoSaver=true&method=ajax&aformId="+
 					<%=aformId%>+"&editMode=" + globalEditFlag+"&fileExist="+fileExist+"&assocFileQuestionIds="+assocFileQuestionIds,
 				form,
 				function(data, textStatus, xhr) {
@@ -1148,7 +1522,7 @@ var AutoSaver = {
 		if (!success) {
 			dispClass = "error";
 		}
-		$.ibisMessaging("flash", dispClass, message, {hideDelay: 3000});
+		$.ibisMessaging("flash", dispClass, message, {hideDelay: 10000});
 	}
 };
     
@@ -1225,16 +1599,21 @@ var LeavePageWarning = {
 /**
  * this function is called in body onLoad
  */
-function initialize(mode, fId, formFetched, eMode) {
+function initialize(mode, fId, formFetched, eMode, audit, action) {
 
 	
 	
 	<%=request.getAttribute("disableStr")%>
 	
-	
-	if(globalFormStatus==="Final Lock" || globalFormStatus=="Completed") {
+	if(audit!=null && "true"==audit) { //audit comment
+		bindComment();
+	}
+	else if(globalFormStatus==="Final Lock" || globalFormStatus=="Completed") {
 		$('#markAsCompletedCheckBox').attr('disabled',true);
-		bindReasonForChange();
+			bindReasonForChange();
+	}
+	else if (globalFormStatus==="In Progress" && action!="fetchForm" ) { //TODO: dsname: '<=formDSName>'
+		bindCommentInprog();
 	}
 	
 	if (eMode) {
@@ -1306,10 +1685,9 @@ function initialize(mode, fId, formFetched, eMode) {
 				var optionFormId =  formNameElm.options[formNameElm.selectedIndex].value;
 				var formId = document.getElementsByName("dataEntryForm.formId")[0];
 				formId.value = optionFormId;
-				
 				var intervalIdElm = document.getElementsByName("dataEntryForm.intervalId")[0];
 				for (var i=0; i<intervalIdElm.length; i++) {
-					if (intervalIdElm.options[i].text == "<%=pIntervName%>") {
+					if (intervalIdElm.options[i].innerHTML == "<%=pIntervName%>") {
 						intervalIdElm.options[i].selected=true;
 						break;
 					}
@@ -1381,6 +1759,23 @@ function checkButtons() {
 
 function goToValidationErrorFlag() {
 	comingFromValidationErrorGoto = true;
+}
+
+
+function cancelAudit() {
+	var key = $("#aformCacheKey").val();
+
+	$.ajax({
+		type : "GET",
+		url: "<s:property value="#webRoot"/>/response/dataCollection!clearAform.action?aformCacheKey=" + key,
+		success : function(data) {
+			cancel();
+		},
+		error : function(xhr, ajaxOptions, thrownError){responseListContainer2
+			$.ibisMessaging("close", {type:"primary"}); 
+			$.ibisMessaging("primary", "error", "Error occurred while cacelling Audit Comment. Please contact the system administrator.");
+		}
+	});	
 }
 
 function cancel() {
@@ -1544,7 +1939,7 @@ function doClickedSectionIds() {
 }
 
 
-
+/* audit comment ht (history list) at edit page */
 function bindReasonForChange() {
     var tehInputs = $("input, select, textarea").not('[type="hidden"]');
     tehInputs.each(function() {
@@ -1554,17 +1949,61 @@ function bindReasonForChange() {
     	var imageMapIndex = this.id.indexOf("imageMap");
          if (imageMapIndex == -1) {
 	    	if (this.id.indexOf("Q_") > -1) {
+	    		
+	    		getAuditCommentHT(this); //show button with audit comments.
+	    		
+	    		var temp=this;
+	    		var qid=this.id;
 	    		$(this).change(function() {
-	    			launchReasonForChange(this);
+	    			//Block Reason for Change popup for the questions not in Main section in PROMIS forms
+	    			var sectionId = qid.split("_")[1];
+	    			<% if(!isCat || mType.equals("shortForm")) {%>
+	    				launchReasonForChange(this);
+	    			<% } else {%>
+						if($("table[hideid='sectionContainer_" + sectionId + "']").attr("name") == "Main") {
+							launchReasonForChange(this);
+						}
+	    			<% } %>
 	    		});
+	    		$(this).parents().siblings("#enterAuditComment_"+qid).click(function() {
+		    		launchAuditCommentHT(temp);
+		    	});
 	    	}
         }
 
     });
     $(".slider").bind("slidestop",function(event, ui) {
     	launchReasonForChange(this);
+    	//launchAuditCommentHT(temp);
     });
     
+}
+
+function bindCommentInprog() {
+    var tehInputs = $("input, select, textarea").not('[type="hidden"]');
+    tehInputs.each(function() {
+    	if ($(this).readOnly) {
+    		return true;
+    	}
+    	var imageMapIndex = this.id.indexOf("imageMap");
+         if (imageMapIndex == -1) {
+	    	if (this.id.indexOf("Q_") > -1) {
+	    		
+	    		getAuditCommentHT(this); //show button with audit comments.
+	    		
+	    		var temp=this;
+	    		var qid=this.id;
+	    		$(this).parents().siblings("#enterAuditComment_"+qid).click(function() {
+		    		launchAuditCommentHT(temp);
+		    	});
+	    	}
+        }
+
+    });
+    $(".slider").bind("slidestop",function(event, ui) {
+    	//launchReasonForChange(this);
+    	launchAuditCommentHT(temp);
+    });
 }
 
 var currQId;
@@ -1648,6 +2087,487 @@ function cancelFB() {
 	$(".fancyBoxContainer").dialog("close");
 }
 
+/* audit comment ht (history list)  
+ * at edit page, show button on question if there is audit comment on that question. 
+ */
+function getAuditCommentHT(elem) {
+			
+			var qId = elem.id;
+			var sliderIndex = elem.id.indexOf("slider");
+	    
+	    	if (sliderIndex > -1) {
+	       		qId = elem.id.substring(0, sliderIndex-1);
+	    	} 
+	    
+			var imageMapIndex = elem.id.indexOf("imageMap");
+
+	    	if (imageMapIndex > -1) {
+	       		qId = elem.id.substring(9, elem.id.length);
+	    	} 
+		    
+	    	qId=qId.replace("_otherBox", "");
+	    	//currQId = qId;
+	    
+		    //document.getElementById('qId').value = qId; //or qIdHT
+		    //document.getElementById('qId').disabled = true;
+		    
+		    //document.getElementById('elemId').value = elem.id;
+		    //$(".dialogContainerAudit").dialog("open");
+		    var auditcomment=jsResponses.get(qId).getChangeAuditComment();
+		    if(auditcomment!=null && ""!=trim(auditcomment))
+		    {
+		    	$('#enterAuditComment_'+qId).attr('style', 'display: table-cell;float: right; margin-right: 10%;');
+		    	/*In progress/saving by auditor - Red; Locked/verified by auditor - Green; Completed/saving by editor - Yellow */
+ 		    	var auditstatus=jsResponses.get(qId).getAuditStatus();
+ 		    	if(auditstatus!=null && ""!=trim(auditstatus) && 'NULL'!=trim(auditstatus).toUpperCase() ) {
+		    		var auditstatusTm=trim(auditstatus);
+		    		if('C'.toUpperCase()==auditstatusTm.toUpperCase()) {
+		    			$('#imgAuditComment_'+qId).attr('src', '../images/icons/comment_yellow.png');
+		    		}
+		    		else if('L'.toUpperCase()==auditstatusTm.toUpperCase()) {
+		    			$('#imgAuditComment_'+qId).attr('src', '../images/icons/comment_green.png');
+		    		}
+		    		else if('I'.toUpperCase()==auditstatusTm.toUpperCase()) {
+		    			$('#imgAuditComment_'+qId).attr('src', '../images/icons/comment_red.png');
+		    		}
+ 		    	} 
+ 		    	else { //by default
+ 		    		$('#imgAuditComment_'+qId).attr('src', '../images/icons/comment_red.png');
+  		    	}
+		    }
+}
+/* audit comment ht (history list) on edit page */
+function launchAuditCommentHT(elem) {
+		if (isDocumentLoaded) {
+			var errorContainer = document.getElementById("errorContainer");
+			errorContainer.innerHTML="";
+			errorContainer.style.display="none";
+			$("#rComment").focus();
+
+			var qId = elem.id;
+			var sliderIndex = elem.id.indexOf("slider");
+	    
+	    	if (sliderIndex > -1) {
+	       		qId = elem.id.substring(0, sliderIndex-1);
+	    	} 
+	    
+			var imageMapIndex = elem.id.indexOf("imageMap");
+
+	    	if (imageMapIndex > -1) {
+	       		qId = elem.id.substring(9, elem.id.length);
+	    	} 
+		    
+	    	qId=qId.replace("_otherBox", "");
+	    	currQId = qId;
+		    document.getElementById('qIdHT').value = qId;
+		    document.getElementById('qIdHT').disabled = true;
+		    		
+		    //PS-2697: Replace &#39; htmlspecialchars with their correspondent character
+		    var txt = jsResponses.get(qId).getQText();
+		    var decodedTxt = txt.replace(/&#(\d+);/g, function(match, decVal) {
+		                    return String.fromCharCode(decVal);
+		      });		    
+		    document.getElementById('qTextHT').value = decodedTxt;		    
+		    document.getElementById('qTextHT').disabled = true;
+		    document.getElementById('dEntry1HT').value =jsResponses.get(qId).getAnswer1();
+		    document.getElementById('dEntry1HT').disabled = true;
+		    //document.getElementById('dEntry2HT').value =jsResponses.get(qId).getAnswer2();
+		   // document.getElementById('dEntry2HT').disabled = true;		    
+		    if (elem.type == "checkbox") {
+		    	//making jQuery elem object
+		     	var $elem = $(elem);
+		    	var checkedAnswers ="";
+		    	$('[name="'+$elem.prop("name") + '"]:checked').each(function() {
+		    		checkedAnswers = checkedAnswers +":"+ $(this).val();		    		
+		   		 }); 
+		    	if (elem.disabled) {
+		    		 document.getElementById('fAnswerHT').value = "";
+		   		} else {
+		    		document.getElementById('fAnswerHT').value = checkedAnswers.substring(1);
+		   		}
+		
+		    } else {
+		    	  if (elem.disabled) {
+		    		  document.getElementById('fAnswerHT').value = "";
+				  } else {
+		    		//Changed the delimiter to : in case of multi select
+		    		if (elem.type=="select-multiple") {
+		    			document.getElementById('fAnswerHT').value =$(elem).val().join(":");
+		    		} else {
+		    			document.getElementById('fAnswerHT').value =$(elem).val();
+		    		}
+				  }
+		    }
+		    document.getElementById('fAnswerHT').disabled = true;
+		    document.getElementById('rComment').value = "";
+		    //document.getElementById('rComment').value =jsResponses.get(qId).getChangeAuditComment();//TODO: last comment as default.
+		    $("#rCommentTemp").val(jsResponses.get(qId).getChangeAuditComment());
+		    
+		    /*'L' - disabled for rComment*/
+		    document.getElementById('rComment').disabled = false;
+		    $('#saveEditCommentBtn').prop("disabled", false);
+		    var auditstatus=jsResponses.get(qId).getAuditStatus();
+		    if(auditstatus!=null && ""!=trim(auditstatus) && 'NULL'!=trim(auditstatus).toUpperCase() ) {
+	    		var auditstatusTm=trim(auditstatus);
+	    		if('L'.toUpperCase()==auditstatusTm.toUpperCase()) {
+	    			document.getElementById('rComment').disabled = true;
+	    			$('#saveEditCommentBtn').prop("disabled", true);
+	    		}
+		    }
+		    
+		    document.getElementById('elemIdHT').value = elem.id;
+		    
+			/* ArchivesListTable for audit comment ht (history list) */
+		    $table = $("#responseListTable2");
+	  		var id=<%=aformId%>;
+	  		var sqid=qId; 
+		    LeavePageWarning.save();
+			$.ajax({
+				type : "GET",
+				url: "<s:property value='#webRoot'/>/response/getListEditedAnswersByQId.action?id="+id+"&sqid="+sqid,	
+				cache : false,
+				processData : false,
+				contentType : false,
+				success : function(data) {
+					$(".fancyBoxContainerAudit").dialog("open");
+					$('.fancyBoxContainerAudit').dialog('option', 'title', '<s:text name="response.auditcomment.response" />');
+					$('.idt_searchInput').val('');
+					$table.idtApi('getTableApi').ajax.reload();
+						
+					
+				},
+				error : function(xhr, ajaxOptions, thrownError){
+					console.log("launchAuditCommentHT error: "+thrownError);
+					$.ibisMessaging("close", {type:"primary"}); 
+					$.ibisMessaging("primary", "error", "Error occurred while launch Audit Comment. Please contact the system administrator.");
+				}
+			});	
+
+		}
+}
+/* audit comment ht (history list) at edit page for OK or Save */
+function addAuditCommentHT() {
+	var hasErr = false;
+	var auditComment = document.getElementById('rComment').value;
+	auditComment = trim(auditComment);
+	var auditCommentTemp = document.getElementById('rCommentTemp').value;
+	auditCommentTemp = trim(auditCommentTemp);
+	if (auditComment == "") {		
+		$.ibisMessaging("close", {type:"primary"}); 
+		$.ibisMessaging("primary", "error", "<s:text name="errors.text"/><b>Audit comment response is required.</b>",{container: "#errorContainerHT"});
+		$("#errorContainerHT").show();
+		hasErr = true;
+	} else {
+		$(".fancyBoxContainerAudit").dialog("close");
+		if(auditComment!=auditCommentTemp) {
+			jsResponses.get(currQId).setChangeAuditComment(document.getElementById('rComment').value);
+			jsResponses.get(currQId).setEdited(true);
+			jsResponses.get(currQId).setAuditStatus('C'.toUpperCase()); //Completed by editor - Yellow
+		}
+		else {
+			jsResponses.get(currQId).setEdited(false);
+		}
+	}
+	return hasErr;
+}
+function destroyDataTable() {
+	$table = $('#responseListTable2').idtApi('getTableApi');
+	$table.clear();
+	$table.destroy();
+}
+
+function cancelFBHT() {
+	$(".fancyBoxContainerHT").dialog("close");
+	
+}
+//audit comment at audit page
+function bindComment() {
+    var tehInputs = $("input, select, textarea").not('[type="hidden"]');
+    tehInputs.each(function() {
+    	//if ($(this).readOnly) {
+    	//	return true;
+    	//}
+    	var imageMapIndex = this.id.indexOf("imageMap");
+         if (imageMapIndex == -1) {
+	    	if (this.id.indexOf("Q_") > -1) {
+	    		getAuditComment(this); 
+	    		var temp=this;
+	    		var qid=this.id;
+	    	    $(this).parents().siblings("#enterAuditComment_"+qid).click(function() {
+	    			launchAuditComment(temp);
+	    		});
+	    	}
+        }
+
+    });
+    $(".slider").bind("slidestop",function(event, ui) {
+    	//launchAuditComment(this);
+    });    
+}
+function getAuditComment(elem) {
+			
+			var qId = elem.id;
+			var sliderIndex = elem.id.indexOf("slider");
+	    
+	    	if (sliderIndex > -1) {
+	       		qId = elem.id.substring(0, sliderIndex-1);
+	    	} 
+	    
+			var imageMapIndex = elem.id.indexOf("imageMap");
+
+	    	if (imageMapIndex > -1) {
+	       		qId = elem.id.substring(9, elem.id.length);
+	    	} 
+		    
+	    	qId=qId.replace("_otherBox", "");
+	    	//currQId = qId;
+	    
+		    //document.getElementById('qId').value = qId;
+		    //document.getElementById('qId').disabled = true;
+		    
+		    //document.getElementById('elemId').value = elem.id;
+		    //$(".dialogContainerAudit").dialog("open");
+		    var auditcomment=jsResponses.get(qId).getChangeAuditComment();
+		    if(auditcomment!=null && ""!=trim(auditcomment))
+		    {
+		    	//$('#enterAuditComment_'+qId).attr('style', 'display: table-cell;'); //all buttons are showed by default at audit page.
+		    	/*In progress/saving by auditor - Red; Locked/verified by auditor - Green; Completed/saving by editor - Yellow */
+ 		    	var auditstatus=jsResponses.get(qId).getAuditStatus();
+ 		    	if(auditstatus!=null && ""!=trim(auditstatus) && 'NULL'!=trim(auditstatus).toUpperCase() ) {
+		    		var auditstatusTm=trim(auditstatus);
+		    		if('C'.toUpperCase()==auditstatusTm.toUpperCase()) {
+		    			$('#imgAuditComment_'+qId).attr('src', '../images/icons/comment_yellow.png');
+		    		}
+		    		else if('L'.toUpperCase()==auditstatusTm.toUpperCase()) {
+		    			$('#imgAuditComment_'+qId).attr('src', '../images/icons/comment_green.png');
+		    			/*'L' - enabled at audit page */
+		    		}
+		    		else if('I'.toUpperCase()==auditstatusTm.toUpperCase()) {
+		    			$('#imgAuditComment_'+qId).attr('src', '../images/icons/comment_red.png');
+		    		}
+ 		    	} 
+ 		    	else { //by default
+ 		    		$('#imgAuditComment_'+qId).attr('src', '../images/icons/comment.png');
+  		    	}
+		    }
+}
+function launchAuditComment(elem) {
+		if (isDocumentLoaded) {
+			var errorContainer = document.getElementById("errorContainer");
+			errorContainer.innerHTML="";
+			errorContainer.style.display="none";
+			$("#rComment").focus();
+			
+			var qId = elem.id;
+			var sliderIndex = elem.id.indexOf("slider");
+	    
+	    	if (sliderIndex > -1) {
+	       		qId = elem.id.substring(0, sliderIndex-1);
+	    	} 
+	    
+			var imageMapIndex = elem.id.indexOf("imageMap");
+
+	    	if (imageMapIndex > -1) {
+	       		qId = elem.id.substring(9, elem.id.length);
+	    	} 
+		    
+	    	qId=qId.replace("_otherBox", ""); //console.log("launchAuditComment: qId: "+qId);
+	    	currQId = qId;
+	    
+		    document.getElementById('qId').value = qId;
+		    document.getElementById('qId').disabled = true;
+		    
+		    //PS-2697: Replace &#39; htmlspecialchars with their correspondent character
+		    var txt = jsResponses.get(qId).getQText();
+		    var decodedTxt = txt.replace(/&#(\d+);/g, function(match, decVal) {
+		                    return String.fromCharCode(decVal);
+		      });
+		    
+		    document.getElementById('qText').value = decodedTxt;
+		    
+		    document.getElementById('qText').disabled = true;
+		    document.getElementById('dEntry1').value =jsResponses.get(qId).getAnswer1();
+		    document.getElementById('dEntry1').disabled = true;
+		    //document.getElementById('dEntry2').value =jsResponses.get(qId).getAnswer2();
+		   // document.getElementById('dEntry2').disabled = true;
+		    
+ 
+		    if (elem.type == "checkbox") {
+		    	//making jQuery elem object
+		     	var $elem = $(elem);
+		    	var checkedAnswers ="";
+		    	$('[name="'+$elem.prop("name") + '"]:checked').each(function() {
+		    		checkedAnswers = checkedAnswers +":"+ $(this).val();		    		
+		   		 }); 
+		    	if (elem.disabled) {
+		    		 document.getElementById('fAnswer').value = "";
+		   		} else {
+		    		document.getElementById('fAnswer').value = checkedAnswers.substring(1);
+		   		}
+		
+		    } else {
+		    	  if (elem.disabled) {
+		    		  document.getElementById('fAnswer').value = "";
+				  } else {
+		    		//Changed the delimiter to : in case of multi select
+		    		if (elem.type=="select-multiple") {
+		    			document.getElementById('fAnswer').value =$(elem).val().join(":");
+		    		} else {
+		    			document.getElementById('fAnswer').value =$(elem).val();
+		    		}
+				  }
+		    }
+		    document.getElementById('fAnswer').disabled = true;
+		    document.getElementById('rComment').value = "";
+		    //document.getElementById('rComment').value =jsResponses.get(qId).getChangeAuditComment();//TODO: last comment as default.
+		    $("#rCommentTemp").val(jsResponses.get(qId).getChangeAuditComment());
+		    
+		    /*'L' - Verified */
+			$('#verifiedAuditCommentBtn').html("Verify");
+		    var auditstatus=jsResponses.get(qId).getAuditStatus();
+		    if(auditstatus!=null && ""!=trim(auditstatus) && 'NULL'!=trim(auditstatus).toUpperCase() ) {
+	    		var auditstatusTm=trim(auditstatus);
+	    		if('L'.toUpperCase()==auditstatusTm.toUpperCase()) {
+	    			$('#verifiedAuditCommentBtn').html("Verified");	    		}
+		    }
+
+		    document.getElementById('elemId').value = elem.id;
+		    
+		    $table = $("#responseListTable2");
+	  		var id=<%=aformId%>;
+	  		var sqid=qId; 
+		    LeavePageWarning.save();
+			$.ajax({
+				type : "GET",
+				url: "<s:property value='#webRoot'/>/response/getListEditedAnswersByQId.action?id="+id+"&sqid="+sqid,	
+				cache : false,
+				processData : false,
+				contentType : false,
+				success : function(data) {
+					//EventBus.trigger("close:processing"); //TODO:TODO:
+					$(".fancyBoxContainerAudit").dialog("open");
+					$('.idt_searchInput').val('');
+					$table.idtApi('getTableApi').ajax.reload();
+				},
+				error : function(xhr, ajaxOptions, thrownError){responseListContainer2
+					console.log("launchAuditCommentHT error: "+thrownError);
+					$.ibisMessaging("close", {type:"primary"}); 
+					$.ibisMessaging("primary", "error", "Error occurred while launch Audit Comment. Please contact the system administrator.");
+				}
+			});	
+		}
+}
+//audit comment at audit page
+function addAuditComment() {
+	var hasErr = false;
+	var auditComment = document.getElementById('rComment').value;
+	auditComment = trim(auditComment);
+	var auditCommentTemp = document.getElementById('rCommentTemp').value;
+	auditCommentTemp = trim(auditCommentTemp);
+	if (auditComment == "") {		
+		$.ibisMessaging("close", {type:"primary"}); 
+		$.ibisMessaging("primary", "error", "<s:text name="errors.text"/><b>Audit comment is required.</b>",{container: "#errorContainer"});
+		$("#errorContainer").show();
+		hasErr = true;
+	} else {
+		$(".fancyBoxContainerAudit").dialog("close");
+		if(auditComment!=auditCommentTemp) {
+			jsResponses.get(currQId).setChangeAuditComment(document.getElementById('rComment').value);
+			jsResponses.get(currQId).setEdited(true);
+			jsResponses.get(currQId).setAuditStatus('I'.toUpperCase()); //In progress by auditor - Red
+		}
+		else {
+			jsResponses.get(currQId).setEdited(false);
+		}
+	}
+	return hasErr;
+}
+function addAuditCommentVerified() {
+	var hasErr = false;
+	var auditComment = document.getElementById('rComment').value;
+	auditComment = trim(auditComment);
+	if (auditComment == "") {		
+		$.ibisMessaging("close", {type:"primary"}); 
+		$.ibisMessaging("primary", "error", "<s:text name="errors.text"/><b>In order to verify the response to audit comments, please input texts in following box.</b>",{container: "#errorContainer"});
+		$("#errorContainer").show();
+		hasErr = true;
+	} else {
+		$(".fancyBoxContainerAudit").dialog("close");
+			jsResponses.get(currQId).setChangeAuditComment(document.getElementById('rComment').value + ' ***VERIFIED***');
+			jsResponses.get(currQId).setEdited(true);
+			jsResponses.get(currQId).setAuditStatus('L'.toUpperCase()); //Locked by auditor - Green
+	}	
+	return hasErr;
+}
+function addAuditCommentsToForm() {
+    var responses = jsResponses.values();
+	var currQestionId=currQId.split("_Q_")[1];
+	var secIdTemp=currQId.split("_Q_")[0];
+	var currSectionId=secIdTemp.split("S_")[1];
+    for (i=0; i < responses.length; i++) {
+    	//int i=currQId;
+    	//var responseQ = responses.get(currQId).getQuestionId(); //TODO: do not work.
+		
+        var auditComment = responses[i].getChangeAuditComment();
+        var isEdited =     responses[i].isEdited();
+        if (auditComment != null && auditComment != "" && true==isEdited) {
+        	var sectionId=  responses[i].getSectionId();
+            var questionId= responses[i].getQuestionId();
+        	/*for auditComment */
+            var commentId = "auditComment_S_" +sectionId +"_Q_"+ questionId;
+            try { 
+            	if ($('input[name='+commentId+']').length > 0){
+            		$('input[name='+commentId+']').remove();
+            	}
+            	
+                if(currSectionId==sectionId && currQestionId==questionId) { 
+            		var element = document.createElement("<INPUT type='hidden' id='"+commentId+"' name='"+commentId+"' value='"+auditComment+"'/>");
+            		document.getElementById('myForm').appendChild(element);
+                }
+            } catch (err) {
+            	//stupid firefox
+              	if ($('input[name='+commentId+']').length > 0){
+                	$('input[name='+rcommentId+']').remove();
+              	}
+                if(currSectionId==sectionId && currQestionId==questionId) {
+                	var element = document.createElement("INPUT");
+                	element.setAttribute("type", "hidden");
+                	element.setAttribute("name", commentId);
+                	element.setAttribute("value", auditComment);
+                	element.setAttribute("id", commentId);
+                	document.getElementById('myForm').appendChild(element);
+                }
+            }
+            /*for auditStatus.*/
+            var auditStatus = responses[i].getAuditStatus();
+            if (auditStatus != null && auditStatus != "") {
+            	var auditstatusId = "auditStatus_S_" +sectionId +"_Q_"+ questionId;
+            	try { 
+            		if ($('input[name='+auditstatusId+']').length > 0){
+            			$('input[name='+auditstatusId+']').remove();
+            		}
+                    if(currSectionId==sectionId && currQestionId==questionId) { 
+            			var element = document.createElement("<INPUT type='hidden' id='"+auditstatusId+"' name='"+auditstatusId+"' value='"+auditStatus+"'/>");
+            			document.getElementById('myForm').appendChild(element);
+                    }
+            	} catch (err) {
+            		//stupid firefox
+              		if ($('input[name='+auditstatusId+']').length > 0){
+                		$('input[name='+auditstatusId+']').remove();
+              		}
+                    if(currSectionId==sectionId && currQestionId==questionId) { 
+                	var element = document.createElement("INPUT");
+                		element.setAttribute("type", "hidden");
+                		element.setAttribute("name", auditstatusId);
+                		element.setAttribute("value", auditStatus);
+                		element.setAttribute("id", auditstatusId);
+                		document.getElementById('myForm').appendChild(element);
+                    }
+            	}
+            }
+        }
+	}
+}
 
 //trim helper function
 function trim(str) {
@@ -1782,6 +2702,8 @@ function resetVSandIM(){
 			<s:hidden name="dataEntryForm.formType" id="formTypeId" />
 			<s:hidden name="dataEntryForm.scheduledVisitDate" />
 			<s:hidden name="dataEntryForm.visitDate" />
+			<s:hidden name="hiddenSectionsQuestionsPVsElementIdsJSON" id="hiddenSectionsQuestionsPVsElementIdsJSON" />
+			<s:hidden name="aformCacheKey" id="aformCacheKey"/>
 			<%-- <s:hidden name="dataEntryForm.deComments" id="deCommentsId"/> --%>
 			
 	<%
@@ -1813,7 +2735,7 @@ function resetVSandIM(){
 			
 			<div class="formrow_1">
 				<label for="intervalId" class="requiredInput"><s:text name="response.label.interval" /></label>
-				<s:select name="dataEntryForm.intervalId" list="#request.intervalOptions" listKey="key" listValue="value" 
+				<s:select name="dataEntryForm.intervalId" cssStyle="white-space: pre" list="#request.intervalOptions" listKey="key" listValue="value" 
 						headerKey="pleaseSelect" headerValue="- Please Select" />
 			</div>
 
@@ -1892,7 +2814,7 @@ function resetVSandIM(){
 
 			<div class="formrow_1">
 				<label for="intervalId" class="requiredInput"><s:text name="response.label.interval" /></label>
-				<s:select name="dataEntryForm.intervalId" onchange="intervalOnChange()" list="#request.intervalOptions" 
+				<s:select name="dataEntryForm.intervalId" cssStyle="white-space: pre" onchange="intervalOnChange()" list="#request.intervalOptions" 
 					listKey="key" listValue="value" headerKey="pleaseSelect" headerValue="- Please Select" />
 			</div>
 
@@ -1966,6 +2888,18 @@ function resetVSandIM(){
 		<br>
 	<% 		} %>
 	
+	
+	<%
+	if(isEformConfigured) {
+	%>
+			<security:hasProtocolPrivilege privileges="viewConfigureEform,editConfigureEform">
+				<div>	
+					<input type="button" id="showHideConfig" value="Show hidden eForm elements" onclick="showHideEformConfig()" />
+				</div>
+			</security:hasProtocolPrivilege>
+	<%
+			}
+	%>
 	<div class="floatRight" >
 		 <div class="greenCircle floatLeft statusCir"></div><div class="floatLeft height30px" >Locked</div>
 		 <div class="redCircle floatLeft statusCir"></div><div class="floatLeft height30px" >In Progress</div>
@@ -2024,20 +2958,20 @@ function resetVSandIM(){
 						
 						<% if(editMode && formStatus.equalsIgnoreCase("Final Lock")){ %>
 							<% if (Integer.parseInt(formId) == fi.getFormId()) { %>
-								<div class="blueBackGroud"><%=fi.getFormName()%></div>
+								<div class="blueBackGroud leftNavFormName" title="<%=fi.getFormName()%>"><%=fi.getFormNameLeftNav()%></div>
 							<%}else{ %>
-								<div><%=fi.getFormName()%></div>
+								<div class="leftNavFormName" title="<%=fi.getFormName()%>"><%=fi.getFormNameLeftNav()%></div>
 							<%} %>			
 						<% }else{ %>
 						<%if (fi.getDataCollectionStatus().equalsIgnoreCase("locked") || 
 							(fi.getDataCollectionStatus().equalsIgnoreCase("In Progress") && !user.isSysAdmin() && fi.getUserId() != user.getId()) || 
 							(fi.getDataCollectionStatus().equalsIgnoreCase("Completed") && !user.isSysAdmin() && fi.getUserId() != user.getId())) { %>
-								<div><%=fi.getFormName()%></div>
+								<div class="leftNavFormName" title="<%=fi.getFormName()%>"><%=fi.getFormNameLeftNav()%></div>
 							<% }else{ %>	
 									<% if (Integer.parseInt(formId) == fi.getFormId()) { %>
-										<div><%=fi.getFormName()%></div>
+										<div class="leftNavFormName" title="<%=fi.getFormName()%>"><%=fi.getFormNameLeftNav()%></div>
 								<%}else{ %>
-									<div><%=fi.getFormNameLink()%></div>
+									<div class="leftNavFormName" title="<%=fi.getFormName()%>"><%=fi.getFormNameLinkLeftNav()%></div>
 								<%} %>
 							<%} %>	
 						<% } %>		
@@ -2059,12 +2993,26 @@ function resetVSandIM(){
 
 	<div id="formButtons" style="clear: left;">
 	
+	<% if(audit!=null && ("true").equalsIgnoreCase(audit) ) { %>
+	<div class="floatRight">
+			<div class="saveFinalLock">
+			    <input type="button" value="<s:text name='button.FinishAudit' />" title="Save Audit Comment for Final Lock" 
+			    	alt="Save" id="saveAuditBtn" style="visibility:hidden;"/>
+			</div>
+			<div class="floatLeft">
+				<input type="button" value="<s:text name='button.Exit' />"
+					title="Click to exit." alt="Exit" onclick="cancelAudit()" />
+			</div>
+	</div>
+     <%} else { %>
+	
 	<%
 		if (formStatus != null && formStatus.equals("Final Lock")) {
 	%>
 		<div class="floatRight">
+
 			<% if (enableEsignature) { %>
-				<div class="saveFinalLock">
+				<div class="saveFinalLock"> 
 					<input type="button" value="<s:text name='button.Finish' />" title="Save & Exit Final Lock"
 						alt="Save" id="confirmSignAndSaveFLBtn" />
 				</div>
@@ -2078,9 +3026,10 @@ function resetVSandIM(){
 				<input type="button" value="<s:text name='button.Cancel' />"
 					title="Click to cancel (changes will not be saved)." alt="Cancel" onclick="cancel()" />
 			</div>
+
 		</div>
 	<%
-				} else {
+		} else {
 	%>
 					<%
 						if(!isCat || "shortForm".equals(mType)){
@@ -2130,32 +3079,114 @@ function resetVSandIM(){
 			<div class="floatLeft">
 				<input type="button" value="<s:text name='button.Cancel' />"
 						title="Click to cancel (changes will not be saved)." alt="Cancel" onclick="cancel()" />
-			</div>		
+			</div>
 		</div>
 		
 	<%
-					}else{
+					}else {
+						if (formStatus != null && (formStatus.equals("Final Lock") || formStatus.equals("Completed"))) {
 	%>
 		<div class="floatRight" >
-			<div class="lockForm" style="display: none;">
+			<div class="lockForm">
 				<input type="button" id="lockButtonPatient" value="<s:text name='button.Lock' />"
 						title="Click to lock the answer" alt="Save & Lock" />
 			</div>
-			<div class="floatLeft">
+					<%
+						}else {
+					%>
+		<div class="floatRight" >
+			<div class="saveAndExit">
+				<input id="saveAndExitBtn" type="button" value="<s:text name='button.CATFinish' />"
+						title="<s:text name='tooltip.saveAndFinish.dataCollection' />" alt="Save"  />
+			</div>
+			<div style="display: none;">
+				<input id="lockButtonPatient" type="button" value="<s:text name='button.Lock' />"  />
+			</div>
+					<%
+						}
+					%>
+			<div class="floatLeft"> 			
 				<input type="button" id='goCancel' value="<s:text name='button.Cancel' />"
 						title="Click to cancel (changes will not be saved)." alt="Cancel" onclick="cancel()" />
-			</div>		
+			</div>	
 		</div>
 	<%	
+						
 					}
 				} 
-			
-		}
+     		} //end of else audit
+		} //end if form fetched
 	%>
 	</div>
 	<%-- <s:token id="token" /> --%>
 	</s:form>
 
+<%-- //audit comment at audit page--%>
+	<% if(audit!=null && ("true").equalsIgnoreCase(audit) ) { %>
+	<a href="#responseComment" id="responseCommentFancyBoxA" style="display: none">clicky!</a>
+	<div class="fancyBoxContainerAudit">
+		<div id="responseComment">
+			<div id="errorContainer" style="display: none"></div>
+		
+			<div style="display: none">
+				<input type="text" maxlength="50" size="35" id="elemId" /> 
+				<input type="text" maxlength="50" size="35" id="elemType" /> 
+				<input type="text" maxlength="50" size="35" id="elemValue" />
+			</div>
+			<div class="formrow_1" style="display: none">
+				<label for="qId"><s:text name="app.label.lcase.questionid" /></label>
+				<input type="text" maxlength="50" size="35" id="qId" />
+			</div>
+			
+			<div class="formrow_1" style="display: none">
+				<label for="qText"><s:text name="app.label.lcase.questionText" /></label> 
+				<input type="text" maxlength="50" size="35" id="qText" />
+			</div>
+			<div class="formrow_1" style="display: none">
+				<label for="dEntry1"><s:text name="response.viewaudit.dataentry1" /></label> 
+				<input type="text" maxlength="50" size="35" id="dEntry1" />
+			</div>
+			<%-- <div class="formrow_1">
+				<label for="dEntry2"><s:text name="response.viewaudit.dataentry2" /></label> 
+				<input type="text" maxlength="50" size="35" id="dEntry2" />
+			</div> --%>
+
+ 		    <div class="formrow_1" style="display: none">
+				<label for="fAnswer"><s:text name="response.reasonForChange.finalAnswer" /></label> 
+				<input type="text" maxlength="50" size="35" id="fAnswer" />
+			</div>
+
+
+			<div class="formrow_1">
+				<label for="rComment" class="requiredInput" style="width:30%;">
+				<s:text name="response.auditcomment.auditcomment"  /></label>
+				<textarea rows="2" cols="35" id="rComment"></textarea>
+				<textarea style="display:none;" id="rCommentTemp" cols="35"></textarea>
+			</div>
+			
+			<div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset">
+			<button type="button" class="ui-button ui-corner-all ui-widget" id="saveAuditCommentBtn" >Save Comments</button>
+			<button type="button" class="ui-button ui-corner-all ui-widget" id="verifiedAuditCommentBtn">Verify</button>
+			<button type="button" class="ui-button ui-corner-all ui-widget" id="cancelAuditCommentBtn" >Close</button>
+			
+			</div></div>
+			
+			<div id="responseListContainer2" class="idtTableContainer brics" style="display:block">
+			<table border=0 width="100%" style="margin-top:10px;">
+		    <tr><td><img src="<s:property value="#imageRoot"/>/spacer.gif" width="1" height="15" alt="" border="0"/></td></tr>
+		    <tr><td class="subPageTitle"><h3 style="color:black !important;"><s:text name="response.auditcomment.history"/></h3></td></tr>
+		    </table>
+			<table id="responseListTable2" class="table table-striped table-bordered" width="100%"></table>
+			<table border=0 width="100%" style="margin-top:10px;">
+		    <tr><td><img src="<s:property value="#imageRoot"/>/spacer.gif" width="1" height="15" alt="" border="0"/></td></tr>
+		    </table>			
+			</div>
+		</div>
+		<div class="clearboth">
+			<!-- IE fix -->
+		</div>
+	</div>
+	<%} else {%>
 	<a href="#changeResponseReason" id="changeResponseReasonFancyBoxA" style="display: none">clicky!</a>
 	<div class="fancyBoxContainer">
 		<div id="changeResponseReason">
@@ -2197,6 +3228,85 @@ function resetVSandIM(){
 			<!-- IE fix -->
 		</div>
 	</div>
+	
+	<%-- //audit comment ht (history list)--using by launchAuditCommentHT(elem) {--%>
+	<a href="#responseCommentHT" id="responseCommentHTFancyBoxA" style="display: none">clicky!</a>
+	<div class="fancyBoxContainerAudit">
+		<div id="responseCommentHT">
+			<div id="errorContainerHT" style="display: none"></div>
+
+  		    <div style="display: none">
+				<input type="text" maxlength="50" size="35" id="elemIdHT" /> 
+				<input type="text" maxlength="50" size="35" id="elemTypeHT" /> 
+				<input type="text" maxlength="50" size="35" id="elemValueHT" />				
+			</div>
+			<div class="formrow_1" style="display: none">
+				<label for="qIdHT"><s:text name="app.label.lcase.questionid" /></label> 
+				<input type="text" maxlength="50" size="35" id="qIdHT" />
+			</div> 
+			<!-- communication part -->
+			<div class="formrow_1" style="display: none">
+				<label for="qTextHT"><s:text name="app.label.lcase.questionText" /></label> 
+				<input type="text" maxlength="50" size="35" id="qTextHT" />
+			</div>
+			<div class="formrow_1" style="display: none">
+				<label for="dEntry1HT"><s:text name="response.viewaudit.dataentry1" /></label> 
+				<input type="text" maxlength="50" size="35" id="dEntry1HT" />
+			</div>
+			<%-- <div class="formrow_1">
+				<label for="dEntry2HT"><s:text name="response.viewaudit.dataentry2" /></label> 
+				<input type="text" maxlength="50" size="35" id="dEntry2HT" />
+			</div> --%>
+ 		    <div class="formrow_1" style="display: none">
+				<label for="fAnswerHT"><s:text name="response.reasonForChange.finalAnswer" /></label> 
+				<input type="text" maxlength="50" size="35" id="fAnswerHT" />
+			</div>
+
+			<div class="formrow_1">
+				<label for="rComment" class="requiredInput" style="width:30%;"><s:text name="response.auditcomment.response" /></label>
+				<textarea rows="2" cols="35" id="rComment"></textarea>
+				<textarea style="display:none;" id="rCommentTemp" cols="35" ></textarea>
+			</div>
+			
+			<div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset">
+			<button type="button" class="ui-button ui-corner-all ui-widget" id="saveEditCommentBtn" >Save Comments</button>
+			<button type="button" class="ui-button ui-corner-all ui-widget" id="cancelAuditCommentBtn" >Close</button>
+			
+			</div></div>
+			
+			<div id="responseListContainer2" class="idtTableContainer brics" style="display:block">
+			<table border=0 width="100%" style="margin-top:10px;">
+		    <tr><td><img src="<s:property value="#imageRoot"/>/spacer.gif" width="1" height="15" alt="" border="0"/></td></tr>
+		    <tr><td class="subPageTitle"><h3 style="color:black !important;"><s:text name="response.auditcomment.history"/></h3></td></tr>
+		    </table>
+			<table id="responseListTable2" class="table table-striped table-bordered" width="100%"></table>
+			<table border=0 width="100%" style="margin-top:10px;">
+		    <tr><td><img src="<s:property value="#imageRoot"/>/spacer.gif" width="1" height="15" alt="" border="0"/></td></tr>
+		    </table>
+			</div>
+	           
+		</div>
+		<div class="clearboth">
+			<!-- IE fix -->
+		</div>
+	</div>
+	
+	<%}%>
+		
+	<!-- Question List having BTRIS Mapping -->
+	<div id="btrisMappedQuestionsDialog" title="Questions Having BTRIS Data" style="display: none;">
+		<div id="getBtrisDataReminder" style="text-align:left; margin-left:50px;">
+			<p>Please carefully review each question after retrieving data from BTRIS.</p>
+			<span style="font-size: 11px;">Please deselect the question(s) that you do not want to retrieve the data from BTRIS.</span>
+			</br></br><span style="font-size: 11px; color: red;">WARNING: Getting BTRIS data will overwrite the data that you input.</span>
+		</div>
+
+		<div id="btrisQuestionsTblDiv" class="idtTableContainer brics" 	style="padding-left: 50px; padding-top: 20px; padding-bottom: 10px; width: 90%">
+			<table id="btrisQuestionsTable" class="table table-striped table-bordered" width="100%"></table>
+		</div>
+	</div>
+
+	
 </body>
 
 <script type="text/javascript">
@@ -2204,7 +3314,7 @@ function resetVSandIM(){
 function viewCompletedForm(){
 	LeavePageWarning.save();
 	var aformId = $(".finalLock").data('aformId');
-	var url = "<s:property value="#webRoot"/>/response/viewForm.action?id=" + aformId;
+	var url = "<s:property value="#webRoot"/>/response/viewForm.action?acKey=" + acKey;
 	var WindowArgs = "toolbar=no," + "location=no," + "directories=no," + "status=yes,";
 	openPopup(url, "", WindowArgs+"top=10,left=10,scrollbars=yes,resizable=yes,width=600,height=400");
 }
@@ -2290,6 +3400,8 @@ function cancelSignature() {
 	markAsCompletedCheckBoxStatus = false;
 	
 }
+
+
 
 
 
@@ -2464,10 +3576,6 @@ function confirmSignAndSaveFL() {
 		$.ibisMessaging("primary", "error", '<s:text name="errors.response.confirmation.checkbox"/></b>', {container: ".finalLock"});
 	}
 }
-
-
-
-
 
 </script>
 

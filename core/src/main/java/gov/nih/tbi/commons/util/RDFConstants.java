@@ -43,6 +43,9 @@ public class RDFConstants
     public static final String FS_STANDARDIZATION_URI = "http://ninds.nih.gov/dictionary/ibis/1.0/FormStructure/Standardization/";
     public static final String FS_REQUIRED_URI = "http://ninds.nih.gov/dictionary/ibis/1.0/FormStructure/Required/";
 
+    public static final String FS_LABEL = FORM_STRUCTURE + "/label";
+    public static final String FS_LABEL_URI = FS_LABEL + "/";
+
     /** Namespaces **/
     public static final String CLASSIFICATION_NS = CLASSIFICATION + "/";
     public static final String EXTERNAL_ID_NS = EXTERNAL_ID + "/";
@@ -187,6 +190,8 @@ public class RDFConstants
     public final static String PROPERTY_FS_SUBMISSION_TYPE_N = FORM_STRUCTURE_NS_N + "submissionType";
     public final static String PROPERTY_FS_STANDARDIZATION_TYPE_N = FORM_STRUCTURE_NS_N + "standardization";  //--------------------------------------------------------------------------------------------------------------------------------------
     public final static String PROPERTY_FS_REQUIRED_TYPE_N = FORM_STRUCTURE_NS_N + "required";
+    public final static String PROPERTY_FS_LABEL_N = FORM_STRUCTURE_NS_N + "label";
+    public final static String PROPERTY_FS_LABEL_ID_N = FS_LABEL + "#id";;
     public final static String PROPERTY_FS_MODIFIED_DATE_N = FORM_STRUCTURE_NS_N + "modifiedDate";
     public final static String PROPERTY_FS_ID = FORM_STRUCTURE_NS + "formStructureId";
     public final static String PROPERTY_FS_DISEASE_N = FORM_STRUCTURE_NS_N + "disease";
@@ -245,6 +250,9 @@ public class RDFConstants
     public final static Node PROPERTY_FS_DATE_CREATED_NODE_N = NodeFactory.createURI(PROPERTY_FS_DATE_CREATED_N);
     public final static Node PROPERTY_FS_STANDARDIZATION_NODE_N = NodeFactory.createURI(PROPERTY_FS_STANDARDIZATION_TYPE_N); //-------------------------------------------------------------------------------------------------------------------------
     public final static Node PROPERTY_FS_REQUIRED_NODE_N = NodeFactory.createURI(PROPERTY_FS_REQUIRED_TYPE_N);
+    public final static Node PROPERTY_FS_LABEL_NODE_N = NodeFactory.createURI(PROPERTY_FS_LABEL_N);
+    public final static Node PROPERTY_FS_LABEL_ID_NODE_N = NodeFactory.createURI(PROPERTY_FS_LABEL_ID_N);
+     
     /** Studies **/
     public final static String PROPERTY_STUDY_ABSTRACT = STUDY_NS + "abstract";
     public final static String PROPERTY_STUDY_PI = STUDY_NS + "principalInvestigator";
@@ -455,6 +463,7 @@ public class RDFConstants
     public final static Var KEYWORD_NODE_VARIABLE = Var.alloc("keywordNode");
     public final static Var KEYWORD_VARIABLE = Var.alloc("keyword");
     public final static Var LABEL_VARIABLE = Var.alloc("label");
+    public final static Var LABEL_ID_VARIABLE = Var.alloc("labelId");
     public final static Var LABEL_NODE_VARIABLE = Var.alloc("labelNode");
     public final static Var VALUE_VARIABLE = Var.alloc("value");
     public final static Var COUNT_VARIABLE = Var.alloc("count");

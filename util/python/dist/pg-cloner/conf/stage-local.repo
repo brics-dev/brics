@@ -1,0 +1,17 @@
+[DB-SRC]
+host=fitbir-db-stage.cit.nih.gov
+database=tbi_stage
+schema=tbi_reposstg
+user=tbi_reposstg
+label=SOURCE
+
+[DB-TRG]
+host=localhost
+database=repodb
+schema=reposch
+user=repouser
+label=TARGET
+
+[FILE-SYS]
+logDir=D:\\DEV\\appdata\\log\\pgCloner\\stage-local-repo
+workDir=D:\\DEV\\appdata\\dump\\pgCloner\\stage-local-repo

@@ -73,44 +73,44 @@ public abstract class TestHibernateFactory extends TestCase
     private static SessionFactory sessionFactoryDictionary;
 
     // Dev FITBIR
-    // private final static String dbRepoUser = "REPLACED";
-    // private final static String dbRepoPass = "REPLACED";
-    // private final static String dbDictionaryUser = "REPLACED";
-    // private final static String dbDictionaryPass = "REPLACED";
-    // private final static String dbMetaUser = "REPLACED";
-    // private final static String dbMetaPass = "REPLACED";
-    // private final static String dbURL = "jdbc:postgresql://REPLACED/tbi_dev";
-    // private final static String dbDictionaryURL = "jdbc:postgresql://REPLACED/dictionary_dev";
+    // private final static String dbRepoUser = "tbi_reposdev";
+    // private final static String dbRepoPass = "EQ>#5tFALTx2=O6KYLJLgxjNy3AGpl";
+    // private final static String dbDictionaryUser = "dictionarydev";
+    // private final static String dbDictionaryPass = "iSXysxZ=7cJW+Z4wP9tsTy*tWr+G$D";
+    // private final static String dbMetaUser = "tbi_metadev";
+    // private final static String dbMetaPass = "UJegjWh9DbvgmIPB3BbKzmHHskwbcv";
+    // private final static String dbURL = "jdbc:postgresql://fitbir-db-dev.cit.nih.gov/tbi_dev";
+    // private final static String dbDictionaryURL = "jdbc:postgresql://ibis-db-dev.cit.nih.gov/dictionary_dev";
 
     // // Stage FITBIR
-    // private final static String dbRepoUser = "REPLACED";
-    // private final static String dbRepoPass = "REPLACED";
-    // private final static String dbDictionaryUser = "REPLACED";
-    // private final static String dbDictionaryPass = "REPLACED";
-    // private final static String dbMetaUser = "REPLACED";
-    // private final static String dbMetaPass = "REPLACED";
-    // private final static String dbURL = "jdbc:postgresql://REPLACED/tbi_stage";
-    // private final static String dbDictionaryURL = "jdbc:postgresql://REPLACED/dictionary_stage";
+    // private final static String dbRepoUser = "tbi_reposstg";
+    // private final static String dbRepoPass = "X0CP9_gtt6EmIKCdeJcn!bzE$ebCp";
+    // private final static String dbDictionaryUser = "dictionarystg";
+    // private final static String dbDictionaryPass = "HN4sgsWyU<i9N8Fr4Y+u1yrNEnZuEO";
+    // private final static String dbMetaUser = "tbi_metastg";
+    // private final static String dbMetaPass = "bA0L!q6l4UyB=IQCSCBZhCFZ_OclIk";
+    // private final static String dbURL = "jdbc:postgresql://fitbir-db-stage.cit.nih.gov/tbi_stage";
+    // private final static String dbDictionaryURL = "jdbc:postgresql://ibis-db-stage.cit.nih.gov/dictionary_stage";
 
     // // Stage PDBP
-    private final static String dbRepoUser = "REPLACED";
-    private final static String dbRepoPass = "REPLACED";
-    private final static String dbDictionaryUser = "REPLACED";
-    private final static String dbDictionaryPass = "REPLACED";
-    private final static String dbMetaUser = "REPLACED";
-    private final static String dbMetaPass = "REPLACED";
-    private final static String dbURL = "jdbc:postgresql://REPLACED/pd_stg";
-    private final static String dbDictionaryURL = "jdbc:postgresql://REPLACED/dictionary_stage";
+    private final static String dbRepoUser = "tbi_reposstg";
+    private final static String dbRepoPass = "X0CP9_gtt6EmIKCdeJcn!bzE$ebCp";
+    private final static String dbDictionaryUser = "dictionarystg";
+    private final static String dbDictionaryPass = "HN4sgsWyU<i9N8Fr4Y+u1yrNEnZuEO";
+    private final static String dbMetaUser = "tbi_metastg";
+    private final static String dbMetaPass = "bA0L!q6l4UyB=IQCSCBZhCFZ_OclIk";
+    private final static String dbURL = "jdbc:postgresql://pdbp-db-stage.cit.nih.gov/pd_stg";
+    private final static String dbDictionaryURL = "jdbc:postgresql://ibis-db-stage.cit.nih.gov/dictionary_stage";
 
     // Demo FITBIR
-    // private final static String dbRepoUser = "REPLACED";
-    // private final static String dbRepoPass = "REPLACED";
-    // private final static String dbDictionaryUser = "REPLACED";
-    // private final static String dbDictionaryPass = "REPLACED";
-    // private final static String dbMetaUser = "REPLACED";
-    // private final static String dbMetaPass = "REPLACED";
-    // private final static String dbURL = "jdbc:postgresql://REPLACED/tbi_demo";
-    // private final static String dbDictionaryURL = "jdbc:postgresql://REPLACED/dictionary_demo";
+    // private final static String dbRepoUser = "tbi_reposdemo";
+    // private final static String dbRepoPass = "yLBZh4PiiWdKmB92Ub72rNvnElfwcL";
+    // private final static String dbDictionaryUser = "dictionarydemo";
+    // private final static String dbDictionaryPass = "eFasJxPws0INALGA*L6b-HBcWNlYFz";
+    // private final static String dbMetaUser = "tbi_metademo";
+    // private final static String dbMetaPass = "WICFBVfb3yOeUYD#gXDW5xWSWt_Isb";
+    // private final static String dbURL = "jdbc:postgresql://fitbir-db-demo.cit.nih.gov/tbi_demo";
+    // private final static String dbDictionaryURL = "jdbc:postgresql://ibis-db-demo.cit.nih.gov/dictionary_demo";
 
     public static SessionFactory getSessionFactoryMeta()
     {

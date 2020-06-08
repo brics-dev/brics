@@ -84,6 +84,10 @@ import gov.nih.tbi.semantic.model.StudyRDF;
 
 public class InstancedDataUtil extends SparqlConstructionUtil {
 
+	public static final String AGE_YRS = "AgeYrs";
+	public static final String NINETY_PLUS = "90+";
+	public static final String AGE_RANGE_SEPARATOR = " - ";
+
 	public static DataTableColumn getColumnFromRepeatableGroup(FormResult form, RepeatableGroup group) {
 
 		String rgName = group.getName();
@@ -133,12 +137,13 @@ public class InstancedDataUtil extends SparqlConstructionUtil {
 		if (form != null) {
 			for (RepeatableGroup group : form.getRepeatableGroups()) {
 				if (group.doesRepeat()) {
-					DataTableColumn column = new DataTableColumn(form.getShortNameAndVersion(), group.getName(), null);
+					DataTableColumn column =
+							form.getColumnFromString(form.getShortNameAndVersion(), group.getName(), null);
 					orderedColumns.add(column);
 				} else {
 					for (DataElement element : group.getSelectedElements()) {
-						DataTableColumn column =
-								new DataTableColumn(form.getShortNameAndVersion(), group.getName(), element.getName());
+						DataTableColumn column = form.getColumnFromString(form.getShortNameAndVersion(),
+								group.getName(), element.getName());
 						orderedColumns.add(column);
 					}
 				}
@@ -146,6 +151,26 @@ public class InstancedDataUtil extends SparqlConstructionUtil {
 		}
 
 		return orderedColumns;
+	}
+
+	public static List<DataTableColumn> getVisibleColumns(FormResult form) {
+		List<DataTableColumn> columns = getOrderedColumns(form);
+
+
+		if (form != null) {
+			for (RepeatableGroup group : form.getRepeatableGroups()) {
+				if (group.doesRepeat()) {
+
+					for (DataElement element : group.getSelectedElements()) {
+						RepeatingCellColumn rgColumn = new RepeatingCellColumn(form.getShortNameAndVersion(),
+								group.getName(), element.getName());
+						columns.add(rgColumn);
+					}
+				}
+			}
+		}
+		
+		return columns;
 	}
 
 	/**
@@ -386,17 +411,21 @@ public class InstancedDataUtil extends SparqlConstructionUtil {
 						if (!currentCell.getIsRepeating()) {
 							NonRepeatingCellValue nonRepeatingCell = (NonRepeatingCellValue) currentCell;
 
-							String currentType = nonRepeatingCell.getDataElementType();
+							DataType currentType = nonRepeatingCell.getDataElementType();
 
-							if (DataType.FILE.getValue().equals(currentType)
-									|| DataType.THUMBNAIL.getValue().equals(currentType)
-									|| DataType.TRIPLANAR.getValue().equals(currentType)) {
-								String cellValue = nonRepeatingCell.getValue();
-								String fileName = BRICSStringUtils.pathToFileName(cellValue);
+							switch (currentType) {
+								case FILE:
+								case THUMBNAIL:
+								case TRIPLANAR:
+									String cellValue = nonRepeatingCell.getValue();
+									String fileName = BRICSStringUtils.pathToFileName(cellValue);
 
-								if (fileName != null && !fileName.isEmpty()) {
-									datasetToAttachedFilesMap.put(currentDatasetId, fileName);
-								}
+									if (fileName != null && !fileName.isEmpty()) {
+										datasetToAttachedFilesMap.put(currentDatasetId, fileName);
+									}
+									break;
+								default:
+									break;
 							}
 						} else {
 							RepeatingCellValue repeatingCell = (RepeatingCellValue) currentCell;
@@ -406,19 +435,23 @@ public class InstancedDataUtil extends SparqlConstructionUtil {
 										.entrySet()) {
 
 									RepeatingCellColumn rgColumn = groupCell.getKey();
-									String currentType = rgColumn.getType();
+									DataType currentType = rgColumn.getType();
 
-									if (DataType.FILE.getValue().equals(currentType)
-											|| DataType.THUMBNAIL.getValue().equals(currentType)
-											|| DataType.TRIPLANAR.getValue().equals(currentType)) {
+									switch (currentType) {
+										case FILE:
+										case THUMBNAIL:
+										case TRIPLANAR:
+											String cellValue = groupCell.getValue().getValue();
+											String fileName = BRICSStringUtils.pathToFileName(cellValue);
 
-										String cellValue = groupCell.getValue().getValue();
-										String fileName = BRICSStringUtils.pathToFileName(cellValue);
-
-										if (fileName != null && !fileName.isEmpty()) {
-											datasetToAttachedFilesMap.put(currentDatasetId, fileName);
-										}
+											if (fileName != null && !fileName.isEmpty()) {
+												datasetToAttachedFilesMap.put(currentDatasetId, fileName);
+											}
+											break;
+										default:
+											break;
 									}
+
 								}
 							}
 						}
@@ -428,6 +461,7 @@ public class InstancedDataUtil extends SparqlConstructionUtil {
 		}
 
 		return datasetToAttachedFilesMap;
+
 	}
 
 	/**
@@ -729,7 +763,7 @@ public class InstancedDataUtil extends SparqlConstructionUtil {
 			for (RepeatableGroup group : form.getRepeatableGroups()) {
 				if (!group.doesRepeat()) {
 					for (DataElement de : group.getSelectedElements()) {
-						if (QueryToolConstants.GUID_TYPE.equals(de.getType())) {
+						if (DataType.GUID == de.getType()) {
 							return de.getUri();
 						}
 					}
@@ -752,7 +786,7 @@ public class InstancedDataUtil extends SparqlConstructionUtil {
 			for (RepeatableGroup group : form.getRepeatableGroups()) {
 				if (!group.doesRepeat()) {
 					for (DataElement de : group.getDataElements()) {
-						if (QueryToolConstants.GUID_TYPE.equals(de.getType())) {
+						if (DataType.GUID == de.getType()) {
 							return true;
 						}
 					}
@@ -824,8 +858,7 @@ public class InstancedDataUtil extends SparqlConstructionUtil {
 		ExprVar variable = new ExprVar(currentVariable);
 		Expr filterExpression = null;
 
-		if (DataType.BIOSAMPLE.getValue().equals(filter.getElement().getType())
-				|| DataType.GUID.getValue().equals(filter.getElement().getType())) {
+		if (DataType.BIOSAMPLE == filter.getElement().getType() || DataType.GUID == filter.getElement().getType()) {
 			String filterString = filter.getFreeFormValue();
 			List<String> filterStrings = BRICSStringUtils.delimitedStringToList(filterString, ";");
 			filterExpression = multiRegexFilter(variable, filterStrings);
@@ -839,7 +872,7 @@ public class InstancedDataUtil extends SparqlConstructionUtil {
 			filterExpression = buildRegexFilterInsensitive(variable, filter.getFreeFormValue());
 		} else if (filter.isSingleSelect() && !ValUtil.isCollectionEmpty(filter.getPermissibleValues())) // string
 		{
-			if (QueryToolConstants.NUMERIC_DE_TYPE.equals(filter.getElement().getType())) {
+			if (DataType.NUMERIC == filter.getElement().getType()) {
 				filterExpression = isOneOfNumeric(variable, filter.getPermissibleValues());
 			} else {
 				filterExpression = isOneOfString(variable, filter.getPermissibleValues());
@@ -1072,7 +1105,7 @@ public class InstancedDataUtil extends SparqlConstructionUtil {
 			for (RepeatableGroup group : form.getRepeatableGroups()) {
 				for (DataElement element : group.getSelectedElements()) {
 					DataTableColumn column =
-							new DataTableColumn(form.getShortNameAndVersion(), group.getName(), element.getName());
+							form.getColumnFromString(form.getShortNameAndVersion(), group.getName(), element.getName());
 					orderedColumns.add(column);
 				}
 			}
@@ -1261,7 +1294,7 @@ public class InstancedDataUtil extends SparqlConstructionUtil {
 
 		for (RepeatableGroup group : form.getRepeatableGroups()) {
 			for (DataElement element : group.getSelectedElements()) {
-				if (QueryToolConstants.GUID_TYPE.equals(element.getType())) {
+				if (DataType.GUID == element.getType()) {
 					return getGroupVariableMap(form).get(group) + element.getName();
 				}
 			}
@@ -1278,7 +1311,7 @@ public class InstancedDataUtil extends SparqlConstructionUtil {
 
 		for (RepeatableGroup group : form.getRepeatableGroups()) {
 			for (DataElement element : group.getSelectedElements()) {
-				if (QueryToolConstants.GUID_TYPE.equals(element.getType())) {
+				if (DataType.GUID == element.getType()) {
 					return group;
 				}
 			}
@@ -1389,7 +1422,7 @@ public class InstancedDataUtil extends SparqlConstructionUtil {
 				for (RepeatableGroup rg : form.getRepeatableGroups()) {
 					if (rg.getDataElements() != null) {
 						for (DataElement de : rg.getDataElements()) {
-							if (QueryToolConstants.GUID_TYPE.equals(de.getType()) && !de.isSelected()) {
+							if (DataType.GUID == de.getType() && !de.isSelected()) {
 								de.setSelected(true);
 								return;
 							}
@@ -1445,4 +1478,33 @@ public class InstancedDataUtil extends SparqlConstructionUtil {
 	public static Node getAccountNode(String userName) {
 		return NodeFactory.createURI(AccountRDF.createResource(userName).getURI());
 	}
+	
+	/**
+	 * Returns the age range for the given point value of AgeYrs. 
+	 * For example, 32 will be converted to 30 - 39.
+	 */
+	public static String getAgeYrsRange(String ageYrsVal) {
+		double ageYrsDbl;
+		
+		try {
+			ageYrsDbl = Double.valueOf(ageYrsVal);
+		} catch (NumberFormatException | NullPointerException e) {
+			// Return empty string if any exception occurred.
+			return "";
+		}
+		
+		if (ageYrsDbl < 0) {
+			return "";
+		}
+		
+		int lowerRange = (int) ageYrsDbl / 10 * 10;
+		int upperRange = lowerRange + 9;
+		
+		if (lowerRange < 90) {
+			return lowerRange + AGE_RANGE_SEPARATOR + upperRange;
+		} else {
+			return NINETY_PLUS;
+		}
+	}
+	
 }

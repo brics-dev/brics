@@ -98,5 +98,14 @@ $nav-hover1: $footer-bg1;
  * ===>>  Instance-specific Style Overrides   <<=================================================================
 
 ***/
+#instanceHeaderOne img {
+/*  margin-top: 5px; */
+/*  margin-left: 5px; } */
+  height: 50px;
+  width: 140px; 
+}
 
+#userMenu .logout {
+  color: #3b6f85; 
+}
 

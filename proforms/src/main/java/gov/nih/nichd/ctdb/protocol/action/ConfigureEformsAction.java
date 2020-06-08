@@ -3,6 +3,7 @@ package gov.nih.nichd.ctdb.protocol.action;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.ws.rs.WebApplicationException;
 
@@ -28,13 +29,17 @@ import gov.nih.nichd.ctdb.security.domain.User;
 
 public class ConfigureEformsAction extends BaseAction {
 	private static final Logger logger = Logger.getLogger(ConfigureEformsAction.class);
+	private static final long serialVersionUID = -1208803885883409753L;
 	
 	private int eformId;
-	private String hiddenSectionsQuestionsIdsJSON;
-	private String hiddenSectionsQuestionsIdsTextJSON;
+	private String hiddenSectionsQuestionsPVsIdsJSON;
 	private String jsonString;
 	private String action = "";
 	private String hasEditPriv;
+	private String calcRuleQuestionsJSON;
+	private String calcRuleDependentQuestionsJSON;
+	private String skipRuleQuestionsJSON;
+	private String skipRuleDependentQuestionsJSON;
 	
 	/**
 	 * execute method
@@ -44,7 +49,7 @@ public class ConfigureEformsAction extends BaseAction {
 			saveHiddenElements();
 			return StrutsConstants.SUCCESS;
 		}else {
-			buildLeftNav(LeftNavController.LEFTNAV_PSREFORMS_CONFIGURE);
+			buildLeftNav(LeftNavController.LEFTNAV_EFORMS_CONFIGURE);
 			FormDataStructureUtility fsUtil = new FormDataStructureUtility();
 			FormManager formMgr = new FormManager();
 			ProtocolManager protoMgr = new ProtocolManager();
@@ -53,9 +58,28 @@ public class ConfigureEformsAction extends BaseAction {
 				Form form = fsUtil.getEformFromBrics(request, shortName);
 				Protocol p = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
 				ArrayList<String> psrHiddenElements = protoMgr.getPSRHiddenElements(p.getId(), eformId);
-				JSONArray jsonReturnArray = new JSONArray(psrHiddenElements);
-				hiddenSectionsQuestionsIdsJSON = jsonReturnArray.toString();
+				JSONArray hiddenSectionsQuestionsPVsIdsJSONArray = new JSONArray(psrHiddenElements);
+				hiddenSectionsQuestionsPVsIdsJSON = hiddenSectionsQuestionsPVsIdsJSONArray.toString();
 				List<Section> orderedSectionList = form.getOrderedSectionList();
+				Set<String> calcRuleQuestions = form.getCalcRuleQuestions();
+				JSONArray calcRuleQuestionsJSONArray = new JSONArray(calcRuleQuestions);
+				calcRuleQuestionsJSON = calcRuleQuestionsJSONArray.toString();
+				
+				Set<String> calcRuleDependentQuestions = form.getCalcRuleDependentQuestions();
+				JSONArray calcRuleDependentQuestionsJSONArray = new JSONArray(calcRuleDependentQuestions);
+				calcRuleDependentQuestionsJSON = calcRuleDependentQuestionsJSONArray.toString();
+				
+				
+				Set<String> skipRuleQuestions = form.getSkipRuleQuestions();
+				JSONArray skipRuleQuestionsJSONArray = new JSONArray(skipRuleQuestions);
+				skipRuleQuestionsJSON = skipRuleQuestionsJSONArray.toString();
+				
+				Set<String> skipRuleDependentQuestions = form.getSkipRuleDependentQuestions();
+				JSONArray skipRuleDependentQuestionsJSONArray = new JSONArray(skipRuleDependentQuestions);
+				skipRuleDependentQuestionsJSON = skipRuleDependentQuestionsJSONArray.toString();
+				
+				
+
 				//for promis forms, only allow main and form administration sections to be configurable
 				if(form.isCAT()) {
 					Iterator<Section> orderedSectionListIterator = orderedSectionList.iterator();
@@ -77,12 +101,20 @@ public class ConfigureEformsAction extends BaseAction {
 					}
 				}
 
+				request.setAttribute(CtdbConstants.EFORM_CALC_QUESTIONS_LIST, calcRuleQuestions);
+				request.setAttribute(CtdbConstants.EFORM_CALC_DEPENDENT_QUESTIONS_LIST, calcRuleDependentQuestions);
+				request.setAttribute(CtdbConstants.EFORM_SKIP_QUESTIONS_LIST, skipRuleQuestions);
+				request.setAttribute(CtdbConstants.EFORM_SKIP_DEPENDENT_QUESTIONS_LIST, skipRuleDependentQuestions);
 				request.setAttribute(CtdbConstants.EFORM_SECTIONLIST, orderedSectionList);
 				request.setAttribute(CtdbConstants.EFORM_NAME, form.getShortName());
-				User user = getUser(); 
+				User user = getUser();
 				Privilege privilegeToCheck = new Privilege();
-		        privilegeToCheck.setCode("editPSR");
-				hasEditPriv = String.valueOf(user.hasPrivilege(privilegeToCheck));	 
+		        privilegeToCheck.setCode("editConfigureEform");
+		        if(user.isSysAdmin()) {
+		        	hasEditPriv = "true";
+		        } else {
+		        	hasEditPriv = String.valueOf(user.hasPrivilege(privilegeToCheck));
+		        }
 				return StrutsConstants.SUCCESS;
 			} catch (ObjectNotFoundException e) {
 				logger.error("Error in retrieving form", e);
@@ -119,7 +151,7 @@ public class ConfigureEformsAction extends BaseAction {
 		User user = getUser();
 		
 		try {
-			JSONArray hiddenElementsJSONArray = new JSONArray(getHiddenSectionsQuestionsIdsJSON());
+			JSONArray hiddenElementsJSONArray = new JSONArray(getHiddenSectionsQuestionsPVsIdsJSON());
 			for (int i = 0; i < hiddenElementsJSONArray.length(); i++) {
 				hiddenElementsArray.add(hiddenElementsJSONArray.getString(i));
 		    }
@@ -140,31 +172,14 @@ public class ConfigureEformsAction extends BaseAction {
 		
 
 	}
-	
-	
-	public String getHiddenSectionsQuestionsIdsJSON() {
-		return hiddenSectionsQuestionsIdsJSON;
+		
+	public String getHiddenSectionsQuestionsPVsIdsJSON() {
+		return hiddenSectionsQuestionsPVsIdsJSON;
 	}
 
-
-
-	public void setHiddenSectionsQuestionsIdsJSON(String hiddenSectionsQuestionsIdsJSON) {
-		this.hiddenSectionsQuestionsIdsJSON = hiddenSectionsQuestionsIdsJSON;
+	public void setHiddenSectionsQuestionsPVsIdsJSON(String hiddenSectionsQuestionsPVsIdsJSON) {
+		this.hiddenSectionsQuestionsPVsIdsJSON = hiddenSectionsQuestionsPVsIdsJSON;
 	}
-
-
-
-	public String getHiddenSectionsQuestionsIdsTextJSON() {
-		return hiddenSectionsQuestionsIdsTextJSON;
-	}
-
-
-
-	public void setHiddenSectionsQuestionsIdsTextJSON(String hiddenSectionsQuestionsIdsTextJSON) {
-		this.hiddenSectionsQuestionsIdsTextJSON = hiddenSectionsQuestionsIdsTextJSON;
-	}
-
-
 
 	public int getEformId() {
 		return eformId;
@@ -209,6 +224,46 @@ public class ConfigureEformsAction extends BaseAction {
 
 	public void setHasEditPriv(String hasEditPriv) {
 		this.hasEditPriv = hasEditPriv;
+	}
+
+
+	public String getCalcRuleQuestionsJSON() {
+		return calcRuleQuestionsJSON;
+	}
+
+
+	public void setCalcRuleQuestionsJSON(String calcRuleQuestionsJSON) {
+		this.calcRuleQuestionsJSON = calcRuleQuestionsJSON;
+	}
+
+
+	public String getCalcRuleDependentQuestionsJSON() {
+		return calcRuleDependentQuestionsJSON;
+	}
+
+
+	public void setCalcRuleDependentQuestionsJSON(String calcRuleDependentQuestionsJSON) {
+		this.calcRuleDependentQuestionsJSON = calcRuleDependentQuestionsJSON;
+	}
+
+
+	public String getSkipRuleQuestionsJSON() {
+		return skipRuleQuestionsJSON;
+	}
+
+
+	public void setSkipRuleQuestionsJSON(String skipRuleQuestionsJSON) {
+		this.skipRuleQuestionsJSON = skipRuleQuestionsJSON;
+	}
+
+
+	public String getSkipRuleDependentQuestionsJSON() {
+		return skipRuleDependentQuestionsJSON;
+	}
+
+
+	public void setSkipRuleDependentQuestionsJSON(String skipRuleDependentQuestionsJSON) {
+		this.skipRuleDependentQuestionsJSON = skipRuleDependentQuestionsJSON;
 	}
 
 

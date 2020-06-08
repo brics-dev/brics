@@ -1,0 +1,1 @@
+python pgDelta.py --props=.\conf\prod.cistar-prod.tbi.meta

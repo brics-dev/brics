@@ -7,19 +7,22 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import gov.nih.tbi.ModelConstants;
 import gov.nih.tbi.commons.model.AnswerType;
 import gov.nih.tbi.commons.model.QuestionType;
 import gov.nih.tbi.commons.model.SkipRuleOperatorType;
 import gov.nih.tbi.commons.model.SkipRuleType;
+import gov.nih.tbi.dictionary.model.hibernate.BtrisMapping;
 import gov.nih.tbi.dictionary.model.hibernate.eform.CalculationQuestion;
 import gov.nih.tbi.dictionary.model.hibernate.eform.CalculationQuestionPk;
+import gov.nih.tbi.dictionary.model.hibernate.eform.CountQuestion;
+import gov.nih.tbi.dictionary.model.hibernate.eform.CountQuestionPk;
 import gov.nih.tbi.dictionary.model.hibernate.eform.Eform;
 import gov.nih.tbi.dictionary.model.hibernate.eform.EmailTrigger;
 import gov.nih.tbi.dictionary.model.hibernate.eform.EmailTriggerValue;
@@ -39,6 +42,8 @@ public class FormBuilderQuestionJSONToEform {
 	private JSONArray questionsJSONArr;
 	private Eform eform;
 	private String formMode;
+
+	private HashMap<Long, BtrisMapping> questionBtrisMappingMap = new HashMap<Long, BtrisMapping>();
 
 
 	private HashMap<Long, Section> sectionMap = new HashMap<Long, Section>();
@@ -77,7 +82,10 @@ public class FormBuilderQuestionJSONToEform {
 		JSONObject attributeObjJSON = questionJson.getJSONObject("attributeObject");
 		question.setId(questionJson.getLong("questionId"));
 		question.setName(questionJson.getString("questionName"));
-		question.setText(questionJson.getString("questionText"));
+		String qText = questionJson.getString("questionText");
+		// remove leading and trailing <p></p> tags
+		qText = qText.replaceAll("^<p>|<\\/p>$", "");
+		question.setText(qText);
 		question.setType(QuestionType.getByValue(questionJson.getInt("questionType")));
 		question.setDefaultValue(questionJson.getString("defaultValue"));
 		question.setUnansweredValue(questionJson.getString("unansweredValue"));
@@ -118,8 +126,22 @@ public class FormBuilderQuestionJSONToEform {
 		sq.setSkipRuleQuestion(createSkipRuleQuestionSet(sq, attributeObjJSON.getJSONArray("questionsToSkip")));
 		sq.setCalculatedQuestion(createCalculationQuestionSet(sq, attributeObjJSON.getJSONArray("questionsToCalculate")));
 
+		// count
+		qa.setCountFlag(attributeObjJSON.getBoolean("countFlag"));
+		sq.setCountQuestion(createCountQuestionSet(sq, attributeObjJSON.getJSONArray("questionsInCount")));
+		if (!sq.getCountQuestion().isEmpty()) {
+			sq.setCountFormula(questionsToCountFormula(sq.getCountQuestion()));
+		}
+		else {
+			sq.setCountFormula("");
+		}
 		section.addToSectionQuestion(sq);
 		question.setQuestionAnswerOption(createQuestionAnswerOption(questionJson));
+
+		BtrisMapping bm = getBtrisMappingFromQuestionBMMap(question.getId());
+		if (bm != null) {
+			question.setBtrisMapping(bm);
+		}
 
 		addQuestionToQuestionMap(question.getId(), question);
 
@@ -231,7 +253,6 @@ public class FormBuilderQuestionJSONToEform {
 				CalculationQuestion calculationQuestion =
 						addCalculateQuestionAndSectionToCalculateQuestion(calculationQuestionText,
 								calculationQuestionPk);
-				// calculationQuestion.setSectionQuestion(sectionQuestion);
 				calculationQuestionList.add(calculationQuestion);
 			}
 			return calculationQuestionList;
@@ -250,11 +271,52 @@ public class FormBuilderQuestionJSONToEform {
 		String calculationRuleQuestionId = (calculationRuleQuestionAndSectionId[3]).replace("]", "");
 
 		calculationQuestionPk.setCalculationSection(sectionMap.get(Long.parseLong(calculationRuleSectionId)));
-		calculationQuestionPk.setCalculationQuestion(getQuestionFormQuestionMap(Long.parseLong(calculationRuleQuestionId)));
+		calculationQuestionPk
+				.setCalculationQuestion(getQuestionFormQuestionMap(Long.parseLong(calculationRuleQuestionId)));
 
 		calculationQuestion.setCalculationQuestionCompositePk(calculationQuestionPk);
 
 		return calculationQuestion;
+	}
+	
+	private List<CountQuestion> createCountQuestionSet(SectionQuestion sectionQuestion,
+			JSONArray countQuestionJSONArray) {
+
+		if (countQuestionJSONArray != null && countQuestionJSONArray.length() > 0) {
+			List<CountQuestion> countQuestionList = new ArrayList<CountQuestion>();
+			for (int i = 0; i < countQuestionJSONArray.length(); i++) {
+
+				CountQuestionPk countQuestionPk = new CountQuestionPk();
+				countQuestionPk.setQuestion(sectionQuestion.getQuestion());
+				countQuestionPk.setSection(sectionQuestion.getSection());
+
+				String countQuestionText = (String) countQuestionJSONArray.get(i);
+				CountQuestion countQuestion =
+						addCountQuestionAndSectionToCountQuestion(countQuestionText,
+								countQuestionPk);
+				countQuestionList.add(countQuestion);
+			}
+			return countQuestionList;
+		} else {
+			return new ArrayList<CountQuestion>();
+		}
+	}
+	
+	private CountQuestion addCountQuestionAndSectionToCountQuestion(String jsonCountSectionAndQuestion, CountQuestionPk countQuestionPk) {
+
+		CountQuestion countQuestion = new CountQuestion();
+
+		// Ex: [S_-3_Q_19563]
+		String[] countRuleQuestionAndSectionId = sectionQuestionStringToStringArray(jsonCountSectionAndQuestion);
+		String countRuleSectionId = countRuleQuestionAndSectionId[1];
+		String countRuleQuestionId = (countRuleQuestionAndSectionId[3]).replace("]", "");
+
+		countQuestionPk.setCountSection(sectionMap.get(Long.parseLong(countRuleSectionId)));
+		countQuestionPk.setCountQuestion(getQuestionFormQuestionMap(Long.parseLong(countRuleQuestionId)));
+
+		countQuestion.setCountQuestionCompositePk(countQuestionPk);
+
+		return countQuestion;
 	}
 
 	private Question getQuestionFormQuestionMap(Long questionId) {
@@ -283,27 +345,55 @@ public class FormBuilderQuestionJSONToEform {
 			et.setSubject(attributeObjJSON.getString("subject"));
 			et.setCcEmailAddress(attributeObjJSON.optString("ccEmailAddress"));
 			et.setToEmailAddress(attributeObjJSON.getString("toEmailAddress"));
-			et.setTriggerValues(createEmailTriggerValue(attributeObjJSON.getJSONArray("triggerAnswers")));
+			et.setTriggerValues(createEmailTriggerValue(attributeObjJSON.getJSONArray("triggerValues")));
 
 			return et;
 		}
 		return null;
 	}
 
-	private Set<EmailTriggerValue> createEmailTriggerValue(JSONArray emailTriggerAnswersJSON) {
-
+	private Set<EmailTriggerValue> createEmailTriggerValue(JSONArray emailTriggerValuesJSONArr) {
 		Set<EmailTriggerValue> triggerValues = new LinkedHashSet<EmailTriggerValue>();
-		if (emailTriggerAnswersJSON != null && emailTriggerAnswersJSON.length() > 0) {
-			for (int i = 0; i < emailTriggerAnswersJSON.length(); i++) {
-				JSONObject emailTriggerValueJson = emailTriggerAnswersJSON.getJSONObject(i);
+		if (emailTriggerValuesJSONArr != null && emailTriggerValuesJSONArr.length() > 0) {
+			for (int i = 0; i < emailTriggerValuesJSONArr.length(); i++) {
+				JSONObject emailTriggerValueJson = emailTriggerValuesJSONArr.getJSONObject(i);
 				EmailTriggerValue etv = new EmailTriggerValue();
 				etv.setAnswer(emailTriggerValueJson.getString("etAnswer"));
 				etv.setId(emailTriggerValueJson.getLong("etValId") > 0 ? emailTriggerValueJson.getLong("etValId") : null);
+
+				String etCondition = emailTriggerValueJson.getString("etCondition");
+				if (etCondition.isEmpty()) {
+					etv.setTriggerCondition(null);
+				} else {
+					etCondition = replaceSectionIdInEtCondition(etCondition);
+					etv.setTriggerCondition(etCondition);
+				}
+
+
 				triggerValues.add(etv);
 			}
 		}
 
 		return triggerValues;
+	}
+
+	private String replaceSectionIdInEtCondition(String etCondition) {
+		String cond = etCondition;
+		if (cond.contains("thisQuestion_")) {
+			cond = cond.replaceAll("thisQuestion_", "");
+		}
+
+		Pattern pattern = Pattern.compile("S_[-]?\\d+_Q_([0-9]+)");
+		Matcher match = pattern.matcher(cond);
+		while (match.find()) {
+			String sqId = match.group();
+			String[] sqIdArr = sectionQuestionStringToStringArray(sqId);
+			String sectionId = sqIdArr[1];
+			String newSecId = String.valueOf(sectionMap.get(Long.parseLong(sectionId)).getId());
+			String newSqId = sqId.replace("S_" + sectionId + "_Q_", "S_" + newSecId + "_Q_");
+			etCondition = etCondition.replace(sqId, newSqId);
+		}
+		return etCondition;
 	}
 
 	/**
@@ -467,6 +557,65 @@ public class FormBuilderQuestionJSONToEform {
 		}
 		return calculationRule;
 	}
+	
+	private String removePsuedoSectionIdsFromCount(String countFormula) {
+		if (countFormula != null && !countFormula.isEmpty()) {
+
+			List<Integer> sIndicesList = new ArrayList<>();
+			List<Integer> qIndicesList = new ArrayList<>();
+			List<String> stringRealSectionIds = new ArrayList<>();
+
+			int index = countFormula.indexOf("S_");
+			while (index != -1) {
+				sIndicesList.add(index + 2);
+				index = countFormula.indexOf("S_", index + 1);
+			}
+
+			if (sIndicesList.isEmpty()) {
+				for (int s_ind : sIndicesList) {
+					int q_ind = countFormula.indexOf("_Q", s_ind);
+					qIndicesList.add(q_ind);
+					String bSecId = countFormula.substring(s_ind, q_ind);
+					Section sectionFromMap = sectionMap.get(Long.parseLong(bSecId));
+
+					if (sectionFromMap != null) {
+						String rSecId = String.valueOf(sectionFromMap.getId());
+						stringRealSectionIds.add(rSecId);
+					} else {
+						stringRealSectionIds.add("none");
+					}
+				}
+
+				for (int m = sIndicesList.size() - 1; m >= 0; m--) {
+					String sId = stringRealSectionIds.get(m);
+					if (!sId.equals("none")) {
+						countFormula =
+								countFormula.substring(0, sIndicesList.get(m))
+								+ sId
+								+ countFormula.substring(qIndicesList.get(m), countFormula.length());
+					}
+				}
+			}
+		}
+		return countFormula;
+	}
+	
+	private String questionsToCountFormula(List<CountQuestion> questions) {
+		StringBuilder output = new StringBuilder();
+		for (CountQuestion question : questions) {
+			if (output.length() > 0) {
+				output.append(" + ");
+			}
+			CountQuestionPk pk = question.getCountQuestionCompositePk();
+			output.append("[S_")
+					.append(pk.getCountSection().getId())
+					.append("_Q_")
+					.append(pk.getCountQuestion().getId())
+					.append("]");
+		}
+		
+		return output.toString();
+	}
 
 	private void addSectionMapToEform() {
 		for (Entry<Long, Section> section : sectionMap.entrySet()) {
@@ -496,5 +645,18 @@ public class FormBuilderQuestionJSONToEform {
 
 	public void setFormMode(String formMode) {
 		this.formMode = formMode;
+	}
+
+	public BtrisMapping getBtrisMappingFromQuestionBMMap(Long questionId) {
+		BtrisMapping bm = this.questionBtrisMappingMap.get(questionId);
+		if (bm != null) {
+			return bm;
+		} else {
+			return null;
+		}
+	}
+
+	public void setQuestionBtrisMappingMap(HashMap<Long, BtrisMapping> questionBtrisMappingMap) {
+		this.questionBtrisMappingMap = questionBtrisMappingMap;
 	}
 }

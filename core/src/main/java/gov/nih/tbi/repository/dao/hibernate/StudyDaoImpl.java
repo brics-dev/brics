@@ -30,11 +30,6 @@ import gov.nih.tbi.commons.model.ResearchManagementRole;
 import gov.nih.tbi.commons.model.StudyStatus;
 import gov.nih.tbi.repository.dao.StudyDao;
 import gov.nih.tbi.repository.model.SubmissionType;
-import gov.nih.tbi.repository.model.alzped.MetaStudyModelName;
-import gov.nih.tbi.repository.model.alzped.MetaStudyModelType;
-import gov.nih.tbi.repository.model.alzped.MetaStudyTherapeuticAgent;
-import gov.nih.tbi.repository.model.alzped.MetaStudyTherapeuticTarget;
-import gov.nih.tbi.repository.model.alzped.MetaStudyTherapyType;
 import gov.nih.tbi.repository.model.alzped.ModelName;
 import gov.nih.tbi.repository.model.alzped.ModelType;
 import gov.nih.tbi.repository.model.alzped.StudyModelName;
@@ -251,17 +246,8 @@ public class StudyDaoImpl extends GenericDaoImpl<Study, Long> implements StudyDa
 			
 			Root<Study> root = query.from(Study.class);
 			query.where(cb.equal(root.get("id"), id));
-			root.fetch("sponsorInfoSet", JoinType.LEFT);
-			root.fetch("researchMgmtSet", JoinType.LEFT);
-			root.fetch("studySiteSet", JoinType.LEFT);
 			root.fetch("clinicalTrialSet", JoinType.LEFT);
 			root.fetch("grantSet", JoinType.LEFT);
-			root.fetch("keywordSet", JoinType.LEFT);
-			root.fetch("studyForms", JoinType.LEFT);
-			root.fetch("supportingDocumentationSet", JoinType.LEFT);
-			root.fetch("dataSubmissionDocument", JoinType.LEFT);
-			root.fetch("datasetSet", JoinType.LEFT);
-			root.fetch("graphicFile",JoinType.LEFT);
 
 			Study study = getUniqueResult(query);
 			return study;

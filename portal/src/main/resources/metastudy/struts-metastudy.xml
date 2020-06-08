@@ -101,7 +101,7 @@
 			</result>
 			<result name="editResearchMgmt"> /jsp/metastudy/editMetaStudyResearchMgmt.jsp
 			</result>
-			<allowed-methods>addResearchManagement</allowed-methods>
+			<allowed-methods>addResearchManagement,editResearchMgmtAjax</allowed-methods>
 		</action>
 		
 		<action name="clinicalTrialMetaValidationAction" class="gov.nih.tbi.metastudy.portal.MetaStudyAction">

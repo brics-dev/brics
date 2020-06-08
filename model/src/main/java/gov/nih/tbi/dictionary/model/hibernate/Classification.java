@@ -1,4 +1,3 @@
-
 package gov.nih.tbi.dictionary.model.hibernate;
 
 import java.io.Serializable;

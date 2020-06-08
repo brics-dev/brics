@@ -45,7 +45,6 @@ QT.Filters = {};
 	
 	QT.Filters.ModelFilter.prototype.setFilter = function(collectionName, filterObj) {
 		this.filters[collectionName][filterObj.name] = [];
-		
 		// only one of each type is allowed for each collection
 		var currentFilter = this.filters[collectionName][filterObj.name];
 		// equals checks for undefined
@@ -130,19 +129,20 @@ QT.Filters = {};
 		// tiles can contain text filter, selection filter, and unavailable filter
 		// run selection list filters first
 		var visibleOutput = {}
+		var visibleText = null;
 		if (this.filters.collection.TextSelectionFilter) {
 			// the list of visible is stored inside the filter from its creation
-			var visibleText = this.filters.collection.TextSelectionFilter.each();
+			visibleText = this.filters.collection.TextSelectionFilter.each();
 			_.extend(visibleOutput, visibleText);
 		}
 		if (this.filters.collection.CheckboxSelectionFilter) {
 			// the only way the selection list gets a checkbox selection filter is from the tiles
-			var visibleSelection = this.filters.collection.CheckboxSelectionFilter.each();
-			_.extend(visibleOutput, visibleSelection);
+			visibleText = this.filters.collection.CheckboxSelectionFilter.each();
+			_.extend(visibleOutput, visibleText);
 		}
 		if (this.filters.collection.DeHideShowFilter) {
 			// the list of visible is stored inside the filter from its creation
-			var visibleText = this.filters.collection.DeHideShowFilter.each();
+			visibleText = this.filters.collection.DeHideShowFilter.each();
 			_.extend(visibleOutput, visibleText);
 		}
 		this.updateSelectionListModels(visibleOutput, tabName);
@@ -211,7 +211,7 @@ QT.Filters = {};
 	 */
 	QT.Filters.ModelFilter.prototype.updateSelectionListModels = function(visibleOutput, tabName) {
 		// hide all selection items, show the ones in visibleOutput
-		viewModel = this.model;
+		var viewModel = this.model;
 		viewModel.hideAllSelectionItems(tabName);
 		
 		var asArray = _.values(visibleOutput);

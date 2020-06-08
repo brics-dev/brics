@@ -2,7 +2,7 @@
 <div class="footerContent">
 	<div class="footerLeft">
 		<p>
-			<a href="https://nei.nih.gov/tools/policies"  target="_blank" class="ext-link footerLink">Privacy Statement</a>
+			<a href="http://www.nih.gov/about/access.htm"  target="_blank" class="ext-link footerLink">Privacy Statement</a>
 			<a href="http://www.nih.gov/about/access.htm" target="_blank" class="ext-link footerLink">Accessibility Policy</a>
 			<a href="http://www.nih.gov/icd/od/foia/index.htm" target="_blank" class="ext-link footerLink">FOIA</a>
 		</p>

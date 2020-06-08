@@ -268,6 +268,14 @@
         		<result name="success" type="redirectAction">protocolCloseout</result>
         </action>
 
+		<action name="reopenProtocol" class="gov.nih.nichd.ctdb.protocol.action.ProtocolCloseoutAction" method="reopenClosedProtocol">
+        		<result name="success" type="redirectAction">protocolCloseout</result>
+        		<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">An error occurred while reopening the protocol</param>
+			</result>
+        </action>
+        
 		<!-- Protocol Administration -->
 		<action name="protocolDelete" class="gov.nih.nichd.ctdb.protocol.action.ProtocolAdminAction" method="deleteProtocols">
 			<result name="success" type="redirectAction">
@@ -277,6 +285,28 @@
 		</action>
 		<action name="protocolAudit" class="gov.nih.nichd.ctdb.protocol.action.ProtocolAdminAction" method="protocolAudit">
 			<result name="success">protocolAudit.jsp</result>
+		</action>
+		
+		<!-- Randomization -->
+		<action name="protoRandomization" class="gov.nih.nichd.ctdb.protocol.action.ProtocolRandomizationAction">
+        	<result name="viewRandomization">protocolRandomization.jsp</result>
+        </action>
+        <action name="randomizationAction" class="gov.nih.nichd.ctdb.protocol.action.ProtocolRandomizationAction">       	
+        	<result name="viewRandomization">protocolRandomization.jsp</result>
+        	<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonString</param>
+			</result>
+			<result name="badRequest" type="httpheader">
+				<param name="error">400</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<result name="error" type="httpheader">
+				<param name="error">500</param>
+				<param name="errorMessage">${errRespMsg}</param>
+			</result>
+			<allowed-methods>getProtoRandomizationIdtList,importRandomizationList</allowed-methods>
 		</action>
 	</package>
 	<package name="studyJson" namespace="/studyjson" extends="json-default" >

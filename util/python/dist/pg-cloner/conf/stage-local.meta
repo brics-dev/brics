@@ -1,0 +1,17 @@
+[DB-SRC]
+host=fitbir-db-stage.cit.nih.gov
+database=tbi_stage
+schema=tbi_metastg
+user=tbi_metastg
+label=SOURCE
+
+[DB-TRG]
+host=localhost
+database=metadb
+schema=metasch
+user=metauser
+label=TARGET
+
+[FILE-SYS]
+logDir=D:\\DEV\\appdata\\log\\pgCloner\\stage-local-meta
+workDir=D:\\DEV\\appdata\\dump\\pgCloner\\stage-local-meta

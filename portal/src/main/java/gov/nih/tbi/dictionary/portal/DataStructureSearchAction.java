@@ -1,25 +1,5 @@
 package gov.nih.tbi.dictionary.portal;
 
-import gov.nih.tbi.PortalConstants;
-import gov.nih.tbi.account.model.hibernate.Account;
-import gov.nih.tbi.commons.model.StatusType;
-import gov.nih.tbi.commons.util.PaginationData;
-import gov.nih.tbi.commons.util.RDFConstants;
-import gov.nih.tbi.dictionary.model.FormStructureFacet;
-import gov.nih.tbi.dictionary.model.FormStructureStandardization;
-import gov.nih.tbi.dictionary.model.SessionDataStructureSearchCriteria;
-import gov.nih.tbi.dictionary.model.hibernate.Disease;
-import gov.nih.tbi.dictionary.model.rdf.SemanticFormStructure;
-import gov.nih.tbi.idt.ws.IdtColumnDescriptor;
-import gov.nih.tbi.idt.ws.IdtInterface;
-import gov.nih.tbi.idt.ws.IdtRequest;
-import gov.nih.tbi.idt.ws.InvalidColumnException;
-import gov.nih.tbi.idt.ws.Struts2IdtInterface;
-import gov.nih.tbi.portal.PortalUtils;
-import gov.nih.tbi.repository.model.hibernate.AccessRecord;
-import gov.nih.tbi.taglib.datatableDecorators.AccessReportIdtListDecorator;
-import gov.nih.tbi.taglib.datatableDecorators.DataStructureSearchIdtDecorator;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -27,7 +7,6 @@ import java.net.MalformedURLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -39,6 +18,24 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.struts2.ServletActionContext;
+
+import gov.nih.tbi.PortalConstants;
+import gov.nih.tbi.account.model.hibernate.Account;
+import gov.nih.tbi.commons.model.StatusType;
+import gov.nih.tbi.commons.util.PaginationData;
+import gov.nih.tbi.commons.util.RDFConstants;
+import gov.nih.tbi.dictionary.model.FormStructureFacet;
+import gov.nih.tbi.dictionary.model.FormStructureStandardization;
+import gov.nih.tbi.dictionary.model.SessionDataStructureSearchCriteria;
+import gov.nih.tbi.dictionary.model.hibernate.Disease;
+import gov.nih.tbi.dictionary.model.hibernate.FormLabel;
+import gov.nih.tbi.dictionary.model.rdf.SemanticFormStructure;
+import gov.nih.tbi.idt.ws.IdtColumnDescriptor;
+import gov.nih.tbi.idt.ws.IdtInterface;
+import gov.nih.tbi.idt.ws.IdtRequest;
+import gov.nih.tbi.idt.ws.Struts2IdtInterface;
+import gov.nih.tbi.portal.PortalUtils;
+import gov.nih.tbi.taglib.datatableDecorators.DataStructureSearchIdtDecorator;
 
 public class DataStructureSearchAction extends BaseDictionaryAction {
 
@@ -55,6 +52,7 @@ public class DataStructureSearchAction extends BaseDictionaryAction {
 	private String selectedStandardizationOptions;
 	private String selectedFormTypeOptions;
 	private String selectedDiseaseOptions;
+	private String selectedFormLabelOptions;
 	private String selectedCopyrightOptions;
 
 	private Map<String, List<String>> facets;
@@ -66,6 +64,7 @@ public class DataStructureSearchAction extends BaseDictionaryAction {
 	private SessionDataStructureSearchCriteria sessionCriteria;
 	
 	private List<Disease> diseaseOptions;
+	private List<FormLabel> formLabelOptions;
 
 	// These are variables passed from datatable
 	
@@ -174,6 +173,12 @@ public class DataStructureSearchAction extends BaseDictionaryAction {
 			}
 		}
 		
+		if (!StringUtils.isBlank(selectedFormLabelOptions) && !selectedFormLabelOptions.equals("all")) {
+			Set<String> formLabelIdSet = this.parseSelectedOptions(selectedFormLabelOptions);
+			if (!formLabelIdSet.isEmpty()) {
+				selectedFacets.put(FormStructureFacet.FORM_LABEL, formLabelIdSet);
+			}
+		}
 		
 		
 		if (!StringUtils.isBlank(selectedRequiredOptions) && !selectedRequiredOptions.equals("all")) {
@@ -511,6 +516,13 @@ public class DataStructureSearchAction extends BaseDictionaryAction {
 		return diseaseOptions;
 	}
 
+	public List<FormLabel> getFormLabelOptions() {
+		if (formLabelOptions == null) {
+			formLabelOptions = dictionaryService.getFormLabels();
+		}
+		return formLabelOptions;
+	}
+	
 	public String getSelectedDiseaseOptions() {
 
 		return selectedDiseaseOptions;
@@ -520,6 +532,16 @@ public class DataStructureSearchAction extends BaseDictionaryAction {
 
 		this.selectedDiseaseOptions = selectedDiseaseOptions;
 	}
+
+	public String getSelectedFormLabelOptions() {
+		return selectedFormLabelOptions;
+	}
+
+
+	public void setSelectedFormLabelOptions(String selectedFormLabelOptions) {
+		this.selectedFormLabelOptions = selectedFormLabelOptions;
+	}
+
 
 	public Map<String, List<String>> getFacets() {
 

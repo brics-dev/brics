@@ -1,0 +1,17 @@
+[DB-TRG]
+host=cistar-db-demo.ninds.nih.gov
+database=cistar_demo
+schema=tbi_metademo
+user=tbi_metademo
+label=TRG-DEMO
+
+
+[DB-SRC]
+host=cistar-db-prod.ninds.nih.gov
+database=cistar_prod
+schema=tbi_meta
+user=tbi_meta
+label=SRC-PROD
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\pgDelta\democistar-prodcistar.meta

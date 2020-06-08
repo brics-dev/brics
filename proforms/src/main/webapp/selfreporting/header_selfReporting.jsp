@@ -24,7 +24,6 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, private" />
 <meta http-equiv="Expires" content="0" />
 
-<script src="<s:property value="#webRoot"/>/common/js/jquery-1.7.2.min.js" type="text/javascript"></script>
 <script type="text/javascript">
 	var language = "<%= request.getLocale() %>";
 	var baseUrl = '<s:property value="#webRoot"/>';
@@ -36,7 +35,14 @@
 <link rel="shortcut icon" type="image/x-icon" 
 	href="<s:property value="#systemPreferences.commonImageBaseUrl"/>/favicon.ico" />
 
-<script src="<s:property value="#webRoot"/>/common/js/jquery-ui-1.10.3.custom.min.js" type="text/javascript"></script>
+<!-- Load jQuery from their CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js" crossorigin="anonymous"></script>
+<!-- Fallback to jQuery on server if above script is unavailable -->
+<script>window.jQuery || document.write('<script src=\'<s:property value="#webRoot"/>/common/js/jquery-1.12.4.min.js\'><\/script>')</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-migrate/1.4.1/jquery-migrate.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+
 <script src="<s:property value="#webRoot"/>/common/js/jquery.ui.touch-punch.min.js" type="text/javascript"></script>
 <script src="<s:property value="#webRoot"/>/common/js/jquery.selectbox-0.2.min.js" type="text/javascript"></script>
 <script src="<s:property value="#webRoot"/>/common/js/jquery.scrollTo.min.js" type="text/javascript"></script>

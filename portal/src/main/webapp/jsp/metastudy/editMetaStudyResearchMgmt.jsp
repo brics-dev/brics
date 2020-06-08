@@ -1,4 +1,5 @@
 <%@include file="/common/taglibs.jsp"%>
+	<s:head/>
 	<style>
 		#addResearchMgmtDialog span.required {
     		color: #DD3434;
@@ -204,7 +205,6 @@ $(document).ready(function() {
 		select : 'multi',
 		initComplete: function(){
 			var table = $("#researchMgmtMetaTable");
-			reorderStudyReasearchMgmtTable(table);
 		},
 		buttons: [
 		        	{
@@ -501,7 +501,7 @@ function editResearchMgmtAjax(selectedRowData) {
 
 	$.ajax({
 		type: "POST",
-		url: "metaStudyAction!editResearchMgmtAjax.ajax",
+		url: "researchMgmtMetaValidationAction!editResearchMgmtAjax.ajax",
 		data: formData,
 		cache : false,
 		processData : false,
@@ -512,6 +512,9 @@ function editResearchMgmtAjax(selectedRowData) {
  			var dt = $('#researchMgmtMetaTable').idtApi('getTableApi');
 			 //dt.ajax.reload();
  			checkPrimaryPI(); 
+ 			if($('#researchMgmt .error-text').length > 0){
+				openResearchMgmtEntryDialog('edit',selectedRowData);						
+			}
 		}
 	});
 }

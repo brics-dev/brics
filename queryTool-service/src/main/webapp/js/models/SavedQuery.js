@@ -8,7 +8,9 @@ QT.SavedQuery = BaseModel.extend({
 		description : "",
 		copyFlag : false,
 		lastUpdated : "",
-		linkedUsers : null
+		dateCreated : "",
+		linkedUsers : null,
+		outputCode  : ""
 	},
 	
 	initialize : function() {

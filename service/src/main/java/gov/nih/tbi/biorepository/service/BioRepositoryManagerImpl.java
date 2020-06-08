@@ -177,7 +177,7 @@ public class BioRepositoryManagerImpl extends BaseManagerImpl implements BioRepo
 
 						for (BiospecimenItem item : biospecimenItems) {
 							String guid = item.getGuid();
-							if (guid.equals(manifestGuid)) {
+							if (guid != null && guid.equals(manifestGuid)) {
 								item.setStNumber(manifestStNumber);
 								break;
 							}

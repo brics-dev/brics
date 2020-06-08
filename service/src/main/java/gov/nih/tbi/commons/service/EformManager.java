@@ -24,6 +24,8 @@ import gov.nih.tbi.dictionary.model.hibernate.eform.SkipRuleQuestion;
 public interface EformManager extends BaseManager {
 
 	public BasicEform getBasicEform(long eformId);
+	
+	public List<BasicEform> getBasicEforms(Collection <String> shortNames);
 
 	public Eform getEformNoLazyLoad(long eformId);
 	

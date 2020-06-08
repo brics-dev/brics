@@ -14,6 +14,7 @@ $.fn.dataTable.pipeline = function(opts) {
 	var conf = $.extend({
 		pages: 1, // number of pages to cache
 		url: '', // script url
+		beforeSend: null,
 		data: null, // function or object with parameters to send to the server
 		// matching how `ajax.data` works in DataTables
 		method: 'GET' // Ajax HTTP method
@@ -139,6 +140,7 @@ $.fn.dataTable.Api.register('clearPipeline()', function() {
 			"serverSide": false,
 			"ajax": null,
 			idtUrl: null,
+			beforeSend: null,
 			pageLength: 15,
 			filtering: true,
 			columns: [],
@@ -153,7 +155,8 @@ $.fn.dataTable.Api.register('clearPipeline()', function() {
 			dom: 'frtip',
 			test: null,
 			pagingType: "full_numbers",
-			// "deferLoading": 0
+			"order": [[0, "asc"]]
+		// "deferLoading": 0
 		},
 
 		buttons: function() {
@@ -182,7 +185,7 @@ $.fn.dataTable.Api.register('clearPipeline()', function() {
 							title: 'export_filename',
 							extension: '.xlsx',
 							exportOptions: {
-
+								columns: ':visible',
 								orthogonal: 'export'
 							},
 							enabled: true,
@@ -196,6 +199,7 @@ $.fn.dataTable.Api.register('clearPipeline()', function() {
 							extension: '.csv',
 							name: 'csv',
 							exportOptions: {
+								columns: ':visible',
 								orthogonal: 'export'
 							},
 							enabled: true,
@@ -210,10 +214,13 @@ $.fn.dataTable.Api.register('clearPipeline()', function() {
 							extension: '.pdf',
 							name: 'pdf',
 							exportOptions: {
+								columns: ':visible',
 								orthogonal: 'export'
 							},
 							enabled: true,
-							action: IdtActions.exportAction()
+							//orientation: 'landscape',
+							action: IdtActions.exportAction(),
+				            customize: IdtActions.pdfCustomizer()						
 						}, {
 							extend: 'excel',
 							text: 'excel',
@@ -221,7 +228,7 @@ $.fn.dataTable.Api.register('clearPipeline()', function() {
 							title: 'export_filename',
 							extension: '.xlsx',
 							exportOptions: {
-
+								columns: ':visible',
 								orthogonal: 'export'
 							},
 							enabled: true,
@@ -238,6 +245,7 @@ $.fn.dataTable.Api.register('clearPipeline()', function() {
 				if (this.options.serverSide === true) {
 					this.options.ajax = $.fn.dataTable.pipeline({
 						url: that.options.idtUrl,
+						beforeSend: that.options.beforeSend,
 						method: that.options.ajaxMethod,
 						pages: that.options.pages,
 						data: function(d) {
@@ -271,7 +279,9 @@ $.fn.dataTable.Api.register('clearPipeline()', function() {
 							if(that.options.filterData) {
 								$.extend(d,that.options.filterData);
 							}
-
+							if (that.options.requestData) {
+							    $.extend(d, that.options.requestData);
+							}
 						}
 					});
 
@@ -280,6 +290,7 @@ $.fn.dataTable.Api.register('clearPipeline()', function() {
 					this.options.ajax = {
 						url: this.options.idtUrl,
 						method: this.options.ajaxMethod,
+						beforeSend: this.options.beforeSend,
 						data: function(d) {
 							var arr = that._mapNonNull(that.options.columns, function(column) {
 								return column.data === "checkbox" ? null : {
@@ -291,6 +302,9 @@ $.fn.dataTable.Api.register('clearPipeline()', function() {
 							d.obj = that.options.idtData;
 							if(that.options.filterData) {
 								$.extend(d,that.options.filterData);
+							}
+							if (that.options.requestData) {
+							    $.extend(d, that.options.requestData);
 							}
 						}
 					};
@@ -335,24 +349,28 @@ $.fn.dataTable.Api.register('clearPipeline()', function() {
 				}else {
 					that.options.totalRowCount = api.rows().count();
 				}
-				that._idtInfoCallback(that.options.totalRowCount);				
+				
+				//we are disabling selectFilter when we are returning All Data
+				if(settings.fnRecordsDisplay() === settings.fnRecordsTotal() || settings.fnRecordsDisplay() === 0) {
+					$(settings.nTable).find("#idt_selectFilter").addClass("idt_selectDisabled");
+				}else {
+					$(settings.nTable).find("#idt_selectFilter").removeClass("idt_selectDisabled");
+				}
+				
+				that._idtInfoCallback(that.options.totalRowCount);
 				// allows the developer to specify a drawCallback as well and
 				// have it run
 				if (optionDrawCallback) {
 					optionDrawCallback(settings);
 				}
 			}
-			
-			//set up order
-			var currentOrder = this.options.order ? this.options.order : [[0, "asc"]];
-			this.options.order = currentOrder;
 
 			// sets up selection
 			var selectDefaults = {
 				style: "api",
 				selector: "tr:not(.idtSelectionDisabled) td",
 				items: "row",
-				info: false
+				info:false
 			};
 			var currentSelect = this.options.select;
 			if (currentSelect && typeof currentSelect !== "object") {
@@ -425,7 +443,6 @@ $.fn.dataTable.Api.register('clearPipeline()', function() {
 		},
 		_startupDatatable: function() {
 			var that = this, buttonsConf = this.options.buttons, selectedRows;
-
 			this.buttons();
 			this._createCheckBox();
 
@@ -443,8 +460,9 @@ $.fn.dataTable.Api.register('clearPipeline()', function() {
 			if(that.options.searching != false) {
 				var searchColumn = tableSetting.IdtSearchColumn(tableSetting, that.options);
 			}
-			this._createButtonSetting(buttonsConf);
 
+			this._createButtonSetting(buttonsConf);
+			
 			oTable.on('select', function(e, dt, type, indexes) {
 				var selectedRows = dt.rows(indexes);
 				// we reference the rows in "selected" by ID
@@ -560,10 +578,7 @@ $.fn.dataTable.Api.register('clearPipeline()', function() {
 						return '<span class="fa fa-square-o" aria-hidden="true"></span>';
 					}
 				});
-				if((this.options.order).length != 0) {
-					this.options.order = [[1, "asc"]];
-				}
-
+				this.options.order = [[1, "asc"]];
 			}
 			else if (this.options.select.style == 'single') {
 				this.options.columns.unshift({
@@ -576,9 +591,7 @@ $.fn.dataTable.Api.register('clearPipeline()', function() {
 						return '<span class="fa fa-circle-o" aria-hidden="true"></span>';
 					}
 				});
-				if((this.options.order).length != 0) {
-					this.options.order = [[1, "asc"]];
-				}
+				this.options.order = [[1, "asc"]];
 			}
 		},
 

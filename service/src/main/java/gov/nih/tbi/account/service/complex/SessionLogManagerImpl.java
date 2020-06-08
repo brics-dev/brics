@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -79,5 +80,25 @@ public class SessionLogManagerImpl extends BaseManagerImpl implements SessionLog
 	 */
 	public int countUnfiltered() {
 		return sessionLogDao.countUnfiltered();
+	}
+	
+	public List<SessionLog> getActiveSessions() {
+		return sessionLogDao.getAllActiveSessions();
+	}
+	
+	public List<SessionLog> getActiveSessions(String username) {
+		return sessionLogDao.getActiveSessions(username);
+	}
+	
+	public void updateSession(SessionLog session) {
+		sessionLogDao.save(session);
+	}
+	
+	public void startSession(SessionLog session) {
+		sessionLogDao.save(session);
+	}
+	
+	public void updateSessions(List<SessionLog> sessions) {
+		sessionLogDao.batchSave(sessions.stream().collect(Collectors.toSet()));
 	}
 }

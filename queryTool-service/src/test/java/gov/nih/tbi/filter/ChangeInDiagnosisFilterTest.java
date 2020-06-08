@@ -9,51 +9,16 @@ import org.testng.annotations.Test;
 
 import com.google.gson.JsonObject;
 
-import gov.nih.tbi.pojo.DataElement;
 import gov.nih.tbi.pojo.FilterType;
-import gov.nih.tbi.pojo.FormResult;
-import gov.nih.tbi.pojo.RepeatableGroup;
 import gov.nih.tbi.repository.model.InstancedRow;
 
 public class ChangeInDiagnosisFilterTest {
 	public ChangeInDiagnosisFilterTest() {}
 
 	@Test
-	public void testFactory() {
-		FormResult form = new FormResult();
-		form.setShortName("testForm");
-		form.setVersion("1.0");
-
-		RepeatableGroup rg = new RepeatableGroup();
-		rg.setUri("testRg");
-		rg.setName("testRg");
-
-		DataElement de = new DataElement();
-		de.setUri("testDe");
-		de.setName("testDe");
-
-		Filter f1 = FilterFactory.createChangeInDiagnosisFilter("test");
-		ChangeInDiagnosisFilter f2 = new ChangeInDiagnosisFilter("test");
-
-		Assert.assertEquals(f1, f2);
-	}
-
-	@Test
 	public void testEquals() {
-		FormResult form = new FormResult();
-		form.setShortName("testForm");
-		form.setVersion("1.0");
-
-		RepeatableGroup rg = new RepeatableGroup();
-		rg.setUri("testRg");
-		rg.setName("testRg");
-
-		DataElement de = new DataElement();
-		de.setUri("testDe");
-		de.setName("testDe");
-
-		ChangeInDiagnosisFilter f1 = FilterFactory.createChangeInDiagnosisFilter("test");
-		ChangeInDiagnosisFilter f2 = FilterFactory.createChangeInDiagnosisFilter("test");
+		ChangeInDiagnosisFilter f1 = new ChangeInDiagnosisFilter("test", "f1", null, null, null);
+		ChangeInDiagnosisFilter f2 = new ChangeInDiagnosisFilter("test", "f1", null, null, null);
 		Assert.assertEquals(f1, f2);
 
 		f2.setValue("test123");
@@ -63,20 +28,8 @@ public class ChangeInDiagnosisFilterTest {
 
 	@Test
 	public void testHashCode() {
-		FormResult form = new FormResult();
-		form.setShortName("testForm");
-		form.setVersion("1.0");
-
-		RepeatableGroup rg = new RepeatableGroup();
-		rg.setUri("testRg");
-		rg.setName("testRg");
-
-		DataElement de = new DataElement();
-		de.setUri("testDe");
-		de.setName("testDe");
-
-		ChangeInDiagnosisFilter f1 = FilterFactory.createChangeInDiagnosisFilter("test");
-		ChangeInDiagnosisFilter f2 = FilterFactory.createChangeInDiagnosisFilter("test");
+		ChangeInDiagnosisFilter f1 = new ChangeInDiagnosisFilter("test", "f1", null, null, null);
+		ChangeInDiagnosisFilter f2 = new ChangeInDiagnosisFilter("test", "f1", null, null, null);
 		Assert.assertEquals(f1.hashCode(), f2.hashCode());
 
 		f2.setValue("test123");
@@ -86,40 +39,15 @@ public class ChangeInDiagnosisFilterTest {
 
 	@Test
 	public void testToJson() {
-		FormResult form = new FormResult();
-		form.setShortName("testForm");
-		form.setVersion("1.0");
-
-		RepeatableGroup rg = new RepeatableGroup();
-		rg.setUri("testRg");
-		rg.setName("testRg");
-
-		DataElement de = new DataElement();
-		de.setUri("testDe");
-		de.setName("testDe");
-
-		ChangeInDiagnosisFilter f = FilterFactory.createChangeInDiagnosisFilter("test");
+		ChangeInDiagnosisFilter f = new ChangeInDiagnosisFilter("test", "f", null, null, null);
 		JsonObject j = f.toJson();
 		Assert.assertEquals("test", j.get("freeFormValue").getAsString());
-		Assert.assertEquals(false, j.get("blank").getAsBoolean());
 		Assert.assertEquals(FilterType.CHANGE_IN_DIAGNOSIS.name(), j.get("filterType").getAsString());
 	}
 
 	@Test
 	public void testEval1() {
-		FormResult form = new FormResult();
-		form.setShortName("testForm");
-		form.setVersion("1.0");
-
-		RepeatableGroup rg = new RepeatableGroup();
-		rg.setUri("testRg");
-		rg.setName("testRg");
-
-		DataElement de = new DataElement();
-		de.setUri("testDe");
-		de.setName("testDe");
-
-		ChangeInDiagnosisFilter f = FilterFactory.createChangeInDiagnosisFilter("yes");
+		ChangeInDiagnosisFilter f = new ChangeInDiagnosisFilter("yes", "f", null, null, null);
 		InstancedRow row = mock(InstancedRow.class);
 		when(row.isDoHighlight()).thenReturn(true);
 
@@ -127,22 +55,10 @@ public class ChangeInDiagnosisFilterTest {
 
 		assertTrue(eval);
 	}
-	
+
 	@Test
 	public void testEval2() {
-		FormResult form = new FormResult();
-		form.setShortName("testForm");
-		form.setVersion("1.0");
-
-		RepeatableGroup rg = new RepeatableGroup();
-		rg.setUri("testRg");
-		rg.setName("testRg");
-
-		DataElement de = new DataElement();
-		de.setUri("testDe");
-		de.setName("testDe");
-
-		ChangeInDiagnosisFilter f = FilterFactory.createChangeInDiagnosisFilter("no");
+		ChangeInDiagnosisFilter f = new ChangeInDiagnosisFilter("no", "f", null, null, null);
 		InstancedRow row = mock(InstancedRow.class);
 		when(row.isDoHighlight()).thenReturn(true);
 
@@ -150,27 +66,39 @@ public class ChangeInDiagnosisFilterTest {
 
 		assertFalse(eval);
 	}
-	
+
 	@Test
 	public void testEval3() {
-		FormResult form = new FormResult();
-		form.setShortName("testForm");
-		form.setVersion("1.0");
-
-		RepeatableGroup rg = new RepeatableGroup();
-		rg.setUri("testRg");
-		rg.setName("testRg");
-
-		DataElement de = new DataElement();
-		de.setUri("testDe");
-		de.setName("testDe");
-
-		ChangeInDiagnosisFilter f = FilterFactory.createChangeInDiagnosisFilter("");
+		ChangeInDiagnosisFilter f = new ChangeInDiagnosisFilter("", "f", null, null, null);
 		InstancedRow row = mock(InstancedRow.class);
 		when(row.isDoHighlight()).thenReturn(true);
 
 		boolean eval = f.evaluate(row);
 
 		assertTrue(eval);
+	}
+
+	@Test
+	public void testYesToString() {
+		ChangeInDiagnosisFilter f = new ChangeInDiagnosisFilter("Yes", "f", null, null, null);
+		String actualString = f.toString();
+		String expectedString = "(f = 'Yes')";
+		assertEquals(actualString, expectedString);
+	}
+
+	@Test
+	public void testNoToString() {
+		ChangeInDiagnosisFilter f = new ChangeInDiagnosisFilter("No", "f", null, null, null);
+		String actualString = f.toString();
+		String expectedString = "(f = 'No')";
+		assertEquals(actualString, expectedString);
+	}
+
+	@Test
+	public void testEmptyToString() {
+		ChangeInDiagnosisFilter f = new ChangeInDiagnosisFilter(null, "f", null, null, null);
+		String actualString = f.toString();
+		String expectedString = "";
+		assertEquals(actualString, expectedString);
 	}
 }

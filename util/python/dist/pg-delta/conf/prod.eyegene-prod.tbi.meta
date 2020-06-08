@@ -1,0 +1,16 @@
+[DB-TRG]
+host=eyegene-db-prod.cit.nih.gov
+database=eyegene_prod
+schema=eyegene_meta
+user=eyegene_meta
+label=TRG-CISTAR
+
+[DB-SRC]
+host=fitbir-db-prod.cit.nih.gov
+database=tbi_prod
+schema=tbi_meta
+user=tbi_meta
+label=SRC-PROD-TBI
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\pgDelta\prodeyegene-prodtbi-meta

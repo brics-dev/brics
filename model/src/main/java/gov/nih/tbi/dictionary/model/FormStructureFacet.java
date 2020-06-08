@@ -17,7 +17,8 @@ public enum FormStructureFacet
     SUBMISSION_TYPE(10L, "submissionType"),
     REQUIRED(11L, "required"),
     STANDARDIZATION(12L, "standardization"),
-    IS_COPYRIGHTED(13L, "isCopyrighted");
+    IS_COPYRIGHTED(13L, "isCopyrighted"),
+    FORM_LABEL(14L, "formLabel");
 	// @formatter:on
     private long id;
     private String name;

@@ -1,0 +1,6 @@
+[DB-TRG]
+host=pdbp-db-demo.cit.nih.gov
+database=pdbp_data
+schema=proforms_app_demo
+user=proforms_app_demo
+label=TARGET

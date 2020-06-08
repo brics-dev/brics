@@ -4,13 +4,11 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
-import gov.nih.tbi.commons.model.RoleType;
-
 public enum AccountType {
 	
 	DSR(0L,"DSR","Data Submitter Request"),
-	DAR(1L,"DAR","Data Accesser Request"),
-	DSRDAR(2L,"DSR + DAR","Data Submitter and Acesser Request"),
+	DAR(1L,"DAR","Data Accessor Request"),
+	DSRDAR(2L,"DSR + DAR","Data Submitter and Accessor Request"),
 	OTHER(3L,"OTHER","Other");
 	
 	private static final Map<Long, AccountType> lookup = new HashMap<Long, AccountType>();
@@ -21,7 +19,6 @@ public enum AccountType {
 			lookup.put(s.getId(), s);
 			lookupName.put(s.getName(), s);
 		}
-
 	}
 	
 	private Long id;

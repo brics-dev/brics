@@ -1,0 +1,17 @@
+[DB-SRC]
+host=ibis-db-prod.cit.nih.gov
+database=dictionary_prod
+schema=dictionary
+user=dictionary
+label=SOURCE
+
+[DB-TRG]
+host=ibis-db-stage.cit.nih.gov
+database=dictionary_stage
+schema=dictionarystg
+user=dictionarystg
+label=TARGET
+
+[FILE-SYS]
+logDir=/var/lib/brics/log/pgCloner/prodibis-stageibis-dict
+workDir=/var/lib/brics/data/pgCloner/prodibis-stageibis-dict

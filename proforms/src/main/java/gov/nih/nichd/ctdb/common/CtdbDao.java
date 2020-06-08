@@ -17,7 +17,7 @@ import org.apache.log4j.Logger;
  */
 public class CtdbDao {
 	private static final Logger logger = Logger.getLogger(CtdbDao.class);
-	protected static final String DATA_ENCRYPTION_KEY = "REPLACED";
+	protected static final String DATA_ENCRYPTION_KEY = "daBL53dxgA+ZXe*IzLtj#fzm=AubGQU!EZcNkQu1l=s6iPFpWqaPbqw80w#uK>5I";
 	protected static final String ENCRYPTION_FUNC_OPTS = "cipher-algo=aes256";
 	protected static final String STANDARD_ENCRYPTION_FUNCT = "pgp_sym_encrypt(?, '" + CtdbDao.DATA_ENCRYPTION_KEY + "'::text, '" + CtdbDao.ENCRYPTION_FUNC_OPTS + "'::text)";
     protected Connection conn;

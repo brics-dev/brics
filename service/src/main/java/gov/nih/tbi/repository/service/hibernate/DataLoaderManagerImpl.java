@@ -165,8 +165,7 @@ public class DataLoaderManagerImpl implements Serializable, DataLoaderManager {
 					dsi = dataStoreInfoDao.getByDataStructureId(ddse.getDataStructureId());
 
 					if (dsi == null) {
-						repositoryManager.createTableFromDataStructure(ds.getFormStructureSqlObject(),
-								modulesConstants.getModulesDevEmail(), account);
+						repositoryManager.createTableFromDataStructure(ds.getFormStructureSqlObject(), account);
 						dsi = dataStoreInfoDao.getByDataStructureId(ddse.getDataStructureId());
 					}
 

@@ -1,0 +1,7 @@
+[DB-TRG]
+host=cistar-db-stage.cit.nih.gov
+database=cistar_stage
+schema=cistar_metastg
+user=cistar_metastg
+label=TARGET
+

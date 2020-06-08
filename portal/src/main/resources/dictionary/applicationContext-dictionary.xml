@@ -68,5 +68,7 @@
 	</bean>
 	<bean id="schemaPvDao" class="gov.nih.tbi.dictionary.dao.hibernate.SchemaPvDaoImpl">
 	</bean>
+	<bean id="btrisMappingDao" class="gov.nih.tbi.dictionary.dao.hibernate.BtrisMappingDaoImpl">
+	</bean>
 
 </beans>

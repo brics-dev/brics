@@ -203,6 +203,178 @@ public class ViewEditedAnswerAction extends BaseAction {
         return SUCCESS;
     }
 	
+	/* Audit Comment */
+	// url: http://fitbir-portal-local.cit.nih.gov:8082/ibis/response/getEditArchivesListByQId.action
+	public String getEditArchivesListByQId() throws Exception {
+		List<EditAnswerDisplay> editArchives =  (List<EditAnswerDisplay>) session.get("editArchives");
+        if(editArchives==null) {editArchives=  new ArrayList<EditAnswerDisplay>(); }
+		try {
+			IdtInterface idt = new Struts2IdtInterface();
+			ArrayList<EditAnswerDisplay> outputList = new ArrayList<EditAnswerDisplay>(editArchives);
+			idt.setList(outputList);
+			idt.setTotalRecordCount(outputList.size());
+			idt.setFilteredRecordCount(outputList.size());
+			idt.decorate(new ViewEditedAnswerIdtDecorator());
+			idt.output();
+		} catch (InvalidColumnException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/* Audit Comment */
+	// url: /response/getListEditedAnswersByQId.action?id="+id+"&sqid="+sqid,	
+	public String getListEditedAnswersByQId() throws Exception  {
+
+        Protocol protocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
+
+        String formIdStr = request.getParameter(CtdbConstants.ID_REQUEST_ATTR);
+        //get sid and qid
+        String sqidStr = request.getParameter(CtdbConstants.SQ_ID_REQUEST_ATTR);
+        String sidStr = "";
+        String qidStr = "";
+        int dict_sectionId = 0;
+        int dict_questionId= 0;
+        if(sqidStr!=null && !"".equals(sqidStr.trim())) {
+        	sidStr = sqidStr.substring(sqidStr.indexOf("S_") +2, sqidStr.indexOf("_Q_"));
+        	qidStr = sqidStr.substring(sqidStr.indexOf("_Q_")+3, sqidStr.length());
+        	dict_sectionId = Integer.parseInt(sidStr);
+        	dict_questionId= Integer.parseInt(qidStr);
+        }
+        else {
+        	editArchives = new ArrayList<EditAnswerDisplay>();
+        	return null;
+        }
+        ResponseManager rm = new ResponseManager();
+        PatientManager pm = new PatientManager();
+        ProtocolManager prm = new ProtocolManager();
+        FormManager fm = new FormManager();
+
+        int aformId = Integer.parseInt(formIdStr);
+        
+        AdministeredForm admForm = rm.getAdministeredFormForViewAudit(aformId);
+
+        boolean finalLocked = false;
+        finalLockList = new ArrayList<AdministeredForm>();
+
+        String shortName = fm.getEFormShortNameByAFormId(aformId);
+        FormDataStructureUtility fsUtil = new FormDataStructureUtility();
+        Form form = null;
+        try {
+        	form = fsUtil.getEformFromBrics(request, shortName);
+        	
+        	int eformid = admForm.getEformid();
+
+			form.setId(eformid);
+			form.setProtocolId(protocol.getId());
+			admForm.setForm(form);
+        	
+            if (admForm.getFinalLockDate() != null) {
+                finalLocked = true;
+                
+                AdministeredForm finalLock = rm.getFinalLockedInfo(aformId);
+                finalLockList.add(finalLock);
+                //by sid and qid
+                editArchives = rm.getEditArchivesByQId(form,aformId, dict_sectionId, dict_questionId, true);
+
+            } else {
+            	//by sid and qid
+            	editArchives = rm.getEditArchivesByQId(form,aformId, dict_sectionId, dict_questionId, false);               	
+
+            }
+        }
+        catch(Exception e) {
+        	// getting 401: unauthorized
+        	e.printStackTrace();
+        }
+
+        // getSentEmail records
+        //EmailTriggerManager em = new EmailTriggerManager();
+        //sentEmails = em.getSentEmailAudit(admForm);
+
+        session.put("editArchives", editArchives);
+        return null;
+	}	
+
+	// url: http://fitbir-portal-local.cit.nih.gov:8082/ibis/response/getEditArchivesListForAuditComment.action
+	public String getEditArchivesListForAuditComment() throws Exception {
+		try {
+			IdtInterface idt = new Struts2IdtInterface();
+			getListAuditComment();
+			ArrayList<EditAnswerDisplay> outputList = new ArrayList<EditAnswerDisplay>(getEditArchives());
+			idt.setList(outputList);
+			idt.setTotalRecordCount(outputList.size());
+			idt.setFilteredRecordCount(outputList.size());
+			idt.decorate(new ViewEditedAnswerIdtDecorator());
+			idt.output();
+		} catch (InvalidColumnException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	public String getListAuditComment() throws Exception  { //getListEditedAnswers
+		
+        Protocol protocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
+
+        String formIdStr = request.getParameter(CtdbConstants.ID_REQUEST_ATTR);
+
+        ResponseManager rm = new ResponseManager();
+        PatientManager pm = new PatientManager();
+        ProtocolManager prm = new ProtocolManager();
+        FormManager fm = new FormManager();
+
+        int aformId = Integer.parseInt(formIdStr);
+        
+        AdministeredForm admForm = rm.getAdministeredFormForViewAudit(aformId);
+        
+        Patient pt = rm.getPatientForCollection(protocol.getId(), admForm.getPatient().getId());
+        Interval interval = null;
+        if (admForm.getInterval().getId() > 0) {
+        	interval = prm.getInterval(admForm.getInterval().getId());
+        }
+
+        dataEntryList = rm.getDataEntries(aformId, 1);
+
+        boolean finalLocked = false;
+        finalLockList = new ArrayList<AdministeredForm>();
+
+        String shortName = fm.getEFormShortNameByAFormId(aformId);
+        FormDataStructureUtility fsUtil = new FormDataStructureUtility();
+        Form form = null;
+        try {
+        	form = fsUtil.getEformFromBrics(request, shortName);
+        	
+        	int eformid = admForm.getEformid();
+
+			form.setId(eformid);
+			form.setProtocolId(protocol.getId());
+			admForm.setForm(form);
+        	
+            if (admForm.getFinalLockDate() != null) {
+                finalLocked = true;
+                
+                AdministeredForm finalLock = rm.getFinalLockedInfo(aformId);
+                finalLockList.add(finalLock);	                 
+                editArchives = rm.getEditArchivesForAuditComment(form,aformId,true);
+
+            } else {
+            	editArchives = rm.getEditArchivesForAuditComment(form,aformId,false);	                	
+            	//request.setAttribute("responseList", new ArrayList());
+            }
+        }
+        catch(Exception e) {
+        	// getting 401: unauthorized
+        	e.printStackTrace();
+        }
+
+        // getSentEmail records
+        EmailTriggerManager em = new EmailTriggerManager();
+        sentEmails = em.getSentEmailAudit(admForm);
+
+
+        return null;
+	}
+	
 	public String getListEditedAnswers() throws Exception  {
 		
         Protocol protocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
@@ -271,7 +443,7 @@ public class ViewEditedAnswerAction extends BaseAction {
 	public String getDataEntryList() throws Exception {
 		try {
 			IdtInterface idt = new Struts2IdtInterface();
-			getListEditedAnswers();
+			getDataEntries();
 			ArrayList<DataEntryDraft> outputList = new ArrayList<DataEntryDraft>(getDataEntryDraft());
 			idt.setList(outputList);
 			idt.setTotalRecordCount(outputList.size());
@@ -283,6 +455,19 @@ public class ViewEditedAnswerAction extends BaseAction {
 		}
 		return null;
 	}
+	
+	
+	/**
+	 * Gets the data entries form summary
+	 * @throws CtdbException 
+	 */
+	private void getDataEntries() throws CtdbException {
+		ResponseManager rm = new ResponseManager();
+		String formIdStr = request.getParameter(CtdbConstants.ID_REQUEST_ATTR);
+		int aformId = Integer.parseInt(formIdStr);
+		dataEntryList = rm.getDataEntries(aformId, 1);
+	}
+	
 	
 	// url: http://fitbir-portal-local.cit.nih.gov:8082/ibis/response/getFinalLockedList.action
 	public String getFinalLockedList() throws Exception {
@@ -396,8 +581,6 @@ public class ViewEditedAnswerAction extends BaseAction {
 			int aformId = Integer.parseInt(formIdStr);
 
 			AdministeredForm admForm = rm.getAdministeredFormForViewAudit(aformId);
-
-			dataEntryList = rm.getDataEntries(aformId, 1);
 
 			String shortName = fm.getEFormShortNameByAFormId(aformId);
 			FormDataStructureUtility fsUtil = new FormDataStructureUtility();

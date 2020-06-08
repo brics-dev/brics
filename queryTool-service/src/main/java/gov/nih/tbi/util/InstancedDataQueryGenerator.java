@@ -2,21 +2,19 @@ package gov.nih.tbi.util;
 
 import gov.nih.tbi.commons.util.SparqlConstructionUtil;
 import gov.nih.tbi.constants.QueryToolConstants;
-import gov.nih.tbi.exceptions.InstancedDataException;
-import gov.nih.tbi.filter.DataElementFilter;
-import gov.nih.tbi.filter.Filter;
 import gov.nih.tbi.pojo.BeanField;
 import gov.nih.tbi.pojo.DataElement;
-import gov.nih.tbi.pojo.FilterType;
 import gov.nih.tbi.pojo.FormResult;
-import gov.nih.tbi.pojo.RepeatableGroup;
 import gov.nih.tbi.pojo.StudyResult;
+import gov.nih.tbi.pojo.RepeatableGroup;
 import gov.nih.tbi.repository.model.DataTableColumn;
 import gov.nih.tbi.repository.model.RepeatingCellColumn;
 import gov.nih.tbi.semantic.model.GuidRDF;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,10 +38,6 @@ import com.hp.hpl.jena.vocabulary.RDFS;
 
 public class InstancedDataQueryGenerator {
 
-
-	private static final boolean INNER_JOIN = true;
-	private static final boolean OUTER_JOIN = false;
-
 	/**
 	 * Returns a list of all the Study IDs for the given form
 	 * 
@@ -53,102 +47,17 @@ public class InstancedDataQueryGenerator {
 	private static List<Long> aggregateStudyIds(FormResult form) {
 		List<Long> studyIds = new ArrayList<Long>();
 
-		for (StudyResult study : form.getStudies()) {
-			studyIds.add(study.getId());
-		}
+		List<StudyResult> studies = Collections.synchronizedList(form.getStudies());
 
-		return studyIds;
-	}
-
-	/**
-	 * Returns the query used to get the row count for a single form
-	 * 
-	 * @return
-	 */
-	public static Query generateSingleFormRowCountQuery(FormResult form, Node accountNode) {
-		Query query = QueryFactory.make();
-		query.setQuerySelectType();
-
-		ElementGroup body = new ElementGroup();
-		ElementTriplesBlock block = new ElementTriplesBlock();
-		body.addElement(block);
-		query.setQueryPattern(body);
-		query.addResultVar(QueryToolConstants.COUNT_VARIABLE, new ExprAggregator(QueryToolConstants.COUNT_VARIABLE,
-				AggregatorFactory.createCountExpr(true, new ExprVar(QueryToolConstants.ROW_VAR))));
-		block.addTriple(
-				Triple.create(QueryToolConstants.ROW_VAR, RDF.type.asNode(), NodeFactory.createURI(form.getUri())));
-		block = InstancedDataUtil.addPermissionTriples(block, accountNode, QueryToolConstants.ROW_VAR,
-				QueryToolConstants.DATASET_VAR, QueryToolConstants.STUDY_ID_VAR);
-		body.addElementFilter(new ElementFilter(
-				InstancedDataUtil.isOneOfLong(QueryToolConstants.STUDY_ID_VAR, aggregateStudyIds(form))));
-		body.addElement(SparqlConstructionUtil.buildSingleOptionalPattern(QueryToolConstants.ROW_VAR,
-				QueryToolConstants.ROW_GUID, QueryToolConstants.GUID_VAR));
-		// use these lists to track which repeatable group and data element triples have already been added so we don't
-		// end up with duplicate triples.
-		List<RepeatableGroup> rgAdded = new ArrayList<RepeatableGroup>();
-		List<DataTableColumn> dataElementsAdded = new ArrayList<DataTableColumn>();
-
-
-		// if need to reference a particular repeatable group or data element for the filter, we will need to add
-		// the triple for those.
-		if (form.getFilters() != null && !form.getFilters().isEmpty()) {
-			for (Filter filter : form.getFilters()) {
-				if (filter.getFilterType() == FilterType.CHANGE_IN_DIAGNOSIS) {
-					filterChangeInDiagnosis(body, filter);
-				} else {
-					if (!filter.isEmpty()) {
-						DataElementFilter deFilter = (DataElementFilter) filter;
-
-						RepeatableGroup group = deFilter.getGroup();
-						DataElement element = deFilter.getElement();
-
-						if (!rgAdded.contains(group)) {
-							block = InstancedDataUtil.addRepeatableGroupPattern(block, QueryToolConstants.ROW_VAR, form,
-									group);
-							rgAdded.add(group);
-						}
-
-						DataTableColumn filterColumn =
-								new DataTableColumn(form.getShortNameAndVersion(), group.getName(), element.getName());
-						if (!dataElementsAdded.contains(filterColumn)) {
-
-							body.addElement(InstancedDataUtil.createOptionalDataElementPattern(form, group, element));
-							dataElementsAdded.add(filterColumn);
-						}
-
-						String filterVariable = InstancedDataUtil.getDataElementVar(form, group, element).getName();
-						ElementFilter elementFilter = deFilter.toElementFilter(filterVariable);
-
-						if (elementFilter != null) {
-							body.addElementFilter(elementFilter);
-						}
-					}
-				}
+		synchronized (studies) {
+			Iterator<StudyResult> studiesIt = studies.iterator();
+			while (studiesIt.hasNext()) {
+				StudyResult study = studiesIt.next();
+				studyIds.add(study.getId());
 			}
 		}
 
-		return query;
-	}
-
-	/**
-	 * Adds the elements necessary to filter by change in diagnosis
-	 * 
-	 * @param body
-	 * @param filter
-	 */
-	private static void filterChangeInDiagnosis(ElementGroup body, Filter filter) {
-
-		ElementTriplesBlock doHighlightBlock = new ElementTriplesBlock();
-		doHighlightBlock.addTriple(Triple.create(QueryToolConstants.GUID_VAR, GuidRDF.DO_HIGHLIGHT_PROP.asNode(),
-				QueryToolConstants.DO_HIGHLIGHT_VAR));
-		ElementOptional doHighlightGroup = new ElementOptional(doHighlightBlock);
-		body.addElement(doHighlightGroup);
-
-		ElementFilter elementFilter = filter.toElementFilter(QueryToolConstants.DO_HIGHLIGHT_VAR.getName());
-
-		if (elementFilter != null) {
-			body.addElement(elementFilter);
-		}
+		return studyIds;
 	}
 
 	public static Query getInstancedDataQuery(FormResult form, Node accountNode, boolean forDownload) {
@@ -168,6 +77,7 @@ public class InstancedDataQueryGenerator {
 		query.addResultVar(QueryToolConstants.STUDY_PREFIXED_ID_VAR);
 		query.addResultVar(QueryToolConstants.DO_HIGHLIGHT_VAR);
 		query.addResultVar(QueryToolConstants.GUID_LABEL_VAR);
+		query.addResultVar(QueryToolConstants.MDS_UPDRS_X_VAR);
 
 		body.addElement(new ElementSubQuery(getRowSubquery(form, QueryToolConstants.ROW_VAR, accountNode)));
 
@@ -235,6 +145,12 @@ public class InstancedDataQueryGenerator {
 		ElementOptional highlightOptional = new ElementOptional(highlightOptionalBlock);
 		body.addElement(highlightOptional);
 
+		ElementTriplesBlock mdsUpdrsOptionalBlock = new ElementTriplesBlock();
+		mdsUpdrsOptionalBlock.addTriple(Triple.create(QueryToolConstants.GUID_VAR, GuidRDF.MDS_UPDRS_X_PROP.asNode(),
+				QueryToolConstants.MDS_UPDRS_X_VAR));
+		ElementOptional mdsUpdrsOptional = new ElementOptional(mdsUpdrsOptionalBlock);
+		body.addElement(mdsUpdrsOptional);
+
 
 		return query;
 	}
@@ -264,465 +180,6 @@ public class InstancedDataQueryGenerator {
 	 * Join Queries
 	 ****************************************************************************/
 	/***********************************************************************************************************************/
-	public static Query generateInnerJoinQuery(List<FormResult> selectedForms, DataTableColumn sortColumn,
-			String sortOrder, Node accountNode) {
-		return getJoinQuery(selectedForms, INNER_JOIN, sortColumn, sortOrder, accountNode);
-	}
-
-	public static Query generateOuterJoinQuery(List<FormResult> selectedForms, DataTableColumn sortColumn,
-			String sortOrder, Node accountNode) {
-		return getJoinQuery(selectedForms, OUTER_JOIN, sortColumn, sortOrder, accountNode);
-	}
-
-	/**
-	 * Returns the query to get Row URIs and GUID fields of each row after a join of all the forms in selectedForms list
-	 * 
-	 * @param joinType - INNER_JOIN = results shall be inner join. OUTER_JOIN = results shall be left outer join
-	 * @param sortColumn
-	 * @param sortOrder
-	 * @return
-	 */
-	private static Query getJoinQuery(List<FormResult> selectedForms, boolean joinType, DataTableColumn sortColumn,
-			String sortOrder, Node accountNode) {
-		Query query = QueryFactory.create();
-		query.setQuerySelectType();
-
-		ElementGroup body = new ElementGroup();
-		query.setQueryPattern(body);
-
-		for (int i = 0; i < selectedForms.size(); i++) {
-			FormResult currentForm = selectedForms.get(i);
-
-			if (joinType == INNER_JOIN || i == 0) {
-				body.addElement(generateJoinSubQuery(currentForm, i, sortColumn, sortOrder, joinType, accountNode));
-			} else {
-				body.addElement(new ElementOptional(
-						generateJoinSubQuery(currentForm, i, sortColumn, sortOrder, joinType, accountNode)));
-			}
-
-			if (sortColumn != null && !sortColumn.isHardCoded()
-					&& sortColumn.getForm().equals(currentForm.getShortNameAndVersion())) {
-				// put together the variable to sort by
-				RepeatableGroup sortGroup = InstancedDataUtil.getRepeatableGroupUsingColumn(currentForm, sortColumn);
-				DataElement sortElement = InstancedDataUtil.getDataElementFromColumn(currentForm, sortColumn);
-				String sortVariable =
-						InstancedDataUtil.getDataElementVar(currentForm, sortGroup, sortElement).toString();
-				sortVariable = InstancedDataUtil.removeQuestionMark(sortVariable);
-				int direction = InstancedDataUtil.getQuerySortOrder(sortOrder);
-				query.addOrderBy(new ExprVar(sortVariable), direction);
-			}
-		}
-
-		// here, we are adding the part of the query that sorts by the given sortColumn and sort order
-		// if the sort is by a data element, then we will need to add the triples for said data element in order to
-		// sort
-		if (sortColumn != null) {
-
-			// here, determine if the sort column is from the current form
-			if (sortColumn.isHardCoded()) {
-				String sortVariable = sortColumn.getHardCoded();
-				int direction = InstancedDataUtil.getQuerySortOrder(sortOrder);
-				query.addOrderBy(InstancedDataUtil.createVar(sortVariable), direction);
-			}
-		}
-
-		return query;
-	}
-
-	/**
-	 * Generate the subquery for each form in the join
-	 * 
-	 * @param form
-	 * @param index
-	 * @param sortColumn
-	 * @param sortOrder
-	 * @param joinType
-	 * @return
-	 */
-	// TODO: change this to protected
-	public static ElementSubQuery generateJoinSubQuery(FormResult form, int index, DataTableColumn sortColumn,
-			String sortOrder, boolean joinType, Node accountNode) {
-
-		List<RepeatableGroup> rgAdded = new ArrayList<RepeatableGroup>();
-		List<DataTableColumn> dataElementsAdded = new ArrayList<DataTableColumn>();
-
-		Query query = QueryFactory.create();
-		query.setQuerySelectType();
-		ElementGroup body = new ElementGroup();
-		ElementTriplesBlock block = new ElementTriplesBlock();
-		body.addElement(block);
-		query.setQueryPattern(body);
-
-		Var rowUriVar = Var.alloc(QueryToolConstants.ROW_URI + index);
-		query.addResultVar(rowUriVar);
-		query.addResultVar(QueryToolConstants.GUID_VAR);
-		Var datasetVar = Var.alloc("dataset" + index);
-		Var studyIdVar = Var.alloc("studyId" + index);
-
-		block.addTriple(Triple.create(rowUriVar, RDF.type.asNode(), NodeFactory.createURI(form.getUri())));
-		block.addTriple(Triple.create(rowUriVar, QueryToolConstants.ROW_GUID, QueryToolConstants.GUID_VAR));
-
-		if (sortColumn != null && sortColumn.getHardCoded() != null
-				&& (QueryToolConstants.GUID_COLUMN_VAR.equals(sortColumn.getHardCoded())
-						|| sortColumn.getForm().equals(form.getShortNameAndVersion()))) {
-			if (QueryToolConstants.STUDY_COLUMN_VAR.equals(sortColumn.getHardCoded())) {
-				block.addTriple(
-						Triple.create(rowUriVar, QueryToolConstants.ROW_STUDY, QueryToolConstants.STUDY_TITLE_VAR));
-				query.addResultVar(QueryToolConstants.STUDY_TITLE_VAR.getName());
-			} else if (QueryToolConstants.DATASET_COLUMN_VAR.equals(sortColumn.getHardCoded())) {
-				block.addTriple(
-						Triple.create(rowUriVar, QueryToolConstants.ROW_PREFIX, QueryToolConstants.PREFIXED_ID_VAR));
-				query.addResultVar(QueryToolConstants.PREFIXED_ID_VAR.getName());
-			}
-		}
-
-		block = InstancedDataUtil.addPermissionTriples(block, accountNode, rowUriVar, datasetVar, studyIdVar);
-
-		body.addElementFilter(new ElementFilter(InstancedDataUtil.isOneOfLong(studyIdVar, aggregateStudyIds(form))));
-
-		Map<RepeatableGroup, String> groupVariableMap = null;
-
-		if (form.getFilters() != null && !form.getFilters().isEmpty()) {
-			groupVariableMap = InstancedDataUtil.getGroupVariableMap(form);
-
-			for (Filter filter : form.getFilters()) {
-				if (filter.getFilterType() == FilterType.CHANGE_IN_DIAGNOSIS) {
-					filterChangeInDiagnosis(body, filter);
-				} else {
-					DataElementFilter deFilter = (DataElementFilter) filter;
-
-					if (!filter.isEmpty()) {
-						RepeatableGroup group = deFilter.getGroup();
-						DataElement element = deFilter.getElement();
-
-						if (!rgAdded.contains(group)) {
-
-							ElementTriplesBlock rgBlock =
-									InstancedDataUtil.createRepeatableGroupPattern(rowUriVar, form, group);
-							body.addElement(rgBlock);
-							rgAdded.add(group);
-						}
-
-						DataTableColumn filterColumn =
-								new DataTableColumn(form.getShortNameAndVersion(), group.getName(), element.getName());
-						if (!dataElementsAdded.contains(filterColumn)) {
-							// ElementTriplesBlock deBlock = InstancedDataUtil.createDataElementPattern(form, group,
-							// element);
-							ElementOptional deBlock = new ElementOptional(
-									InstancedDataUtil.createDataElementPattern(form, group, element));
-							// ElementGroup deGroup = new ElementGroup();
-							// deGroup.addElement(deBlock);
-							body.addElement(deBlock);
-							dataElementsAdded.add(filterColumn);
-						}
-
-						// add the actual filters into the query
-						ElementFilter elementFilter = deFilter.toElementFilter(
-								InstancedDataUtil.getDataElementVar(groupVariableMap, form, group, element).getName());
-
-						if (elementFilter != null) {
-							body.addElementFilter(elementFilter);
-						}
-					}
-				}
-			}
-		}
-
-
-		// here, we are adding the part of the query that sorts by the given sortColumn and sort order the sort
-		// is by a data element, then we will need to add the triples for said data element in order to sort
-		if (sortColumn != null) {
-			// here, determine if the sort column is from the current form
-			if (!sortColumn.isHardCoded() && sortColumn.getForm().equals(form.getShortNameAndVersion())) {
-				// put together the variable to sort by
-				RepeatableGroup sortGroup = InstancedDataUtil.getRepeatableGroupUsingColumn(form, sortColumn);
-				DataElement sortElement = InstancedDataUtil.getDataElementFromColumn(form, sortColumn);
-
-				if (!rgAdded.contains(sortGroup)) {
-					ElementOptional rgBlock = new ElementOptional(
-							InstancedDataUtil.createRepeatableGroupPattern(rowUriVar, form, sortGroup));
-					body.addElement(rgBlock);
-					rgAdded.add(sortGroup);
-				}
-
-				// add triple for the data element
-				if (sortElement != null && !dataElementsAdded.contains(sortColumn)) {
-					ElementTriplesBlock deBlock =
-							InstancedDataUtil.createDataElementPattern(form, sortGroup, sortElement);
-					ElementGroup deGroup = new ElementGroup();
-					deGroup.addElement(deBlock);
-					body.addElement(deGroup);
-
-					dataElementsAdded.add(sortColumn);
-				}
-
-				if (groupVariableMap == null) {
-					groupVariableMap = InstancedDataUtil.getGroupVariableMap(form);
-				}
-
-				String sortVariable =
-						InstancedDataUtil.getDataElementVar(groupVariableMap, form, sortGroup, sortElement).toString();
-				query.addResultVar(sortVariable);
-			}
-		}
-
-		return new ElementSubQuery(query);
-	}
-
-	/**
-	 * Given a list of biosample IDs not selected by the user, this will return a SPARQL query that will get all rowUri
-	 * and biosample that the user has selected.
-	 * 
-	 * @param form
-	 * @param unselectedRowUri
-	 * @param accountNode
-	 * @return
-	 */
-	public static Query getBiosampleQueryInverse(FormResult form, Set<String> unselectedRowUri, Node accountNode) {
-		Query query = QueryFactory.make();
-		query.setQuerySelectType();
-		ElementGroup body = new ElementGroup();
-		ElementTriplesBlock block = new ElementTriplesBlock();
-		body.addElement(block);
-		query.setQueryPattern(body);
-		query.addResultVar(QueryToolConstants.ROW_VAR);
-		block.addTriple(
-				Triple.create(QueryToolConstants.ROW_VAR, RDF.type.asNode(), NodeFactory.createURI(form.getUri())));
-		block = InstancedDataUtil.addPermissionTriples(block, accountNode, QueryToolConstants.ROW_VAR,
-				QueryToolConstants.DATASET_VAR, QueryToolConstants.STUDY_ID_VAR);
-
-		RepeatableGroup biosampleRg = null;
-		DataElement biosampleDe = null;
-
-		for (RepeatableGroup rg : form.getRepeatableGroups()) {
-			for (DataElement de : rg.getDataElements()) {
-				if (QueryToolConstants.BIOSAMPLE_TYPE.equals(de.getType())) {
-					biosampleRg = rg;
-					biosampleDe = de;
-				}
-			}
-		}
-
-		if (biosampleRg == null || biosampleDe == null) {
-			throw new InstancedDataException("There is no biosample data element in the given form!");
-		}
-
-		block = InstancedDataUtil.addRepeatableGroupPattern(block, QueryToolConstants.ROW_VAR, form, biosampleRg);
-
-		Map<RepeatableGroup, String> groupVariableMap = InstancedDataUtil.getGroupVariableMap(form);
-
-		Var biosampleGroupVar = InstancedDataUtil.getGroupVar(form, biosampleRg);
-		Node biosampleDeUri = NodeFactory.createURI(biosampleDe.getUri());
-		Var biosampleVar = InstancedDataUtil.getDataElementVar(groupVariableMap, form, biosampleRg, biosampleDe);
-		query.addResultVar(QueryToolConstants.BIOSAMPLE_VAR, new ExprVar(biosampleVar));
-		block.addTriple(Triple.create(biosampleGroupVar, biosampleDeUri, biosampleVar));
-
-		DataTableColumn biosampleColumn =
-				new DataTableColumn(form.getShortNameAndVersion(), biosampleRg.getName(), biosampleDe.getName());
-
-		// if need to reference a particular repeatable group or data element for the filter, we will need to add
-		// the triple for those.
-		if (form.getFilters() != null && !form.getFilters().isEmpty()) {
-
-			for (Filter filter : form.getFilters()) {
-				if (!filter.isEmpty()) {
-					if (filter.getFilterType() == FilterType.CHANGE_IN_DIAGNOSIS) {
-						filterChangeInDiagnosis(body, filter);
-					} else {
-						DataElementFilter deFilter = (DataElementFilter) filter;
-						RepeatableGroup group = deFilter.getGroup();
-						DataElement element = deFilter.getElement();
-
-						if (!group.equals(biosampleRg)) {
-							block = InstancedDataUtil.addRepeatableGroupPattern(block, QueryToolConstants.ROW_VAR, form,
-									group);
-						}
-
-						DataTableColumn filterColumn =
-								new DataTableColumn(form.getShortNameAndVersion(), group.getName(), element.getName());
-						if (!filterColumn.equals(biosampleColumn)) {
-
-							body.addElement(InstancedDataUtil.createOptionalDataElementPattern(form, group, element));
-						}
-
-						Var deVar = InstancedDataUtil.getDataElementVar(groupVariableMap, form, group, element);
-						ElementFilter elementFilter = deFilter.toElementFilter(deVar.getName());
-
-						if (elementFilter != null) {
-							body.addElementFilter(elementFilter);
-						}
-					}
-				}
-			}
-		}
-
-		// filter out all the unselected rows.
-		if (unselectedRowUri != null && !unselectedRowUri.isEmpty()) {
-			body.addElementFilter(new ElementFilter(InstancedDataUtil
-					.isNotOneOfUri(new ExprVar(QueryToolConstants.ROW_VAR.getName()), unselectedRowUri)));
-		}
-
-		return query;
-	}
-
-	public static Query getInstancedDataRowUriQuery(FormResult form, int offset, int limit, DataTableColumn sortColumn,
-			String sortOrder, Node accountNode) {
-		Query outerQuery = QueryFactory.make();
-		outerQuery.setDistinct(true);
-		Query query = QueryFactory.make();
-		outerQuery.setQuerySelectType();
-		query.setQuerySelectType();
-
-		if (limit < Integer.MAX_VALUE) {
-			outerQuery.setLimit(limit);
-			outerQuery.setOffset(offset);
-		}
-
-		ElementGroup body = new ElementGroup();
-		ElementTriplesBlock block = new ElementTriplesBlock();
-		body.addElement(block);
-		query.setQueryPattern(body);
-		query.addResultVar(QueryToolConstants.ROW_VAR);
-		outerQuery.addResultVar(QueryToolConstants.ROW_VAR);
-		block.addTriple(
-				Triple.create(QueryToolConstants.ROW_VAR, RDF.type.asNode(), NodeFactory.createURI(form.getUri())));
-		block = InstancedDataUtil.addPermissionTriples(block, accountNode, QueryToolConstants.ROW_VAR,
-				QueryToolConstants.DATASET_VAR, QueryToolConstants.STUDY_ID_VAR);
-		body.addElement(SparqlConstructionUtil.buildSingleOptionalPattern(QueryToolConstants.ROW_VAR,
-				QueryToolConstants.ROW_GUID, QueryToolConstants.GUID_VAR));
-		body.addElementFilter(new ElementFilter(
-				InstancedDataUtil.isOneOfLong(QueryToolConstants.STUDY_ID_VAR, aggregateStudyIds(form))));
-
-		// use these lists to track which repeatable group and data element triples have already been added so we don't
-		// end up with duplicate triples.
-		List<RepeatableGroup> rgAdded = new ArrayList<RepeatableGroup>();
-		List<DataTableColumn> dataElementsAdded = new ArrayList<DataTableColumn>();
-
-		Map<RepeatableGroup, String> groupVariableMap = null;
-
-		// if need to reference a particular repeatable group or data element for the filter, we will need to add
-		// the triple for those.
-		if (form.getFilters() != null && !form.getFilters().isEmpty()) {
-			groupVariableMap = InstancedDataUtil.getGroupVariableMap(form);
-
-			for (Filter filter : form.getFilters()) {
-				if (!filter.isEmpty()) {
-					if (filter.getFilterType() == FilterType.CHANGE_IN_DIAGNOSIS) {
-						filterChangeInDiagnosis(body, filter);
-					} else {
-						DataElementFilter deFilter = (DataElementFilter) filter;
-						RepeatableGroup group = deFilter.getGroup();
-						DataElement element = deFilter.getElement();
-
-						if (!rgAdded.contains(group)) {
-							block = InstancedDataUtil.addRepeatableGroupPattern(block, QueryToolConstants.ROW_VAR, form,
-									group);
-							rgAdded.add(group);
-						}
-
-						DataTableColumn filterColumn =
-								new DataTableColumn(form.getShortNameAndVersion(), group.getName(), element.getName());
-						if (!dataElementsAdded.contains(filterColumn)) {
-
-							body.addElement(InstancedDataUtil.createOptionalDataElementPattern(form, group, element));
-							dataElementsAdded.add(filterColumn);
-						}
-
-						Var deVar = InstancedDataUtil.getDataElementVar(groupVariableMap, form, group, element);
-						ElementFilter elementFilter = deFilter.toElementFilter(deVar.getName());
-
-						if (elementFilter != null) {
-							body.addElementFilter(elementFilter);
-						}
-					}
-				}
-			}
-		}
-
-		// here, we are adding the part of the query that sorts by the given sortColumn and sort order if the sort
-		// is by a data element, then we will need to add the triples for said data element in order to sort
-		if (sortColumn != null) {
-
-			String sortVariable = null;
-			int direction = InstancedDataUtil.getQuerySortOrder(sortOrder);
-
-			if (!sortColumn.isHardCoded()) {
-				// put together the variable to sort by
-				RepeatableGroup sortGroup = InstancedDataUtil.getRepeatableGroupUsingColumn(form, sortColumn);
-				DataElement sortElement = InstancedDataUtil.getDataElementFromColumn(form, sortColumn);
-
-				// add the triple for the repeatable group
-				if (sortGroup != null && !rgAdded.contains(sortGroup)) {
-					block = InstancedDataUtil.addRepeatableGroupPattern(block, QueryToolConstants.ROW_VAR, form,
-							sortGroup);
-					rgAdded.add(sortGroup);
-				}
-
-				// add triple for the data element
-				if (sortElement != null && !dataElementsAdded.contains(sortColumn)) {
-					body.addElement(InstancedDataUtil.createOptionalDataElementPattern(form, sortGroup, sortElement));
-					dataElementsAdded.add(sortColumn);
-				}
-
-				if (groupVariableMap == null) {
-					groupVariableMap = InstancedDataUtil.getGroupVariableMap(form);
-				}
-
-				sortVariable =
-						InstancedDataUtil.getDataElementVar(groupVariableMap, form, sortGroup, sortElement).toString();
-				sortVariable = InstancedDataUtil.removeQuestionMark(sortVariable);
-
-				query.addOrderBy(new ExprVar(sortVariable), direction);
-			} else {
-				sortVariable = sortColumn.getHardCoded();
-				sortVariable = InstancedDataUtil.removeQuestionMark(sortVariable);
-
-				if (QueryToolConstants.PREFIXED_ID_VAR.getName().equals(sortVariable)) {
-					block.addTriple(Triple.create(QueryToolConstants.ROW_VAR, QueryToolConstants.ROW_PREFIX,
-							QueryToolConstants.PREFIXED_ID_VAR));
-					query.addResultVar(QueryToolConstants.PREFIXED_ID_VAR);
-				}
-
-				outerQuery.addOrderBy(new ExprVar(sortVariable), direction);
-			}
-		}
-
-		outerQuery.setQueryPattern(new ElementSubQuery(query));
-
-		return outerQuery;
-	}
-
-	public static Query generateJoinUriQuery(List<FormResult> selectedForms, int offset, int limit,
-			DataTableColumn sortColumn, String sortOrder, Node accountNode) {
-		Query query = QueryFactory.create();
-
-		Query subQuery = null;
-		if (InstancedDataUtil.doesNonPrimaryFormHaveFilter(selectedForms)) {
-			subQuery = generateInnerJoinQuery(selectedForms, sortColumn, sortOrder, accountNode);
-		} else {
-			subQuery = generateOuterJoinQuery(selectedForms, sortColumn, sortOrder, accountNode);
-		}
-
-		ElementSubQuery subQueryElement = new ElementSubQuery(subQuery);
-		query.setQueryPattern(subQueryElement);
-		query.setQuerySelectType();
-
-		if (limit < Integer.MAX_VALUE) {
-			query.setLimit(limit);
-			query.setOffset(offset);
-		}
-
-		for (int i = 0; i < selectedForms.size(); i++) {
-			Var rowUriVar = Var.alloc(QueryToolConstants.ROW_URI + i);
-			query.addResultVar(rowUriVar);
-			query.addResultVar(QueryToolConstants.GUID_VAR);
-			subQuery.addResultVar(rowUriVar);
-			subQuery.addResultVar(QueryToolConstants.GUID_VAR);
-		}
-
-		return query;
-	}
-
 	/**
 	 * Returns a query that will select the row uri, repeatable group, and the count of rows for that repeatable group +
 	 * row This is so we can get a count of all the repeating group
@@ -732,8 +189,6 @@ public class InstancedDataQueryGenerator {
 	 * @return
 	 */
 	public static Query generateRepeatableGroupRowCountsQuery(FormResult form, Set<String> rowUris) {
-
-		List<RepeatableGroup> repeatingRgs = form.getRepeatingRepeatableGroups();
 		Query query = QueryFactory.make();
 		query.setQuerySelectType();
 		ElementTriplesBlock block = new ElementTriplesBlock();
@@ -758,28 +213,6 @@ public class InstancedDataQueryGenerator {
 		body.addElementFilter(
 				new ElementFilter(InstancedDataUtil.isOneOfUri(new ExprVar(QueryToolConstants.ROW_VARIABLE), rowUris)));
 
-		for (Filter filter : form.getFilters()) {
-			DataElementFilter deFilter = (DataElementFilter) filter;
-
-			if (repeatingRgs.contains(deFilter.getGroup())) {
-				Var groupVariable = Var.alloc(InstancedDataUtil.getGroupVariable(form, deFilter.getGroup()));
-				Var deVariable = Var.alloc(InstancedDataUtil.getGroupVariable(form, deFilter.getGroup()).substring(1)
-						+ deFilter.getElement().getName());
-
-				block.addTriple(Triple.create(QueryToolConstants.ROW_VARIABLE,
-						QueryToolConstants.HAS_REPEATABLE_GROUP_INSTANCE_N, groupVariable));
-				block.addTriple(Triple.create(groupVariable, RDF.type.asNode(),
-						NodeFactory.createURI(deFilter.getGroup().getUri())));
-				block.addTriple(Triple.create(groupVariable, NodeFactory.createURI(deFilter.getElement().getUri()),
-						deVariable));
-
-				ElementFilter elementFilter = filter.toElementFilter(deVariable.getName());
-
-				if (elementFilter != null) {
-					body.addElementFilter(elementFilter);
-				}
-			}
-		}
 		query.addResultVar(QueryToolConstants.ROW_VARIABLE);
 		query.addResultVar(QueryToolConstants.REPEATABLE_GROUP_VARIABLE);
 		query.addResultVar(QueryToolConstants.COUNT_VARIABLE,
@@ -881,29 +314,6 @@ public class InstancedDataQueryGenerator {
 
 		return query;
 	}
-
-	public static Query generateJoinedFormRowCountQuery(List<FormResult> selectedForms, Node accountNode) {
-
-		// if we're not doing joins, or if the primary form has filters, or if any of the a joined forms do not have any
-		// filters applied
-		Query query = null;
-
-		if (selectedForms.size() == 1) { // non-joined row count query
-			query = generateSingleFormRowCountQuery(selectedForms.get(0), accountNode);
-		} else { // joined row count query
-			if (InstancedDataUtil.doesNonPrimaryFormHaveFilter(selectedForms)) {
-				query = generateInnerJoinQuery(selectedForms, null, null, accountNode);
-			} else {
-				query = generateOuterJoinQuery(selectedForms, null, null, accountNode);
-			}
-
-			query.addResultVar(QueryToolConstants.COUNT_VARIABLE, new ExprAggregator(QueryToolConstants.COUNT_VARIABLE,
-					AggregatorFactory.createCountExpr(false, new ExprVar(QueryToolConstants.GUID_VAR))));
-
-		}
-		return query;
-	}
-
 
 	/**
 	 * Returns the query used to get the instanced data of the selected query
@@ -1041,44 +451,6 @@ public class InstancedDataQueryGenerator {
 		query.append(new ElementFilter(
 				InstancedDataUtil.isOneOfLong(QueryToolConstants.STUDY_ID_VAR, aggregateStudyIds(form))).toString());
 
-		// append filters
-		if (form.getFilters() != null && !form.getFilters().isEmpty()) {
-			for (Filter filter : form.getFilters()) {
-				DataElementFilter deFilter = (DataElementFilter) filter;
-
-				RepeatableGroup currentGroup = deFilter.getGroup();
-
-				String groupVariable = groupVariableMap.get(currentGroup);
-				DataElement element = deFilter.getElement();
-				int deIndex = currentGroup.getIndexOfDataElement(element);
-
-				String deVariable =
-						InstancedDataUtil.getDataElementVar(groupVariableMap, form, currentGroup, element).getName();
-
-				// if the pattern for the data element hasn't been added in this query yet, then we will need to add
-				// it. use the index of
-				// the data element to check whether or not it should've been added already or not if deindex is not
-				// in the range of low and
-				// upper, then add the pattern we will also need to add it if the group repeats
-				if (deIndex < lowerIndex || deIndex > upperIndex || !group.equals(currentGroup)) {
-					query.append("OPTIONAL { ?row fs:hasRepeatableGroupInstance ").append(groupVariable).append(" .")
-							.append(QueryToolConstants.NL).append(groupVariable).append(QueryToolConstants.WS)
-							.append("a <").append(currentGroup.getUri()).append("> .").append(QueryToolConstants.NL);
-
-					query.append(QueryToolConstants.OPTIONAL_START).append(groupVariable).append(QueryToolConstants.WS)
-							.append("<").append(element.getUri()).append(">").append(QueryToolConstants.NL).append("?")
-							.append(deVariable).append(" .").append(QueryToolConstants.END_BRACKET)
-							.append(QueryToolConstants.NL);
-					query.append("}");
-				}
-
-				ElementFilter elementFilter = deFilter.toElementFilter(deVariable);
-				if (elementFilter != null) {
-					query.append(elementFilter);
-				}
-			}
-		}
-
 		query.append(QueryToolConstants.NL).append("}");
 
 		return query.toString();
@@ -1123,6 +495,26 @@ public class InstancedDataQueryGenerator {
 		return queries;
 	}
 
+	public static Query getPermissibleValueQuery(List<String> permissibleValueUris) {
+		Query query = QueryFactory.make();
+		query.setQuerySelectType();
+		ElementGroup body = new ElementGroup();
+		query.setQueryPattern(body);
+		ElementTriplesBlock block = new ElementTriplesBlock();
+		body.addElement(block);
+		
+		query.addResultVar(QueryToolConstants.URI_VAR);
+		for (int i = 1; i < QueryToolConstants.PV_FIELDS.size(); i++) {
+			BeanField currentField = QueryToolConstants.PV_FIELDS.get(i);
+			query.addResultVar(currentField.getName());
+			block.addTriple(Triple.create(QueryToolConstants.URI_VAR,
+					NodeFactory.createURI(currentField.getPropertyUri()), Var.alloc(currentField.getName())));
+		}
+
+		body.addElement(SparqlConstructionUtil.isOneOfUri(QueryToolConstants.URI_VAR.getName(), permissibleValueUris));
+		return query;
+	}
+
 	/**
 	 * Builds the query to get all the data elements and repeatable groups fields for a data element
 	 * 
@@ -1159,23 +551,46 @@ public class InstancedDataQueryGenerator {
 	 * @param formUri
 	 * @return
 	 */
-	public static String getDataElementInGroupSimple(String formUri) {
+	public static Query getDataElementInGroupSimple(String formUri) {
+		Query query = QueryFactory.make();
+		query.setQuerySelectType();
+		ElementGroup body = new ElementGroup();
+		query.setQueryPattern(body);
+		ElementTriplesBlock block = new ElementTriplesBlock();
+		body.addElement(block);
+		query.addResultVar(QueryToolConstants.RG_VAR);
+		query.addResultVar(QueryToolConstants.DATA_ELEMENT_VARIABLE);
+		query.addResultVar(QueryToolConstants.RG_NAME_VARIABLE);
+		query.addResultVar(QueryToolConstants.RG_POSITION_VARIABLE);
+		query.addResultVar(QueryToolConstants.DE_POSITION_VARIABLE);
+		query.addResultVar(QueryToolConstants.RG_TYPE_VARIABLE);
+		query.addResultVar(QueryToolConstants.RG_THRESHOLD_VARIABLE);
+		query.addResultVar(QueryToolConstants.REQUIRED_TYPE_VARIABLE);
 
-		StringBuffer sb = new StringBuffer();
-		// TODO:URICONSTANTS NEED TO MOVE THESE URI's to CONSTNATS FILE
-		sb.append("SELECT *").append(QueryToolConstants.NL).append("WHERE {").append(QueryToolConstants.NL).append("<")
-				.append(formUri).append(">")
-				.append(" <http://ninds.nih.gov/dictionary/ibis/1.0/FormStructure/hasRepeatableGroup> ?rg .")
-				.append(QueryToolConstants.NL)
-				.append("?rg <http://ninds.nih.gov/repository/fitbir/1.0/RepeatableGroup/name> ?rg_name;")
-				.append(QueryToolConstants.NL).append("rg:position ?rg_position;")
-				.append("rdfs:subClassOf <http://ninds.nih.gov/repository/fitbir/1.0/RepeatableGroup>;")
-				.append("<http://ninds.nih.gov/repository/fitbir/1.0/RepeatableGroup/type> ?rg_type;")
-				.append("<http://ninds.nih.gov/repository/fitbir/1.0/RepeatableGroup/threshold> ?rg_threshold;")
-				.append(QueryToolConstants.NL).append("rg:hasDataElement ?uri;").append(QueryToolConstants.NL)
-				.append("?uri ?de_position .").append(QueryToolConstants.NL).append("}");
+		block.addTriple(Triple.create(NodeFactory.createURI(formUri), QueryToolConstants.HAS_REPEATABLE_GROUP,
+				QueryToolConstants.RG_VAR));
+		block.addTriple(
+				Triple.create(QueryToolConstants.RG_VAR, RDFS.subClassOf.asNode(), QueryToolConstants.RG_CLASS_NODE));
+		block.addTriple(Triple.create(QueryToolConstants.RG_VAR, QueryToolConstants.RG_NAME_PROPERTY,
+				QueryToolConstants.RG_NAME_VARIABLE));
+		block.addTriple(Triple.create(QueryToolConstants.RG_VAR, QueryToolConstants.RG_POSITION_PROPERTY,
+				QueryToolConstants.RG_POSITION_VARIABLE));
+		block.addTriple(Triple.create(QueryToolConstants.RG_VAR, QueryToolConstants.RG_TYPE_PROPERTY,
+				QueryToolConstants.RG_TYPE_VARIABLE));
+		block.addTriple(Triple.create(QueryToolConstants.RG_VAR, QueryToolConstants.RG_THRESHOLD_PROPERTY,
+				QueryToolConstants.RG_THRESHOLD_VARIABLE));
+		block.addTriple(Triple.create(QueryToolConstants.RG_VAR, QueryToolConstants.HAS_DATA_ELEMENT,
+				QueryToolConstants.DATA_ELEMENT_VARIABLE));
+		block.addTriple(Triple.create(QueryToolConstants.RG_VAR, QueryToolConstants.DATA_ELEMENT_VARIABLE,
+				QueryToolConstants.DE_POSITION_VARIABLE));
+		block.addTriple(Triple.create(QueryToolConstants.RG_VAR, QueryToolConstants.HAS_REQUIRED_TYPE,
+				QueryToolConstants.REQUIRED_TYPE_N_VARIABLE));
+		block.addTriple(Triple.create(QueryToolConstants.REQUIRED_TYPE_N_VARIABLE, RDFS.subClassOf.asNode(),
+				QueryToolConstants.DATA_ELEMENT_VARIABLE));
+		block.addTriple(Triple.create(QueryToolConstants.REQUIRED_TYPE_N_VARIABLE, RDFS.label.asNode(),
+				QueryToolConstants.REQUIRED_TYPE_VARIABLE));
 
-		return sb.toString();
+		return query;
 	}
 
 	/**

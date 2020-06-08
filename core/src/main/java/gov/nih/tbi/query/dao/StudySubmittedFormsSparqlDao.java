@@ -11,7 +11,7 @@ import gov.nih.tbi.repository.model.StudySubmittedForm;
 
 public interface StudySubmittedFormsSparqlDao extends GenericSparqlDao<List<StudySubmittedForm>> {
 
-	public Multimap<String, StudySubmittedForm> getAllStudySubmittedForms();
+	public Multimap<Long, StudySubmittedForm> getAllStudySubmittedForms();
 	
 	public List<PublicSubmittedForm> getAllPublicSubmittedForms();
 	

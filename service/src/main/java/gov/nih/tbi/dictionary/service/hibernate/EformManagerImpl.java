@@ -32,6 +32,7 @@ import gov.nih.tbi.commons.service.RepositoryManager;
 import gov.nih.tbi.commons.service.ServiceConstants;
 import gov.nih.tbi.dictionary.dao.eform.BasicEformDao;
 import gov.nih.tbi.dictionary.dao.eform.CalculationQuestionDao;
+import gov.nih.tbi.dictionary.dao.eform.CountQuestionDao;
 import gov.nih.tbi.dictionary.dao.eform.EformDao;
 import gov.nih.tbi.dictionary.dao.eform.EmailTriggerDao;
 import gov.nih.tbi.dictionary.dao.eform.QuestionAttributeDao;
@@ -43,6 +44,8 @@ import gov.nih.tbi.dictionary.model.CalculationRule;
 import gov.nih.tbi.dictionary.model.hibernate.eform.BasicEform;
 import gov.nih.tbi.dictionary.model.hibernate.eform.CalculationQuestion;
 import gov.nih.tbi.dictionary.model.hibernate.eform.CalculationQuestionPk;
+import gov.nih.tbi.dictionary.model.hibernate.eform.CountQuestion;
+import gov.nih.tbi.dictionary.model.hibernate.eform.CountQuestionPk;
 import gov.nih.tbi.dictionary.model.hibernate.eform.Eform;
 import gov.nih.tbi.dictionary.model.hibernate.eform.EmailTrigger;
 import gov.nih.tbi.dictionary.model.hibernate.eform.Question;
@@ -86,6 +89,9 @@ public class EformManagerImpl extends BaseManagerImpl implements EformManager {
 
 	@Autowired
 	CalculationQuestionDao calculationQuestionDao;
+	
+	@Autowired
+	CountQuestionDao countQuestionDao;
 
 	@Autowired
 	RepositoryManager repositoryManager;
@@ -203,7 +209,7 @@ public class EformManagerImpl extends BaseManagerImpl implements EformManager {
 			returnErrors.add(twentySevern);
 		}
 		if (!isEformShortNameUnique(shortName)) {
-			returnErrors.add("must be unique.");
+			returnErrors.add("Short Name must be unique.");
 		}
 		String pattern = doesEformShortNameMatchPattern(shortName);
 		if (pattern != null) {
@@ -270,6 +276,7 @@ public class EformManagerImpl extends BaseManagerImpl implements EformManager {
 	public void removeCalculationAndSkipQuestions(Eform eform) {
 		ArrayList<CalculationQuestion> calculationQuestionToRemove = new ArrayList<CalculationQuestion>();
 		ArrayList<SkipRuleQuestion> skipRuleQuestionToRemove = new ArrayList<SkipRuleQuestion>();
+		ArrayList<CountQuestion> countQuestionToRemove = new ArrayList<CountQuestion>();
 		Set<Question> deleteQuestionDependencies = new HashSet<Question>();
 
 		for (Section section : eform.getSectionList()) {
@@ -282,12 +289,21 @@ public class EformManagerImpl extends BaseManagerImpl implements EformManager {
 				if (sectionQuestion.getSkipRuleQuestion() != null && !sectionQuestion.getSkipRuleQuestion().isEmpty()) {
 					skipRuleQuestionToRemove.addAll(sectionQuestion.getSkipRuleQuestion());
 				}
+				if (sectionQuestion.getCountQuestion() != null
+						&& !sectionQuestion.getCountQuestion().isEmpty()) {
+					countQuestionToRemove.addAll(sectionQuestion.getCountQuestion());
+				}
 			}
 		}
 
 		if (!calculationQuestionToRemove.isEmpty()) {
 			removeAllCalculationQuestions(calculationQuestionToRemove);
 		}
+		
+		if (!countQuestionToRemove.isEmpty()) {
+			removeAllCountQuestions(countQuestionToRemove);
+		}
+		
 		if (!skipRuleQuestionToRemove.isEmpty()) {
 			removeAllSkipRuleQuestions(skipRuleQuestionToRemove);
 		}
@@ -298,10 +314,15 @@ public class EformManagerImpl extends BaseManagerImpl implements EformManager {
 	public void removeAllCalculationQuestions(ArrayList<CalculationQuestion> calculationQuestionsToRemove) {
 		calculationQuestionDao.removeAll(calculationQuestionsToRemove);
 	}
+	
+	public void removeAllCountQuestions(ArrayList<CountQuestion> countQuestionsToRemove) {
+		countQuestionDao.removeAll(countQuestionsToRemove);
+	}
 
 	public void removeAllSkipRuleQuestions(ArrayList<SkipRuleQuestion> skipRuleQuestionsToRemove) {
 		skipRuleQuestionDao.removeAll(skipRuleQuestionsToRemove);
 	}
+	
 
 	public void removeAllQuestionDocumentsAssociatedToQuestion(Set<Question> questionSet) {
 		if (questionSet != null && !questionSet.isEmpty()) {
@@ -391,14 +412,20 @@ public class EformManagerImpl extends BaseManagerImpl implements EformManager {
 		for (SectionQuestion sectionQuestion : section.getSectionQuestion()) {
 			Question questionCopy = questionCopyMapping.get(sectionQuestion.getQuestion().getId());
 			String newCalculation = "";
+			String newCountFormula = "";
 
 			if (sectionQuestion.getCalculation() != null && !sectionQuestion.getCalculation().trim().equals("")) {
-				newCalculation = removePsuedoSectionIdsFromCalculation(sectionQuestion.getCalculation(),
+				newCalculation = removePsuedoSectionIdsFromCalculationCountFormula(sectionQuestion.getCalculation(),
+						sectionCopyMapping, questionCopyMapping);
+			}
+			
+			if (sectionQuestion.getCountFormula() != null && !sectionQuestion.getCountFormula().trim().equals("")) {
+				newCountFormula = removePsuedoSectionIdsFromCalculationCountFormula(sectionQuestion.getCountFormula(),
 						sectionCopyMapping, questionCopyMapping);
 			}
 
 			SectionQuestion sectionQuestionCopy =
-					new SectionQuestion(sectionQuestion, sectionCopy, questionCopy, newCalculation);
+					new SectionQuestion(sectionQuestion, sectionCopy, questionCopy, newCalculation,newCountFormula);
 			if (sectionQuestion.getCalculatedQuestion() != null && !sectionQuestion.getCalculatedQuestion().isEmpty()) {
 				for (CalculationQuestion calculationQuestion : sectionQuestion.getCalculatedQuestion()) {
 					CalculationQuestionPk calcQuestionPk = calculationQuestion.getCalculationQuestionCompositePk();
@@ -415,37 +442,45 @@ public class EformManagerImpl extends BaseManagerImpl implements EformManager {
 							questionCopyMapping.get(skipQuestionPk.getSkipRuleQuestion().getId())));
 				}
 			}
+			if (sectionQuestion.getCountQuestion() != null && !sectionQuestion.getCountQuestion().isEmpty()) {
+				for (CountQuestion countQuestion : sectionQuestion.getCountQuestion()) {
+					CountQuestionPk countQuestionPk = countQuestion.getCountQuestionCompositePk();
+					sectionQuestionCopy.addCountQuestion(new CountQuestion(sectionCopy, questionCopy,
+							sectionCopyMapping.get(countQuestionPk.getCountSection().getId()),
+							questionCopyMapping.get(countQuestionPk.getCountQuestion().getId())));
+				}
+			}
 			sectionCopy.addToSectionQuestion(sectionQuestionCopy);
 		}
 		return sectionCopy;
 	}
 
-	private static String removePsuedoSectionIdsFromCalculation(String calculationRule,
+	private static String removePsuedoSectionIdsFromCalculationCountFormula(String rule,
 			HashMap<Long, Section> sectionMap, HashMap<Long, Question> questionMap) {
-		if (calculationRule != null & !calculationRule.isEmpty()) {
-			int sectionIndex = calculationRule.indexOf("S_");
+		if (rule != null & !rule.isEmpty()) {
+			int sectionIndex = rule.indexOf("S_");
 			while (sectionIndex != -1) {
 				Integer sectionStart = sectionIndex + 2;
-				Integer sectionEnd = calculationRule.indexOf("_Q", sectionStart);
-				String sectionIdToReplace = calculationRule.substring(sectionStart, sectionEnd);
+				Integer sectionEnd = rule.indexOf("_Q", sectionStart);
+				String sectionIdToReplace = rule.substring(sectionStart, sectionEnd);
 				Long newSectionId = sectionMap.get(Long.parseLong(sectionIdToReplace)).getId();
-				calculationRule = calculationRule.substring(0, sectionStart) + String.valueOf(newSectionId)
-						+ calculationRule.substring(sectionEnd, calculationRule.length());
-				sectionIndex = calculationRule.indexOf("S_", sectionIndex + 1);
+				rule = rule.substring(0, sectionStart) + String.valueOf(newSectionId)
+						+ rule.substring(sectionEnd, rule.length());
+				sectionIndex = rule.indexOf("S_", sectionIndex + 1);
 			}
 
-			int indexQuestion = calculationRule.indexOf("Q_");
+			int indexQuestion = rule.indexOf("Q_");
 			while (indexQuestion != -1) {
 				Integer questionStart = indexQuestion + 2;
-				Integer questionEnd = calculationRule.indexOf("]", questionStart);
-				String questionIdToReplace = calculationRule.substring(questionStart, questionEnd);
+				Integer questionEnd = rule.indexOf("]", questionStart);
+				String questionIdToReplace = rule.substring(questionStart, questionEnd);
 				String newQuestionId = String.valueOf(questionMap.get(Long.parseLong(questionIdToReplace)).getId());
-				calculationRule = calculationRule.substring(0, questionStart) + newQuestionId
-						+ calculationRule.substring(questionEnd, calculationRule.length());
-				indexQuestion = calculationRule.indexOf("Q_", indexQuestion + 1);
+				rule = rule.substring(0, questionStart) + newQuestionId
+						+ rule.substring(questionEnd, rule.length());
+				indexQuestion = rule.indexOf("Q_", indexQuestion + 1);
 			}
 		}
-		return calculationRule;
+		return rule;
 	}
 
 	public Map<Long, Question> copyEformQuestionsWithoutEmailTrigger(Eform eform) throws JSchException {
@@ -754,5 +789,10 @@ public class EformManagerImpl extends BaseManagerImpl implements EformManager {
 		
 		return finalCalculationRule;
 	}
+
+	@Override
+	public List<BasicEform> getBasicEforms(Collection<String> shortNames) {
+		return basicEformDao.getBasicEForms(shortNames);
+	} 
 
 }

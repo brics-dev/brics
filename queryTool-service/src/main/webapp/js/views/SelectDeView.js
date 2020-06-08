@@ -37,6 +37,7 @@ QT.SelectDeView = BaseView.extend({
 				
 		EventBus.on("open:selectDeDialog", this.open, this);
 		EventBus.on("close:selectDeDialog", this.close, this);
+		EventBus.on("reset:selectDeDialog", this.resetSearch, this);
 		
 		this.listenTo(this.model, "change:diseaseFiltersOptions", this.populateDiseases);
 		this.listenTo(this.model, "change:populationFiltersOptions", this.populatePopulations);
@@ -87,7 +88,6 @@ QT.SelectDeView = BaseView.extend({
 			var element = dataElements.get(selectedElements[i]);
 			selectedModels.push(element);
 		}
-		
 		EventBus.trigger("dataElements:add", selectedModels);
 		
 		this.closeDialog();
@@ -176,6 +176,18 @@ QT.SelectDeView = BaseView.extend({
 		if (e.which == 13) {
 			this.search();
 		}
+	},
+	
+	resetSearch : function(){
+		var model = QueryTool.page.get("selectDeDialogView").model;
+		var listOfSelected = model.get("selectedDataElements");
+		$("#selectDeTableContainer").find('input[type="checkbox"]').each(function() {
+			if ($.inArray($(this).val(), listOfSelected) !== -1) {
+				$(this).attr("checked",false);
+			}
+		});	
+		model.set("selectedDataElements",[]);
+		this.model.attributes.textSearch = "";
 	},
 	
 	search : function() {
@@ -267,7 +279,7 @@ QT.SelectDeView = BaseView.extend({
 				// set onclick for checkboxes to add to deURL
 				// array
 				$('#selectDeTableContainer input[type="checkbox"]').click(function() {
-					if ($(this).attr("checked")) {
+					if ($(this).prop("checked") == true) {
 						EventBus.trigger("add:filterDataElement", $(this).val());
 					} else {
 						EventBus.trigger("remove:filterDataElement", $(this).val());

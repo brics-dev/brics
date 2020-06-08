@@ -7,6 +7,7 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
@@ -22,6 +23,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.mail.MessagingException;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -48,6 +52,8 @@ import gov.nih.nichd.ctdb.common.ObjectNotFoundException;
 import gov.nih.nichd.ctdb.common.ServerFileSystemException;
 import gov.nih.nichd.ctdb.common.StrutsConstants;
 import gov.nih.nichd.ctdb.common.util.Utils;
+import gov.nih.nichd.ctdb.emailtrigger.domain.EmailTrigger;
+import gov.nih.nichd.ctdb.emailtrigger.domain.EmailTriggerValue;
 import gov.nih.nichd.ctdb.emailtrigger.thread.EmailTriggerThread;
 import gov.nih.nichd.ctdb.form.domain.CalculatedFormQuestionAttributes;
 import gov.nih.nichd.ctdb.form.domain.Form;
@@ -69,6 +75,7 @@ import gov.nih.nichd.ctdb.response.domain.AdministeredForm;
 import gov.nih.nichd.ctdb.response.domain.PatientCalendarCellResponse;
 import gov.nih.nichd.ctdb.response.domain.Response;
 import gov.nih.nichd.ctdb.response.form.DataEntrySetupForm;
+import gov.nih.nichd.ctdb.response.manager.ResponseManager;
 import gov.nih.nichd.ctdb.response.util.DataCollectionUtils;
 import gov.nih.nichd.ctdb.security.domain.User;
 import gov.nih.nichd.ctdb.security.manager.SecurityManager;
@@ -104,6 +111,8 @@ public class InputHandler {
     	List<PatientVisitPrepopValue> pvPrepopValueList = new ArrayList<PatientVisitPrepopValue>();
 		PatientManager patientMan = new PatientManager();
 		ProtocolManager protocolMan = new ProtocolManager();
+		
+		boolean isVisitDate_DateTime = false;
 		try {
 			PatientVisit pv = null;
 			int intervalId = aform.getInterval().getId();
@@ -154,14 +163,14 @@ public class InputHandler {
         Map<String, String> answersCalculated = new HashMap<String, String>();
 
         if (validate) {
-            calculate(allQuestionsInForm, request, errors, answersCalculated);
+            calculate(aform,allQuestionsInForm, request, errors, answersCalculated);
             if ( aform.isMarkAsCompleted() ) {
             	validateRequired(allQuestionsInForm, request, answersCalculated, errors, false,aform,dataEntryForm);
             	validateSkipRequired(allQuestionsInForm, request, answersCalculated, errors,aform,dataEntryForm);
             }
           
         } else {
-            calculate(allQuestionsInForm, request, null, answersCalculated);
+            calculate(aform,allQuestionsInForm, request, null, answersCalculated);
         }
 
         //get a map of current responses
@@ -200,28 +209,13 @@ public class InputHandler {
         for ( Question q : allQuestionsInForm ) {
              List<String> answers = new ArrayList<String>();
              List<String> submitAnswers = new ArrayList<String>();
-            // List<String> deComments = new ArrayList<String>();
              String otherValue[] = null;
 
-	         if ( !q.getFormQuestionAttributes().isCalculatedQuestion() ) { // it is NOT calculate question
+	         if ( !q.getFormQuestionAttributes().isCalculatedQuestion() && !q.getFormQuestionAttributes().isCountQuestion()) { // it is NOT calculate question or count question
 	        	if ( q.getType().getValue()!=QuestionType.File.getValue() ) { // it is NOT a File type question
-	        			String S_Q = "S_" + q.getSectionId() + "_Q_" + q.getId();
-//						try {
-//							JSONArray jsonarray = new JSONArray(dataEntryForm.getDeComments());
-//							for (int i = 0; i < jsonarray.length(); i++) {
-//		        			    JSONObject jsonobject = jsonarray.getJSONObject(i);
-//		        			    String id = jsonobject.getString("id").trim();
-//		        			    if(S_Q.equalsIgnoreCase(id)) {
-//		        			    			String value = jsonobject.getString("val").trim();
-//		        			    			deComments.add(value);
-//		        			    }
-//		        			}
-//						} catch (JSONException e) {
-//							// TODO Auto-generated catch block
-//							e.printStackTrace();
-//						}
-	        		
+					String S_Q = "S_" + q.getSectionId() + "_Q_" + q.getId();
 	                String values[] = request.getParameterValues(S_Q);
+
 	                if (values != null) {
 	                    for ( int i = 0; i < values.length; i++ ) {
 	                        String a = values[i].trim();
@@ -306,7 +300,7 @@ public class InputHandler {
 		       	            
 		       	            try {
 		       	            	// save real file to computer and database
-								am.createAttachment(at);
+								am.createAttachment(at, form.getProtocol().getId());
 							}
 		       	            catch (ServerFileSystemException e) {
 		       	            	logger.warn("Could not create the attachment.", e);
@@ -422,27 +416,43 @@ public class InputHandler {
 						}	
 					}
 					r.setAnswers(answers);
-				}else {
+				} else {
 					r.setAnswers(answers);
 				}
 	            
 	            r.setSubmitAnswers(submitAnswers);
-	            //r.setDeComments(deComments);
 	            responses.add(r);
 	            
 	             //check on visitdate...whatever user answers for visist date de, we need to update aform visitdate with it
 	        	 if(responseVisitDate == null) {
 		        	  String dataElementName = q.getFormQuestionAttributes().getDataElementName();
 		        	  if(dataElementName.equals(CtdbConstants.VISIT_DATE_DATA_ELEMENT)) {
+		        		  if(q.getFormQuestionAttributes().getAnswerType() == AnswerType.DATETIME) {
+		        			  isVisitDate_DateTime = true; 
+		        		  }
 		        		  responseVisitDate = answers.get(0);
 		        	  }
 	        	  }
+	        	 
+	        	//check and make sure that guid entered as answer is same as aform guid...also check that 
+	        	 //visit type entered as answer is same as aform visit type
+	        	 String dataElementName = q.getFormQuestionAttributes().getDataElementName();
+	        	 if(dataElementName.equals(CtdbConstants.GUID_DATA_ELEMENT)) {
+	        		String aformGUID =  aform.getPatient().getGuid();
+	        		if(!answers.get(0).equalsIgnoreCase(aformGUID)) {
+	        			errors.add(CtdbConstants.GUID_ERR_TEXT +  "\"" + q.getText() + "\".  <a href=\"Javascript:goToValidationErrorFlag(); document.getElementById('S_" + q.getSectionId() + "_Q_" + q.getId() + "').focus();\">Go To</a>");
+	        		}
+	        		 
+	        	 }
+	        	 if(dataElementName.equals(CtdbConstants.VISIT_TYPE_DATA_ELEMENT) || dataElementName.equals(CtdbConstants.VISIT_TYP_PDBP_DATA_ELEMENT)) {
+	        		 String aformVisitType = aform.getInterval().getName();
+	        		 if(!answers.get(0).equalsIgnoreCase(aformVisitType)) {
+	        			 errors.add(CtdbConstants.VTYPE_ERR_TEXT +  "\"" + q.getText() + "\".  <a href=\"Javascript:goToValidationErrorFlag(); document.getElementById('S_" + q.getSectionId() + "_Q_" + q.getId() + "').focus();\">Go To</a>");
+	        		 }
+	        		 
+	        	 }
+	        	 
 	
-	            if ( !q.getFormQuestionAttributes().getEmailTrigger().getToEmailAddress().equals("") ) {
-	                // this question has an email trigger and is answered
-	                EmailTriggerThread ett = new EmailTriggerThread(q.getFormQuestionAttributes().getEmailTrigger(), r);
-	                ett.start();
-	            }
 	        }
 	        else if ( questionResponse.get("S_" + q.getSectionId() + "_Q_" + q.getId()) != null ) {
 	          // there exists a respsonse, but no answers, someone is deleting their answers
@@ -455,7 +465,6 @@ public class InputHandler {
 	        	  r.setAdministeredForm(aform);
 	        	  r.setAnswers(answers);
 	        	  r.setSubmitAnswers(submitAnswers);
-	        	 // r.setDeComments(deComments);
 	        	  responses.add(r);
 	          }
 	          else {
@@ -466,13 +475,11 @@ public class InputHandler {
 	        	  answers=removeDuplicates(answers);
 	        	  r.setAnswers(answers);
 	        	  r.setSubmitAnswers(submitAnswers);
-	        	 // r.setDeComments(deComments);
 	        	  responses.add(r);
 	          }
-	        }
-	    
-	
-	    aform.setResponses(responses);
+			}
+
+			aform.setResponses(responses);
         }
         
         boolean noAnswers = true;
@@ -481,19 +488,11 @@ public class InputHandler {
         	Question q = res.getQuestion();
         	String deName = q.getFormQuestionAttributes().getDataElementName();
         	boolean isCalculated = q.getFormQuestionAttributes().isCalculatedQuestion();
+        	boolean isCount = q.getFormQuestionAttributes().isCountQuestion();
         	
-        	/*if ( !q.getFormQuestionAttributes().isPrepopulation() ) {
-	        	List<String> a = res.getAnswers();
-	        	
-	        	if( a!= null && a.size() > 0 ) {
-	        		noAnswers = false;
-	        		break;
-	        	}
-        	}	*/
-        	
-        	
-        	//we will ignore all prepop questions and any calculated questions bc calculated questions can include the prepop questions in the calculation
-        	if(!isPrepop(deName,pvPrepopValueList) && !isCalculated) {
+			// we will ignore all prepop questions and any calculated and count questions bc calculated and count questions can include the
+			// prepop questions in the calculation
+        	if(!isPrepop(deName,pvPrepopValueList) && !isCalculated && !isCount) {
         		List<String> a = res.getAnswers();
 	        	
 	        	if( a!= null && a.size() > 0 ) {
@@ -501,25 +500,31 @@ public class InputHandler {
 	        		break;
 	        	}
         	}
-        	
-        	
         }
 
         if(errors.size() == 0 && responseVisitDate != null) {
-			aform.setVisitDate(DataCollectionUtils.convertStringToDate(responseVisitDate));
+			aform.setVisitDate(DataCollectionUtils.convertStringToDate(responseVisitDate,isVisitDate_DateTime));
 		}
 		aform.setAreThereAnswers(!noAnswers);
 		
-		// we have done all of our validation, now do BRICS FS validation webservice calls
-		
-		
-// TODO: ----------------------------------------------------------------------------------------
-		
-// TODO: ----------------------------------------------------------------------------------------		
-		
-//		if ( aform.isMarkAsCompleted() ) {
-//			validateAgainstFS(aform, request);
-//		}
+		// Email Trigger
+		for (Response res : aform.getResponses()) {
+			Question q = res.getQuestion();
+
+			EmailTrigger emailTrigger = q.getFormQuestionAttributes().getEmailTrigger();
+			if (!emailTrigger.getToEmailAddress().equals("")) {
+				Boolean isTrigged = checkEmailIsTriggerred(emailTrigger, res, aform.getResponses(), q.getType(),
+						q.getFormQuestionAttributes().getAnswerType());
+				if (isTrigged) {
+					String condStrWithVal = getConditionStrWithText(emailTrigger, res, aform.getResponses(),
+							q.getType(), q.getFormQuestionAttributes().getAnswerType(), false);
+					// this question has an email trigger and is answered
+					EmailTriggerThread ett = new EmailTriggerThread(emailTrigger, res, q.getType(),
+							q.getFormQuestionAttributes().getAnswerType(), condStrWithVal);
+					ett.start();
+				}
+			}
+		}
         
         return errors;
     }
@@ -527,15 +532,15 @@ public class InputHandler {
     
     
     public static boolean isPrepop(String dataElementName,List<PatientVisitPrepopValue> pvPrepopValueList) {
-    	if(dataElementName.equals("VisitDate")) {
+    	if(dataElementName.equals(CtdbConstants.VISIT_DATE_DATA_ELEMENT)) {
     		return true;
-    	}else if(dataElementName.equals("VisitType")) {
+    	}else if(dataElementName.equals(CtdbConstants.VISIT_TYPE_DATA_ELEMENT)) {
     		return true;
-    	}else if(dataElementName.equals("VisitTypPDBP")) {
+    	}else if(dataElementName.equals(CtdbConstants.VISIT_TYP_PDBP_DATA_ELEMENT)) {
     		return true;
-    	}else if(dataElementName.equals("GUID")) {
+    	}else if(dataElementName.equals(CtdbConstants.GUID_DATA_ELEMENT)) {
     		return true;
-    	}else if(dataElementName.equals("SiteName")) {
+    	}else if(dataElementName.equals(CtdbConstants.SITE_NAME_DATA_ELEMENT)) {
     		return true;
     	}
     	for(PatientVisitPrepopValue pvPrepopValue : pvPrepopValueList){
@@ -588,7 +593,7 @@ public class InputHandler {
      * @param answersCalculated The map from Integer question id to calculated answer String generated by this function
      * @throws CtdbException Thrown if any error occurs
      */
-    public static void calculate(List<Question> questions, HttpServletRequest request, List<String> errors, Map<String, String> answersCalculated) throws CtdbException {
+    public static void calculate(AdministeredForm aform, List<Question> questions, HttpServletRequest request, List<String> errors, Map<String, String> answersCalculated) throws CtdbException {
     	
     	/*
     	 * Here's the deal:
@@ -624,8 +629,8 @@ public class InputHandler {
     		evolutionOneAnswers.clear();
     		evolutionOneAnswers.putAll(answersCalculated);
     		for (Question question : questions) {
-    			if (question.getFormQuestionAttributes().isCalculatedQuestion()) {
-    				calculateSingleLayer(question, request, errors, answersCalculated);
+    			if (question.getFormQuestionAttributes().isCalculatedQuestion() || question.getFormQuestionAttributes().isCountQuestion()) {
+    				calculateSingleLayer(aform, question, request, errors, answersCalculated);
     			}
     		}
     		// answersCalculated has new values
@@ -633,7 +638,7 @@ public class InputHandler {
     	while (!hashMapsEquivalent(answersCalculated, evolutionOneAnswers));
     }
     
-    public static String calculateSingleLayer(Question question, HttpServletRequest request, List<String> errors, Map<String, String> answersCalculated) throws CtdbException {
+    public static String calculateSingleLayer(AdministeredForm aform, Question question, HttpServletRequest request, List<String> errors, Map<String, String> answersCalculated) throws CtdbException {
     	String answer = "";
     	String questionKey = "S_" + question.getSectionId() + "_Q_" + question.getId();
     	String deName = question.getName().substring(question.getName().indexOf("_")+1, question.getName().length());
@@ -648,50 +653,85 @@ public class InputHandler {
         	String qToCalculateKey = "S_" + q.getSectionId() + "_Q_" + q.getId();
         	boolean isSelect = false;
         	
-            if( QuestionType.SELECT.equals(q.getType()) || QuestionType.RADIO.equals(q.getType()) ) {
-            	isSelect = true;
-            	if (answersCalculated.containsKey(qToCalculateKey)) {
-            		postedValueDip = answersCalculated.get(qToCalculateKey);
-            	}
-            	else {
-            		postedValueDip = request.getParameter(qToCalculateKey);
-            	}
-            	
-            	for (Answer ans : q.getAnswers() ) {
-            		if ( ans.getDisplay().equalsIgnoreCase(postedValueDip) ) {
-            			postedValue = String.valueOf(ans.getScore());
-            			
-            			// other,please specify has a score of Intger.min. if user selects other please specify and enters something. Don't do calculation
-            			if ( ans.getScore() == Integer.MIN_VALUE ) {
-            				answersCalculated.put(questionKey, null);
-            				return null;
-            			}
-            		}
-            	}
-            }
-            else {
-            	if (answersCalculated.containsKey(qToCalculateKey)) {
-            		postedValue = answersCalculated.get(qToCalculateKey);
-            	}
-            	else {
-            		postedValue = request.getParameter(qToCalculateKey);
-            	}
-            }
+        	if(question.getFormQuestionAttributes().isCountQuestion()) {
+        		if ( q.getType().getValue()==QuestionType.File.getValue() ) {
+        			//need to handle file type questions since they are bit different
+        			 if ( (aform.getFiles() != null && aform.getFiles().get(qToCalculateKey) != null) || (aform.getAssocFileQuestionIds() != null && aform.getAssocFileQuestionIds().contains(qToCalculateKey)) ) {
+        				postedValue = "1";
+             			dependentQuestionAnswers.put(qToCalculateKey, postedValue);
+        			 }else {
+        				 postedValue = "0";
+        			 }
+        		}else {
+        			//all other questions
+        			if (answersCalculated.containsKey(qToCalculateKey)) {
+                		postedValue = answersCalculated.get(qToCalculateKey);
+                	}else {
+                		postedValue = request.getParameter(qToCalculateKey);
+                		if(postedValue != null && !postedValue.equals("")) {
+                			postedValue = "1";
+                			dependentQuestionAnswers.put(qToCalculateKey, postedValue);
+                		}else {
+                			postedValue = "0";
+                		}
+                	}
+        		}
+        		
+        		
+        		
+        		
+        	}else {
+        		if( QuestionType.SELECT.equals(q.getType()) || QuestionType.RADIO.equals(q.getType()) ) {
+                	isSelect = true;
+                	if (answersCalculated.containsKey(qToCalculateKey)) {
+                		postedValueDip = answersCalculated.get(qToCalculateKey);
+                	}
+                	else {
+                		postedValueDip = request.getParameter(qToCalculateKey);
+                	}
+                	
+                	for (Answer ans : q.getAnswers() ) {
+                		if ( ans.getDisplay().equalsIgnoreCase(postedValueDip) ) {
+                			postedValue = String.valueOf(ans.getScore());
+                			
+                			// other,please specify has a score of Intger.min. if user selects other please specify and enters something. Don't do calculation
+                			if ( ans.getScore() == Integer.MIN_VALUE ) {
+                				answersCalculated.put(questionKey, null);
+                				return null;
+                			}
+                		}
+                	}
+                }
+                else {
+                	if (answersCalculated.containsKey(qToCalculateKey)) {
+                		postedValue = answersCalculated.get(qToCalculateKey);
+                	}
+                	else {
+                		postedValue = request.getParameter(qToCalculateKey);
+                	}
+                }
+                
+                if (postedValue != null) {
+                    postedValue = postedValue.replaceAll("\\.\\.", "\\.");
+                    dependentQuestionAnswers.put(qToCalculateKey, postedValue);
+                }
+                
+              if(conditional) {
+                	if(postedValue == null || postedValue.equals("") || (isSelect && (Float.parseFloat(postedValue)==conditionalCode))) {
+                		if(!deName.equalsIgnoreCase("PROMISRawScore")) {
+                		return null;
+                		}else {
+                			userEntry = true;
+                	}
+                }
+                }
+        		logger.error("postedValue------------------------------------------"+postedValue);
+        		logger.error("postedValueDip------------------------------------------"+postedValueDip);
+        	}
+        	
+        	
+        	
             
-            if (postedValue != null) {
-                postedValue = postedValue.replaceAll("\\.\\.", "\\.");
-                dependentQuestionAnswers.put(qToCalculateKey, postedValue);
-            }
-            
-          if(conditional) {
-            	if(postedValue == null || postedValue.equals("") || (isSelect && (Float.parseFloat(postedValue)==conditionalCode))) {
-            		if(!deName.equalsIgnoreCase("PROMISRawScore")) {
-            		return null;
-            		}else {
-            			userEntry = true;
-            	}
-            }
-            }
         }
             
         try {		
@@ -703,7 +743,7 @@ public class InputHandler {
         		}else {
         			answersCalculated.put(questionKey, values[0]);
         			return values[0];
-        }
+        		}
         	}
 
             double d = calculate(question, dependentQuestionAnswers, errors);
@@ -714,7 +754,9 @@ public class InputHandler {
             //bce.printStackTrace();
         	logger.debug("Blank calculation exception caught but ignored");
         }
-    	
+    	catch (ScriptException se) {
+    		logger.debug("Script Exception exception caught but ignored"); 
+    	}
     	return answer;
     }
     
@@ -764,8 +806,8 @@ public class InputHandler {
        return answerValueString;
    }
 
-    public static double calculate(Question question, Map<String, String> questionMap, List<String> errors) throws CtdbException, BlankCalculationException {
-    	if ( question.getFormQuestionAttributes().isCalculatedQuestion() ) {
+   public static double calculate(Question question, Map<String, String> questionMap, List<String> errors) throws CtdbException, BlankCalculationException, ScriptException  {
+    	if ( question.getFormQuestionAttributes().isCalculatedQuestion() || question.getFormQuestionAttributes().isCountQuestion()) {
             boolean atLeastOneAnswered = false;
             String calc = question.getCalculatedFormQuestionAttributes().getCalculation();
             List<String> errorTemp = new ArrayList<String>();
@@ -899,7 +941,19 @@ public class InputHandler {
             org.nfunk.jep.JEP myParser = new org.nfunk.jep.JEP();
             myParser.addStandardFunctions();
             myParser.parseExpression(calc);
-            double answerValue = myParser.getValue();
+			double answerValue = myParser.getValue();
+		   if (calc.contains("if (") || calc.contains("else {") || calc.contains("else if (")  || calc.contains("==") || calc.contains("!=") || calc.contains(">")  || calc.contains(">=") || calc.contains("<")  || calc.contains("<=") || calc.contains("&&")  || calc.contains("||")  || calc.contains("{")   || calc.contains("}")) {
+				ScriptEngineManager mgr = new ScriptEngineManager();
+				ScriptEngine engine = mgr.getEngineByName("JavaScript");
+				logger.error("engine.eval(calc)------------------------------------------" + engine.eval(calc));
+				Object answerObj = engine.eval(calc);
+				if (Integer.class.isInstance(answerObj)) {
+					answerValue = (double) ((Integer) engine.eval(calc)).intValue();
+				}
+				if (Double.class.isInstance(answerObj)) {
+					answerValue = ((Double) engine.eval(calc)).doubleValue();
+				}
+		   }
 
             if (Double.isNaN(answerValue) || Double.isInfinite(answerValue)) {
                 if (errors != null) {
@@ -1309,19 +1363,30 @@ public class InputHandler {
      * @param isAllRequired The boolean value indicating if all the questions in the list are required.
      */
     private static boolean validateRequired(List<Question> questions, HttpServletRequest request, Map<String, String> answersCalculated, 
-    		List<String> errors, boolean isAllRequired, AdministeredForm aform, DataEntrySetupForm dataEntryForm) {
+    		List<String> errors, boolean isAllRequired, AdministeredForm aform, DataEntrySetupForm dataEntryForm) throws CtdbException{
     	boolean valid = true;
     	Iterator<Question> iter = questions.iterator();
     	Form form = aform.getForm();
     	HashMap<Integer,Section> sectionMap = form.getSectionMap();
+    	ResponseManager rm = new ResponseManager();
     	
     	while (iter.hasNext()) {
     		boolean found = false;
     		Question question = iter.next();
     		int sectionid = question.getSectionId();
 			Section section = sectionMap.get(Integer.valueOf(sectionid));
+			int questionid = question.getId();
 			
-    		if (!question.getFormQuestionAttributes().isCalculatedQuestion()) {
+			/*skip to check the disabled locked questions*/
+			List auditpair = rm.getLastAuditComment(aform.getId(), sectionid, questionid); //loggedInUser
+			if(auditpair!=null && auditpair.size()!=0) {	
+				String auditStatus = (String) auditpair.get(1);
+				if (auditStatus != null && CtdbConstants.AUDITCOMMENT_STATUS_LOCKED.equalsIgnoreCase(auditStatus) ) {
+					continue;
+				}
+			}
+			
+    		if (!question.getFormQuestionAttributes().isCalculatedQuestion() && !question.getFormQuestionAttributes().isCountQuestion()) {
     			if (isAllRequired || question.getFormQuestionAttributes().isRequired()) {
     				// Modified for different require condition.
     				String values[] = null;
@@ -1493,7 +1558,8 @@ public class InputHandler {
      * @param errors            The error message list
      */
     private static boolean validateSkipRequired(List<Question> questions, HttpServletRequest request, 
-    		Map<String, String> answersCalculated, List<String> errors, AdministeredForm af, DataEntrySetupForm dataEntryForm) {
+    		Map<String, String> answersCalculated, List<String> errors, AdministeredForm af, DataEntrySetupForm dataEntryForm) 
+    				throws CtdbException {
         // Get a set of question IDs in the form
         Set<String> questionIds = new HashSet<String>();
         Iterator<Question> iter1 = questions.iterator();
@@ -1582,7 +1648,66 @@ public class InputHandler {
                 		}
                 	}
                 	
+				} else if (qAttrs.getSkipRuleOperatorType().equals(SkipRuleOperatorType.LESS_THAN) && hasValue) {
+
+						for (String value : values) {
+						if (!Utils.isBlank(value) && !Utils.isBlank(skipRuleEquals)
+								&& Utils.isNumeric(value)) {
+							float floatValue = Float.parseFloat(value.trim());
+							float floatSvalue = Float.parseFloat(skipRuleEquals.trim());
+							if (floatValue < floatSvalue) {
+									conditionSatisfied = true;
+									break;
+								}
                 }
+						}
+
+
+				} else if (qAttrs.getSkipRuleOperatorType().equals(SkipRuleOperatorType.LESS_THAN_EQUAL_TO)
+						&& hasValue) {
+
+						for (String value : values) {
+						if (!Utils.isBlank(value) && !Utils.isBlank(skipRuleEquals)
+								&& Utils.isNumeric(value)) {
+							float floatValue = Float.parseFloat(value.trim());
+							float floatSvalue = Float.parseFloat(skipRuleEquals.trim());
+							if (floatValue <= floatSvalue) {
+									conditionSatisfied = true;
+									break;
+								}
+							}
+						}
+
+				} else if (qAttrs.getSkipRuleOperatorType().equals(SkipRuleOperatorType.GREATER_THAN) && hasValue) {
+
+						for (String value : values) {
+						if (!Utils.isBlank(value) && !Utils.isBlank(skipRuleEquals)
+								&& Utils.isNumeric(value)) {
+							float floatValue = Float.parseFloat(value.trim());
+							float floatSvalue = Float.parseFloat(skipRuleEquals.trim());
+							if (floatValue > floatSvalue) {
+									conditionSatisfied = true;
+									break;
+								}
+							}
+						}
+
+				} else if (qAttrs.getSkipRuleOperatorType().equals(SkipRuleOperatorType.GREATER_THAN_EQUAL_TO)
+						&& hasValue) {
+
+						for (String value : values) {
+						if (!Utils.isBlank(value) && !Utils.isBlank(skipRuleEquals)
+								&& Utils.isNumeric(value)) {
+							float floatValue = Float.parseFloat(value.trim());
+							float floatSvalue = Float.parseFloat(skipRuleEquals.trim());
+							if (floatValue >= floatSvalue) {
+								conditionSatisfied = true;
+								break;
+								}
+							}
+						}
+				}
+
                 
                 // validate required
                 if (conditionSatisfied) {
@@ -1641,7 +1766,7 @@ public class InputHandler {
                     errors.add(e);
                 } else {
                 	// it is numeric...so now check for decimal precision for non-calculated questions
-                	 if ((q.getType() == QuestionType.TEXTBOX) && (!qAttrs.isCalculatedQuestion())) {
+                	 if ((q.getType() == QuestionType.TEXTBOX) && (!qAttrs.isCalculatedQuestion())  && (!qAttrs.isCountQuestion())) {
                      	int decimalPrecision = qAttrs.getDecimalPrecision();
                      	if (decimalPrecision != -1) {
                      		if (decimalPrecision == 0) {
@@ -1999,13 +2124,16 @@ public class InputHandler {
     	List<PatientVisitPrepopValue> pvPrepopValueList = new ArrayList<PatientVisitPrepopValue>();
 		PatientManager patientMan = new PatientManager();
 		ProtocolManager protocolMan = new ProtocolManager();
+		ResponseManager rm = new ResponseManager();
+		boolean isVisitDate_DateTime = false;
+		
 		try {
 			PatientVisit pv = null;
 			int intervalId = aform.getInterval().getId();
 			pv = patientMan.getPatientVisit(aform.getPatient().getId(), aform.getVisitDate(), intervalId);
 			int visitdateId = pv.getId();
 			pvPrepopValueList = protocolMan.getPvPrepopValuesForInterval(intervalId, visitdateId);
-		}catch(ObjectNotFoundException e) {
+		} catch(ObjectNotFoundException e) {
 			logger.info("No Scheduled visit for Subject.");
 		}
     	
@@ -2034,8 +2162,17 @@ public class InputHandler {
             }
         }
         
+		Map<String, Integer> questionResponse = new HashMap<String, Integer>();
+		for (Response response : aform.getResponses()) {
+			if (!(response instanceof PatientCalendarCellResponse)) {
+				questionResponse.put(
+						"S_" + response.getQuestion().getSectionId() + "_Q_" + response.getQuestion().getId(),
+						new Integer(response.getId()));
+			}
+		}
+
         Map<String, String> answersCalculated = new HashMap<String, String>();
-        calculate(allQuestionsInForm, request, errors, answersCalculated);
+        calculate(aform, allQuestionsInForm, request, errors, answersCalculated);
         validateRequired(allQuestionsInForm, request, answersCalculated, errors, false, aform,dataEntryForm);
         validateSkipRequired(allQuestionsInForm, request, answersCalculated, errors, aform,dataEntryForm);
         		
@@ -2047,6 +2184,17 @@ public class InputHandler {
             q = resp.getQuestion();
             String reasonId = "reason_" + qid;
             reason = request.getParameter(reasonId);
+            
+			/*skip to check the disabled locked questions*/
+            int sidInt = q.getSectionId(); 
+            int qidInt = q.getId();
+			List auditpair = rm.getLastAuditComment(aform.getId(), sidInt, qidInt); //loggedInUser
+			if(auditpair!=null && auditpair.size()!=0) {	
+				String auditStatus = (String) auditpair.get(1);
+				if (auditStatus != null && CtdbConstants.AUDITCOMMENT_STATUS_LOCKED.equalsIgnoreCase(auditStatus) ) {
+					continue;
+				}
+			}
             
             if (q.getType().equals(QuestionType.File)) {
        			 String key = "S_" + q.getSectionId() + "_Q_"+String.valueOf(q.getId());
@@ -2065,7 +2213,7 @@ public class InputHandler {
        					 
        					 try {
        						 // save real file to computer and database
-       						 am.createAttachment(at);
+							am.createAttachment(at, form.getProtocol().getId());
        					 } catch (ServerFileSystemException e) {
        						 e.printStackTrace();
        					 } 
@@ -2076,7 +2224,7 @@ public class InputHandler {
        					 submitAnswers.add(fileTypeAnswer);
        				 }
        			 }
-            } else if(q.getFormQuestionAttributes().isCalculatedQuestion()) {
+            } else if(q.getFormQuestionAttributes().isCalculatedQuestion() || q.getFormQuestionAttributes().isCountQuestion()) {
             	// calculated question, file type question can't be calculated question
                 String a = (String) answersCalculated.get("S_" + q.getSectionId() + "_Q_" + q.getId());
                 
@@ -2262,29 +2410,49 @@ public class InputHandler {
             	reason = "Automatically calculated value.";
             }
             
+            if (q.getFormQuestionAttributes().isCountQuestion()) {
+            	reason = "Automatically counted value.";
+            }
+            
              //check on visitdate...whatever user answers for visist date de, we need to update aform visitdate with it
           	 if(responseVisitDate == null) {
    	        	  String dataElementName = q.getFormQuestionAttributes().getDataElementName();
    	        	  if(dataElementName.equals(CtdbConstants.VISIT_DATE_DATA_ELEMENT)) {
+   	        		if(q.getFormQuestionAttributes().getAnswerType() == AnswerType.DATETIME) {
+	        			  isVisitDate_DateTime = true; 
+	        		  }
    	        		  responseVisitDate = edits.get(0);
    	        	  }
           	  }
+          	 
+          	 
+          	//check and make sure that guid entered as answer is same as aform guid...also check that 
+        	 //visit type entered as answer is same as aform visit type
+        	 String dataElementName = q.getFormQuestionAttributes().getDataElementName();
+        	 if(dataElementName.equals(CtdbConstants.GUID_DATA_ELEMENT)) {
+        		String aformGUID =  aform.getPatient().getGuid();
+        		if(!edits.get(0).equalsIgnoreCase(aformGUID)) {
+        			errors.add(CtdbConstants.GUID_ERR_TEXT +  "\"" + q.getText() + "\".  <a href=\"Javascript:goToValidationErrorFlag(); document.getElementById('S_" + q.getSectionId() + "_Q_" + q.getId() + "').focus();\">Go To</a>");
+        		}
+        		 
+        	 }
+        	 if(dataElementName.equals(CtdbConstants.VISIT_TYPE_DATA_ELEMENT) || dataElementName.equals(CtdbConstants.VISIT_TYP_PDBP_DATA_ELEMENT)) {
+        		 String aformVisitType = aform.getInterval().getName();
+        		 if(!edits.get(0).equalsIgnoreCase(aformVisitType)) {
+        			 errors.add(CtdbConstants.VTYPE_ERR_TEXT +  "\"" + q.getText() + "\".  <a href=\"Javascript:goToValidationErrorFlag(); document.getElementById('S_" + q.getSectionId() + "_Q_" + q.getId() + "').focus();\">Go To</a>");
+        		 }
+        		 
+        	 }
             
             resp.setEditReason(reason);
             resp.setSubmitAnswers(submitAnswers);
             resp.setAdministeredForm(aform);
             
-            if (!resp.getQuestion().getFormQuestionAttributes().getEmailTrigger().getToEmailAddress().equals("")) {
-                // this question has an email trigger and is answered
-                EmailTriggerThread ett = new EmailTriggerThread(resp.getQuestion().getFormQuestionAttributes().getEmailTrigger(), resp);
-                ett.start();
-            }
-
             if (reason != null && reason.length() > 255)
                 errors.add("Reason can't be longer that 255 characters: question \"" + q.getText() + "\".  <a href=\"Javascript:;\" onclick=\"goToValidationErrorFlag();document.getElementById ('S_" + q.getSectionId() + "_Q_" + q.getId() + "').focus();$('#S_" + q.getSectionId() + "_Q_" + q.getId() + "').trigger('change');\">Go To</a>");
 
 			if (!edits.isEmpty() && (reason == null || reason.length() == 0)) {
-				if (!q.getFormQuestionAttributes().isCalculatedQuestion()) {
+				if (!q.getFormQuestionAttributes().isCalculatedQuestion() && !q.getFormQuestionAttributes().isCountQuestion()) {
 					errors.add("Reason is required for editing the answer: question \"" + q.getText()
 							+ "\".  <a href=\"Javascript:;\" onclick=\"goToValidationErrorFlag(); document.getElementById('S_"
 							+ q.getSectionId() + "_Q_" + q.getId() + "').focus(); $('#S_" + q.getSectionId() + "_Q_"
@@ -2305,6 +2473,7 @@ public class InputHandler {
         	Question qt = res.getQuestion();
         	String deName = qt.getFormQuestionAttributes().getDataElementName();
         	boolean isCalculated = qt.getFormQuestionAttributes().isCalculatedQuestion();
+        	boolean isCount = qt.getFormQuestionAttributes().isCountQuestion();
         	/*if ( !qt.getFormQuestionAttributes().isPrepopulation() ) {
 	        	List<String> a = res.getAnswers();
 	        	
@@ -2314,8 +2483,7 @@ public class InputHandler {
 	        	}
         	}	*/
         	
-        	
-        	if(!isPrepop(deName,pvPrepopValueList) && !isCalculated) {
+        	if(!isPrepop(deName,pvPrepopValueList) && !isCalculated && !isCount) {
         		List<String> a = res.getAnswers();
 	        	
 	        	if( a!= null && a.size() > 0 ) {
@@ -2327,11 +2495,30 @@ public class InputHandler {
 
 		aform.setAreThereAnswers(!noAnswers);
 		
+		// Email Trigger
+		for (Response res : aform.getResponses()) {
+			Question qt = res.getQuestion();
+
+			// Email Trigger
+			EmailTrigger emailTrigger = res.getQuestion().getFormQuestionAttributes().getEmailTrigger();
+			if (!emailTrigger.getToEmailAddress().equals("") && res.getAdministeredForm() != null) {
+				Boolean isTrigged = checkEmailIsTriggerred(emailTrigger, res, aform.getResponses(), qt.getType(),
+						qt.getFormQuestionAttributes().getAnswerType());
+				if (isTrigged) {
+					String condStrWithVal = getConditionStrWithText(emailTrigger, res, aform.getResponses(),
+							qt.getType(), qt.getFormQuestionAttributes().getAnswerType(), true);
+					// this question has an email trigger and is answered
+					EmailTriggerThread ett = new EmailTriggerThread(emailTrigger, res, qt.getType(),
+							qt.getFormQuestionAttributes().getAnswerType(), condStrWithVal);
+					ett.start();
+				}
+			}
+		}
 		// we have done all of our validation, now do BRICS FS validation webservice calls
 		//validateAgainstFS(aform, request);
 		
 		if(errors.size() == 0 && responseVisitDate != null) {
-			aform.setVisitDate(DataCollectionUtils.convertStringToDate(responseVisitDate));
+			aform.setVisitDate(DataCollectionUtils.convertStringToDate(responseVisitDate,isVisitDate_DateTime));
 		}
         return errors;
     }
@@ -2356,6 +2543,73 @@ public class InputHandler {
             
             r.setEditAnswers(answers);
         }
+    }
+
+    /* Audit Comment: getEditedAnswers */
+    /** get from UI, set to response.java to db
+     * auditComment = request.getParameter(commentId); from UI
+     * Response resp.setEditAuditComment(auditComment);
+     */
+    public static List<String> getAuditComments(AdministeredForm aform, HttpServletRequest request,DataEntrySetupForm dataEntryForm) throws CtdbException {
+
+        List<String> errors = new ArrayList<String>();
+        User u = (User) request.getSession().getAttribute(CtdbConstants.USER_SESSION_KEY);
+
+        Form form = aform.getForm();
+        Response resp = new Response();
+        Question q = new Question();
+        String auditComment = "";
+        String auditStatus = "";
+        
+        form = aform.getForm();
+        List<Question> allQuestionsInForm = new ArrayList<Question>();
+
+        // get all allQuestionsInForm in the form
+        for ( List<Section> row : form.getRowList() ) {
+            for ( Section section : row ) {
+                if (section != null) {
+                    allQuestionsInForm.addAll(section.getQuestionList());
+                }
+            }
+        }                		
+        for (Iterator<Response> it = aform.getResponses().iterator(); it.hasNext();) {
+            resp = it.next();
+            String qid = Integer.toString(resp.getQuestion().getId());
+            String sid = Integer.toString(resp.getQuestion().getSectionId());
+       		String otherValue[] = request.getParameterValues("S_" + Integer.toString(resp.getQuestion().getSectionId())  + "_Q_" + Integer.toString(resp.getQuestion().getId())+"_otherBox");
+            q = resp.getQuestion();
+            String commentId = "auditComment_S_" +sid +"_Q_"+ qid; //TODO: "auditComment_"+qid; //666
+            auditComment = request.getParameter(commentId);
+
+//            // Has answer changed ?
+//            if (edits.containsAll(resp.getAnswers()) && resp.getAnswers().containsAll(edits)) {
+//                // answers are the same, do nothing?
+//                continue;
+//            }
+            
+//            if (q.getFormQuestionAttributes().isCalculatedQuestion()) {
+//            	auditComment = "Automatically calculated value.";
+//            }
+
+            resp.setEditAuditComment(auditComment);
+            /* for auditStatus*/
+            String auditstatusId = "auditStatus_S_" +sid +"_Q_"+ qid; //TODO: "auditComment_"+qid; //666
+            auditStatus = request.getParameter(auditstatusId);
+            resp.setAuditStatus(auditStatus);
+
+            resp.setAdministeredForm(aform);
+     
+            if (auditComment != null && auditComment.length() > 255)
+                errors.add("Audit comment can't be longer that 255 characters: question \"" + q.getText() + "\".  <a href=\"Javascript:;\" onclick=\"goToValidationErrorFlag();document.getElementById ('S_" + q.getSectionId() + "_Q_" + q.getId() + "').focus();$('#S_" + q.getSectionId() + "_Q_" + q.getId() + "').trigger('change');\">Go To</a>");
+        }
+
+//        if (errors.size() > 0 && deletingAnswers) {
+//            removeDeleted(aform.getResponses());
+//        }
+        
+        logger.info(DataCollectionUtils.getUserIdSessionIdString(request)+"#InputHandler->getAuditComments->errors size#:"+errors.size());
+        		
+        return errors;
     }
 
     /**
@@ -2670,4 +2924,368 @@ public class InputHandler {
 		
 		return formattedXML;
 	}
+
+	public static Boolean checkEmailIsTriggerred(EmailTrigger et, Response currentRes, List<Response> responses,
+			QuestionType questionType, AnswerType answerType) throws CtdbException {
+		Boolean isTriggerred = false;
+		List<EmailTriggerValue> etvList = new ArrayList<EmailTriggerValue>(et.getTriggerValues());
+		if (questionType == QuestionType.RADIO || questionType == QuestionType.CHECKBOX
+				|| questionType == QuestionType.SELECT || questionType == QuestionType.MULTI_SELECT) {
+			List<String> resAnswers = currentRes.getAnswers();
+			for (EmailTriggerValue etv : etvList) {
+				for (String ans : resAnswers) {
+					if (ans.equalsIgnoreCase(etv.getAnswer())) {
+						isTriggerred = true;
+					}
+				}
+			}
+
+		} else if (questionType == QuestionType.TEXTBOX && answerType == AnswerType.NUMERIC && etvList.size() > 0) {
+			String conditionStr = etvList.get(0).getTriggerCondition();
+
+			isTriggerred = checkCondtions(conditionStr, responses);
+		}
+		return isTriggerred;
+	}
+
+
+	public static Boolean checkCondtions(String conditionStr, List<Response> responses)
+			throws CtdbException {
+		List<String> emptyErrs = new ArrayList<String>();
+		conditionStr = conditionStr.replaceAll("\\s+", ""); // remove all spaces from condition string
+		conditionStr = replaceAllQuestionsWithValues(conditionStr, responses, emptyErrs);
+		Boolean condResult = null;
+		// find if cond str contains &&( or ||( or )&& or )||, which means condition string has groups of logical
+		// operators
+		Pattern pattern1 = Pattern.compile("&&\\(|\\|\\|\\(|\\)&&|\\)\\|\\|");
+		Matcher matcher1 = pattern1.matcher(conditionStr);
+		// if there is no any group of logical operations
+		if (!matcher1.find()) {
+			condResult = checkSimpleCondition(conditionStr);
+		} else {
+			condResult = checkNestedCondition(conditionStr, responses);
+		}
+		if (emptyErrs.size() > 0) {
+			return false;
+		} else {
+			return condResult;
+		}
+	}
+
+	public static Boolean checkNestedCondition(String condition, List<Response> responses)
+			throws CtdbException {
+		Boolean condResult = null;
+
+		Pattern patternOrOp = Pattern.compile("\\|\\|\\(|\\)\\|\\|");
+		Matcher orOpMatcher = patternOrOp.matcher(condition);
+		if(orOpMatcher.find()) {
+			condResult = checkOrCondition(condition, responses, orOpMatcher);
+		} else {
+			Pattern patternAndOp = Pattern.compile("&&\\(|\\)&&");
+			Matcher andOpMatcher = patternAndOp.matcher(condition);
+			condResult = checkAndCondition(condition, responses, andOpMatcher);
+		}
+
+		return condResult;
+	}
+
+	public static Boolean checkOrCondition(String condition, List<Response> responses, Matcher orOpMatcher)
+			throws CtdbException {
+		Boolean condResult = null;
+		List<String> orCondList = new ArrayList<String>();
+		if (orOpMatcher.find()) {
+			int firstOrIdx = 0;
+			if (condition.indexOf(")||") > 0) {
+				firstOrIdx = condition.indexOf(")||");
+			} else if (condition.indexOf("||(") > 0) {
+				firstOrIdx = condition.indexOf("||(");
+			}
+			orCondList.add(condition.substring(0, firstOrIdx));
+			condition = condition.substring(firstOrIdx + 2);
+			orCondList.add(condition);
+		}
+
+		for (String orCond : orCondList) {
+			if (condResult == null) {
+				condResult = checkCondtions(orCond, responses);
+			} else {
+				condResult = condResult || checkCondtions(orCond, responses);
+			}
+		}
+		return condResult;
+	}
+
+	public static Boolean checkAndCondition(String condition, List<Response> responses, Matcher andOpMatcher)
+			throws CtdbException {
+		Boolean condResult = null;
+		List<String> andCondList = new ArrayList<String>();
+		if (andOpMatcher.find()) {
+			int firstAndIdx = 0;
+			if (condition.indexOf(")&&") > 0) {
+				firstAndIdx = condition.indexOf(")&&");
+			} else if (condition.indexOf("&&(") > 0) {
+				firstAndIdx = condition.indexOf("&&(");
+			}
+			andCondList.add(condition.substring(0, firstAndIdx));
+			condition = condition.substring(firstAndIdx + 2);
+			andCondList.add(condition);
+		}
+
+		for (String andCond : andCondList) {
+			if (condResult == null) {
+				condResult = checkCondtions(andCond, responses);
+			} else {
+				condResult = condResult && checkCondtions(andCond, responses);
+			}
+		}
+		return condResult;
+	}
+
+	public static Boolean checkSimpleCondition(String condition)
+			throws CtdbException {
+		Boolean condResult = null;
+		if (condition.startsWith("(") && condition.endsWith(")")) { // remove leading and trailing parenthesis
+			condition = condition.replaceAll("^\\(|\\)$", "");
+		}
+		String[] orCondArr = condition.split("\\|\\|"); // split cond string by or operator first
+
+		for (String orCond : orCondArr) {
+
+			Boolean andCondsResult = null;
+			String[] andCondArr = orCond.split("&&"); // then split sub cond string by or operator first
+			for (String andCond : andCondArr) {
+				if (andCondsResult == null) {
+					// subCond only contains comparator
+					andCondsResult = getResultFromComparison(andCond);
+				} else {
+					andCondsResult = andCondsResult
+							&& getResultFromComparison(andCond);
+				}
+			}
+			if (condResult == null) {
+				condResult = andCondsResult;
+			} else {
+				condResult =
+						condResult || getResultFromComparison(orCond);
+			}
+		}
+
+		return condResult;
+	}
+
+
+	/* the condition contains only comparator */
+	public static Boolean getResultFromComparison(String condition)
+			throws CtdbException {
+		Boolean condResult = false;
+
+		String comparator = getComparator(condition);
+		List<String> comparareValList = Arrays.asList(condition.split(comparator));
+
+		switch (comparator) {
+			case "==":
+				try {
+					double valLeft = getValueFromCondition(comparareValList.get(0));
+					double valRight = getValueFromCondition(comparareValList.get(1));
+					if (valLeft == valRight) {
+						condResult = true;
+					}
+				} catch (Exception e) {
+					logger.info("Errors occur in equal comparative.");
+				}
+				break;
+			case "!=":
+				try {
+					double valLeft = getValueFromCondition(comparareValList.get(0));
+					double valRight = getValueFromCondition(comparareValList.get(1));
+					if (valLeft != valRight) {
+						condResult = true;
+					}
+				} catch (Exception e) {
+					logger.info("Errors occur in not equal compartive.");
+				}
+				break;
+			case ">":
+				try {
+					double valLeft = getValueFromCondition(comparareValList.get(0));
+					double valRight = getValueFromCondition(comparareValList.get(1));
+					if (valLeft > valRight) {
+						condResult = true;
+					}
+				} catch (Exception e) {
+					logger.info("Errors occur in greater than comparative.");
+				}
+				break;
+			case "<":
+				try {
+					double valLeft = getValueFromCondition(comparareValList.get(0));
+					double valRight = getValueFromCondition(comparareValList.get(1));
+					if (valLeft < valRight) {
+						condResult = true;
+					}
+				} catch (Exception e) {
+					logger.info("Errors occur in less than comparative.");
+				}
+				break;
+			case ">=":
+				try {
+					double valLeft = getValueFromCondition(comparareValList.get(0));
+					double valRight = getValueFromCondition(comparareValList.get(1));
+					if (valLeft >= valRight) {
+						condResult = true;
+					}
+				} catch (Exception e) {
+					logger.info("Errors occur in greater equal comparative.");
+				}
+				break;
+			case "<=":
+				try {
+					double valLeft = getValueFromCondition(comparareValList.get(0));
+					double valRight = getValueFromCondition(comparareValList.get(1));
+					if (valLeft <= valRight) {
+						condResult = true;
+					}
+				} catch (Exception e) {
+					logger.info("Errors occur in less equal comparative.");
+				}
+				break;
+			default:
+				logger.info("Email trigger condition is missing a comparator.");
+				throw new CtdbException("Email trigger condition is missing a comparator");
+		}
+
+		return condResult;
+	}
+
+
+	public static String getComparator(String subCond) {
+		String comparator = "";
+		if (subCond.contains("==")) {
+			comparator = "==";
+		} else if (subCond.contains("!=")) {
+			comparator = "!=";
+		} else if (subCond.contains(">")) {
+			comparator = ">";
+		} else if (subCond.contains("<")) {
+			comparator = "<";
+		} else if (subCond.contains(">=")) {
+			comparator = ">=";
+		} else if (subCond.contains("<=")) {
+			comparator = "<=";
+		}
+		return comparator;
+	}
+
+	public static double getValueFromCondition(String condition)
+			throws CtdbException {
+		condition = condition.replaceAll("%", "*(1/100)*");
+		org.nfunk.jep.JEP myParser = new org.nfunk.jep.JEP();
+		myParser.addStandardFunctions();
+		myParser.parseExpression(condition);
+
+		double conditionVal = myParser.getValue();
+		conditionVal = trim(conditionVal, 2);
+		return conditionVal;
+	}
+
+	public static String replaceAllQuestionsWithValues(String condition, List<Response> responses, List<String> errors)
+			throws CtdbException {
+		String rtnCond = condition.replaceAll("\\[|\\]", "");
+
+		List<String> sectionQuestionIdList = new ArrayList<String>();
+		List<String> tempList = getSectionQuestionIdListFromCondition(rtnCond);
+		if (tempList.size() > 0) {
+			sectionQuestionIdList.addAll(tempList);
+		}
+		for (String sQId : sectionQuestionIdList) {
+			sQId = sQId.replaceAll("\\[|\\]", "");
+			List<String> postedAnswers = new ArrayList<String>();
+			String questionText = "";
+			for (Response res : responses) {
+
+				if (sQId.equals("S_" + res.getQuestion().getSectionId() + "_Q_" + res.getQuestion().getId())) {
+					postedAnswers.addAll(res.getAnswers());
+					questionText = res.getQuestion().getText();
+				}
+			}
+			String postedVal = postedAnswers.size() > 0 ? postedAnswers.get(0) : "";
+			if (rtnCond.contains("thisQuestion_")) {
+				rtnCond = rtnCond.replaceAll("\\[|\\]", "").replaceAll("thisQuestion_", "").replace(sQId, postedVal);
+			} else {
+				rtnCond = rtnCond.replaceAll("\\[|\\]", "").replace(sQId, postedVal);
+			}
+			if (postedVal.isEmpty()) {
+				if (errors != null) {
+					String err = "Answer for question \"" + questionText
+							+ "\" does not have value. Email trigger will overlook this question -'S_" + sQId + "'";
+					if (!errors.contains(err)) {
+						errors.add(err);
+					}
+				}
+			}
+		}
+		return rtnCond;
+	}
+
+	public static List<String> getSectionQuestionIdListFromCondition(String condition) {
+		if(condition.contains("thisQuestion_")) {
+			condition = condition.replaceAll("thisQuestion_", "");
+		}
+		List<String> sectionQuestionIdList = new ArrayList<String>();
+		Pattern pattern = Pattern.compile("S_[-]?\\d+_Q_([0-9]+)");
+		Matcher match = pattern.matcher(condition);
+		while (match.find()) {
+			sectionQuestionIdList.add(match.group());
+		}
+		return sectionQuestionIdList;
+	}
+
+	private static String getConditionStrWithText(EmailTrigger et, Response currentRes, List<Response> responses,
+			QuestionType questionType, AnswerType answerType, Boolean isEditAnswer) throws CtdbException {
+		String rtnStr = "";
+		List<EmailTriggerValue> etvList = new ArrayList<EmailTriggerValue>(et.getTriggerValues());
+
+		if (questionType == QuestionType.TEXTBOX && answerType == AnswerType.NUMERIC && etvList.size() > 0) {
+			String conditionStr = etvList.get(0).getTriggerCondition();
+			rtnStr = replaceAllQuestionsWithText(conditionStr, responses, isEditAnswer);
+		}
+
+		return rtnStr;
+	}
+
+	public static String replaceAllQuestionsWithText(String condition, List<Response> responses, Boolean isEditAnswer)
+			throws CtdbException {
+		String rtnCond = condition.replaceAll("\\[|\\]", "");
+
+		List<String> sectionQuestionIdList = new ArrayList<String>();
+		List<String> tempList = getSectionQuestionIdListFromCondition(rtnCond);
+		if (tempList.size() > 0) {
+			sectionQuestionIdList.addAll(tempList);
+		}
+
+		for (String sQId : sectionQuestionIdList) {
+			sQId = sQId.replaceAll("\\[|\\]", "");
+			String questionText = "";
+			List<String> postedAnswers = new ArrayList<String>();
+			for (Response res : responses) {
+				if (sQId.equals("S_" + res.getQuestion().getSectionId() + "_Q_" + res.getQuestion().getId())) {
+					questionText = res.getQuestion().getText();
+					if (isEditAnswer) {
+						postedAnswers.addAll(res.getEditAnswers());
+					} else {
+						postedAnswers.addAll(res.getAnswers());
+					}
+				}
+			}
+			String postedVal = postedAnswers.size() > 0 ? postedAnswers.get(0) : "";
+			if (rtnCond.contains("thisQuestion_")) {
+				rtnCond = rtnCond.replaceAll("\\[|\\]", "").replaceAll("thisQuestion_", "").replace(sQId,
+						questionText + "(" + postedVal + ")");
+			} else {
+				rtnCond = rtnCond.replaceAll("\\[|\\]", "").replace(sQId, questionText + "(" + postedVal + ")");
+			}
+		}
+		return rtnCond;
+	}
+
 }

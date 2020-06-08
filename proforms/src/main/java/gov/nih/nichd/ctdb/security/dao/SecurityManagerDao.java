@@ -615,7 +615,8 @@ public class SecurityManagerDao extends CtdbDao
         }
     }
     
-    public int getUserProtocolSite(int userId, int protocolId) throws CtdbException {
+    
+    public List<Integer> getUserProtocolSites(int userId, int protocolId) throws CtdbException {
         PreparedStatement stmt = null;
         ResultSet rs = null;
 
@@ -629,11 +630,11 @@ public class SecurityManagerDao extends CtdbDao
             stmt.setLong(2, protocolId);
             rs = stmt.executeQuery();
 
-            int siteid = 0;
+            List<Integer> siteids = new ArrayList<Integer>();
             while (rs.next()) {
-            	siteid = rs.getInt("siteid");
+            	siteids.add(rs.getInt("siteid"));
             }
-            return siteid;
+            return siteids;
         }
         catch (SQLException e) {
             throw new CtdbException("Unable to get User Role: " + e.getMessage(), e);

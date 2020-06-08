@@ -1,11 +1,9 @@
 package gov.nih.tbi.repository.model.hibernate;
 
-import gov.nih.tbi.ModelConstants;
-import gov.nih.tbi.commons.model.hibernate.FileType;
-
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -17,11 +15,14 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 import com.google.gson.annotations.Expose;
+
+import gov.nih.tbi.ModelConstants;
+import gov.nih.tbi.commons.model.hibernate.FileType;
+import gov.nih.tbi.file.model.hibernate.BricsFile;
 
 @Entity
 @Table(name = "USER_FILE")
@@ -69,12 +70,14 @@ public class UserFile implements Serializable, Comparable<UserFile> {
 	private Long size;
 
 	@Expose
-	@Column(name = "upload_date")
+	@Column(name = "UPLOAD_DATE")
 	private Date uploadedDate;
 
-	public UserFile() {
+	@OneToOne
+	@JoinColumn(name = "BRICS_FILE_ID")
+	private BricsFile bricsFile;
 
-	}
+	public UserFile() {}
 
 	public UserFile(UserFile clone) {
 		this.id = clone.id;
@@ -216,8 +219,37 @@ public class UserFile implements Serializable, Comparable<UserFile> {
 		return df.format(uploadedDate);
 	}
 
+	public BricsFile getBricsFile() {
+		return bricsFile;
+	}
+
+	public void setBricsFile(BricsFile bricsFile) {
+		this.bricsFile = bricsFile;
+	}
+
 	@Override
 	public int compareTo(UserFile o) {
 		return name.compareTo(o.getName());
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(bricsFile, description, fileType, id, name, path, size, uploadedDate, userId);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof UserFile)) {
+			return false;
+		}
+		UserFile other = (UserFile) obj;
+		return Objects.equals(bricsFile, other.bricsFile) && Objects.equals(description, other.description)
+				&& Objects.equals(fileType, other.fileType) && Objects.equals(id, other.id)
+				&& Objects.equals(name, other.name) && Objects.equals(path, other.path)
+				&& Objects.equals(size, other.size) && Objects.equals(uploadedDate, other.uploadedDate)
+				&& Objects.equals(userId, other.userId);
 	}
 }

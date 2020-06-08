@@ -127,6 +127,16 @@
 			</div>
 
 			<div class="form-output">
+				<div class="label">Labels:</div>
+				<div class="readonly-text"> 
+					<s:iterator var="formLabel" value="currentDataStructure.formLabelList" status="labelStatus">
+						<c:out value="${formLabel.label}" />
+						<s:if test="!#labelStatus.last">, </s:if>
+					</s:iterator>
+				</div>
+			</div>
+			
+			<div class="form-output">
 				<div class="label">Form Type:</div>
 				<div class="readonly-text">
 					<s:property value="currentDataStructure.fileType.type" />
@@ -760,4 +770,31 @@
 			window.location = "dataElementExportAction!exportFSDataElementsDetail.action?format=redcap";
 		}
 	}
+	
+	function refreshPublicationInterface() {
+		var currentId = ${currentDataStructure.id};
+		var statusId = $("#currentStatusId").val();
+		
+		var pendingPublicationStatusId = 6;
+		
+		//If the datastructure is pending publication, make ajax call to get the
+		//latest status
+		if(statusId==pendingPublicationStatusId){
+			$.get("dataStructureAction!refreshPublicationInterface.ajax",
+					{dataStructureId : currentId},
+					function(data){
+						$("#pubInterface").html(data);
+						
+						if(statusId!=pendingPublicationStatusId){
+							clearInterval(intervalId);
+						}
+						
+			});
+		}
+	}
+	
+	var interval = 30000;
+	var intervalId  =  setInterval(function() {
+			refreshPublicationInterface();
+	}, interval);
 </script>

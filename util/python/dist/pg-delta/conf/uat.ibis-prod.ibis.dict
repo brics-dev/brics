@@ -1,0 +1,16 @@
+[DB-SRC]
+host=ibis-db-uat.cit.nih.gov
+database=dictionary_uat
+schema=dictionaryuat
+user=dictionaryuat
+label=UAT-SRC
+
+[DB-TRG]
+host=ibis-db-prod.cit.nih.gov
+database=dictionary_prod
+schema=dictionary
+user=dictionary
+label=PROD-TRG
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\pgDelta\uatibis-prodibis-dict

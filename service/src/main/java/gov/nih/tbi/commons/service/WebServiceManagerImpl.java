@@ -476,6 +476,8 @@ public class WebServiceManagerImpl extends BaseManagerImpl implements WebService
 				if (toAdd != null) {
 					for (EntityMap em : toAdd) {
 						if (em.getAccount() != null) {
+							logger.debug("Entity Map to be registered. Entity Type: "+em.getType().getName()+" Entity Id: "+ em.getEntityId()+" Account Id: "
+									+em.getAccount().getId()+" Permission: "+em.getPermission().getName()+ " Disease Id: "+ k);
 							em.getAccount().setDiseaseKey(k.toString());
 						}
 						if (em.getPermissionGroup() != null) {
@@ -568,7 +570,11 @@ public class WebServiceManagerImpl extends BaseManagerImpl implements WebService
 				for (EntityMap em : diseaseList) {
 					RestAccountProvider anonAccountProvider =
 							new RestAccountProvider(modulesConstants.getModulesAccountURL(k), proxyTicketArr[index]);
+					logger.debug("Service Url: "+modulesConstants.getModulesAccountURL(k)+" ProxyTicket"+proxyTicketArr[index]);
 					if (em.getAccount() != null) {
+						
+						logger.debug("Entity Map to be registered. Entity Type: "+em.getType().getName()+" Entity Id: "+ em.getEntityId()+" Account Id: "
+						+em.getAccount().getId()+" Permission: "+em.getPermission().getName()+ " Disease Id: "+ k);
 						anonAccountProvider.registerEntity(em.getAccount().getId(), em.getType(), em.getEntityId(),
 								em.getPermission(), null);
 					} else if (em.getPermissionGroup() != null) {

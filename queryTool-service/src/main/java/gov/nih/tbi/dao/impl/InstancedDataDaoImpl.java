@@ -1,16 +1,17 @@
 package gov.nih.tbi.dao.impl;
 
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -23,10 +24,10 @@ import com.google.common.collect.ListMultimap;
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QuerySolution;
-import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.sparql.core.Var;
 
+import gov.nih.tbi.commons.model.RequiredType;
 import gov.nih.tbi.constants.QueryToolConstants;
 import gov.nih.tbi.dao.InstancedDataDao;
 import gov.nih.tbi.exceptions.InstancedDataException;
@@ -36,6 +37,8 @@ import gov.nih.tbi.pojo.DataElement;
 import gov.nih.tbi.pojo.DataTableColumnWithUri;
 import gov.nih.tbi.pojo.FormResult;
 import gov.nih.tbi.pojo.InstancedDataTable;
+import gov.nih.tbi.pojo.PermissibleValue;
+import gov.nih.tbi.pojo.QueryResult;
 import gov.nih.tbi.pojo.RepeatableGroup;
 import gov.nih.tbi.repository.model.CellValue;
 import gov.nih.tbi.repository.model.CellValueCode;
@@ -51,6 +54,7 @@ import gov.nih.tbi.service.model.MetaDataCache;
 import gov.nih.tbi.util.InstancedDataQueryGenerator;
 import gov.nih.tbi.util.InstancedDataUtil;
 import gov.nih.tbi.util.ResultSetToDataElement;
+import gov.nih.tbi.util.ResultSetToPermissibleValue;
 
 @Repository
 @Transactional
@@ -59,65 +63,13 @@ public class InstancedDataDaoImpl implements InstancedDataDao, Serializable {
 	private static final long serialVersionUID = 6999452529415924840L;
 	private static final Logger log = LogManager.getLogger(InstancedDataDaoImpl.class.getName());
 
-
 	@Autowired
 	RDFStoreManager rdfStoreManager;
 
+	@Autowired
+	MetaDataCache metaDataCache;
+
 	public InstancedDataDaoImpl() {}
-
-	public Set<String> getRowUrisToLoad(FormResult form, int offset, int limit, DataTableColumn sortColumn,
-			String sortOrder, Node accountNode) {
-		Query rowUriQuery = InstancedDataQueryGenerator.getInstancedDataRowUriQuery(form, offset, limit, sortColumn,
-				sortOrder, accountNode);
-
-		ResultSet rowUriResultSet = rdfStoreManager.querySelect(rowUriQuery);
-
-		// need link hashset here to preserve order.
-		Set<String> rowUris = new LinkedHashSet<String>();
-
-
-		while (rowUriResultSet.hasNext()) {
-			QuerySolution row = rowUriResultSet.next();
-			String rowUri = row.get(QueryToolConstants.ROW_VAR.getName()).toString();
-			rowUris.add(rowUri);
-		}
-
-		return rowUris;
-	}
-
-	public int getRowCount(FormResult form, Node accountNode) {
-		Query query = InstancedDataQueryGenerator.generateSingleFormRowCountQuery(form, accountNode);
-
-		ResultSet result = rdfStoreManager.querySelect(query);
-		QuerySolution row = result.next();
-		String rowCountString = InstancedDataUtil.rdfNodeToString(row.get("count"));
-
-		return Integer.valueOf(rowCountString);
-	}
-
-	public int getRowCount(List<FormResult> selectedForms, Node accountNode) {
-		long startTime = System.nanoTime();
-
-		if (selectedForms.isEmpty()) {
-			return 0;
-		}
-
-		ResultSet rowCountResult = rdfStoreManager
-				.querySelect(InstancedDataQueryGenerator.generateJoinedFormRowCountQuery(selectedForms, accountNode));
-
-
-		if (rowCountResult.hasNext()) {
-			QuerySolution row = rowCountResult.next();
-			String rowCountString = InstancedDataUtil.rdfNodeToString(row.get("count"));
-
-			long endTime = System.nanoTime();
-			log.info("Time to load row count: " + ((endTime - startTime) / 1000000) + "ms");
-
-			return Integer.valueOf(rowCountString);
-		} else {
-			throw new InstancedDataException("No result returned for row count");
-		}
-	}
 
 	/**
 	 * Loads all of the InstancedRows into the cache from the given form
@@ -133,12 +85,11 @@ public class InstancedDataDaoImpl implements InstancedDataDao, Serializable {
 		Query query = InstancedDataQueryGenerator.getInstancedDataQuery(form, accountNode, forDownload);
 
 		// query database
-		ResultSet instancedDataResult = rdfStoreManager.querySelect(query);
+		QueryResult instancedDataResult = rdfStoreManager.querySelect(query);
 		Map<RepeatableGroup, String> groupVariableMap = InstancedDataUtil.getGroupVariableMap(form);
 
 		// parse each result row into InstancedRow
-		while (instancedDataResult.hasNext()) {
-			QuerySolution row = instancedDataResult.next();
+		for (QuerySolution row : instancedDataResult.getQueryData()) {
 			String rowUri = row.get("row").toString();
 			String submissionId = InstancedDataUtil.trimRdfType(row.get("submission").toString());
 
@@ -153,17 +104,27 @@ public class InstancedDataDaoImpl implements InstancedDataDao, Serializable {
 					.trimRdfType(row.get(QueryToolConstants.STUDY_PREFIXED_ID_VAR.getName()).toString());
 			RDFNode guidNode = row.get(QueryToolConstants.GUID_LABEL_VAR.getName());
 
-			String guid = guidNode != null ? guidNode.toString() : "";
+			String guid = guidNode != null ? guidNode.toString() : QueryToolConstants.EMPTY_STRING;
 
-			// get the boolean flag for if the current row should be highlighted or not. Not having a value for this
+			if (QueryToolConstants.EMPTY_STRING.equals(guid)) {
+				form.setHasGuidData(false);
+			}
+
+			// get the boolean flag for if the current row should be highlighted or not. Not
+			// having a value for this
 			// flag should be equivalent to the flag being false.
 			RDFNode doHightlightNode = row.get(QueryToolConstants.DO_HIGHLIGHT_VAR.getName());
 			boolean doHighlight =
 					doHightlightNode != null && doHightlightNode.toString().equalsIgnoreCase("true") ? true : false;
 
+			RDFNode mdsUpdrsXNode = row.get(QueryToolConstants.MDS_UPDRS_X_VAR.getName());
+			boolean inMdsUpdrsX =
+					mdsUpdrsXNode != null && mdsUpdrsXNode.toString().equalsIgnoreCase("true") ? true : false;
+
 			// see if the record already exists in the map
-			InstancedRow instancedRow = new InstancedRow(rowUri, submissionId, datasetId, readableDatasetId, studyId,
-					studyPrefixedId, studyName, datasetName, "", doHighlight, guid, form.getShortNameAndVersion());
+			InstancedRow instancedRow =
+					new InstancedRow(rowUri, submissionId, datasetId, readableDatasetId, studyId, studyPrefixedId,
+							studyName, datasetName, "", doHighlight, guid, form.getShortNameAndVersion(), inMdsUpdrsX);
 
 			formCache.putRow(instancedRow);
 
@@ -190,47 +151,31 @@ public class InstancedDataDaoImpl implements InstancedDataDao, Serializable {
 						Var deVariable =
 								InstancedDataUtil.getDataElementVar(groupVariableMap, form, group, dataElement);
 						String deValue = InstancedDataUtil.rdfNodeToString(row.get(deVariable.getName()));
-						DataTableColumn column = new DataTableColumn(form.getShortNameAndVersion(), group.getName(),
-								dataElement.getName());
+						DataTableColumn column = form.getColumnFromString(form.getShortNameAndVersion(),
+								group.getName(), dataElement.getName());
 
 						if (deValue != null) {
 							CellValueCode valueCode = createValueCode(codeMapping, dataElement, deValue);
-							CellValue cellValue = new NonRepeatingCellValue(dataElement.getType(), valueCode);
+							CellValue cellValue =
+									formCache.internCell(new NonRepeatingCellValue(dataElement.getType(), valueCode));
 
 							instancedRow.insertCell(column, cellValue);
 						} else {
-							CellValue cellValue =
-									new NonRepeatingCellValue(dataElement.getType(), QueryToolConstants.EMPTY_STRING);
+							CellValue cellValue = formCache.internCell(
+									new NonRepeatingCellValue(dataElement.getType(), QueryToolConstants.EMPTY_STRING));
 							instancedRow.insertCell(column, cellValue);
 						}
 					}
 				} else {
-					DataTableColumn column = new DataTableColumn(form.getShortNameAndVersion(), group.getName(), null);
+					DataTableColumn column =
+							form.getColumnFromString(form.getShortNameAndVersion(), group.getName(), null);
 					CellValue cellValue = new RepeatingCellValue(group.getSelectedElements().size());
 					instancedRow.insertCell(column, cellValue);
 				}
 			}
 		}
 
-
 		return formCache;
-	}
-
-	/**
-	 * Returns the result of the join with only the row URIs and the GUIDs they're joined on The variables are going to
-	 * rowUri0, rowUri1, ..., rowUriN, guid
-	 * 
-	 * @param offset
-	 * @param limit
-	 * @param sortColumn
-	 * @param sortOrder
-	 * @return
-	 */
-	public ResultSet getJoinedRowUrisToLoad(List<FormResult> selectedForms, int offset, int limit,
-			DataTableColumn sortColumn, String sortOrder, Node accountNode) {
-		Query query = InstancedDataQueryGenerator.generateJoinUriQuery(selectedForms, offset, limit, sortColumn,
-				sortOrder, accountNode);
-		return rdfStoreManager.querySelect(query);
 	}
 
 	/**
@@ -242,17 +187,16 @@ public class InstancedDataDaoImpl implements InstancedDataDao, Serializable {
 	 */
 	public Map<CellPosition, Integer> getRepeatableGroupRowCounts(FormResult form, Set<String> rowUris) {
 
-
-		// a map of the repeatable group cell position to the number of rows in that repeatable group
+		// a map of the repeatable group cell position to the number of rows in that
+		// repeatable group
 		Map<CellPosition, Integer> repeatableGroupRowCountMap = new HashMap<CellPosition, Integer>();
 
 		if (!form.getRepeatingRepeatableGroups().isEmpty()) {
 			if (rowUris != null && !rowUris.isEmpty()) {
 				Query query = InstancedDataQueryGenerator.generateRepeatableGroupRowCountsQuery(form, rowUris);
-				ResultSet resultSet = rdfStoreManager.querySelect(query);
+				QueryResult resultSet = rdfStoreManager.querySelect(query);
 
-				while (resultSet.hasNext()) {
-					QuerySolution row = resultSet.next();
+				for (QuerySolution row : resultSet.getQueryData()) {
 					String rowUri = row.get(QueryToolConstants.ROW_VARIABLE.getName()).toString();
 					String rgUri = row.get(QueryToolConstants.REPEATABLE_GROUP_VARIABLE.getName()).toString();
 					String countString = row.get(QueryToolConstants.COUNT_VARIABLE.getName()).toString();
@@ -278,84 +222,6 @@ public class InstancedDataDaoImpl implements InstancedDataDao, Serializable {
 		return repeatableGroupRowCountMap;
 	}
 
-	@Deprecated
-	private Map<CellPosition, InstancedRepeatableGroupRow> getRepeatableGroupData(FormResult form,
-			DataTableColumn column, List<String> uris, CodeMapping codeMapping, Node accountNode) {
-
-		List<Query> queries =
-				InstancedDataQueryGenerator.buildRepeatableGroupDataQueries(form, column, uris, accountNode);
-		RepeatableGroup group = form.getGroupByName(column.getRepeatableGroup());
-		String groupVariable = InstancedDataUtil.getGroupVariableMap(form).get(group);
-		Map<CellPosition, InstancedRepeatableGroupRow> rowMap =
-				new HashMap<CellPosition, InstancedRepeatableGroupRow>();
-
-		for (Query query : queries) {
-			ResultSet resultSet = rdfStoreManager.querySelect(query);
-
-			while (resultSet.hasNext()) {
-				QuerySolution row = resultSet.next();
-				String rowUri = row.get(QueryToolConstants.ROW_VARIABLE.getName()).toString();
-				InstancedRepeatableGroupRow currentRgRow = null;
-
-				if (rowMap.get(rowUri) == null) {
-					currentRgRow = new InstancedRepeatableGroupRow();
-					rowMap.put(new CellPosition(column, rowUri), currentRgRow);
-				} else {
-					currentRgRow = rowMap.get(rowUri);
-				}
-
-				for (DataElement de : group.getSelectedElements()) {
-					String deVariable = groupVariable + de.getName();
-					RepeatingCellColumn currentColumn = new RepeatingCellColumn(form.getShortNameAndVersion(),
-							group.getName(), de.getName(), de.getType());
-
-					if (row.get(deVariable) != null) {
-						// value of the data element
-						String deValue = InstancedDataUtil.rdfNodeToString(row.get(deVariable));
-						CellValueCode valueCode = codeMapping.getCellValueCode(de, deValue);
-						currentRgRow.insertCell(currentColumn, valueCode);
-
-					} else if (currentRgRow.getCellValue(currentColumn) == null) {
-						currentRgRow.insertCell(currentColumn, QueryToolConstants.EMPTY_STRING);
-					}
-				}
-			}
-		}
-
-		return rowMap;
-	}
-
-	public ListMultimap<CellPosition, InstancedRepeatableGroupRow> getRepeatableGroupData(FormResult form,
-			List<CellPosition> repeatableGroupsToLoad, CodeMapping codeMapping, Node accountNode) {
-		// we need to group the row URIs by the columns first in order to generate the queries more efficiently
-		ListMultimap<DataTableColumn, String> columnToRowUriMap = ArrayListMultimap.create();
-
-		ListMultimap<CellPosition, InstancedRepeatableGroupRow> loadedRepeatableGroupRows = ArrayListMultimap.create();
-
-		for (CellPosition position : repeatableGroupsToLoad) {
-			columnToRowUriMap.put(position.getColumn(), position.getRowUri());
-		}
-
-		for (DataTableColumn column : columnToRowUriMap.keySet()) {
-			List<String> rowUris = columnToRowUriMap.get(column);
-
-			if (rowUris != null) { // this should really never be null
-				Map<CellPosition, InstancedRepeatableGroupRow> repeatableGroupRows =
-						getRepeatableGroupData(form, column, rowUris, codeMapping, accountNode);
-
-				for (Entry<CellPosition, InstancedRepeatableGroupRow> repeatableGroupEntry : repeatableGroupRows
-						.entrySet()) {
-
-					CellPosition position = repeatableGroupEntry.getKey();
-					InstancedRepeatableGroupRow rgRow = repeatableGroupEntry.getValue();
-					loadedRepeatableGroupRows.put(position, rgRow);
-				}
-			}
-		}
-
-		return loadedRepeatableGroupRows;
-	}
-
 	public List<InstancedRepeatableGroupRow> getSelectedRepeatableGroupInstancedData(FormResult form,
 			String submissionId, RepeatableGroup group, CodeMapping codeMapping, Node accountNode) {
 
@@ -369,12 +235,11 @@ public class InstancedDataDaoImpl implements InstancedDataDao, Serializable {
 
 		for (String query : queries) {
 			// query database
-			ResultSet instancedDataResult = rdfStoreManager.querySelect(query);
+			QueryResult instancedDataResult = rdfStoreManager.querySelect(query);
 			Integer rowCounter = 0;
 
 			// parse each result row into InstancedRow
-			while (instancedDataResult.hasNext()) {
-				QuerySolution row = instancedDataResult.next();
+			for (QuerySolution row : instancedDataResult.getQueryData()) {
 				InstancedRepeatableGroupRow instancedRow = rowMap.get(rowCounter);
 
 				if (instancedRow == null) {
@@ -385,8 +250,9 @@ public class InstancedDataDaoImpl implements InstancedDataDao, Serializable {
 				for (DataElement de : group.getSelectedElements()) {
 					String deVariable =
 							InstancedDataUtil.getDataElementVar(groupVariableMap, form, group, de).getName();
-					RepeatingCellColumn column = new RepeatingCellColumn(form.getShortNameAndVersion(), group.getName(),
-							de.getName(), de.getType());
+					RepeatingCellColumn column =
+							(RepeatingCellColumn) form.getColumnFromString(form.getShortNameAndVersion(),
+									group.getName(), de.getName(), de.getType());
 
 					if (row.get(deVariable) != null) {
 						String deValue = InstancedDataUtil.rdfNodeToString(row.get(deVariable));
@@ -407,7 +273,6 @@ public class InstancedDataDaoImpl implements InstancedDataDao, Serializable {
 		// return an arraylist
 		return new ArrayList<InstancedRepeatableGroupRow>(rowMap.values());
 	}
-
 
 	public boolean hasHighlightedGuid(FormResult form, Node accountNode) {
 		Query query = InstancedDataQueryGenerator.getHasHighlightedGuidQuery(form, accountNode);
@@ -432,23 +297,27 @@ public class InstancedDataDaoImpl implements InstancedDataDao, Serializable {
 		String groupVariable = InstancedDataUtil.getGroupVariableMap(form).get(group);
 		Map<String, InstancedRepeatableGroupRow> rowMap = new HashMap<String, InstancedRepeatableGroupRow>();
 
-		for (Query query : queries) {
-			ResultSet resultSet = rdfStoreManager.querySelect(query);
+		// saving the row uris we are manipulating, so we can set them to
+		// expanded at the end of this method.
+		Set<String> touchedRows = new HashSet<String>();
 
-			while (resultSet.hasNext()) {
-				QuerySolution row = resultSet.next();
+		for (Query query : queries) {
+			QueryResult resultSet = rdfStoreManager.querySelect(query);
+
+			for (QuerySolution row : resultSet.getQueryData()) {
 				String rowUri = row.get(QueryToolConstants.ROW_VARIABLE.getName()).toString();
 				InstancedRepeatableGroupRow currentRgRow = null;
 
 				RepeatingCellValue rcv = instancedDataTable.getRepeatingCellValueByUriAndColumn(form, column, rowUri);
 
 				if (rcv != null && !rcv.isExpanded()) {
+					touchedRows.add(rowUri);
+
 					if (rowMap.get(rowUri) == null) {
-						// if repeatable group is already expanded, thenw e will need to clear the row to reload the
+						// if repeatable group is already expanded, thenw e will need to clear the row
+						// to reload the
 						// data
 						rcv.getRows().clear();
-						rcv.setExpanded(true);
-
 						currentRgRow = new InstancedRepeatableGroupRow();
 						rcv.addRow(currentRgRow);
 						rowMap.put(rowUri, currentRgRow);
@@ -458,8 +327,9 @@ public class InstancedDataDaoImpl implements InstancedDataDao, Serializable {
 
 					for (DataElement de : group.getDataElements()) {
 						String deVariable = groupVariable + de.getName();
-						RepeatingCellColumn currentColumn = new RepeatingCellColumn(form.getShortNameAndVersion(),
-								group.getName(), de.getName(), de.getType());
+						RepeatingCellColumn currentColumn =
+								(RepeatingCellColumn) form.getColumnFromString(form.getShortNameAndVersion(),
+										group.getName(), de.getName(), de.getType());
 
 						if (row.get(deVariable) != null) {
 							// value of the data element
@@ -473,6 +343,12 @@ public class InstancedDataDaoImpl implements InstancedDataDao, Serializable {
 					}
 				}
 			}
+		}
+
+		for (String touchedRowUri : touchedRows) {
+			RepeatingCellValue rcv =
+					instancedDataTable.getRepeatingCellValueByUriAndColumn(form, column, touchedRowUri);
+			rcv.setExpanded(true);
 		}
 	}
 
@@ -490,10 +366,8 @@ public class InstancedDataDaoImpl implements InstancedDataDao, Serializable {
 		for (String query : queries) {
 			Map<String, Integer> submissionRowCounter = new HashMap<String, Integer>();
 
-			ResultSet instancedDataResult = rdfStoreManager.querySelect(query);
-			while (instancedDataResult.hasNext()) {
-				QuerySolution row = instancedDataResult.next();
-
+			QueryResult instancedDataResult = rdfStoreManager.querySelect(query);
+			for (QuerySolution row : instancedDataResult.getQueryData()) {
 				String submissionId = InstancedDataUtil.trimRdfType(row.get("submission").toString());
 				Integer rowCounter = submissionRowCounter.get(submissionId);
 
@@ -515,8 +389,9 @@ public class InstancedDataDaoImpl implements InstancedDataDao, Serializable {
 				for (DataElement dataElement : rg.getSelectedElements()) {
 					String deVariable =
 							InstancedDataUtil.getDataElementVar(groupVariableMap, form, rg, dataElement).getName();
-					RepeatingCellColumn column = new RepeatingCellColumn(form.getShortNameAndVersion(), rg.getName(),
-							dataElement.getName(), dataElement.getType());
+					RepeatingCellColumn column =
+							(RepeatingCellColumn) form.getColumnFromString(form.getShortNameAndVersion(), rg.getName(),
+									dataElement.getName(), dataElement.getType());
 
 					if (row.get(deVariable) != null) {
 						// value of the data element
@@ -547,8 +422,9 @@ public class InstancedDataDaoImpl implements InstancedDataDao, Serializable {
 
 		String groupQuery = InstancedDataQueryGenerator.getRepeatableGroupQuery(form.getUri());
 
-		// first, get a list of all data elements belonging to our set of repeatable groups
-		ResultSet resultSet = rdfStoreManager.querySelect(groupQuery);
+		// first, get a list of all data elements belonging to our set of repeatable
+		// groups
+		QueryResult resultSet = rdfStoreManager.querySelect(groupQuery);
 
 		ResultSetToDataElement rsToDe = new ResultSetToDataElement();
 		List<DataElement> dataElements = null;
@@ -560,25 +436,72 @@ public class InstancedDataDaoImpl implements InstancedDataDao, Serializable {
 			dataElements = new ArrayList<DataElement>();
 		}
 
+		insertPermissibleValues(dataElements);
+
 		return dataElements;
 	}
 
+	/**
+	 * Populate data elements with the complete permissibleValue objects
+	 * 
+	 * @param dataElements
+	 */
+	protected void insertPermissibleValues(List<DataElement> dataElements) {
+		if (dataElements == null || dataElements.isEmpty()) {
+			return;
+		}
+
+		// URIs of the permissible values we are interested in completing
+		List<String> permissibleValueUris = dataElements.stream().flatMap(de -> de.getPermissibleValues().stream())
+				.collect(Collectors.toList()).stream().map(p -> p.getUri()).collect(Collectors.toList());
+
+		Query pvQuery = InstancedDataQueryGenerator.getPermissibleValueQuery(permissibleValueUris);
+		QueryResult resultSet = rdfStoreManager.querySelect(pvQuery);
+		ResultSetToPermissibleValue rsToPv = new ResultSetToPermissibleValue();
+
+		List<PermissibleValue> permissibleValues = null;
+
+		try {
+			permissibleValues = rsToPv.getBeans(resultSet);
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
+				| NoSuchMethodException e) {
+			log.error("Error occurred while parsing result set to PermissibleValues", e);
+		}
+
+		// this is a map of permissible value URIs to permissible value objects
+		Map<String, PermissibleValue> permissibleValueUriMap =
+				permissibleValues.stream().collect(Collectors.toMap(PermissibleValue::getUri, p -> p));
+
+		// iterate through the permissible values and set the fields
+		for (DataElement de : dataElements) {
+			for (PermissibleValue pv : de.getPermissibleValues()) {
+				PermissibleValue completePv = permissibleValueUriMap.get(pv.getUri());
+				if (completePv != null) {
+					pv.setValueLiteral(completePv.getValueLiteral());
+					pv.setValueDescription(completePv.getValueDescription());
+				}
+			}
+		}
+	}
+
 	public void addDataElementsToRepeatableGroups(FormResult form, List<DataElement> dataElements) {
-		// this result set represents a mapping of data elements to repeatable groups with only uri's
-		ResultSet resultSet =
+		// this result set represents a mapping of data elements to repeatable groups
+		// with only uri's
+		QueryResult resultSet =
 				rdfStoreManager.querySelect(InstancedDataQueryGenerator.getDataElementInGroupSimple(form.getUri()));
 
 		List<RepeatableGroup> formRgList = form.getRepeatableGroups();
 
-		while (resultSet.hasNext()) {
-			QuerySolution row = resultSet.next();
-			String groupUri = row.get("rg").toString();
-			String deUri = row.get("uri").toString();
-			String groupName = row.get("rg_name").toString();
-			String rgPosition = row.get("rg_position").toString();
-			String dePosition = row.get("de_position").toString();
-			String rgType = row.get("rg_type").toString();
-			String rgThreshold = row.get("rg_threshold").toString();
+		for (QuerySolution row : resultSet.getQueryData()) {
+
+			String groupUri = row.get(QueryToolConstants.RG_VAR.getName()).toString();
+			String deUri = row.get(QueryToolConstants.DATA_ELEMENT_VARIABLE.getName()).toString();
+			String groupName = row.get(QueryToolConstants.RG_NAME_VARIABLE.getName()).toString();
+			String rgPosition = row.get(QueryToolConstants.RG_POSITION_VARIABLE.getName()).toString();
+			String dePosition = row.get(QueryToolConstants.DE_POSITION_VARIABLE.getName()).toString();
+			String rgType = row.get(QueryToolConstants.RG_TYPE_VARIABLE.getName()).toString();
+			String rgThreshold = row.get(QueryToolConstants.RG_THRESHOLD_VARIABLE.getName()).toString();
+			String requiredTypeString = row.get(QueryToolConstants.REQUIRED_TYPE_VARIABLE.getName()).toString();
 
 			if (form.containsGroup(groupUri)) {
 				search: for (RepeatableGroup group : formRgList) {
@@ -586,8 +509,12 @@ public class InstancedDataDaoImpl implements InstancedDataDao, Serializable {
 						for (DataElement dataElement : dataElements) {
 							if (deUri.equals(dataElement.getUri())) {
 								if (!group.containsDataElement(deUri)) {
-									MetaDataCache.setRgDePosition(group, dataElement, Integer.valueOf(dePosition));
-									group.addDataElement(dataElement);
+									if (requiredTypeString != null) {
+										RequiredType requiredType = RequiredType.valueOf(requiredTypeString);
+										dataElement.setRequiredType(requiredType);
+									}
+									metaDataCache.setRgDePosition(group, dataElement, Integer.valueOf(dePosition));
+									group.addDataElement(metaDataCache, dataElement);
 								}
 
 								break search;
@@ -605,8 +532,14 @@ public class InstancedDataDaoImpl implements InstancedDataDao, Serializable {
 				for (DataElement dataElement : dataElements) {
 					if (deUri.equals(dataElement.getUri())) {
 						newGroup.setUri(groupUri);
-						MetaDataCache.setRgDePosition(newGroup, dataElement, Integer.valueOf(dePosition));
-						newGroup.addDataElement(dataElement);
+						metaDataCache.setRgDePosition(newGroup, dataElement, Integer.valueOf(dePosition));
+
+						if (requiredTypeString != null) {
+							RequiredType requiredType = RequiredType.valueOf(requiredTypeString);
+							dataElement.setRequiredType(requiredType);
+						}
+
+						newGroup.addDataElement(metaDataCache, dataElement);
 						break;
 					}
 				}
@@ -615,7 +548,6 @@ public class InstancedDataDaoImpl implements InstancedDataDao, Serializable {
 			}
 		}
 	}
-
 
 	public CellValueCode createValueCode(CodeMapping codeMapping, DataElement de, String deValue) {
 		CellValueCode valueCode = null;
@@ -636,13 +568,12 @@ public class InstancedDataDaoImpl implements InstancedDataDao, Serializable {
 		Set<DataTableColumnWithUri> columnsWithData = new HashSet<DataTableColumnWithUri>();
 
 		Query query = InstancedDataQueryGenerator.getDataColumnHasDataQuery(currentForm, accountNode);
-		ResultSet result = rdfStoreManager.querySelect(query);
+		QueryResult result = rdfStoreManager.querySelect(query);
 
 		String formUri = currentForm.getUri();
 		String formName = currentForm.getShortName();
 
-		while (result.hasNext()) {
-			QuerySolution row = result.next();
+		for (QuerySolution row : result.getQueryData()) {
 			String rgUri = InstancedDataUtil
 					.trimRdfType(row.get(QueryToolConstants.REPEATABLE_GROUP_VARIABLE.getName()).toString());
 			String rgName = InstancedDataUtil
@@ -686,15 +617,23 @@ public class InstancedDataDaoImpl implements InstancedDataDao, Serializable {
 			String rgName = rgEntry.getKey();
 			RepeatableGroup rg = form.getRepeatableGroupByName(rgName);
 			List<RepeatingCellColumn> rgColumns = new ArrayList<>(rgEntry.getValue());
-			DataTableColumn tableColumn = new DataTableColumn(form.getShortNameAndVersion(), rgName, null);
+			DataTableColumn tableColumn = form.getColumnFromString(form.getShortNameAndVersion(), rgName, null);
 			Query query =
 					InstancedDataQueryGenerator.loadByRepeatingColumnQuery(form, tableColumn, rgColumns, accountNode);
 
-			ResultSet rs = rdfStoreManager.querySelect(query);
+			QueryResult rs = rdfStoreManager.querySelect(query);
 
-			while (rs.hasNext()) {
-				QuerySolution row = rs.next();
+			for (InstancedRow row : formCache.getRowUriMap().values()) {
+				CellValue cv = row.getCellValue(tableColumn);
+				if (cv.getIsRepeating()) {
+					RepeatingCellValue rcv = (RepeatingCellValue) cv;
+					if (!rcv.isExpanded()) {
+						rcv.getRows().clear();
+					}
+				}
+			}
 
+			for (QuerySolution row : rs.getQueryData()) {
 				String rowUri = InstancedDataUtil.trimRdfType(row.get(QueryToolConstants.ROW_VAR.getName()).toString());
 				InstancedRow instancedRow = formCache.getByRowUri(rowUri);
 
@@ -708,8 +647,9 @@ public class InstancedDataDaoImpl implements InstancedDataDao, Serializable {
 						if (!rcv.isExpanded()) {
 							InstancedRepeatableGroupRow rgRow = new InstancedRepeatableGroupRow();
 							for (DataElement de : rg.getDataElements()) {
-								RepeatingCellColumn currentColumn = new RepeatingCellColumn(
-										form.getShortNameAndVersion(), rgName, de.getName(), de.getType());
+								RepeatingCellColumn currentColumn =
+										(RepeatingCellColumn) form.getColumnFromString(form.getShortNameAndVersion(),
+												rgName, de.getName(), de.getType());
 
 								if (rgColumns.contains(currentColumn)) {
 									String rgValue = InstancedDataUtil
@@ -726,47 +666,5 @@ public class InstancedDataDaoImpl implements InstancedDataDao, Serializable {
 				}
 			}
 		}
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public Set<String> getAllBiosampleIdsInverse(FormResult biosampleForm, Set<String> unselectedRowUri,
-			Node accountNode) {
-		Set<String> biosampleIds = new HashSet<>();
-
-		Query query =
-				InstancedDataQueryGenerator.getBiosampleQueryInverse(biosampleForm, unselectedRowUri, accountNode);
-
-		ResultSet rs = rdfStoreManager.querySelect(query);
-
-		while (rs.hasNext()) {
-			QuerySolution row = rs.next();
-			String currentBiosampleId = row.get(QueryToolConstants.BIOSAMPLE_VAR_NAME).toString();
-			biosampleIds.add(currentBiosampleId);
-		}
-
-		return biosampleIds;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public Set<String> getRowUrisByBiosampleIdInverse(FormResult biosampleForm, Set<String> unselectedRowUri,
-			Node accountNode) {
-		Set<String> biosampleIds = new HashSet<>();
-
-		Query query =
-				InstancedDataQueryGenerator.getBiosampleQueryInverse(biosampleForm, unselectedRowUri, accountNode);
-
-		ResultSet rs = rdfStoreManager.querySelect(query);
-
-		while (rs.hasNext()) {
-			QuerySolution row = rs.next();
-			String currentBiosampleId = row.get(QueryToolConstants.ROW_VAR.getName()).toString();
-			biosampleIds.add(currentBiosampleId);
-		}
-
-		return biosampleIds;
 	}
 }

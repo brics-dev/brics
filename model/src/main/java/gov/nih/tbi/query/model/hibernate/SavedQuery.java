@@ -4,6 +4,7 @@ package gov.nih.tbi.query.model.hibernate;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -27,6 +28,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  * Owner (integer)
  * XML (blob/text)
  * LastUpdate (timestamp without timezone)
+ * DateCreated (date)
  * 
  * @author Ryan Stewart
  */
@@ -57,11 +59,17 @@ public class SavedQuery implements Serializable {
 	@XmlElement(nillable = true)
     private Date lastUpdated;
 	
+	@Column(name = "DATE_CREATED")
+    private Date dateCreated;
+	
 	@Column(name = "COPY_FLAG")
 	private Boolean copyFlag;
 	
 	@Column(name = "QUERY_DATA")
 	private String queryData;
+	
+	@Column(name = "OUTPUT_CODE")
+	private String outputCode;
    
 	public SavedQuery() {
 		name = "";
@@ -90,6 +98,7 @@ public class SavedQuery implements Serializable {
 		this.lastUpdated = originalQuery.getLastUpdated();
 		this.copyFlag = originalQuery.getCopyFlag();
 		this.queryData = originalQuery.getQueryData();
+		this.dateCreated = originalQuery.getDateCreated();
 	}
 
 	public Long getId()
@@ -129,6 +138,14 @@ public class SavedQuery implements Serializable {
     }
 
 	
+	public String getOutputCode() {
+		return outputCode;
+	}
+
+	public void setOutputCode(String outputCode) {
+		this.outputCode = outputCode;
+	}
+
 	public String getXml() {
 		return xml;
 	}
@@ -146,10 +163,10 @@ public class SavedQuery implements Serializable {
 	}
 
 	public Date getLastUpdated() {
-		
-		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		dateFormat.format(lastUpdated);
-		
+		if(lastUpdated != null) {
+			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+			dateFormat.format(lastUpdated);
+		}
 		return lastUpdated;
 	}
 
@@ -163,6 +180,19 @@ public class SavedQuery implements Serializable {
 
 	public void setCopyFlag(Boolean copyFlag) {
 		this.copyFlag = copyFlag;
+	}
+
+	public Date getDateCreated() {
+		if(dateCreated != null) {
+			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+			dateFormat.format(dateCreated);
+		}
+		
+		return dateCreated;
+	}
+
+	public void setDateCreated(Date dateCreated) {
+		this.dateCreated = dateCreated;
 	}
 
 	@Override

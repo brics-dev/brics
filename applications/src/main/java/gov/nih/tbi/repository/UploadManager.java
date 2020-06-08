@@ -55,6 +55,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -88,7 +89,7 @@ public class UploadManager extends JFrame {
 	private static final int ORG_EMAIL_ARGUMENT_INDEX = 5;
 	private static final int ARGS_NUM = 6;
 
-	private static final int MAX_DATASET_NAME_LENGTH = 55;
+	private static final int MAX_DATASET_NAME_LENGTH = 256;
 
 	// how often the UI is updated (aka tick)
 	public static final int UI_UPDATE_INTERVAL = 500;
@@ -104,9 +105,11 @@ public class UploadManager extends JFrame {
 	private static String orgEmail;
 
 	private static RepositoryWebService repositoryWebService;
+	private static JTextField studySelectField;
 	private static JTextField fileNameField;
-	private static JTextField datasetField;
+	private static JTextArea datasetField;
 	private static JComboBox<Study> studySelect;
+	private static Study selectedStudy;
 	private static String finalDatasetName;
 	private static String finalStudyName;
 	private static JXTable table;
@@ -167,6 +170,11 @@ public class UploadManager extends JFrame {
 		UploadManager.version = version;
 	}
 
+	
+	public void setSelectedStudy(Study selectedStudy) {
+		UploadManager.selectedStudy = selectedStudy;
+	}
+
 	public static String getDatasetName() {
 
 		return datasetField.getText();
@@ -191,7 +199,7 @@ public class UploadManager extends JFrame {
 
 	public static Study getSelectedStudy() {
 
-		return (Study) studyChoice.getSelectedItem();
+		return selectedStudy;
 	}
 
 	public void setFilePath(String path) {
@@ -203,6 +211,16 @@ public class UploadManager extends JFrame {
 	public void setDataName(String name) {
 
 		datasetField.setText(name);
+	}
+	
+	public void setStudyField(String name) {
+
+		studySelectField.setText(name);
+	}
+	
+	public static String getStudyField() {
+
+		return studySelectField.getText();
 	}
 
 	public void setFileChooserDirectory(String path) {
@@ -334,7 +352,7 @@ public class UploadManager extends JFrame {
 					UploadManagerController.unmarshalSubmissionTicket(uploadFile.getSelectedFile()
 							.getAbsolutePath());
 			if (submissionTicket != null) {
-				String name = submissionTicket.getSubmissionPackage()
+				String name = submissionTicket.getSubmissionPackages().get(0)
 						.getDatasets().get(0).getName();
 				name = name.replace(".csv", "");
 				String file = uploadFile.getSelectedFile().getName();
@@ -461,9 +479,10 @@ public class UploadManager extends JFrame {
 							"Version mismatch", JOptionPane.ERROR_MESSAGE);
 					return;
 				}
-		Dataset dataset = UploadManagerController
-				.processSubmissionTicket(submissionTicket);
-		UploadManagerController.loadUploadQueue(dataset);
+		for (Dataset dataset : UploadManagerController.processSubmissionTicket(submissionTicket)) {
+			UploadManagerController.loadUploadQueue(dataset);		
+		}
+		
 
 		System.out.println("In UploadManager, current uploadToken="
 				+ UploadManagerController.getUploadToken());
@@ -650,23 +669,11 @@ public class UploadManager extends JFrame {
 		getContentPane().setSize(new Dimension(1080, 550));
 		// study selection
 		JLabel studyInstruction = new JLabel(
-				"1. Please select a study from the list below.  You may only submit data to the studies that you have upload permission rights.");
+				"1. The study to be uploaded to is shown below. If you wish to change this field, you may recreate the submission in the Validation Tool tab.");
 		JLabel studyLabel = new JLabel("Study Name: ");
-		studyChoice = getStudyList();
-		final JButton studyRefreshButton = new JButton("Refresh");
+		studySelectField = new JTextField();
+		studySelectField.setEditable(false);
 		final UploadManager view  = this;
-		studyRefreshButton.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-
-				if (!UploadManagerController.getStudyList().isEmpty()) {
-					studyRefreshButton.setEnabled(false);
-					refreshStudy();
-					studyRefreshButton.setEnabled(true);
-				}
-			}
-		});
 
 		// file select components
 		JLabel selectFileInstruction = new JLabel(
@@ -689,10 +696,12 @@ public class UploadManager extends JFrame {
 
 		// dataset display
 		JLabel datasetInstruction = new JLabel(
-				"3. Enter a name for your dataset submission.  The dataset name must be unique for the selected study.");
-		JLabel datasetLabel = new JLabel("Dataset Name: ");
-		datasetField = new JTextField(30);
-		datasetField.setEditable(true);
+				"<html>3. This is the list of dataset names to be submitted. You may scroll through this list to verify they are correct.<br /></html>");
+		JLabel datasetLabel = new JLabel("Dataset Names: ");
+		datasetField = new JTextArea();
+		JScrollPane datasetScroll = new JScrollPane(datasetField);
+		datasetScroll.setPreferredSize(new Dimension(20,125));
+		datasetField.setEditable(false);
 
 		// upload button
 
@@ -786,6 +795,8 @@ public class UploadManager extends JFrame {
 				}
 			}
 		});
+		
+		clearCompletedButton.setEnabled(true);
 
 		JButton clearCancelledButton = new JButton(
 				"Clear Cancelled Submissions");
@@ -804,6 +815,8 @@ public class UploadManager extends JFrame {
 				}
 			}
 		});
+		
+		clearCancelledButton.setEnabled(true);
 
 		JButton loadPendingButton = new JButton("Load Pending Submissions");
 		loadPendingButton.addActionListener(new ActionListener() {
@@ -867,16 +880,14 @@ public class UploadManager extends JFrame {
 																						layout.createParallelGroup(
 																								GroupLayout.Alignment.LEADING)
 																								.addComponent(
-																										studyChoice)
+																										studySelectField)
 																								.addComponent(
 																										fileNameField)
 																								.addComponent(
-																										datasetField))
+																										datasetScroll))
 																				.addGroup(
 																						layout.createParallelGroup(
 																								GroupLayout.Alignment.LEADING)
-																								.addComponent(
-																										studyRefreshButton)
 																								.addComponent(
 																										selectFileButton)))))));
 
@@ -888,8 +899,8 @@ public class UploadManager extends JFrame {
 						layout.createParallelGroup(
 								GroupLayout.Alignment.BASELINE)
 								.addComponent(studyLabel)
-								.addComponent(studyChoice)
-								.addComponent(studyRefreshButton))
+								.addComponent(studySelectField)
+								)
 				.addGap(20)
 				.addComponent(selectFileInstruction)
 				.addGroup(
@@ -904,7 +915,7 @@ public class UploadManager extends JFrame {
 						layout.createParallelGroup(
 								GroupLayout.Alignment.LEADING)
 								.addComponent(datasetLabel)
-								.addComponent(datasetField)).addGap(20)
+								.addComponent(datasetScroll)).addGap(20)
 				.addComponent(upperActionPanel).addComponent(queueTable)
 				.addComponent(actionPanel));
 
@@ -969,7 +980,7 @@ public class UploadManager extends JFrame {
 				//systemBusyDialog.setVisible(true); 
 				logger.debug("Start the uploading");
 				setUploadingMode(true);
-				SubmissionQCStatus ticketStatus = UploadManagerController.getSubmissionQCStatus(fileNameField.getText(), studySelect.getSelectedItem().toString(), datasetField.getText(), version, serverLocation); 
+				SubmissionQCStatus ticketStatus = UploadManagerController.getSubmissionQCStatus(fileNameField.getText(), studySelectField.getText(), datasetField.getText(), version, serverLocation); 
 				//stop if data is invalid
 				if (ticketStatus != SubmissionQCStatus.PASSED ){
 					JOptionPane.showMessageDialog(rootPane, ticketStatus.getMessage(),

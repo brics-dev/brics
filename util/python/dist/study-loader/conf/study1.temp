@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<study>
+	<id></id>
+	<title>BigData Testing</title>
+	<prefixedId></prefixedId>
+	<abstractText>BigData Testing</abstractText>
+	<principalInvestigator>Jeff Liu</principalInvestigator>
+	<principalInvestigatorEmail>xuelu.liu@nih.gov</principalInvestigatorEmail>
+	<dataManager>Jeff Liu</dataManager>
+	<dataManagerEmail>xuelu.liu@nih.gov</dataManagerEmail>
+	<dateCreated></dateCreated>
+	<studyStartDate></studyStartDate>
+	<studyEndDate></studyEndDate>
+	<studyStatus>PUBLIC</studyStatus>
+</study>

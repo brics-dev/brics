@@ -12,6 +12,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -67,7 +68,7 @@ public class PromisDataStructureAction extends BaseDictionaryAction{
 	private InputStream inputStream;
 	private String contentType;
 	private String fileName;
-	
+	private static String BATTERY_FLAG = "/Battery";
 	
  	public String getContentType() {
 		return contentType;
@@ -95,6 +96,7 @@ public class PromisDataStructureAction extends BaseDictionaryAction{
 		// web service call		
 		byte[] postData = "".getBytes();
 		DataOutputStream writer = null;
+		DataOutputStream batteryWriter = null;
 		HttpURLConnection connection = null;
 		String output;
 		JSONObject formListObj = null;
@@ -127,15 +129,41 @@ public class PromisDataStructureAction extends BaseDictionaryAction{
 			}
 			connection.disconnect();
 			formListArr = formListObj.getJSONArray("Form");
+
+			String batteryAapiUrl = hmProperties.getProperty("healthMeasurement.api.batteries.url");
+			URL batteryUrl = new URL(batteryAapiUrl+".json");
+			connection = (HttpsURLConnection) batteryUrl.openConnection();
+			connection.setDoOutput(true);
+			connection.setRequestMethod("POST");
+			connection.addRequestProperty("Authorization", "Basic "+asciiEncoded);
+			connection.addRequestProperty("Content-Length", "0");
+			connection.connect();
+			batteryWriter = new DataOutputStream(connection.getOutputStream());
+			batteryWriter.write(postData);
+			JSONObject batteryFormObj = null;
+			BufferedReader batteryBr = new BufferedReader(new InputStreamReader((connection.getInputStream())));
+			while ((output = batteryBr.readLine()) != null) {
+				batteryFormObj = new JSONObject(output);
+			}
+			connection.disconnect();
+			JSONArray batteryFormArr = batteryFormObj.getJSONArray("Battery");		
+			for(int i=0 ;i<batteryFormArr.length();i++) {
+				formListArr.put(batteryFormArr.get(i));
+			}
+
 			for(int i=0;i<formListArr.length();i++) {	
 				JSONObject ob = (JSONObject) formListArr.get(i);
 				String fName = ob.getString("Name");
-				String mType = laguageDetectionProperties.getProperty(fName.replaceAll("\\s+",".").replace(":",""));
-				if(mType != null) { // the properties file only constants English forms
-					String link = "<a href='promisDataStructureAction!exportFormStructureElement.action?oid="+ob.getString("OID")+"&fname="+URLEncoder.encode(fName,"UTF-8")+"'>"+fName+"</a>";
-					JSONObject nob = new JSONObject("{\"OID\":\""+ob.getString("OID")+"\",\"Name\":\""+link+"\",\"type\":\""+mType+"\"}");
-					filtedFormListArr.put(inx, nob);
-					inx++;	
+				String mTypes = laguageDetectionProperties.getProperty(fName.replaceAll("\\s+",".").replace(":",""));				
+
+				if(mTypes != null) { // the properties file only constants English forms
+					List<String> mTypeList = Arrays.asList(mTypes.split(","));
+					for(String mType : mTypeList) {
+						String link = "<a href='promisDataStructureAction!exportFormStructureElement.action?oid="+ob.getString("OID")+"&fname="+URLEncoder.encode(fName,"UTF-8")+"&mtype="+URLEncoder.encode(mType,"UTF-8")+"'>"+fName+"</a>";
+						JSONObject nob = new JSONObject("{\"OID\":\""+ob.getString("OID")+"\",\"Name\":\""+link+"\",\"type\":\""+mType+"\"}");
+						filtedFormListArr.put(inx, nob);
+						inx++;	
+					}
 				}
 			}
 		} catch (IOException e) {
@@ -163,6 +191,7 @@ public class PromisDataStructureAction extends BaseDictionaryAction{
 	public String exportFormStructureElement(){		
 		String formOID = getRequest().getParameter("oid");
 		String formName = getRequest().getParameter("fname").replaceAll(",", " ");
+		String mType = getRequest().getParameter("mtype");
 		Properties hmProperties = new Properties();
 		ServletContext aContext = getSession().getServletContext();
 		InputStream hmS = aContext.getResourceAsStream("healthMeasurement.properties");		
@@ -178,36 +207,58 @@ public class PromisDataStructureAction extends BaseDictionaryAction{
 		ByteArrayOutputStream baos = null;
 		try {
 			hmProperties.load(hmS);
-			String apiUrl = hmProperties.getProperty("healthMeasurement.api.url");
 			String token = hmProperties.getProperty("healthMeasurement.api.token");
 			byte[] encodedBytes = Base64.getEncoder().encode(token.getBytes());
 			Charset ascii = Charset.forName("US-ASCII");
-			String asciiEncoded = new String(encodedBytes, ascii);			
-			url = new URL(apiUrl+formOID+".json");
-			connection = (HttpsURLConnection) url.openConnection();
-			connection.setDoOutput(true);
-			connection.setRequestMethod("POST");
-			connection.addRequestProperty("Authorization", "Basic "+asciiEncoded);
-			connection.addRequestProperty("Content-Length", "0");
-			writer = new DataOutputStream(connection.getOutputStream());
-			writer.write(postData);
-			BufferedReader br = new BufferedReader(new InputStreamReader((connection.getInputStream())));
-			while ((output = br.readLine()) != null) {
-				formObj = new JSONObject(output);
-			}	
+			String asciiEncoded = new String(encodedBytes, ascii);
 			
-			// Data Elements====
-			JSONArray items =formObj.getJSONArray("Items");
-			elementList = createElementList(items, formOID);
-			statisticElementList = creatStatisticElementList();			
-			// Form Structure===
-			FormStructure formStructure = createFormStructure(formOID, formName, elementList);
-			
-			elementList.addAll(statisticElementList);
-			baos = dictionaryManager.exportPromisZippedFsDe(formStructure, elementList);
-			fileName = "PROMIS_dataElementDetailExport.zip";
-			contentType = ServiceConstants.APPLICATION_ZIP_FILE;
-			inputStream = new ByteArrayInputStream(baos.toByteArray());
+			if(formName.contains(BATTERY_FLAG)) { //for the forms in battery list
+				String batteryAapiUrl = hmProperties.getProperty("healthMeasurement.api.batteries.url");
+				String apiUrl = hmProperties.getProperty("healthMeasurement.api.url");
+
+				JSONArray batteryItems = dictionaryManager.getBatteryItemsJsonArray(batteryAapiUrl, apiUrl, formOID, asciiEncoded);
+				
+				// Data Elements====
+				elementList = createElementList(batteryItems, formOID);
+				statisticElementList = creatStatisticElementList();
+				// Form Structure===
+				FormStructure formStructure = createFormStructure(formOID, formName, mType, elementList);
+				
+				elementList.addAll(statisticElementList);
+				ByteArrayOutputStream batteryBaos = dictionaryManager.exportPromisZippedFsDe(formStructure, elementList);				
+				fileName = "PROMIS_dataElementDetailExport.zip";
+				contentType = ServiceConstants.APPLICATION_ZIP_FILE;
+				inputStream = new ByteArrayInputStream(batteryBaos.toByteArray());
+
+			} else { // form in form list
+				String apiUrl = hmProperties.getProperty("healthMeasurement.api.url");
+		
+				url = new URL(apiUrl+formOID+".json");
+				connection = (HttpsURLConnection) url.openConnection();
+				connection.setDoOutput(true);
+				connection.setRequestMethod("POST");
+				connection.addRequestProperty("Authorization", "Basic "+asciiEncoded);
+				connection.addRequestProperty("Content-Length", "0");
+				writer = new DataOutputStream(connection.getOutputStream());
+				writer.write(postData);
+				BufferedReader br = new BufferedReader(new InputStreamReader((connection.getInputStream())));
+				while ((output = br.readLine()) != null) {
+					formObj = new JSONObject(output);
+				}	
+				
+				// Data Elements====
+				JSONArray items = formObj.getJSONArray("Items");
+				elementList = createElementList(items, formOID);
+				statisticElementList = creatStatisticElementList();			
+				// Form Structure===
+				FormStructure formStructure = createFormStructure(formOID, formName, mType, elementList);
+				
+				elementList.addAll(statisticElementList);
+				baos = dictionaryManager.exportPromisZippedFsDe(formStructure, elementList);
+				fileName = "PROMIS_dataElementDetailExport.zip";
+				contentType = ServiceConstants.APPLICATION_ZIP_FILE;
+				inputStream = new ByteArrayInputStream(baos.toByteArray());
+			}
 			
 		} catch (IOException | DateParseException e) {
 			e.printStackTrace();
@@ -302,7 +353,7 @@ public class PromisDataStructureAction extends BaseDictionaryAction{
 				itemOID = itemOID.substring(0, itemOID.indexOf("-"));				
 			}
 		}
-		String name = "de_"+item.getString("ID").replaceAll("[^a-zA-Z0-9]+","")+"_"+itemOID;
+		String name = PortalConstants.PROMIS_OID_PREFIX +item.getString("ID").replaceAll("[^a-zA-Z0-9]+","")+"_"+itemOID;
 		if(name.length() > 30) {
 			name = name.substring(0, 30);
 		}
@@ -470,13 +521,13 @@ public class PromisDataStructureAction extends BaseDictionaryAction{
 		return sdeSet;
 	}
 
-	public FormStructure createFormStructure(String formOID, String formName, List<DataElement> elementList) throws IOException {
+	public FormStructure createFormStructure(String formOID, String formName, String mType, List<DataElement> elementList) throws IOException {
 		FormStructure dataStructure = new FormStructure();		
 		Properties p = new Properties();
 		ServletContext aContext = getSession().getServletContext();
 		InputStream fis = aContext.getResourceAsStream("measurementType.properties");
 		p.load(fis);
-		String mType = p.getProperty(formName.replaceAll("\\s+","."));
+		String formShortName = "P"+formOID.substring(0, 7);
 		if(mType == null) {
 			dataStructure.setMeasurementType(ServiceConstants.SHORT_FORM);
 			dataStructure.setIsCat(false);
@@ -486,18 +537,21 @@ public class PromisDataStructureAction extends BaseDictionaryAction{
 				dataStructure.setMeasurementType(ServiceConstants.ADAPTIVE);	
 				dataStructure.setIsCat(true);
 				mType = ServiceConstants.ADAPTIVE;
+				formShortName += "_CAT";
 			} else if(mType.equalsIgnoreCase(ServiceConstants.AUTO_SCORING_FULL)) {
 				dataStructure.setMeasurementType(ServiceConstants.AUTO_SCORING);	
 				dataStructure.setIsCat(true);
 				mType = ServiceConstants.AUTO_SCORING;
+				formShortName += "_AutoScoring";
 			}else { // maybe it's a short form
 				dataStructure.setMeasurementType(ServiceConstants.SHORT_FORM);
 				dataStructure.setIsCat(true );
 				mType = ServiceConstants.SHORT_FORM;
+				formShortName += "_ShortForm";
 			}
 		}		
 		dataStructure.setTitle(formName);
-		dataStructure.setShortName("P"+formOID.substring(0, 7));
+		dataStructure.setShortName(formShortName);
 		dataStructure.setDescription("Description of Form Structure");
 		dataStructure.setDiseaseList(createDiseaseList());
 		dataStructure.setOrganization("FITBIR");

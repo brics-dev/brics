@@ -110,7 +110,7 @@
 		  	    		var selectedVisitTypeId = selectedRow[0];
 		  	    		
 		  	    		if (selectedRow.length != 0) {			  	  			
-		  	  				redirectWithReferrer(url + selectedVisitTypeId);
+		  	  				Javascript:popupWindow(url + selectedVisitTypeId);
 		  	    		}
 		      	   	} 
 		      	  },

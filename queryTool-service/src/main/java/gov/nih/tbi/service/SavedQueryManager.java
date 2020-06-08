@@ -32,7 +32,7 @@ public interface SavedQueryManager {
 	 *         call.
 	 * @throws WebApplicationException When there is a HTTP error produced by the underlining web service call.
 	 */
-	public boolean isQueryNameUnique(String queryName) throws UnsupportedEncodingException, WebApplicationException;
+	public boolean isQueryNameUnique(String queryName);
 
 
 	/**
@@ -48,8 +48,7 @@ public interface SavedQueryManager {
 	 * @throws UnsupportedEncodingException When the proxy ticket could not be URL encoded.
 	 * @throws WebApplicationException When any of the underlining web service calls produce a HTTP error response.
 	 */
-	public SavedQuery saveSavedQuery(DataCart dataCart, SavedQuery savedQuery, List<EntityMap> entityList)
-			throws JAXBException, UnsupportedEncodingException, WebApplicationException;
+	public SavedQuery saveSavedQuery(DataCart dataCart, SavedQuery savedQuery, List<EntityMap> entityList);
 
 	/**
 	 * Removes the saved query using the query tool rest service See the SavedQueryRestService class.
@@ -73,20 +72,23 @@ public interface SavedQueryManager {
 	 * @param qtDatacartManager
 	 */
 	public Map<Long, MetaStudy> getMetaStudies();
-	
+
 	/**
-	 * links savedQuery to metaStudy using the query tool rest service See the QueryToolRestService.java 	class
+	 * links savedQuery to metaStudy using the query tool rest service See the QueryToolRestService.java class
 	 * 
 	 * @param qtDatacartManager
 	 */
-	public void linkSavedQueryMetaStudy(long metaStudyId,SavedQuery clonedSavedQuery);
-	
-	public boolean isQueryFileNameUniquePerMetaStudy(String fileName,long metaStudyId) throws UnsupportedEncodingException, WebApplicationException;
-	
-	public boolean isQuerySavedNameUniquePerMetaStudy(String queryName, long metaStudyId ) throws UnsupportedEncodingException;
+	public void linkSavedQueryMetaStudy(long metaStudyId, SavedQuery clonedSavedQuery);
 
-	public SavedQuery getSavedQueryByNameAndMetaStudy(String queryName, long metaStudyId) throws UnsupportedEncodingException;
+	public boolean isQueryFileNameUniquePerMetaStudy(String fileName, long metaStudyId)
+			throws UnsupportedEncodingException, WebApplicationException;
+
+	public boolean isQuerySavedNameUniquePerMetaStudy(String queryName, long metaStudyId);
+
+	public SavedQuery getSavedQueryByNameAndMetaStudy(String queryName, long metaStudyId);
+
+	public SavedQuery saveSavedQuery(DataCart dataCart, SavedQuery savedQuery);
 	
-	public SavedQuery saveSavedQuery(DataCart dataCart, SavedQuery savedQuery) throws UnsupportedEncodingException, WebApplicationException;
+	public boolean isQueryLinkedToMetaStudy(long savedQueryId);
 
 }

@@ -17,7 +17,8 @@ public class CellValueCode implements Serializable {
 
 	private static final long serialVersionUID = 2874677234985024723L;
 
-	public final static String PERMISSIBLE_VALUE = "pv";
+	public final static String PV_CODE = "pv";
+	public final static String PERMISSIBLE_VALUE = "Permissible Value";
 	public final static String OUTPUT_CODE = "outputCode";
 	public final static String OUTPUT_CODE_PV = "outputCode/pv";
 
@@ -63,7 +64,7 @@ public class CellValueCode implements Serializable {
 		} else if (OUTPUT_CODE_PV.equals(displayOption)) {
 			return (ValUtil.isBlank(outputCode) ? value : outputCode);
 
-		} else if (PERMISSIBLE_VALUE.equals(displayOption)) {
+		} else if (PERMISSIBLE_VALUE.equals(displayOption) || PV_CODE.equals(displayOption)) {
 			return value;
 
 		} else {  // Schema Translation

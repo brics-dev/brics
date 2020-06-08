@@ -151,8 +151,8 @@
 						<input type="button" value="Submit Request"
 							onClick="javascript:submitForm('studyValidationAction!submit.action')" />
 					</div>
-					<a class="form-link"
-						href="javascript:window.location.href='/portal/study/studyAction!list.action'">Cancel</a>
+						
+				    <s:a class="form-link" action="studyAction" method="list" namespace="study">Cancel</s:a>
 				</div>
 			</s:if>
 			<s:else>

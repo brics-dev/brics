@@ -48,9 +48,9 @@
 	</bean>
 	<bean id="rdfConnection" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
 		<property name="driverClassName" value="virtuoso.jdbc4.Driver" />
-		<property name="jdbcUrl" value="jdbc:virtuoso://REPLACED:1111" />
-		<property name="username" value="REPLACED" />
-		<property name="password" value="REPLACED" />
+		<property name="jdbcUrl" value="jdbc:virtuoso://rdfstore:1111" />
+		<property name="username" value="abcd" />
+		<property name="password" value="abcd" />
 		<property name="maximumPoolSize" value="10" />
 		<property name="idleTimeout" value="600000" />
 		<property name="maxLifetime" value="3600000" />

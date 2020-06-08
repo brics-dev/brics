@@ -2,6 +2,7 @@ package gov.nih.tbi.dictionary.ws;
 
 import gov.nih.tbi.account.ws.RestAccountProvider;
 import gov.nih.tbi.account.ws.RestAuthenticationProvider;
+import gov.nih.tbi.commons.model.StatusType;
 import gov.nih.tbi.commons.service.ServiceConstants;
 import gov.nih.tbi.dictionary.model.DictionaryRestServiceModel.CategoryList;
 import gov.nih.tbi.dictionary.model.DictionaryRestServiceModel.ClassificationList;
@@ -24,19 +25,19 @@ import gov.nih.tbi.dictionary.model.hibernate.FormStructure;
 import gov.nih.tbi.dictionary.model.hibernate.Keyword;
 import gov.nih.tbi.dictionary.model.hibernate.MapElement;
 import gov.nih.tbi.dictionary.model.hibernate.Population;
+import gov.nih.tbi.dictionary.model.hibernate.PublishedFormStructure;
 import gov.nih.tbi.dictionary.model.hibernate.SubDomain;
 import gov.nih.tbi.dictionary.model.hibernate.Subgroup;
-import gov.nih.tbi.dictionary.model.rdf.SemanticFormStructure;
+import gov.nih.tbi.dictionary.model.restful.CreateTableFromFormStructurePayload;
 import gov.nih.tbi.repository.model.hibernate.UserFile;
-
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.log4j.Logger;
@@ -517,5 +518,36 @@ public class RestDictionaryProvider extends RestAuthenticationProvider {
 		cleanup();
 		return userFile;
 
+	}
+	
+	public void publishFormStructure(CreateTableFromFormStructurePayload payLoad) throws UnsupportedEncodingException {
+		
+		ticketValid();
+		
+		WebClient client = WebClient.create(serverUrl + restServiceUrl + "/FormStructure/publish");
+        client.type(MediaType.APPLICATION_XML).post(payLoad);
+        
+        cleanup();
+	}
+	
+	public void savePublishedFormStructure(PublishedFormStructure publishedFormStructure) throws UnsupportedEncodingException {
+		
+		ticketValid();
+		
+		WebClient client = WebClient.create(serverUrl + restServiceUrl + "/FormStructure/savePublishedFormStructure");
+        client.type(MediaType.APPLICATION_XML).post(publishedFormStructure);
+        
+        cleanup();
+	}
+	
+	public FormStructure editFormStructureStatus(Long formStructureId, Long statusId) {
+	
+		ticketValid();
+		
+		WebClient client = WebClient.create(serverUrl + restServiceUrl + "/FormStructure/editFormStructureStatus/" + formStructureId + "/"+statusId);
+        FormStructure formStructure =  client.type(MediaType.APPLICATION_XML).get(FormStructure.class);
+        cleanup();
+        
+        return formStructure;
 	}
 }

@@ -27,7 +27,8 @@ public enum AccountActionType {
 	ADMIN_ADD_PERMISSION("Access to %s given by "),
 	PASSWORD_RESET("Password reset by "),
 	PASSWORD_RESET_REQUEST_BY_USER("Password reset requested by "),
-	PASSWORD_RESET_REQUESTED_BY_ADMIN("Password reset requested by ");
+	PASSWORD_RESET_REQUESTED_BY_ADMIN("Password reset requested by "),
+	RENEWAL_REQUEST("%s renewal requested by ");
 
 	private String stringFormat;
 

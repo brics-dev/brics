@@ -10,7 +10,7 @@ public enum SubmissionQCStatus {
 		EMPTY_TICKET_NAME(2L, "Empty_Ticket_Name", "Upload Error", "You must select a file to upload."),
 		INVALID_TICKET_NAME(3L, "Invalid_Ticket_Name", "Invalid Ticket Name", "A Submission Ticket was not detected. Please upload the Submission Ticket."),
 		NULL_TICKET(4L, "Null_Ticket", "Invalid Ticket", "Invalid Submission Ticket."),
-		INVALID_TICKET_FORMAT(5L, "Invalid_Ticket_Format", "Invalid Ticket Format", "Invalid fomrat of Submission Ticket, failed to parse and covert to a dataset for submission."),
+		INVALID_TICKET_FORMAT(5L, "Invalid_Ticket_Format", "Invalid Ticket Format", "Invalid format of Submission Ticket, failed to parse and covert to a dataset for submission."),
 		EMPTY_DATASET(6L, "Empty_Dataset", "Dataset Error", "You must enter a name for the Datase."),
 		INVALID_DATASET_LENGTH(7L, "Invalid_DatasetNameLength", "Dataset Error", "Dataset name must not exceed " + ApplicationsConstants.MAX_DATASET_NAME_LENGTH + " characters."),
 		DUPLICATE_DATASET(8L, "Duplicate_Dataset", "Dataset Error", "Dataset name must be unique"),

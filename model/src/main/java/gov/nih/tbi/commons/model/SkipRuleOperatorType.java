@@ -9,7 +9,8 @@ public enum SkipRuleOperatorType {
 	EQUALS(1, "Equals"),
 	IS_BLANK(2, "Is Blank"),
 	HAS_ANY_VALUE(3, "Has Any Value"),
-	CONTAINS(4, "Contains");
+	CONTAINS(4, "Contains"), LESS_THAN(5, "Less than"), LESS_THAN_EQUAL_TO(6, "Less than equal to"),
+	GREATER_THAN(7, "Greater than"), GREATER_THAN_EQUAL_TO(8, "Greater than equal to");
 	
 	private static final Map<String, SkipRuleOperatorType> valueLookup = new HashMap<String, SkipRuleOperatorType>();
 	private static final Map<String, SkipRuleOperatorType> nameLookup = new HashMap<String, SkipRuleOperatorType>();

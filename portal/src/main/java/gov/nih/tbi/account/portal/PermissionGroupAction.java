@@ -171,14 +171,6 @@ public class PermissionGroupAction extends BaseAccountAction {
 			oldMembers = new HashSet<>(oldGroup.getMemberSet());
 		}
 
-		for (PermissionGroupMember member : permissionGroupForm.getMemberRemoval()) {
-			accountsLog.info(getAccount().getUserName() + ": Removed " + member.getAccount().getUserName() + " from "
-					+ currentPermissionGroup.getGroupName() + " permission group.");
-		}
-
-		// Remove any permission group members from the database.
-		accountManager.removePermissionGroupMembers(permissionGroupForm.getMemberRemoval());
-
 		// Save changes to the permission group to the database.
 		currentPermissionGroup = accountManager.savePermissionGroup(currentPermissionGroup);
 

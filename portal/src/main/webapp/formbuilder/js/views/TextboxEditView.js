@@ -153,8 +153,11 @@ var TextboxEditView = QuestionEditView.extend({
 		this.registerCommons(this, QuestionGraphicDecorator);/*added by Cing Heng*/
 		this.registerCommons(this, QuestionCalculationRuleDecorator);
 		this.registerCommons(this, QuestionConversionFactorDecorator);
+		this.registerCommons(this, QuestionEmailDecorator);
+		this.registerCommons(this, QuestionCountDecorator);
 		//for testing
 		//this.registerCommons(this, QuestionOptionDecorator);
+		this.registerCommons(this, QuestionBtrisMappingDecorator);
 		
 	},
 	render : function(model) {

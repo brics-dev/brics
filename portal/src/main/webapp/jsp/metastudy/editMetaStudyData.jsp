@@ -1,6 +1,8 @@
 <%@include file="/common/taglibs.jsp"%>
 <title>Create Meta Study</title>
 
+<script type="text/javascript" src='/portal/js/metastudy/savedQueryViewEngine.js'></script>
+<!-- 
 <script type="text/javascript" src='/portal/js/metastudy/SavedQueryViewEngine.js'></script>
 <script type="text/javascript" src='/portal/js/metastudy/SavedQuery.js'></script>
 
@@ -21,6 +23,7 @@
 <script type="text/javascript" src='/portal/js/metastudy/SavedQueryFormView.js'></script>
 <script type="text/javascript" src='/portal/js/metastudy/SavedQueryStudyView.js'></script>
 <script type="text/javascript" src='/portal/js/metastudy/SavedQueryView.js'></script>
+-->
 
 <!-- begin .border-wrapper -->
 <div class="border-wrapper wide">

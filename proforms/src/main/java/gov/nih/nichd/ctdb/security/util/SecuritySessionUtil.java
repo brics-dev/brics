@@ -344,6 +344,7 @@ public class SecuritySessionUtil {
 		
 		ProtocolManager protoMan = new ProtocolManager();
 		Protocol sessionProtocol = getProtocolFromSession(request);
+		boolean protocolClosed = false;
 		
 		// is the protocol changed in the parameters (IE: GET)
 		String id = request.getParameter(CtdbConstants.ID_REQUEST_ATTR);
@@ -357,8 +358,14 @@ public class SecuritySessionUtil {
 			else {
 				// we are switching to an actual protocol
 				selectedProtocol = protoMan.getProtocol(protocolId);
+				protocolClosed = protoMan.checkProtocolClosed(protocolId);
+				
+				/*Randomization*/
+				boolean hasRandomization = protoMan.checkIfProtoHasRandomization(protocolId); 
+				selectedProtocol.setHasRandomizationg(hasRandomization);
 			}
 			setProtocolInSession(request, selectedProtocol);
+			setProtocolClosedStatusInSession(request, protocolClosed);
 			protocolSwitched = true;
 			return selectedProtocol;
 		}
@@ -369,6 +376,8 @@ public class SecuritySessionUtil {
 			if (protocols.size() == 1) {
 				selectedProtocol = protocols.get(0);
 				setProtocolInSession(request, selectedProtocol);
+				protocolClosed = protoMan.checkProtocolClosed(selectedProtocol.getId());
+				setProtocolClosedStatusInSession(request, protocolClosed);
 				protocolSwitched = true;
 				return selectedProtocol;
 			}
@@ -379,6 +388,8 @@ public class SecuritySessionUtil {
 			if (sessionProtocol.getDescription() == null) {
 				sessionProtocol = protoMan.getProtocol(sessionProtocol.getId());
 				setProtocolInSession(request, sessionProtocol);
+				protocolClosed = protoMan.checkProtocolClosed(sessionProtocol.getId());
+				setProtocolClosedStatusInSession(request, protocolClosed);
 			}
 			selectedProtocol = sessionProtocol;
 			return sessionProtocol;
@@ -395,11 +406,14 @@ public class SecuritySessionUtil {
 	 */
 	public String getProxyTicket(String domain) throws UnknownHostException,NoRouteToHostException,RuntimeException{
 		Authentication auth = (SecurityContextHolder.getContext().getAuthentication());
-		Assertion assertion = ((CasAuthenticationToken) auth).getAssertion();
-		String url = domain + "portal/j_spring_cas_security_check";
-		log.debug("requesting proxy ticket from: " + url);
-		String proxyTicket = assertion.getPrincipal().getProxyTicketFor(url);
-		log.debug("proxy ticket is: " + proxyTicket);
+		String proxyTicket = "";
+		if(auth != null) {
+			Assertion assertion = ((CasAuthenticationToken) auth).getAssertion();
+			String url = domain + "portal/j_spring_cas_security_check";
+			log.debug("requesting proxy ticket from: " + url);
+			proxyTicket = assertion.getPrincipal().getProxyTicketFor(url);
+			log.debug("proxy ticket is: " + proxyTicket);
+		}
 		return proxyTicket;
 	}
 	
@@ -429,6 +443,10 @@ public class SecuritySessionUtil {
 		request.getSession().setAttribute(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY, protocol);
 	}
 	
+	public void setProtocolClosedStatusInSession(HttpServletRequest request, boolean protocolClosed) {
+		request.getSession().setAttribute(CtdbConstants.PROTOCOL_CLOSED_SESSION_KEY, protocolClosed);
+	}
+
 	public Protocol getSelectedProtocol() {
 		return selectedProtocol;
 	}

@@ -2,6 +2,7 @@ package gov.nih.tbi.dictionary.dao.hibernate.eform;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -156,6 +157,21 @@ public class BasicEformDaoImpl extends GenericDictDaoImpl<BasicEform, Long> impl
 
 		//return createQuery(query.distinct(true)).getResultList();
 		return createQuery(query.where(predicate).distinct(true)).getResultList();
+	}
+
+	@Override
+	public List<BasicEform> getBasicEForms(Collection<String> shortNames) {
+		if (shortNames != null && !shortNames.isEmpty()) {
+			CriteriaBuilder cb = getCriteriaBuilder();
+			CriteriaQuery<BasicEform> query = cb.createQuery(BasicEform.class);
+			Root<BasicEform> root = query.from(BasicEform.class);
+	
+			query.where(root.get("shortName").in(shortNames)).distinct(true);
+			return createQuery(query).getResultList();
+		}else {
+			return new ArrayList<BasicEform>();
+		}
+		
 	}
 
 }

@@ -128,11 +128,13 @@ $logo : 'logo.png';
 }
 
 #logo {
-	margin: 10px 20px 10px 10px;
+	margin: 10px 10px 10px 10px;
   	background: url(../images/logo.png) no-repeat center center;
 	background-color: #fff;
-	height: 100px;
-	width: 100px;
+    height: 100px;
+    width: 141px;
+    background-size: 324px;
+    background-position-x: 56px;
 }
 
 #login-button {
@@ -167,6 +169,11 @@ $logo : 'logo.png';
 	margin-left: auto;
 	margin-right: auto;
 	width: 880px;
+}
+
+.build-notes {
+	float: left;
+	clear: both;
 }
 
 #navigation {

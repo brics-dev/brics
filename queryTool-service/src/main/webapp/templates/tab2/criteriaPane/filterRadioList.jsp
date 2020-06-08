@@ -1,15 +1,20 @@
 <script id="filterRadioList" type="text/x-handlebars-template">
-<div class="filterHeader">
-<a href="javascript:;" class="filterClose pe-is-i-close-circle"></a>
-<a href="javascript:;" class="filterToggle pe-is-i-angle-circle-up"></a>
-<div class="filter_formName"></div> 
-<div class="filter_element"></div>
-</div>
-<div class="filterBodyContainer">
+<div class="filterLogicRow">
 	<div class="filterErrorContainer" id="filterError_{{id}}"></div>
-	<div class="filterBody">
+	<select class="filterLogicSelect floatLeft" currentValue="none">
+			<option value="none" class="filterLogicSingle"></option>
+			<option value="!" class="filterLogicSingle">NOT</option>
+			{{#if showFilterLogicOr }}
+			<option value="||" class="filterLogicMultiple">OR</option>
+			{{/if}}
+
+			{{#if showFilterLogicAnd }}
+			<option value="&&" class="filterLogicMultiple">AND</option>
+			{{/if}}
+		</select>
+		<div class="floatLeft">
 		<div class="radioList"></div>
-		<div class="includeBlanks"><input type="checkbox" name="selectedBlank" class="includeBlanksCheckbox" />Include Blanks</div>
 	</div>
+<div class="clearfix"></div>
 </div>
 </script>

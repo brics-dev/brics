@@ -292,5 +292,5 @@ public class SessionDataStructure implements Serializable
 	public void setChangedFsId(Long changedFsId) {
 		this.changedFsId = changedFsId;
 	}
-	
+
 }

@@ -1,0 +1,6 @@
+[DB-TRG]
+host=fitbir-db-prod.cit.nih.gov
+database=tbi_prod
+schema=tbi_meta
+user=tbi_meta
+label=TARGET

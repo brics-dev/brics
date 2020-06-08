@@ -45,7 +45,7 @@
 				<s:if test="alternateWorkflow()">
 					<div style="margin-left:3em;">
 						<div style="width:auto; font-size: 12px">
-							Would you like access to Genomics and/or Neuroimaging data?
+							Would you like to access Genomics and/or Neuroimaging data?
 						</div>
 						<div style="width:10%; float:left; margin-left: 45px">
 							<label for="genomicsRadioGroupYes" style="width:auto;font-size: 12px;">
@@ -132,7 +132,15 @@
 			$("#continueBtnPd").prop("disabled",false);
 			$("#submitReqBtn").prop("disabled",true);
 			$("#submitBtnDiv").addClass("disabled"); 
-			$("#continueBtnDiv").removeClass("disabled"); 
+			$("#continueBtnDiv").removeClass("disabled");
+			
+			alert("Access to PDBP Genetic, Genomics, and/or Neuroimaging data requires a signed PDBP Genomics & " +
+				"Imaging Data Use Certificate (DUC). The PDBP Genomics & Imaging DUC is available for review and " +
+				"download in the Administrative File Templates section. A signature from the Requestor and the " + 
+				"Requestor’s Authorized Institutional Business Official is required. Once the DUC is signed, upload " +
+				"the document to your account for review and approval. Please note that access to Genetics, " +
+				"Genomics, and/or Neuroimaging data must be renewed on an annual basis. Failure to renew and provide " +
+				"an updated DUC will result in revocation of data access/privileges.");
 		}
 	}
 	function focusLogicOnNo(){
@@ -147,7 +155,14 @@
 	function saveAndLoadDUCPage(){
 		enableAllPrivileges();
 		var formData = $('#theForm').serialize();
-		theForm.action='ducAction!duc.action';
+		
+		<s:if test="isRequest && (!inAccountAdmin)">
+			theForm.action="accountSignatureValidationAction!duc.action";
+		</s:if>
+		<s:else>
+			theForm.action="ducAction!duc.action";
+		</s:else>
+
 		theForm.submit();	
 		// Prepare all of the expiration date fields in the included accountPrivilegesInterface.jsp for submission.
 		processHiddenExpireDateFields();

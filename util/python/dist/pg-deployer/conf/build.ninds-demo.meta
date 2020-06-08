@@ -1,0 +1,6 @@
+[DB-TRG]
+host=ninds-host-demo.cit.nih.gov
+database=ninds_demo
+schema=ninds_metademo
+user=ninds_metademo
+label=TARGET

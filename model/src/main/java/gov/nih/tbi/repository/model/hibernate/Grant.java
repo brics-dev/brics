@@ -36,9 +36,8 @@ public class Grant implements Serializable {
 	private String grantFunders;
 
 	public Grant() {
-		
-	}
 	
+	}
 	public Grant(Grant grant) {
 		this.id = grant.id;
 		this.grantId = grant.grantId;

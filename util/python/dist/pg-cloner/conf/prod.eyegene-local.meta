@@ -1,0 +1,13 @@
+[DB-SRC]
+host=eyegene-db-prod.cit.nih.gov
+database=eyegene_prod
+schema=eyegene_meta
+user=eyegene_meta
+label=SOURCE
+
+[DB-TRG]
+host=localhost
+database=metadb
+schema=metasch
+user=metauser
+label=TARGET

@@ -31,6 +31,7 @@ QTDT.Cell = BaseModel.extend({
 		expandWidth: null,
 		collapseWidth: null,
 		highlightRow: false,
+		colorText: false,
 		row : null, 
 		col : null
 	},

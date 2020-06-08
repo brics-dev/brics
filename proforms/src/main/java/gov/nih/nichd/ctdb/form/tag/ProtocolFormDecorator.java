@@ -47,10 +47,11 @@ public class ProtocolFormDecorator extends ActionDecorator
 		String disabled = (form.getIsMandatory()) ? "" : " disabled=\"disabled\"";
 		
 		
-		text = "<input type=\"radio\" name=\"isMandatory_" + form.getShortName() + "\"" + disabled + " value=\"true\"" + 
+		text = "<div style=\"width:125px\">"+"<input type=\"radio\" name=\"isMandatory_" + form.getShortName() + "\"" + disabled + " value=\"true\"" + 
 		       " onclick=\"processRadioBtn('" + form.getShortName() + "', 'true')\" /> Required " +
+		       " <br/> " +
  			   "<input type=\"radio\" name=\"isMandatory_" + form.getShortName() + "\"" + disabled + " checked=\"checked\" value=\"false\"" + 
-		       " onclick=\"processRadioBtn('" + form.getShortName()+ "', 'false')\" /> Optional";
+		       " onclick=\"processRadioBtn('" + form.getShortName()+ "', 'false')\" /> Optional"+"</div>";
     	
     	return text;
     }
@@ -67,10 +68,11 @@ public class ProtocolFormDecorator extends ActionDecorator
 	
 		String disabled = (eform.getIsSelfReport()) ? "" : " disabled=\"disabled\"";
 		
-		text = "<input type=\"radio\" name=\"isSelfReport_" +eform.getShortName() + "\"" + disabled + " value=\"true\"" + 
+		text = "<div style=\"width:125px\">"+"<input type=\"radio\" name=\"isSelfReport_" +eform.getShortName() + "\"" + disabled + " value=\"true\"" + 
 		       " onclick=\"processSelfReportRadioBtn('" + eform.getShortName()+ "', 'true')\" /> Yes " +
+		       " <br/> " +
  			   "<input type=\"radio\" name=\"isSelfReport_" + eform.getShortName() + "\"" + disabled + " checked=\"checked\" value=\"false\"" + 
-		       " onclick=\"processSelfReportRadioBtn('" + eform.getShortName() + "', 'false')\" /> No";
+		       " onclick=\"processSelfReportRadioBtn('" + eform.getShortName() + "', 'false')\" /> No" + "</div>";
     	
     	return text;
     }

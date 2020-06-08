@@ -131,7 +131,7 @@ approval and in some cases, will require additional documentation to be uploaded
 	
 	$('document').ready(function() {
 		
-		if(accountType.includes("DSR")){
+		if(accountType.indexOf("DSR") > -1){
 			if(hasProforms == "true"){
 				$('#dataSubmitterWithProforms').not(this).prop('checked', true);
 			}
@@ -140,7 +140,7 @@ approval and in some cases, will require additional documentation to be uploaded
 			}
 		}
 		
-		if(accountType.includes("DAR")){
+		if(accountType.indexOf("DAR") > -1){
 			$('#dataAccessor').not(this).prop('checked', true);
 		}
 		

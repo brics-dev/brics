@@ -1,0 +1,17 @@
+[DB-SRC]
+host=ninr-dbdictionary-prod.cit.nih.gov
+database=dictionary_prod
+schema=dictionary
+user=dictionary
+label=SOURCE
+
+[DB-TRG]
+host=localhost
+database=dictdb
+schema=dictsch
+user=dictuser
+label=TARGET
+
+[FILE-SYS]
+logDir=D:\\DEV\\appdata\\log\\pgCloner\\prodninr-local-dict
+workDir=D:\\DEV\\appdata\\dump\\pgCloner\\prodninr-local-dict

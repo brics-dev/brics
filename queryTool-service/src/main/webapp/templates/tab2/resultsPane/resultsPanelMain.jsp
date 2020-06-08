@@ -45,7 +45,7 @@
 						<a href="javascript:;" id="pv" class="outputCodeOption">Permissible Value</a>
 					</li>
 					<li>
-						<a href="javascript:;" id="outputCode/pv" class="outputCodeOption">Output Code/Permissible Value</a>
+						<a href="javascript:;" id="Permissible Value Description" class="outputCodeOption">Permissible Value Description</a>
 					</li>
 					<li>
 						<a href="javascript:;" id="outputCode" class="outputCodeOption">Output Code</a>
@@ -62,10 +62,14 @@
 	</div>
 	<div id="resultsDatatable" class="resultsTab">
 		<div id="pageCountControl"></div>
-		<div id="formDescriptions">
-			<span class="formJoinDescription" style="padding-top: 5px; display: block; float: left; width:70%"></span>
-        </div>
-		<div id="queryResultsCount"></div>
+		<div id="tableTitleHeader" class="group">
+			<div id="formDescriptions" >
+				<span class="formJoinDescription"></span>
+        	</div>
+			<div id="queryResultsCount"></div>
+		</div>
+		<div id="tableNotificationMessage">
+		</div>
 		<div id="resultsDatatableContainer">
 
 		</div>

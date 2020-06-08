@@ -77,6 +77,7 @@ var TextareaEditView = QuestionEditView.extend({
 		this.registerCommons(this, QuestionFormatDecorator);
 		this.registerCommons(this, QuestionValidationDecorator);
 		this.registerCommons(this, QuestionGraphicDecorator);/*added by Cing Heng*/
+		this.registerCommons(this, QuestionBtrisMappingDecorator);
 	},
 	render : function(model) {
 		this.model = model;

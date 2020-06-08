@@ -43,6 +43,8 @@ public class SftpClient {
 
 	public static final String FILE_EXTENSION_SEPARATOR = ".";
 	public static final String TMP_FILE_SUFFIX = ".tmp";
+	public static final String ROOT_DIR = "/";
+	public static final String HOME_ROOT_DIR = "/home/";
 
 	String userName;
 	String password;
@@ -340,9 +342,12 @@ public class SftpClient {
 	 * @param upload
 	 * @param filePath
 	 * @param fileName
+	 * @throws JSchException 
+	 * @throws IOException 
+	 * @throws SftpException 
 	 * @throws Exception
 	 */
-	public void upload(File upload, String filePath, String fileName) throws Exception {
+	public void upload(File upload, String filePath, String fileName) throws JSchException, IOException, SftpException {
 
 		ChannelSftp sftpChannel = openSftpChannel();
 		FileInputStream in = null;
@@ -351,8 +356,6 @@ public class SftpClient {
 			navigateToFolder(sftpChannel, filePath);
 			in = new FileInputStream(upload);
 			sftpChannel.put(in, fileName);
-		} catch (Exception e) {
-			throw e;
 		} finally {
 			closeSftpChannel(sftpChannel);
 
@@ -419,9 +422,10 @@ public class SftpClient {
 	 * @param upload
 	 * @param filePath
 	 * @param fileName
+	 * @throws SftpException 
 	 * @throws Exception
 	 */
-	public Boolean upload(byte[] upload, String filePath, String fileName) {
+	public Boolean upload(byte[] upload, String filePath, String fileName) throws SftpException {
 
 		ChannelSftp sftpChannel = null;
 		try {
@@ -745,7 +749,7 @@ public class SftpClient {
 		}
 	}
 
-	private synchronized ChannelSftp openSftpChannel() throws JSchException {
+	private synchronized ChannelSftp openSftpChannel() throws JSchException, SftpException {
 
 		Channel channel = null;
 
@@ -782,7 +786,10 @@ public class SftpClient {
 
 		ChannelSftp channelSftp = (ChannelSftp) channel;
 		openChannels.add(channelSftp);
-
+		/*
+		 * if(channelSftp.pwd() != null && channelSftp.pwd().equals(ROOT_DIR)) { channelSftp.cd( HOME_ROOT_DIR +
+		 * userName); }
+		 */
 		return channelSftp;
 	}
 

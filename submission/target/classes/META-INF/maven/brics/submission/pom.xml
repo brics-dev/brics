@@ -1,0 +1,242 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>submission</artifactId>
+	<packaging>jar</packaging>
+	<name>submission</name>
+	
+	<parent>
+		<groupId>brics</groupId>
+		<artifactId>brics</artifactId>
+		<version>6.0.0</version>
+	</parent>
+
+ 	<properties>
+ 		<java.version>1.8</java.version>
+ 		<start-class>gov.nih.brics.submission.Application</start-class>
+	
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>8</maven.compiler.source>
+		<maven.compiler.target>8</maven.compiler.target>
+		
+		<!-- SonarQube configuration -->
+		<sonar.host.url>http://localhost:9000</sonar.host.url>
+		<sonar.java.source>1.8</sonar.java.source>
+		<sonar.scm.provider>git</sonar.scm.provider>
+		<sonar.coverage.exclusions>**/*Configuration.java, **/Application.java</sonar.coverage.exclusions>
+		<sonar.cpd.exclusions>**/model/**, **/controller/*Api.java</sonar.cpd.exclusions>
+	
+	<!-- maven plugins -->
+		<jacoco-maven-plugin.version>0.8.4</jacoco-maven-plugin.version>
+		<sonar.maven-plugin.version>3.6.1.1688</sonar.maven-plugin.version>
+		<swagger-codegen-maven-plugin.version>3.0.8</swagger-codegen-maven-plugin.version>
+	</properties>
+  
+ 
+	<dependencies>
+		<dependency>
+			<groupId>brics</groupId>
+			<artifactId>microservice-commons</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<version>${spring-boot.version}</version>
+			<optional>true</optional>
+		</dependency>
+		
+		<!-- HttpClient for some swagger compilation -->
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.5.10</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpmime</artifactId>
+			<version>4.5.10</version>
+		</dependency>
+	</dependencies>
+	
+	<profiles>
+		<profile>
+			<id>sonar</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.sonarsource.scanner.maven</groupId>
+						<artifactId>sonar-maven-plugin</artifactId>
+						<version>${sonar.maven-plugin.version}</version>
+						<executions>
+							<execution>
+								<phase>compile</phase>
+								<goals>
+									<goal>sonar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+	
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>${spring-boot.version}</version>
+				 <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+					<mainClass>gov.nih.brics.submission.Application</mainClass>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<failOnMissingWebXml>false</failOnMissingWebXml>
+					<attachClasses>true</attachClasses>
+					<classesClassifier>classes</classesClassifier>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.6.1</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco-maven-plugin.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<excludes>
+						<exclude>**/Application.*</exclude>
+						<exclude>**/*Configuration.*</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>io.swagger.codegen.v3</groupId>
+				<artifactId>swagger-codegen-maven-plugin</artifactId>
+				<version>${swagger-codegen-maven-plugin.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>${project.basedir}/src/main/resources/swagger.yaml</inputSpec>
+							<output>${project.basedir}</output>
+
+							<!-- use Spring @RequestMapping, @PathVariable, @RequestBody, etc -->
+							<language>spring</language>
+							<library>spring-mvc</library>
+
+							<!-- codegen template dir, for custom api.mustache -->
+							<templateDirectory>${project.basedir}/src/main/resources/swagger-codegen-templates</templateDirectory>
+
+							<!-- generate controllers and models -->
+							<apiPackage>gov.nih.brics.${project.artifactId}.controller</apiPackage>
+							<modelPackage>gov.nih.brics.${project.artifactId}.model</modelPackage>
+
+							<!-- don't generate these -->
+							<generateApiTests>false</generateApiTests>
+							<generateModelTests>false</generateModelTests>
+							<generateSupportingFiles>false</generateSupportingFiles>
+
+							<!-- don't overwrite existing files -->
+							<skipOverwrite>true</skipOverwrite>
+
+							<!-- force MutipartFile -->
+							<typeMappings>
+								<typeMapping>File=org.springframework.core.io.Resource</typeMapping>
+							</typeMappings>
+
+							<configOptions>
+								<!-- don't use ThreeTen, use Java8 for date-time types -->
+								<dateLibrary>java8</dateLibrary>
+								<interfaceOnly>true</interfaceOnly>
+								<singleContentTypes>true</singleContentTypes>
+								<sourceFolder>src/main/java</sourceFolder>
+							</configOptions>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+		
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>io.swagger.codegen.v3</groupId>
+										<artifactId>swagger-codegen-maven-plugin</artifactId>
+										<versionRange>[3.0.8,)</versionRange>
+										<goals>
+											<goal>generate</goal>
+											<goal>generate-sources</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<execute>
+											<runOnIncremental>false</runOnIncremental>
+										</execute>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+	
+	<distributionManagement>
+		<repository>
+			<id>tbi_artifactory_server</id>
+			<name>libs-release</name>
+			<url>http://fitbir-dev-repo.cit.nih.gov:8082/artifactory/libs-release-local</url>
+		</repository>
+		<snapshotRepository>
+			<id>tbi_artifactory_server</id>
+			<name>libs-snapshot</name>
+			<url>http://fitbir-dev-repo.cit.nih.gov:8082/artifactory/libs-snapshot-local</url>
+		</snapshotRepository>
+	</distributionManagement>
+</project>

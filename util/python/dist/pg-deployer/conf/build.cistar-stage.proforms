@@ -1,0 +1,6 @@
+[DB-TRG]
+host=cistar-db-stage.cit.nih.gov
+database=cistar_data
+schema=cistar_data
+user=proforms_app_stg
+label=TARGET

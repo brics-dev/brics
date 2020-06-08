@@ -1,5 +1,6 @@
 package gov.nih.tbi.dictionary.dao.eform;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -16,4 +17,6 @@ public interface BasicEformDao extends GenericDao<BasicEform, Long> {
 	public List<BasicEform> basicEformSearch(Set<Long> eformIds, List<StatusType> eformStatus, String formStructureName, String createdBy, Boolean isShared);
 	
 	public boolean isEformShortNameUnique(String shortName);
+	
+	public List<BasicEform> getBasicEForms(Collection<String> shortNames);
 }

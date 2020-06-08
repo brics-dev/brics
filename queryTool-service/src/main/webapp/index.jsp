@@ -66,13 +66,13 @@ caching forms...
 <script type="text/javascript">
 var didYouKnowTexts = [
 "you can easily export your query results in csv format to your hard drive by clicking on the \"Download to Queue\" button?",
-"you can do a logical join on 3 forms?",
+"you can do a logical join on 5 forms?",
 "you can download all the data in your data cart by clicking on the \"Download Data Cart to Queue\"?",
 "meta Study is integrated into Query Tool.  You can send your data and query to a Meta Study by clicking on the \"Send to Meta Study\" button?",
 "you can save a query by clicking on the \"Save New Query\" button?",
 "you can search a form by the data elements contained within the form in the \"Data Elements\" tab?",
 "you can add or remove columns from the datatable in the \"Select Criteria\" tab or by using the menu in each column?",
-"the query tool works by doing a \"left\" join, which means all results are returned for the first form, and only results containing matching GUIDs will be displayed for subsequent forms?",
+"the query tool works by doing a \"outer\" join, which means all results are returned for the first form, and all results will be displayed for subsequent forms?",
 "in the \"Refine Selected Data\" section, you can use the \"Select Criteria\" tab to view all the groups and data elements represented in the \"Datatable view\". You can use that view to select and deselect what you want to be presented or downloaded in the datatable?",
 "you can view data element details by selecting the hamburger menu next to each column heading in the datatable view?",
 "you can sort data by data element in the data table by clicking on the up/down arrows?",

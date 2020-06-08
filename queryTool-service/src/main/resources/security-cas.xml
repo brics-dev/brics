@@ -14,6 +14,9 @@
 	<http create-session="never" security="none" pattern="/service/stateless/**" />
 	<http create-session="never" security="none" pattern="/service/derived_data/**" />
 	
+	<!-- Don't secure the knowledge graph endpoint.  Dictionary needs to be able to call it -->
+	<http create-session="never" security="none" pattern="/service/query/knowledgeGraphInfo" />
+	
 	<!-- LOGIN PAGE -->
 	<http authentication-manager-ref="authenticationManager" access-decision-manager-ref="accessDecisionManager" entry-point-ref="masterEntryPoint" auto-config="true" use-expressions="true">
 		<csrf disabled="true"/>

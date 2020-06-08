@@ -11,6 +11,7 @@ import gov.nih.nichd.ctdb.common.CtdbException;
 import gov.nih.nichd.ctdb.common.HtmlAttributes;
 import gov.nih.nichd.ctdb.common.util.Utils;
 import gov.nih.nichd.ctdb.emailtrigger.domain.EmailTrigger;
+import gov.nih.nichd.ctdb.emailtrigger.domain.EmailTriggerValue;
 import gov.nih.nichd.ctdb.form.common.FormConstants;
 import gov.nih.nichd.ctdb.form.common.FormHtmlAttributes;
 import gov.nih.nichd.ctdb.form.domain.CalculatedFormQuestionAttributes;
@@ -449,20 +450,36 @@ public class EformJsonUtility {
 		attrJson.put("body", et.getBody());
 		attrJson.put("subject", et.getSubject());
 		
-		// Convert trigger values.
-		JSONArray triggerAnswersJsonArr = new JSONArray();
-		
-		for ( String ta : et.getTriggerAnswers() ) {
-			if ( ta != null ) {
-				JSONObject etAnswers = new JSONObject();
-				
-				etAnswers.put("etValId", -1);
-				etAnswers.put("etAnswer", ta);
-				
-				triggerAnswersJsonArr.put(etAnswers);
-			}
+		JSONArray triggerValuesJsonArr = new JSONArray();
+		// List<EmailTriggerValue> emailTriggerValueList = new ArrayList<EmailTriggerValue>(et.getTriggerValues());
+		for (EmailTriggerValue etv : et.getTriggerValues()) {
+			JSONObject etValue = new JSONObject();
+			etValue.put("etValId", etv.getId());
+			etValue.put("etAnswer", etv.getAnswer());
+			etValue.put("etCondition", etv.getTriggerCondition());
+//			etValue.put("etCondOrdinalNum", (etv.getConditionOrdinal() == null ? -1 : etv.getConditionOrdinal()));
+//			etValue.put("etConditionOperator", (etv.getOperator() == null ? "" : etv.getOperator().getName()));
+//			etValue.put("etQuestion", (etv.getTriggerQuestion() == null ? "" : etv.getTriggerQuestion()));
+//			etValue.put("etInputVal", (etv.getTriggerInputValue() == null ? "" : etv.getTriggerInputValue()));
+//			etValue.put("etCondLogicalOperator", (etv.getLogicalOperator() == null ? "" : etv.getLogicalOperator()));
+			triggerValuesJsonArr.put(etValue);
 		}
+		attrJson.put("triggerValues", triggerValuesJsonArr);
 		
-		attrJson.put("triggerAnswers", triggerAnswersJsonArr);
+		// // Convert trigger values.
+		// JSONArray triggerAnswersJsonArr = new JSONArray();
+		//
+		// for ( String ta : et.getTriggerAnswers() ) {
+		// if ( ta != null ) {
+		// JSONObject etAnswers = new JSONObject();
+		//
+		// etAnswers.put("etValId", -1);
+		// etAnswers.put("etAnswer", ta);
+		//
+		// triggerAnswersJsonArr.put(etAnswers);
+		// }
+		// }
+		//
+		// attrJson.put("triggerAnswers", triggerAnswersJsonArr);
 	}
 }

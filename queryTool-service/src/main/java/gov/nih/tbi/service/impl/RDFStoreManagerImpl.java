@@ -1,9 +1,5 @@
 package gov.nih.tbi.service.impl;
 
-import gov.nih.tbi.service.RDFStoreManager;
-import gov.nih.tbi.store.MetadataStore;
-import gov.nih.tbi.store.QueryVirtuosoStore;
-
 import java.io.Serializable;
 
 import org.apache.log4j.LogManager;
@@ -14,8 +10,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Model;
+
+import gov.nih.tbi.pojo.QueryResult;
+import gov.nih.tbi.service.RDFStoreManager;
+import gov.nih.tbi.store.MetadataStore;
+import gov.nih.tbi.store.QueryVirtuosoStore;
 
 @Repository
 @Transactional
@@ -25,19 +25,18 @@ public class RDFStoreManagerImpl implements RDFStoreManager, Serializable {
 
 	private static final Logger log = LogManager.getLogger(RDFStoreManagerImpl.class.getName());
 
-	
 	@Autowired
-    protected QueryVirtuosoStore virtuosoStore;
+	protected QueryVirtuosoStore virtuosoStore;
 
+	public void destroy() {
+	}
 
-	public void destroy() {}
-
-	public ResultSet querySelect(Query query) {
+	public QueryResult querySelect(Query query) {
 
 		return virtuosoStore.querySelect(query, MetadataStore.REASONING);
 	}
 
-	public ResultSet querySelect(String query) {
+	public QueryResult querySelect(String query) {
 
 		return virtuosoStore.querySelect(query, MetadataStore.REASONING);
 	}

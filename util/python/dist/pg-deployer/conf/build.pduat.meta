@@ -1,0 +1,7 @@
+[DB-TRG]
+host=pdbp-db-uat.cit.nih.gov
+database=pd_uat
+schema=tbi_metauat
+user=tbi_metauat
+label=TARGET
+

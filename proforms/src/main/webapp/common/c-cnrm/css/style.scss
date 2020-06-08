@@ -127,6 +127,11 @@ $nav-hvr: $lighter-gray;
 	background: url("../../../images/global/new_window_white.png") no-repeat scroll right center transparent;
 }
 
+.build-notes {
+	float: left;
+	margin: 20px;
+}
+
 /* Import Stylesheets */
 
 @import "../../css/formalize.css";
@@ -139,5 +144,10 @@ $nav-hvr: $lighter-gray;
 	border-bottom: none;
 	border-left: none;
 	border-right: none;
+}
+
+#header .content {
+/*  background: url(../images/bkg-header.png) no-repeat 200px 0; } */ 
+  background-color: #fff; 
 }
   

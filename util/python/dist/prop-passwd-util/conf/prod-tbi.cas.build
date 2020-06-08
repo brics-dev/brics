@@ -1,0 +1,7 @@
+[FILE-SYS]
+logDir=/var/lib/brics/log/propPasswdUtil/prod-tbi-cas
+passFile=/home/buildman/.pgpass
+
+[DEPLOY]
+trgRoot=/var/lib/brics/remote/prod/tbi-cas
+srcRoot=/var/lib/brics/src/local/prop/prod/tbi-cas

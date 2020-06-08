@@ -872,9 +872,9 @@
 	}
 	
 	function createValueRange() {
-		var permissibleValue = $('#permissibleField').val();
-		var valueDescription = $('#descriptionField').val();
-		var outputCode = $('#outputCodeField').val();
+		var permissibleValue = $('#permissibleField').val().replace("\n"," ").trim();
+		var valueDescription = $('#descriptionField').val().replace("\n"," ").trim();
+		var outputCode = $('#outputCodeField').val().replace("\n"," ").trim();
 		var isNumeric = $('#type').val() == "1";	
 					
 		// This is a hack! We don't want any comma in the output code. But struts2 type converter removes 
@@ -892,9 +892,6 @@
 			  numeric : isNumeric},			  
 			function(data) {
 				$("#valueRangeTable").html(data);
-				$('#descriptionField').val('');
-				$('#outputCodeField').val('');
-				$('#permissibleField').val('').focus();
 			}
 		);
 	}

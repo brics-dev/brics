@@ -1,0 +1,333 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>query-api</artifactId>
+	<packaging>jar</packaging>
+	<name>query-api</name>
+	<description>Query Tool API</description>
+
+	<parent>
+		<groupId>brics</groupId>
+		<artifactId>brics</artifactId>
+		<version>6.0.0</version>
+	</parent>
+
+	<properties>
+		<java.version>1.8</java.version>
+		<start-class>gov.nih.tbi.api.query.QueryApiApplication</start-class>
+		<!-- move this to the parent pom when we have other spring-boot projects -->
+		<spring-boot.version>2.1.13.RELEASE</spring-boot.version>
+		<swagger.version>2.9.2</swagger.version>
+		<swagger-annotations.version>1.5.22</swagger-annotations.version>
+		<swagger-codegen-maven-plugin.version>3.0.8</swagger-codegen-maven-plugin.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>brics</groupId>
+			<artifactId>query</artifactId>
+			<version>6.0.0</version>
+			<classifier>classes</classifier>
+			<exclusions>
+				<exclusion>
+					<artifactId>spring-security-cas</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.google.guava</groupId>
+					<artifactId>guava</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.servlet</groupId>
+					<artifactId>javax.servlet-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.security</groupId>
+					<artifactId>spring-security-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.security</groupId>
+					<artifactId>spring-security-taglibs</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.security</groupId>
+					<artifactId>spring-security-acl</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.security</groupId>
+					<artifactId>spring-security-cas</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.servlet.jsp.jstl</groupId>
+					<artifactId>jstl-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		
+		<!-- Spring Boot -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+			<version>${spring-boot.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <version>${spring-boot.version}</version>
+        </dependency>
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-commons</artifactId>
+			<version>${spring-boot.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-tomcat</artifactId>
+			<version>${spring-boot.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<version>${spring-boot.version}</version>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.junit.vintage</groupId>
+					<artifactId>junit-vintage-engine</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+			<version>${spring-boot.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+			<version>${spring-boot.version}</version>
+		</dependency>
+
+		<!-- Swagger -->
+		<dependency>
+			<groupId>io.swagger</groupId>
+			<artifactId>swagger-annotations</artifactId>
+			<version>${swagger-annotations.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger2</artifactId>
+			<version>${swagger.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger-ui</artifactId>
+			<version>${swagger.version}</version>
+		</dependency>
+
+		<!-- Virtuoso -->
+		<dependency>
+			<groupId>com.openlink.virtuoso</groupId>
+			<artifactId>virtuoso-jdbc-4</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.openlink.virtuoso</groupId>
+			<artifactId>virtuoso-jena</artifactId>
+		</dependency>
+
+		<!-- Jena Dependencies -->
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>jena-arq</artifactId>
+		</dependency>
+		<!-- End Jena -->
+
+		<!-- TestNG for test cases -->
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<version>${spring-boot.version}</version>
+			<optional>true</optional>
+		</dependency>
+
+		<!-- Eureka -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+		</dependency>
+
+        <!-- PostgreSQL -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>
+        
+		<!-- HttpClient for some swagger compilation -->
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.5.10</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpmime</artifactId>
+			<version>4.5.10</version>
+		</dependency>
+	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<!-- Version mapping can be found here: https://spring.io/projects/spring-cloud 
+					under "release trains" -->
+				<version>Greenwich.RELEASE</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<finalName>query-api</finalName>
+		<plugins>
+
+			<!-- Spring Boot Plug-in and Setup -->
+			<plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<mainClass>gov.nih.tbi.api.query.QueryApiApplication</mainClass>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.0</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>io.swagger.codegen.v3</groupId>
+				<artifactId>swagger-codegen-maven-plugin</artifactId>
+				<version>${swagger-codegen-maven-plugin.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>${project.basedir}/src/main/resources/swagger.yaml</inputSpec>
+							<output>${project.basedir}</output>
+
+							<!-- use Spring @RequestMapping, @PathVariable, @RequestBody, etc -->
+							<language>spring</language>
+							<library>spring-mvc</library>
+
+							<!-- codegen template dir, for custom api.mustache -->
+							<templateDirectory>${project.basedir}/src/main/resources/swagger-codegen-templates</templateDirectory>
+
+							<!-- generate controllers and models -->
+							<apiPackage>gov.nih.tbi.api.query.controller</apiPackage>
+							<modelPackage>gov.nih.tbi.api.query.model</modelPackage>
+
+							<!-- don't generate these -->
+							<generateApiTests>false</generateApiTests>
+							<generateModelTests>false</generateModelTests>
+							<generateSupportingFiles>false</generateSupportingFiles>
+
+							<!-- don't overwrite existing files -->
+							<skipOverwrite>true</skipOverwrite>
+
+							<!-- force MutipartFile -->
+							<typeMappings>
+								<typeMapping>File=org.springframework.core.io.Resource</typeMapping>
+							</typeMappings>
+
+							<configOptions>
+								<!-- don't use ThreeTen, use Java8 for date-time types -->
+								<dateLibrary>java8</dateLibrary>
+								<interfaceOnly>true</interfaceOnly>
+								<singleContentTypes>true</singleContentTypes>
+								<sourceFolder>src/main/java</sourceFolder>
+							</configOptions>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>io.swagger.codegen.v3</groupId>
+										<artifactId>swagger-codegen-maven-plugin</artifactId>
+										<versionRange>[3.0.8,)</versionRange>
+										<goals>
+											<goal>generate</goal>
+											<goal>generate-sources</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<execute>
+											<runOnIncremental>false</runOnIncremental>
+										</execute>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<distributionManagement>
+		<repository>
+			<id>tbi_artifactory_server</id>
+			<name>libs-release</name>
+			<url>http://fitbir-dev-repo.cit.nih.gov:8082/artifactory/libs-release-local</url>
+		</repository>
+		<snapshotRepository>
+			<id>tbi_artifactory_server</id>
+			<name>libs-snapshot</name>
+			<url>http://fitbir-dev-repo.cit.nih.gov:8082/artifactory/libs-snapshot-local</url>
+		</snapshotRepository>
+	</distributionManagement>
+</project>

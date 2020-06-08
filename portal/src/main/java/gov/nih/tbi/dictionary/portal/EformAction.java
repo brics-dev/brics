@@ -2,6 +2,7 @@ package gov.nih.tbi.dictionary.portal;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URLDecoder;
@@ -17,16 +18,21 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.httpclient.HttpException;
 import org.apache.log4j.Logger;
+import org.apache.struts2.ServletActionContext;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.hp.hpl.jena.sparql.function.library.leviathan.sq;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.jcraft.jsch.JSchException;
 
 import gov.nih.tbi.PortalConstants;
@@ -34,11 +40,13 @@ import gov.nih.tbi.account.model.hibernate.Account;
 import gov.nih.tbi.account.model.hibernate.EntityMap;
 import gov.nih.tbi.account.ws.RestAccountProvider;
 import gov.nih.tbi.account.ws.exception.UserAccessDeniedException;
+import gov.nih.tbi.common.util.ProformsWsProvider;
+import gov.nih.tbi.commons.model.AnswerType;
 import gov.nih.tbi.commons.model.EntityType;
 import gov.nih.tbi.commons.model.PermissionType;
 import gov.nih.tbi.commons.model.QuestionType;
 import gov.nih.tbi.commons.model.StatusType;
-import gov.nih.tbi.commons.service.DictionaryToolManager;
+import gov.nih.tbi.commons.service.BtrisMappingManager;
 import gov.nih.tbi.commons.service.ServiceConstants;
 import gov.nih.tbi.commons.service.UserPermissionException;
 import gov.nih.tbi.commons.service.WebServiceManager;
@@ -47,12 +55,18 @@ import gov.nih.tbi.commons.util.FormBuilderQuestionJSONToEform;
 import gov.nih.tbi.commons.util.FormBuilderSearchJSONUtils;
 import gov.nih.tbi.commons.util.FormStructureJSONUtil;
 import gov.nih.tbi.commons.util.SectionJsonToSectionSet;
+import gov.nih.tbi.dictionary.model.EformPfCategory;
 import gov.nih.tbi.dictionary.model.FormStructureFacet;
+import gov.nih.tbi.dictionary.model.hibernate.BtrisMapping;
+import gov.nih.tbi.dictionary.model.hibernate.DataElement;
 import gov.nih.tbi.dictionary.model.hibernate.FormStructure;
 import gov.nih.tbi.dictionary.model.hibernate.RepeatableGroup;
+import gov.nih.tbi.dictionary.model.hibernate.ValueRange;
 import gov.nih.tbi.dictionary.model.hibernate.eform.BasicEform;
 import gov.nih.tbi.dictionary.model.hibernate.eform.CalculationQuestion;
 import gov.nih.tbi.dictionary.model.hibernate.eform.CalculationQuestionPk;
+import gov.nih.tbi.dictionary.model.hibernate.eform.CountQuestion;
+import gov.nih.tbi.dictionary.model.hibernate.eform.CountQuestionPk;
 import gov.nih.tbi.dictionary.model.hibernate.eform.Eform;
 import gov.nih.tbi.dictionary.model.hibernate.eform.EmailTrigger;
 import gov.nih.tbi.dictionary.model.hibernate.eform.EmailTriggerValue;
@@ -83,6 +97,9 @@ public class EformAction extends BaseEformAction {
 	@Autowired
 	WebServiceManager webServiceManager;
 
+	@Autowired
+	BtrisMappingManager btrisMappingManager;
+
 	// Action to JSP
 	private String jsonString = "{\"aaData\":[], \"aoColumns\":[]}";
 	private String jsonFsDe = "";
@@ -97,7 +114,7 @@ public class EformAction extends BaseEformAction {
 	private Long eformId;
 
 	// copy mode
-	//private Boolean copyMode = true;
+	// private Boolean copyMode = true;
 
 	// Edit Eform params
 	private String formMode;
@@ -111,6 +128,7 @@ public class EformAction extends BaseEformAction {
 	// validate shortName from UI
 	private String shortName;
 	private String validationJson;
+	private String eFormAction;
 
 	// JSON data back for edit eFrom rendering
 	private String json;
@@ -119,12 +137,16 @@ public class EformAction extends BaseEformAction {
 
 	// Check wether it's eform moudle or sth else for d
 	public boolean eFormModule = false;
-	
-	private String reason;
-	
-	private String ownerName;
 
-	public String view() throws UserPermissionException, UnsupportedEncodingException, MalformedURLException, UserAccessDeniedException {
+	private String reason;
+
+	private String ownerName;
+	
+	@Autowired
+	protected ProformsWsProvider proformsWsProvider;
+
+	public String view() throws UserPermissionException, UnsupportedEncodingException, MalformedURLException,
+			UserAccessDeniedException {
 		sessionEform.clear();
 
 		if (Long.valueOf(getEformId()) != null) {
@@ -137,16 +159,18 @@ public class EformAction extends BaseEformAction {
 				sessionEform.clear();
 				throw new NullPointerException("The dao search came up empty. Try again. Eform ID: " + getEformId());
 			}
-			
+
 			if (getPublicArea() == null || !getPublicArea()) {
-				Account account = webServiceManager.getEntityOwnerAccountRestful(getAccount(), eform.getId(), EntityType.EFORM);
+				Account account =
+						webServiceManager.getEntityOwnerAccountRestful(getAccount(), eform.getId(), EntityType.EFORM);
 
 				String ownerName = account.getUser().getFullName();
 				setOwnerName(ownerName);
 			}
 
-			
-			if (getIsDictionaryAdmin() || eform.getStatus().equals(StatusType.PUBLISHED) || (!eform.getStatus().equals(StatusType.PUBLISHED) && getHasReadPermission())) {
+
+			if (getIsDictionaryAdmin() || eform.getStatus().equals(StatusType.PUBLISHED)
+					|| (!eform.getStatus().equals(StatusType.PUBLISHED) && getHasReadPermission())) {
 				return PortalConstants.ACTION_BASIC_VIEW;
 			} else {
 				sessionEform.clear();
@@ -171,8 +195,9 @@ public class EformAction extends BaseEformAction {
 				throw new NullPointerException("The dao search came up empty. Try again. Eform ID: " + getEformId());
 			}
 
-			//throws a permission exception if not satisfied
-			if (getIsDictionaryAdmin() || viewEform.getStatus().equals(StatusType.PUBLISHED) || (!viewEform.getStatus().equals(StatusType.PUBLISHED) && getHasReadPermission())) {
+			// throws a permission exception if not satisfied
+			if (getIsDictionaryAdmin() || viewEform.getStatus().equals(StatusType.PUBLISHED)
+					|| (!viewEform.getStatus().equals(StatusType.PUBLISHED) && getHasReadPermission())) {
 
 				/*
 				 * if (getRequest().getParameter("displayQids") != null) {
@@ -180,16 +205,16 @@ public class EformAction extends BaseEformAction {
 				 */
 
 				String formDetail = null;
-				if (viewEform.getUpdatedDate() != null) { 
+				if (viewEform.getUpdatedDate() != null) {
 					// formDetail = getImportedHtml(form.getImportFileName());
 				} else {
 					String xsl = "/WEB-INF/xsl/formDisplay.xsl"; // need to move
-																	// this out of
-																	// the class
+																 // this out of
+																 // the class
 					if (("pda").equals(getRequest().getParameter("viewOption"))) {
 						xsl = "/WEB-INF/xsl/formPdaDisplay.xsl"; // need to move
-																	// this out of
-																	// the class
+																 // this out of
+																 // the class
 					}
 					/*
 					 * if (viewEform.isTabDisplay()) { xsl = "/WEB-INF/xsl/formTabDisplay.xsl"; //need to move this out
@@ -199,7 +224,8 @@ public class EformAction extends BaseEformAction {
 					EformFormViewXmlUtil xslView = new EformFormViewXmlUtil(viewEform);
 					InputStream stream = getRequest().getServletContext().getResourceAsStream(xsl);
 
-					formDetail = XslTransformer.transform(xslView.convertEformToFormViewXML(), stream, modulesConstants.getGlobalXslParameterMap());
+					formDetail = XslTransformer.transform(xslView.convertEformToFormViewXML(), stream,
+							modulesConstants.getGlobalXslParameterMap());
 				}
 
 				String source = getRequest().getParameter("source");
@@ -275,6 +301,7 @@ public class EformAction extends BaseEformAction {
 		newEform.setCreateDate(new Date());
 		newEform.setOrderVal(7);
 		newEform.setCreateBy(getAccount().getUserName());
+		newEform.setPfCategory(EformPfCategory.NORMAL);
 		createNewOwnership();
 
 		sessionEform.setEform(newEform);
@@ -298,20 +325,18 @@ public class EformAction extends BaseEformAction {
 		statusSet.add(StatusType.PUBLISHED.getType());
 		selectedFacets.put(FormStructureFacet.STATUS, statusSet);
 
-		List<SemanticFormStructure> pFS =
-				dictionaryService.semanticFormStructureSearch(getAccount(), selectedFacets, null, Boolean.FALSE,
-						Boolean.FALSE, null,
-						PortalUtils.getProxyTicket(modulesConstants.getModulesAccountURL(getDiseaseId())));
+		List<SemanticFormStructure> pFS = dictionaryService.semanticFormStructureSearch(getAccount(), selectedFacets,
+				null, Boolean.FALSE, Boolean.FALSE, null,
+				PortalUtils.getProxyTicket(modulesConstants.getModulesAccountURL(getDiseaseId())));
 
 		if (pFS == null || pFS.isEmpty()) {
 			sessionEform.clear();
 			throw new NullPointerException();
 		}
 
-		FormBuilderSearchJSONUtils tableJSON =
-				new FormBuilderSearchJSONUtils(pFS, getText("form.fsTable.columnTitle.shortName"),
-						getText("form.fsTable.columnTitle.version"), getText("form.fsTable.columnTitle.description"),
-						getText("form.fsTable.columnTitle.title"));
+		FormBuilderSearchJSONUtils tableJSON = new FormBuilderSearchJSONUtils(pFS,
+				getText("form.fsTable.columnTitle.shortName"), getText("form.fsTable.columnTitle.version"),
+				getText("form.fsTable.columnTitle.description"), getText("form.fsTable.columnTitle.title"));
 
 		jsonString = tableJSON.convertFormStructureToJSON();
 		return PortalConstants.ACTION_LIST;
@@ -352,6 +377,9 @@ public class EformAction extends BaseEformAction {
 		createNewEform.setCreateDate(new Date());
 		createNewEform.setOrderVal(7);
 		createNewEform.setCreateBy(getAccount().getUserName());
+		Long pfCatId = Long.valueOf(getParamValueForParamKeyFromRequest("formForm.pfCategory"));
+		EformPfCategory pfCat = EformPfCategory.getById(pfCatId);
+		createNewEform.setPfCategory(pfCat);
 		FormStructureJSONUtil conversionUtil =
 				new FormStructureJSONUtil(dictionaryManager.getDataStructureLatestVersion(selectedFS));
 		setJsonFsDe(conversionUtil.getDataStructJson().toString());
@@ -397,9 +425,10 @@ public class EformAction extends BaseEformAction {
 	 * @throws UnsupportedEncodingException
 	 * @throws JSONException
 	 * @throws UserPermissionException
-	 * @throws MalformedURLException 
+	 * @throws MalformedURLException
 	 */
-	public String save() throws JSONException, UnsupportedEncodingException, UserPermissionException, MalformedURLException, UserAccessDeniedException {
+	public String save() throws JSONException, UnsupportedEncodingException, UserPermissionException,
+			MalformedURLException, UserAccessDeniedException {
 
 		if (sessionEform.getEform().getId() != null && sessionEform.getEform().getId() > 1) {
 			if (!getIsDictionaryAdmin() && !getHasWritePermission()) {
@@ -409,13 +438,13 @@ public class EformAction extends BaseEformAction {
 		} else {
 			sessionEform.getEform().setId(null);
 		}
-		
-		if(sessionEform.getEform().getDescription() == null){
-		    sessionEform.getEform().setDescription("");
+
+		if (sessionEform.getEform().getDescription() == null) {
+			sessionEform.getEform().setDescription("");
 		}
 
 		// Per REQ-642 set the eform back to draft if it's awaiting publication and the user made changes.
-		if(sessionEform.getEform().getStatus().equals(StatusType.AWAITING_PUBLICATION)){
+		if (sessionEform.getEform().getStatus().equals(StatusType.AWAITING_PUBLICATION)) {
 			sessionEform.getEform().setStatus(StatusType.DRAFT);
 		}
 
@@ -444,18 +473,17 @@ public class EformAction extends BaseEformAction {
 			}
 		}
 
-		FormBuilderQuestionJSONToEform formBuilder =
-				new FormBuilderQuestionJSONToEform(sessionEform.getEform(), sectionMap, new JSONArray(questionsJSON),
-						this.getSessionEform().getFormMode());
+		FormBuilderQuestionJSONToEform formBuilder = new FormBuilderQuestionJSONToEform(sessionEform.getEform(),
+				sectionMap, new JSONArray(questionsJSON), this.getSessionEform().getFormMode());
+
+		HashMap<Long, BtrisMapping> questionBtrisMappingMap = this.generateQuestionBtrisMappingMap();
+		if (!questionBtrisMappingMap.isEmpty()) {
+			formBuilder.setQuestionBtrisMappingMap(questionBtrisMappingMap);
+		}
 
 		sessionEform.setEform(formBuilder.parseQuestionJSONToEform());
-		
-		// added by Ching-Heng
-		FormStructure fs = dictionaryManager.getDataStructureLatestVersion(sessionEform.getEform().getFormStructureShortName());
-		sessionEform.getEform().setIsCAT(fs.isCAT());
-		sessionEform.getEform().setCatOid(fs.getCatOid());
-		sessionEform.getEform().setMeasurementType(fs.getMeasurementType());
-		
+
+
 		Eform eForm = eformManager.saveEform(sessionEform.getEform());
 		sessionEform.setEform(eForm);
 
@@ -463,16 +491,16 @@ public class EformAction extends BaseEformAction {
 			saveEformPermissions();
 		} catch (Exception e) {
 			sessionEform.clear();
-			logger.error(
-					"We were not able to remove or save the permissions associated with the eform " + eForm.getId()
-							+ " " + eForm.getTitle(), e);
+			logger.error("We were not able to remove or save the permissions associated with the eform " + eForm.getId()
+					+ " " + eForm.getTitle(), e);
 		}
 
 		this.basicEform = eformManager.getBasicEform(eForm.getId());
 		sessionEform.setBasicEform(this.basicEform);
-		
+
 		if (getPublicArea() == null || !getPublicArea()) {
-			Account account = webServiceManager.getEntityOwnerAccountRestful(getAccount(), basicEform.getId(), EntityType.EFORM);
+			Account account =
+					webServiceManager.getEntityOwnerAccountRestful(getAccount(), basicEform.getId(), EntityType.EFORM);
 
 			String ownerName = account.getUser().getFullName();
 			setOwnerName(ownerName);
@@ -481,8 +509,8 @@ public class EformAction extends BaseEformAction {
 		return PortalConstants.ACTION_BASIC_VIEW;
 	}
 
-	private void saveEformPermissions() throws UserPermissionException, MalformedURLException, HttpException,
-			IOException {
+	private void saveEformPermissions()
+			throws UserPermissionException, MalformedURLException, HttpException, IOException {
 		List<EntityMap> entitiesToRemove = getSessionEform().getRemovedMapList();
 		if (entitiesToRemove != null && !entitiesToRemove.isEmpty()) {
 			webServiceManager.unregisterEntityListRestful(getAccount(), entitiesToRemove);
@@ -495,9 +523,8 @@ public class EformAction extends BaseEformAction {
 					mapPermission.setEntityId(sessionEform.getEform().getId());
 				}
 			}
-			String[] proxyTicketArr =
-					PortalUtils.getMultipleProxyTickets(modulesConstants.getModulesAccountURL(getDiseaseId()),
-							entitiesToAdd.size());
+			String[] proxyTicketArr = PortalUtils.getMultipleProxyTickets(
+					modulesConstants.getModulesAccountURL(getDiseaseId()), entitiesToAdd.size());
 			webServiceManager.registerEntityListRestful(getAccount(), entitiesToAdd, proxyTicketArr);
 		}
 	}
@@ -510,7 +537,7 @@ public class EformAction extends BaseEformAction {
 	 * @throws UserPermissionException
 	 */
 	public String editEform() throws UnsupportedEncodingException, UserPermissionException, UserAccessDeniedException {
-		if(!sessionEform.getCopyMode()){
+		if (!sessionEform.getCopyMode()) {
 			sessionEform.clear();
 		}
 		seteFormModule(true);
@@ -523,9 +550,10 @@ public class EformAction extends BaseEformAction {
 		if (!getIsDictionaryAdmin() && !getHasWritePermission()) {
 			sessionEform.clear();
 			throw new UserPermissionException(ServiceConstants.READ_ACCESS_DENIED);
-		} else if (sessionEform.getEform().getIsLegacy()!=null && sessionEform.getEform().getIsLegacy()) {
+		} else if (sessionEform.getEform().getIsLegacy() != null && sessionEform.getEform().getIsLegacy()) {
 			sessionEform.clear();
-			throw new UserPermissionException(getAccount().getUserName() + " was trying to copy legacy eform " + Long.toString(sessionEform.getEform().getId()));
+			throw new UserPermissionException(getAccount().getUserName() + " was trying to copy legacy eform "
+					+ Long.toString(sessionEform.getEform().getId()));
 		}
 
 		return PortalConstants.ACTION_EDIT;
@@ -572,22 +600,22 @@ public class EformAction extends BaseEformAction {
 				attributeObjJson.put("answerType", qa.getAnswerType().getValue());
 				Set<QuestionAnswerOption> qaOptionsSet = q.getQuestionAnswerOption();
 				List<QuestionAnswerOption> questionAnswerOptionsList = new ArrayList(qaOptionsSet);
-				
-				if(qaOptionsSet != null){
-						Collections.sort(questionAnswerOptionsList, new Comparator<QuestionAnswerOption>() {
-	
-							@Override
-							public int compare(QuestionAnswerOption qao1, QuestionAnswerOption qao2) {
-								if(qao1.getOrderVal()!=null ||qao2.getOrderVal()!=null){
-									return qao1.getOrderVal().compareTo(qao2.getOrderVal());
-								}else{
-									return -1;
-								}
+
+				if (qaOptionsSet != null) {
+					Collections.sort(questionAnswerOptionsList, new Comparator<QuestionAnswerOption>() {
+
+						@Override
+						public int compare(QuestionAnswerOption qao1, QuestionAnswerOption qao2) {
+							if (qao1.getOrderVal() != null || qao2.getOrderVal() != null) {
+								return qao1.getOrderVal().compareTo(qao2.getOrderVal());
+							} else {
+								return -1;
 							}
-	
-						});
+						}
+
+					});
 				}
-				
+
 				for (QuestionAnswerOption qaOpt : questionAnswerOptionsList) {
 					qaOpt.getQuestionAnswerDataType();
 					String opt = qaOpt.getDisplay();
@@ -603,12 +631,16 @@ public class EformAction extends BaseEformAction {
 					questionOption.put("score", score);
 					questionOption.put("submittedValue", qaOpt.getSubmittedValue());
 					// added by Ching-Heng
-					if(qaOpt.getItemResponseOid() != null) {itemResponseOid = qaOpt.getItemResponseOid();}
+					if (qaOpt.getItemResponseOid() != null) {
+						itemResponseOid = qaOpt.getItemResponseOid();
+					}
 					questionOption.put("itemResponseOid", itemResponseOid);
-					if(qaOpt.getElementOid() != null) {elementOid = qaOpt.getElementOid();}
+					if (qaOpt.getElementOid() != null) {
+						elementOid = qaOpt.getElementOid();
+					}
 					questionOption.put("elementOid", elementOid);
-					
-					questionOption.put("orderVal", qaOpt.getOrderVal());	
+
+					questionOption.put("orderVal", qaOpt.getOrderVal());
 
 					questionOptionsObjectArray.put(questionOption);
 				}
@@ -646,8 +678,11 @@ public class EformAction extends BaseEformAction {
 				this.emailTriggerJSONforEdit(qa, attributeObjJson, quesJSON);
 				// set visual scale
 				JSONObject visualScaleEditJSONObj = this.visualScaleEdit(q);
-				quesJSON.put("visualScaleInfo",
-						visualScaleEditJSONObj.toString());
+				// set count rules
+				this.countJSONForEdit(attributeObjJson, qa, sq);
+				quesJSON.put("visualScaleInfo", visualScaleEditJSONObj.toString());
+				// set btris mapping
+				this.btrisMappingJSONforEdit(q, attributeObjJson, quesJSON);
 				quesJSON.put("attributeObject", attributeObjJson);
 				questionsJSONArr.put(quesJSON);
 			}
@@ -665,48 +700,102 @@ public class EformAction extends BaseEformAction {
 		return PortalConstants.ACTION_EDIT;
 	}
 
-	public String validateEform() throws UserAccessDeniedException{
+	public String validateEform() throws UserAccessDeniedException {
 		this.getResponse().setContentType(MediaType.APPLICATION_JSON);
-		JSONArray shortNameArray = new JSONArray();
-		if (sessionEform.getFormMode().equals(PortalConstants.ACTION_EDIT)
-				&& getShortName().equals(sessionEform.getEform().getShortName())) {
+
+		if (PortalConstants.EFORM_SAVE.equals(geteFormAction())) {
+			// when saving eform, need to validate that PROIMIS eforms with Data Elements prefixed with 'de_' have
+			// non-empty OIDs in both fs and eform
+			FormStructure fs = dictionaryManager.getDataStructureLatestVersion(sessionEform.getEform().getFormStructureShortName());
+			sessionEform.getEform().setIsCAT(fs.isCAT());
+			sessionEform.getEform().setCatOid(fs.getCatOid());
+			sessionEform.getEform().setMeasurementType(fs.getMeasurementType());
+			if (fs.isCAT()) {
+				// check fs
+				boolean isEmptyOID_FS = false;
+				String message = "";
+
+				outer: for (DataElement de : fs.getDataElements().values()) {
+					if(de.getName().startsWith(PortalConstants.PROMIS_OID_PREFIX)) {
+						Set<ValueRange> valueRangeList = de.getValueRangeList();
+						for (ValueRange value : de.getValueRangeList()) {
+	                        String itemResponseOid = value.getItemResponseOid();
+	                        String elementOid = value.getElementOid();
+	                        if(itemResponseOid == null || itemResponseOid.equals("") || elementOid == null || elementOid.equals("")) {
+								isEmptyOID_FS = true;
+								break outer;
+							}
+	                    }
+					}
+				}
+
+
+				// check eform
+				boolean isEmptyOID_EF = false;
+				JSONArray qArray = new JSONArray(questionsJSON);
+				outer2: for (int i = 0; i < qArray.length(); i++) {
+					JSONObject qJson = qArray.getJSONObject(i);
+					JSONObject attributeObjJSON = qJson.getJSONObject("attributeObject");
+					String groupDataElementName = attributeObjJSON.getString("dataElementName");
+					JSONArray options = qJson.getJSONArray("questionOptionsObjectArray");
+					String dataElementName = groupDataElementName;
+
+					if(groupDataElementName.contains(".")){
+						dataElementName = groupDataElementName.substring(groupDataElementName.indexOf(".") + 1, groupDataElementName.length());
+					} 
+					if(dataElementName.startsWith(PortalConstants.PROMIS_OID_PREFIX)) {
+						if(options != null) {
+							for(int j=0;j<options.length();j++) {
+								JSONObject option = options.getJSONObject(j);
+								String itemResponseOid = option.getString("itemResponseOid");
+								String elementOid = option.getString("elementOid");
+								if(itemResponseOid == null || itemResponseOid.equals("") || elementOid == null || elementOid.equals("")) {
+									isEmptyOID_EF = true;
+									break outer2;
+								}
+							}
+						}
+					}
+				}
+
+				if (isEmptyOID_FS && isEmptyOID_EF) {
+					message = PortalConstants.PROMIS_EFORM_EMPTY_OIDS_FS_EF_MSG;
+				} else if (isEmptyOID_FS) {
+					message = PortalConstants.PROMIS_EFORM_EMPTY_OIDS_FS_MSG;
+				} else if (isEmptyOID_EF) {
+					message = PortalConstants.PROMIS_EFORM_EMPTY_OIDS_EF_MSG;
+				}
+				if (isEmptyOID_FS || isEmptyOID_EF) {
+					JSONObject jsonObj = new JSONObject();
+					jsonObj.put("msgType", message);
+					JSONArray promisErrArray = new JSONArray();
+					promisErrArray.put(jsonObj);
+					validationJson = promisErrArray.toString();
+					return SUCCESS;
+				}
+			}
+		} else if (PortalConstants.EFORM_CONTINUE.equals(geteFormAction())) {
+			// when doing save and continue on eform, validdate shortname
+			//validate if creating for first time or if entered short name is differnt from the session eform one
+			JSONArray shortNameArray = new JSONArray();
+			if(sessionEform.getEform().getShortName() == null || !sessionEform.getEform().getShortName().equals(getShortName())) {
+				List<String> validationErrors = eformManager.validateEformShortName(getShortName());
+				if (validationErrors != null && !validationErrors.isEmpty()) {
+					for (String errorMessage : validationErrors) {
+						JSONObject jsonObj = new JSONObject();
+						jsonObj.put("msgType", errorMessage);
+						shortNameArray.put(jsonObj);
+					}
+				}
+			}
+			
+			
 			validationJson = shortNameArray.toString();
 			return SUCCESS;
 		}
-		List<String> validationErrors = eformManager.validateEformShortName(getShortName());
-
-		if (validationErrors != null && !validationErrors.isEmpty()) {
-			for (String errorMessage : validationErrors) {
-				JSONObject jsonObj = new JSONObject();
-				jsonObj.put("msgType", errorMessage);
-				shortNameArray.put(jsonObj);
-			}
-		}
-		
-		Set<Section> secList = sessionEform.getEform().getSectionList();
-		for (Section sec : secList) {
-			Set<SectionQuestion> secQuectionList = sec.getSectionQuestion();
-			int quesitonCounter = 0;
-			for (SectionQuestion sq : secQuectionList) {
-				Question q = sq.getQuestion();
-				if (q != null) {
-					quesitonCounter++;
-				}
-				if (quesitonCounter == 1 && q.getType().equals(QuestionType.TEXT_BLOCK)) {
-					JSONObject jsonObj = new JSONObject();
-					jsonObj.put("msgType",
-							"You need at least a question inside a section to save an eForm in addition to text area. ");
-
-				}
-			}
-		}
-		
-
-			
-		
-		validationJson = shortNameArray.toString();
-
 		return SUCCESS;
+
+
 	}
 
 	public String deleteEformQuestions() {
@@ -715,6 +804,40 @@ public class EformAction extends BaseEformAction {
 		eformManager.deleteQuestions(questionsToDelete);
 		return PortalConstants.ACTION_LIST;
 	}
+	
+	
+	/**
+	 * Checks to see if there are any data collections by making ws call to proforms
+	 * @return
+	 * @throws JsonParseException
+	 * @throws WebApplicationException
+	 * @throws IOException
+	 */
+	public String checkForCollectionsAndEformsInVT() throws JsonParseException, WebApplicationException, IOException {
+		String proformsWsUrl = modulesConstants.getModulesPFURL(getDiseaseId());
+		String eformShortName = sessionEform.getBasicEform().getShortName();
+		boolean areAnyDataCollectionsOrEformsInVT = false;
+		String message = "";
+		areAnyDataCollectionsOrEformsInVT = proformsWsProvider.areThereDataCollections(proformsWsUrl, eformShortName);
+		if(areAnyDataCollectionsOrEformsInVT == true) {
+			message = ServiceConstants.UNABLE_TO_DELETE_EFORM_BC_OF_COLLECTIONS;
+		}else {
+			areAnyDataCollectionsOrEformsInVT = proformsWsProvider.areThereEformsAttachedToAnyVisitType(proformsWsUrl, eformShortName);
+			if(areAnyDataCollectionsOrEformsInVT == true) {
+				message = ServiceConstants.UNABLE_TO_DELETE_EFORM_BC_OF_EFORMS_IN_VT;
+			}
+		}
+		
+		
+		HttpServletResponse response = ServletActionContext.getResponse();
+		JSONObject jsonObj = new JSONObject();
+		jsonObj.put("areAnyDataCollectionsOrEformsInVT", areAnyDataCollectionsOrEformsInVT);
+		jsonObj.put("email", modulesConstants.getModulesOrgEmail(getDiseaseId()));
+		jsonObj.put("message", message);
+		PrintWriter out = response.getWriter();
+		out.print(jsonObj);
+		return null;
+	}
 
 	public String delete() throws HttpException, IOException, UserPermissionException, UserAccessDeniedException {
 
@@ -722,8 +845,9 @@ public class EformAction extends BaseEformAction {
 			sessionEform.clear();
 			throw new UserPermissionException(ServiceConstants.READ_ACCESS_DENIED);
 		}
+		
 
-		Eform eformToDelete = eformManager.getEformNoLazyLoad(eformId);
+		Eform eformToDelete = eformManager.getEformNoLazyLoad(sessionEform.getBasicEform().getId());
 		eformManager.deleteEform(eformToDelete);
 		removeEformFromStandardGroup();
 		unregisterEformEntityPermissions();
@@ -731,7 +855,8 @@ public class EformAction extends BaseEformAction {
 		return PortalConstants.ACTION_LIST;
 	}
 
-	public String editPermissions() throws UserPermissionException, MalformedURLException, UnsupportedEncodingException, UserAccessDeniedException {
+	public String editPermissions() throws UserPermissionException, MalformedURLException, UnsupportedEncodingException,
+			UserAccessDeniedException {
 
 		if (!getIsDictionaryAdmin() && !getHasAdminPermission()) {
 			sessionEform.clear();
@@ -762,31 +887,35 @@ public class EformAction extends BaseEformAction {
 
 		return PortalConstants.ACTION_REDIRECT_TO_VIEW;
 	}
-	
-	public String approvePublication() throws HttpException, IOException, UserPermissionException, UserAccessDeniedException{
+
+	public String approvePublication()
+			throws HttpException, IOException, UserPermissionException, UserAccessDeniedException {
 		changePublication();
-		
+
 		if (getPublicArea() == null || !getPublicArea()) {
-			Account account = webServiceManager.getEntityOwnerAccountRestful(getAccount(), sessionEform.getBasicEform().getId(), EntityType.EFORM);
+			Account account = webServiceManager.getEntityOwnerAccountRestful(getAccount(),
+					sessionEform.getBasicEform().getId(), EntityType.EFORM);
 
 			String ownerName = account.getUser().getFullName();
 			setOwnerName(ownerName);
 		}
-		
+
 		return PortalConstants.ACTION_BASIC_VIEW;
 	}
 
-	
-	public String publicationDecision() throws HttpException, IOException, UserPermissionException, UserAccessDeniedException{
+
+	public String publicationDecision()
+			throws HttpException, IOException, UserPermissionException, UserAccessDeniedException {
 		changePublication();
-		
+
 		if (getPublicArea() == null || !getPublicArea()) {
-			Account account = webServiceManager.getEntityOwnerAccountRestful(getAccount(), sessionEform.getBasicEform().getId(), EntityType.EFORM);
+			Account account = webServiceManager.getEntityOwnerAccountRestful(getAccount(),
+					sessionEform.getBasicEform().getId(), EntityType.EFORM);
 
 			String ownerName = account.getUser().getFullName();
 			setOwnerName(ownerName);
 		}
-		
+
 		return PortalConstants.ACTION_BASIC_VIEW;
 	}
 
@@ -799,9 +928,11 @@ public class EformAction extends BaseEformAction {
 	 * @throws HttpException
 	 * @throws UserPermissionException
 	 */
-	public String changePublication() throws HttpException, IOException, UserPermissionException , UserAccessDeniedException{
+	public String changePublication()
+			throws HttpException, IOException, UserPermissionException, UserAccessDeniedException {
 
-		if (!getPublicationIdAsStatusType().equals(StatusType.AWAITING_PUBLICATION) && !getHasAdminPermission() && !getIsDictionaryAdmin()) {
+		if (!getPublicationIdAsStatusType().equals(StatusType.AWAITING_PUBLICATION) && !getHasAdminPermission()
+				&& !getIsDictionaryAdmin()) {
 			sessionEform.clear();
 			throw new UserPermissionException(ServiceConstants.READ_ACCESS_DENIED);
 		}
@@ -845,9 +976,10 @@ public class EformAction extends BaseEformAction {
 		setBasicEform(sessionBasicEform);
 		sessionEform.setBasicEform(sessionBasicEform);
 		addEformToSharedGroup();
-		
+
 		if (getPublicArea() == null || !getPublicArea()) {
-			Account account = webServiceManager.getEntityOwnerAccountRestful(getAccount(), sessionEform.getBasicEform().getId(), EntityType.EFORM);
+			Account account = webServiceManager.getEntityOwnerAccountRestful(getAccount(),
+					sessionEform.getBasicEform().getId(), EntityType.EFORM);
 
 			String ownerName = account.getUser().getFullName();
 			setOwnerName(ownerName);
@@ -857,17 +989,19 @@ public class EformAction extends BaseEformAction {
 	}
 
 	public String copyEform() throws JSchException, UserPermissionException {
-		
-		if (sessionEform.getBasicEform() == null) { 
+
+		if (sessionEform.getBasicEform() == null) {
 			this.basicEform = eformManager.getBasicEform(eformId);
 			sessionEform.setBasicEform(this.basicEform);
 		}
 		if (sessionEform.getBasicEform().getIsLegacy() != null && sessionEform.getBasicEform().getIsLegacy()) {
 			sessionEform.clear();
-			throw new UserPermissionException(getAccount().getUserName() + " was trying to copy legacy eform " + Long.toString(sessionEform.getEform().getId()));
+			throw new UserPermissionException(getAccount().getUserName() + " was trying to copy legacy eform "
+					+ Long.toString(sessionEform.getEform().getId()));
 		}
-		
-		Eform copiedEform = eformManager.copyEform(eformManager.getEformNoLazyLoad(sessionEform.getBasicEform().getId()), getAccount());
+
+		Eform copiedEform = eformManager
+				.copyEform(eformManager.getEformNoLazyLoad(sessionEform.getBasicEform().getId()), getAccount());
 		copiedEform.setShortName(PortalConstants.EFROM_SHORT_NAME_TEMP);
 		copiedEform = eformManager.saveEform(copiedEform);
 		sessionEform.clear();
@@ -909,9 +1043,9 @@ public class EformAction extends BaseEformAction {
 	 * @param attributeObjJson
 	 */
 	public void attributeJSONforEdit(SectionQuestion sq, QuestionAttribute qa, JSONObject attributeObjJson) {
-		if( sq.getSection().getGroupName().equalsIgnoreCase("None")||sq.getSection().getGroupName().isEmpty()){
-		attributeObjJson.put("dataElementName", qa.getDataElementName());
-		}else{
+		if (sq.getSection().getGroupName().equalsIgnoreCase("None") || sq.getSection().getGroupName().isEmpty()) {
+			attributeObjJson.put("dataElementName", qa.getDataElementName());
+		} else {
 			attributeObjJson.put("dataElementName", sq.getSection().getGroupName() + "." + qa.getDataElementName());
 
 		}
@@ -939,6 +1073,7 @@ public class EformAction extends BaseEformAction {
 		attributeObjJson.put("dataSpring", qa.getDataSpring());
 		attributeObjJson.put("showText", qa.getShowText());
 	}
+
 	/**
 	 * QuestionJSONforEdit
 	 * 
@@ -948,7 +1083,8 @@ public class EformAction extends BaseEformAction {
 	 * @param sq
 	 * @param qa
 	 */
-	public void questionJSONforEdit(JSONObject quesJSON, Question q, Section sec, SectionQuestion sq, QuestionAttribute qa) {
+	public void questionJSONforEdit(JSONObject quesJSON, Question q, Section sec, SectionQuestion sq,
+			QuestionAttribute qa) {
 		quesJSON.put("questionId", q.getId());
 		quesJSON.put("questionName", q.getName());
 		quesJSON.put("graphicNames", eformManager.getFileNameListByQuestion(q));
@@ -959,7 +1095,7 @@ public class EformAction extends BaseEformAction {
 		quesJSON.put("questionType", q.getType().getName());
 		// added by Ching-Heng
 		quesJSON.put("catOid", q.getCatOid());
-		quesJSON.put("formItemOid", q.getFormItemOid());		
+		quesJSON.put("formItemOid", q.getFormItemOid());
 		// eForm specifc sectionQuestionId we are tracking
 		quesJSON.put("sqId", sq.getId());
 		// eForm specifc questionAttributeId we are tracking
@@ -993,7 +1129,7 @@ public class EformAction extends BaseEformAction {
 			for (CalculationQuestion calcQ : calculatedQuestions) {
 				CalculationQuestionPk cqPk = calcQ.getCalculationQuestionCompositePk();
 				questionToCalculateJson.put(PortalConstants.EFROM_SECTION_PATTERN + cqPk.getCalculationSection().getId()
-								+ PortalConstants.EFORM_QUESTION_PATTERN + cqPk.getCalculationQuestion().getId());
+						+ PortalConstants.EFORM_QUESTION_PATTERN + cqPk.getCalculationQuestion().getId());
 			}
 			attributeObjJson.put("calculationType", Integer.MIN_VALUE);
 			attributeObjJson.put("questionsToCalculate", questionToCalculateJson);
@@ -1003,10 +1139,10 @@ public class EformAction extends BaseEformAction {
 			int dtConversionFactor = qa.getDtConversionFactor().intValue();
 			attributeObjJson.put("conversionFactor", dtConversionFactor);
 			Boolean conditionalForCalc = qa.getConditionalForCalc();
-			if(conditionalForCalc == null) {
+			if (conditionalForCalc == null) {
 				conditionalForCalc = new Boolean(false);
 			}
-			
+
 			attributeObjJson.put("conditionalForCalc", conditionalForCalc.booleanValue());
 
 		} else {
@@ -1020,6 +1156,35 @@ public class EformAction extends BaseEformAction {
 
 		attributeObjJson.put("calDependent", true); // need to fix this
 	}
+	
+	/**
+	 * Translates the count information here on the server/database into the format expected by the front end
+	 * formbuilder.
+	 * 
+	 * @param attributeObjJson output element modified by this method
+	 * @param qa QuestionAttribute holding the count flag
+	 * @param sq SectionQuestion holding the count formula and list of count questions
+	 */
+	public void countJSONForEdit(JSONObject attributeObjJson, QuestionAttribute qa, SectionQuestion sq) {
+		if (qa.getCountFlag() != null && qa.getCountFlag().booleanValue()) {
+			JSONArray questionsToCountJson = new JSONArray();
+			List<CountQuestion> countQuestions = sq.getCountQuestion();
+			for (CountQuestion countQ : countQuestions) {
+				CountQuestionPk cPk = countQ.getCountQuestionCompositePk();
+				questionsToCountJson.put(PortalConstants.EFROM_SECTION_PATTERN + cPk.getCountSection().getId()
+						+ PortalConstants.EFORM_QUESTION_PATTERN + cPk.getCountQuestion().getId());
+			}
+			attributeObjJson.put("countFlag", true);
+			attributeObjJson.put("questionsInCount", questionsToCountJson);
+			attributeObjJson.put("countFormula", sq.getCountFormula());
+		}
+		else {
+			attributeObjJson.put("countFlag", false);
+			attributeObjJson.put("questionsInCount", new JSONArray());
+			attributeObjJson.put("countFormula", "");
+		}
+	}
+
 	/**
 	 * Skip rule JSON for edit
 	 * 
@@ -1061,7 +1226,7 @@ public class EformAction extends BaseEformAction {
 		VisualScale vs = q.getVisualScale();
 		JSONObject vsJSONObj = new JSONObject();
 
-		vsJSONObj.put("vscaleRangeStart",String.valueOf(vs.getStartRange()));
+		vsJSONObj.put("vscaleRangeStart", String.valueOf(vs.getStartRange()));
 		vsJSONObj.put("vscaleRangeEnd", String.valueOf(vs.getEndRange()));
 		vsJSONObj.put("vscaleRightText", vs.getRightText());
 		vsJSONObj.put("vscaleLeftText", vs.getLeftText());
@@ -1081,8 +1246,12 @@ public class EformAction extends BaseEformAction {
 	 */
 	public void emailTriggerJSONforEdit(QuestionAttribute qa, JSONObject attributeObjJson, JSONObject quesJSON) {
 		EmailTrigger et = qa.getEmailTrigger();
+		QuestionType qType = QuestionType.getByValue(attributeObjJson.getInt("qType"));
+		AnswerType ansType = qa.getAnswerType();
 		if (et != null && et.getId() != Integer.MIN_VALUE) {
 			JSONArray triggerAnswersJsonArr = new JSONArray();
+			JSONArray triggerConditionsJsonArr = new JSONArray();
+			JSONArray triggerValuesJsonArr = new JSONArray();
 			attributeObjJson.put("etId", et.getId());
 			attributeObjJson.put("eMailTriggerId", et.getId());
 			attributeObjJson.put("toEmailAddress", et.getToEmailAddress());
@@ -1091,12 +1260,14 @@ public class EformAction extends BaseEformAction {
 			attributeObjJson.put("subject", et.getSubject());
 
 			for (EmailTriggerValue etv : et.getTriggerValues()) {
-				JSONObject etAnswers = new JSONObject();
-				etAnswers.put("etValId", etv.getId());
-				etAnswers.put("etAnswer", etv.getAnswer());
-				triggerAnswersJsonArr.put(etAnswers);
+				JSONObject etValue = new JSONObject();
+				etValue.put("etValId", etv.getId());
+				etValue.put("etAnswer", etv.getAnswer());
+				etValue.put("etCondition", (etv.getTriggerCondition() == null ? "" : etv.getTriggerCondition()));
+				triggerValuesJsonArr.put(etValue);
 			}
-			attributeObjJson.put("triggerAnswers", triggerAnswersJsonArr);
+			attributeObjJson.put("triggerValues", triggerValuesJsonArr);
+
 			quesJSON.put("emailTrigger", true);
 		} else {
 			attributeObjJson.put("etId", -7);
@@ -1105,9 +1276,42 @@ public class EformAction extends BaseEformAction {
 			attributeObjJson.put("ccEmailAddress", "");
 			attributeObjJson.put("body", "");
 			attributeObjJson.put("subject", "");
-			attributeObjJson.put("triggerAnswers", new JSONArray());
+			attributeObjJson.put("triggerValues", new JSONArray());
 			quesJSON.put("emailTrigger", false);
 
+		}
+	}
+
+	/**
+	 * Btris Mapping JSON for edit
+	 * 
+	 * @param qa
+	 * @param attributeObjJson
+	 * @param quesJSON
+	 */
+	public void btrisMappingJSONforEdit(Question q, JSONObject attributeObjJson, JSONObject quesJSON) {
+		String dataElementName = q.getQuestionAttribute().getDataElementName();
+		BtrisMapping existingBM = btrisMappingManager.getBtrisMappingByDEName(dataElementName);
+		if (existingBM != null) {
+			quesJSON.put("hasBtrisMapping", true);
+			BtrisMapping associatedBM = q.getBtrisMapping();
+			if (associatedBM != null) {
+				quesJSON.put("isGettingBtrisVal", true);
+				attributeObjJson.put("btrisObservationName", associatedBM.getBtrisObservationName());
+				attributeObjJson.put("btrisRedCode", associatedBM.getBtrisRedCode());
+				attributeObjJson.put("btrisSpecimenType", associatedBM.getBtrisSpecimenType());
+			} else {
+				quesJSON.put("isGettingBtrisVal", false);
+				attributeObjJson.put("btrisObservationName", existingBM.getBtrisObservationName());
+				attributeObjJson.put("btrisRedCode", existingBM.getBtrisRedCode());
+				attributeObjJson.put("btrisSpecimenType", existingBM.getBtrisSpecimenType());
+			}
+		} else {
+			quesJSON.put("hasBtrisMapping", false);
+			quesJSON.put("isGettingBtrisVal", false);
+			attributeObjJson.put("btrisObservationName", "");
+			attributeObjJson.put("btrisRedCode", "");
+			attributeObjJson.put("btrisSpecimenType", "");
 		}
 	}
 
@@ -1126,15 +1330,14 @@ public class EformAction extends BaseEformAction {
 		secJSON.put("isRepeatable", sec.getIsRepeatable());
 		secJSON.put("isCollapsable", sec.getCollapsable());
 		secJSON.put("initRepeatedSecs", sec.getInitialRepeatedSections());
-		if(rg!=null){
-		    secJSON.put("maxRepeatedSecs", sec.getMaxRepeatedSections());		
+		if (rg != null) {
+			secJSON.put("maxRepeatedSecs", sec.getMaxRepeatedSections());
 		}
 		Long repeatedSectionParent = sec.getRepeatedSectionParent();
 		if (repeatedSectionParent == null) {
 			repeatedSectionParent = -1L;
 		}
-		String repeatedSectionParentString = String
-				.valueOf(repeatedSectionParent);
+		String repeatedSectionParentString = String.valueOf(repeatedSectionParent);
 		secJSON.put("repeatedSectionParent", repeatedSectionParentString);
 		secJSON.put("repeatableGroupName", sec.getGroupName());
 		// section layout order preservation during save edit
@@ -1153,87 +1356,75 @@ public class EformAction extends BaseEformAction {
 		if (name != null) {
 			sessionEform.getEform().setTitle(name);
 		}
-		String description = getParamValueForParamKeyFromRequest(
-				"formForm.description");
+		String description = getParamValueForParamKeyFromRequest("formForm.description");
 		// if (description != null) {
-			sessionEform.getEform().setDescription(description);
+		sessionEform.getEform().setDescription(description);
 		// }
-		String dataStructureName = getParamValueForParamKeyFromRequest(
-				"formForm.dataStructureName");
+		String dataStructureName = getParamValueForParamKeyFromRequest("formForm.dataStructureName");
 		if (dataStructureName != null) {
-			sessionEform.getEform()
-					.setFormStructureShortName(dataStructureName);
+			sessionEform.getEform().setFormStructureShortName(dataStructureName);
 		}
-		String shortName = getParamValueForParamKeyFromRequest(
-				"formForm.shortName");
+		String shortName = getParamValueForParamKeyFromRequest("formForm.shortName");
 		if (shortName != null) {
 			sessionEform.getEform().setShortName(shortName);
 		}
-		String allowMultipleCollectionInstances = this
-				.getParamValueForParamKeyFromRequest(
-						"formForm.allowMultipleCollectionInstances");
+		String allowMultipleCollectionInstances =
+				this.getParamValueForParamKeyFromRequest("formForm.allowMultipleCollectionInstances");
 		if (allowMultipleCollectionInstances != null) {
-			sessionEform.getEform().setAllowMultipleCollectionInstances(
-					Boolean.valueOf(allowMultipleCollectionInstances));
+			sessionEform.getEform()
+					.setAllowMultipleCollectionInstances(Boolean.valueOf(allowMultipleCollectionInstances));
 		}
-		String sectionColor = getParamValueForParamKeyFromRequest(
-				"formForm.sectioncolor");
+		String sectionColor = getParamValueForParamKeyFromRequest("formForm.sectioncolor");
 		if (sectionColor != null) {
 			sessionEform.getEform().setSectionNameColor(sectionColor);
 		}
-		String sectionFont = getParamValueForParamKeyFromRequest(
-				"formForm.sectionfont");
+		String sectionFont = getParamValueForParamKeyFromRequest("formForm.sectionfont");
 		if (sectionFont != null) {
 			sessionEform.getEform().setSectionNameFont(sectionFont);
 		}
-		String isDataSpring = getParamValueForParamKeyFromRequest(
-				"formForm.isDataSpring");
+		String isDataSpring = getParamValueForParamKeyFromRequest("formForm.isDataSpring");
 		if (isDataSpring != null) {
 			sessionEform.getEform().setEnableDataSpring(isDataSpring);
 		}
-		String sectionBorder = getParamValueForParamKeyFromRequest(
-				"formForm.sectionborder");
+		String sectionBorder = getParamValueForParamKeyFromRequest("formForm.sectionborder");
 		if (sectionBorder != null) {
-			sessionEform.getEform()
-					.setSectionBorder(Boolean.valueOf(sectionBorder));
+			sessionEform.getEform().setSectionBorder(Boolean.valueOf(sectionBorder));
 		}
-		String cellPadding = getParamValueForParamKeyFromRequest(
-				"formForm.cellpadding");
+		String cellPadding = getParamValueForParamKeyFromRequest("formForm.cellpadding");
 		if (cellPadding != null) {
-			sessionEform.getEform()
-					.setCellPadding(Integer.valueOf(cellPadding));
+			sessionEform.getEform().setCellPadding(Integer.valueOf(cellPadding));
 		} else {
 			sessionEform.getEform().setCellPadding(2);
 		}
-		String formColor = getParamValueForParamKeyFromRequest(
-				"formForm.formcolor");
+		String formColor = getParamValueForParamKeyFromRequest("formForm.formcolor");
 		if (formColor != null) {
 			sessionEform.getEform().setFormNameColor(formColor);
 		}
-		String fontSize = getParamValueForParamKeyFromRequest(
-				"formForm.fontSize");
+		String fontSize = getParamValueForParamKeyFromRequest("formForm.fontSize");
 		if (fontSize != null) {
 			sessionEform.getEform().setFontSize(Integer.valueOf(fontSize));
 		}
-		String formFont = getParamValueForParamKeyFromRequest(
-				"formForm.formfont");
+		String formFont = getParamValueForParamKeyFromRequest("formForm.formfont");
 		if (formFont != null) {
 			sessionEform.getEform().setFormNameFont(formFont);
 		}
-		String formBorder = getParamValueForParamKeyFromRequest(
-				"formForm.formborder");
+		String formBorder = getParamValueForParamKeyFromRequest("formForm.formborder");
 		if (formBorder != null) {
 			sessionEform.getEform().setFormBorder(Boolean.valueOf(formBorder));
 		}
-		String formFooter = getParamValueForParamKeyFromRequest(
-				"formForm.formFooter");
+		String formFooter = getParamValueForParamKeyFromRequest("formForm.formFooter");
 		if (formFooter != null) {
 			sessionEform.getEform().setFooter(formFooter);
 		}
-		String formHeader = getParamValueForParamKeyFromRequest(
-				"formForm.formHeader");
+		String formHeader = getParamValueForParamKeyFromRequest("formForm.formHeader");
 		if (formHeader != null) {
 			sessionEform.getEform().setHeader(formHeader);
+		}
+		String pfCatIdStr = getParamValueForParamKeyFromRequest("formForm.pfCategory");
+		if (pfCatIdStr != null) {
+			Long pfCatId = Long.valueOf(pfCatIdStr);
+			EformPfCategory pfCat = EformPfCategory.getById(pfCatId);
+			sessionEform.getEform().setPfCategory(pfCat);
 		}
 
 	}
@@ -1278,6 +1469,37 @@ public class EformAction extends BaseEformAction {
 		getSessionEform().getEntityMapList().add(em);
 		getSessionEform().getEntityMapAuthNameList().add(em.getAccount().getDisplayName());
 		getSessionEform().setSessionEformUserPermissionType(PermissionType.OWNER);
+	}
+
+	private HashMap<Long, BtrisMapping> generateQuestionBtrisMappingMap() {
+		HashMap<Long, BtrisMapping> questionBtrisMappingMap = new HashMap<Long, BtrisMapping>();
+		JSONArray questionJSONArr = new JSONArray(this.questionsJSON);
+		if (questionJSONArr.length() > 0) {
+			for (int i = 0; i < questionJSONArr.length(); i++) {
+				JSONObject questionJson = questionJSONArr.getJSONObject(i);
+				Boolean hasBtrisMapping = questionJson.getBoolean("hasBtrisMapping");
+				if(hasBtrisMapping) {
+					Long questionId = questionJson.getLong("questionId");
+					JSONObject attributeObjJSON = questionJson.getJSONObject("attributeObject");
+					String geDotGrpName = attributeObjJSON.getString("dataElementName");
+					String dataElementName = "none";
+					if (geDotGrpName != null && geDotGrpName.contains(".")) {
+						dataElementName = geDotGrpName.substring(geDotGrpName.indexOf(".") + 1, geDotGrpName.length());
+					} else if (geDotGrpName != null) {
+						dataElementName = geDotGrpName;
+					}
+					Boolean isGettingBtrisVal = questionJson.getBoolean("isGettingBtrisVal");
+	
+					if (dataElementName != null && !dataElementName.equals("") && isGettingBtrisVal != null
+							&& isGettingBtrisVal) {
+						BtrisMapping bm = btrisMappingManager.getBtrisMappingByDEName(dataElementName);
+						questionBtrisMappingMap.put(questionId, bm);
+	
+					}
+				}
+			}
+		}
+		return questionBtrisMappingMap;
 	}
 
 	public String getQuestionsJSON() {
@@ -1403,20 +1625,30 @@ public class EformAction extends BaseEformAction {
 	public StatusType getPublicationIdAsStatusType() {
 		return StatusType.statusOf(this.publicationId);
 	}
-	
-	public void setReason(String reason){
+
+	public void setReason(String reason) {
 		this.reason = reason;
 	}
-	
-	public String getReason(){
+
+	public String getReason() {
 		return this.reason;
 	}
-	
-	public void setOwnerName(String ownerName){
+
+	public void setOwnerName(String ownerName) {
 		this.ownerName = ownerName;
 	}
-	
-	public String getOwnerName(){
+
+	public String getOwnerName() {
 		return this.ownerName;
 	}
+
+	public String geteFormAction() {
+		return eFormAction;
+	}
+
+	public void seteFormAction(String eFormAction) {
+		this.eFormAction = eFormAction;
+	}
+
+
 }

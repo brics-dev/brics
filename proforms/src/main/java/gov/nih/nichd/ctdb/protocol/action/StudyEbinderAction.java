@@ -184,9 +184,9 @@ public class StudyEbinderAction extends BaseAction {
 			}
 			
 			if (this.getAttachId() > 0) {
-				aMan.updateAttachment(file);
+				aMan.updateAttachment(file, p.getId());
 			} else {
-				aMan.createAttachment(file);
+				aMan.createAttachment(file, p.getId());
 			}
 			
 			this.setAttachId(file.getId());

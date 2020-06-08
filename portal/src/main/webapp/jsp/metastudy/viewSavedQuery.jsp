@@ -4,7 +4,7 @@
 
 <div class="viewQueryContainer"></div>
 
-<script id="container" type="text/x-handlebars-template">
+<script id="viewSavedQueryTemplate" type="text/x-handlebars-template">
 <div class="viewQuery_studyList">
 	<div class="viewQuery_header viewQuery_studiesHeader">
 		<div class="viewQuery_headerText">Studies</div>
@@ -27,6 +27,10 @@
 
 		<div class="viewQuery_label">Description</div>
 		<div class="viewQuery_value" name="description">{{description}}</div>
+		<div class="clearfix"></div>
+
+		<div class="viewQuery_label">Created Date</div>
+		<div class="viewQuery_value" name="dateCreated">{{dateCreated}}</div>
 		<div class="clearfix"></div>
 
 		<div class="viewQuery_label">Last Updated</div>
@@ -53,6 +57,10 @@
 			</table>
 
 		</div>
+		<div class="clearfix"></div>
+
+		<div class="viewQuery_label">Query Logic</div>
+		<div class="viewQuery_value" name="queryLogic">loading...</div>
 		<div class="clearfix"></div>
 	</div>
 	

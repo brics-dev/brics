@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.mail.MessagingException;
@@ -47,6 +49,7 @@ import gov.nih.tbi.commons.model.StatusType;
 import gov.nih.tbi.commons.model.StudyStatus;
 import gov.nih.tbi.commons.service.ServiceConstants;
 import gov.nih.tbi.commons.service.util.MailEngine;
+import gov.nih.tbi.commons.util.BRICSFilesUtils;
 import gov.nih.tbi.dictionary.dao.DataElementDao;
 import gov.nih.tbi.dictionary.dao.FormStructureDao;
 import gov.nih.tbi.dictionary.dao.RepeatableGroupDao;
@@ -136,7 +139,7 @@ public class RDFGeneratorManagerImpl {
 	@Autowired
 	ModulesConstants modulesConstants;
 
-	private static final String CHANGE_DIAGNOSIS_FORM = "PDBPChangeDiagnosis"; 
+	private static final String CHANGE_DIAGNOSIS_FORM = "PDBPChangeDiagnosis";
 	private static final String LOG_START_FORMAT = "----------  RDF Gen Started at %s ----------\n";
 	private static final String LOG_SUCCESS_FORMAT = "----------  RDF Gen ended Successfully at %s ----------\n";
 	private static final String LOG_FAIL_FORMAT = "----------  RDF Gen ended with Errors at %s ----------\n";
@@ -202,7 +205,7 @@ public class RDFGeneratorManagerImpl {
 		log.info("Done!");
 	}
 
-	private void initializeLogPrinter() {
+	private File initializeLogPrinter() {
 		String filePath = rdfGenConstants.getLogPath();
 		File logFile = new File(filePath);
 
@@ -214,17 +217,17 @@ public class RDFGeneratorManagerImpl {
 				logFile.createNewFile();
 			}
 
-
 			logStream = new PrintStream(logFile);
 			String logStartString = String.format(LOG_START_FORMAT, BRICSTimeDateUtil.getCurrentReadableTimeString());
 			logStream.println(logStartString);
+			return logFile;
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-			log.error(e.getMessage());
+			log.error("Could not find the log file", e);
 		} catch (IOException e) {
-			e.printStackTrace();
-			log.error(e.getMessage());
+			log.error("Error occurred when attempting to create log file", e);
 		}
+
+		return null;
 	}
 
 	private void clearCache() {
@@ -240,14 +243,15 @@ public class RDFGeneratorManagerImpl {
 		if (!isRunning) {
 			isRunning = true;
 			clearCache();
-			initializeLogPrinter();
+			File logFile = initializeLogPrinter();
 			hasError = false;
 
 			// set the start time of the current RDF gen job.
 			// this is used to get the ttl file timestamp
 			startTime = Calendar.getInstance();
 			long myStartTime = System.currentTimeMillis();
-			// if the generate all modules is set to true, generate the repository triples as well
+			// if the generate all modules is set to true, generate the repository triples
+			// as well
 			try {
 				if (rdfFileWriter == null) {
 					rdfFileWriter = new RDFFileWriteUtil(rdfGenConstants.getTempExportDirectory(), startTime.getTime());
@@ -270,17 +274,19 @@ public class RDFGeneratorManagerImpl {
 					createRepositoryRDFDSInfo();
 				}
 
+				copyTempFileToRdfExportFolder();
 			} catch (Exception e) {
-				e.printStackTrace();
-				log.error(e.getMessage());
+				log.error("Error occurred during RDF Gen.", e);
+				e.printStackTrace(logStream);
 				hasError = true;
 			} finally {
 				isRunning = false;
 				String logEndString = null;
 
 				if (hasError) { // rdf gen ended with errors
+					log.info("Error occurred while running RDF Gen, sending failure email to infrastructure...");
 					logEndString = String.format(LOG_FAIL_FORMAT, BRICSTimeDateUtil.getCurrentReadableTimeString());
-					sendFailureEmail();
+					sendFailureEmail(logFile);
 				} else { // rdf gen ran successfully
 					logEndString = String.format(LOG_SUCCESS_FORMAT, BRICSTimeDateUtil.getCurrentReadableTimeString());
 				}
@@ -288,8 +294,6 @@ public class RDFGeneratorManagerImpl {
 				logStream.println(logEndString);
 				logStream.close();
 			}
-
-			copyTempFileToRdfExportFolder();
 
 			long endTime = System.currentTimeMillis();
 
@@ -302,8 +306,10 @@ public class RDFGeneratorManagerImpl {
 
 	/**
 	 * Copies the temporary RDF file to the real RDF-Exports folder. Do this after a gen has been completed
+	 * 
+	 * @throws IOException
 	 */
-	private void copyTempFileToRdfExportFolder() {
+	private void copyTempFileToRdfExportFolder() throws IOException {
 		File tempFile = new File(
 				RDFFileWriteUtil.generateFilePath(rdfGenConstants.getTempExportDirectory(), startTime.getTime()));
 		File newFile =
@@ -312,26 +318,37 @@ public class RDFGeneratorManagerImpl {
 		if (tempFile.renameTo(newFile)) {
 			log.info("Successfully moved " + tempFile.getAbsolutePath() + " to " + newFile.getAbsolutePath());
 		} else {
-			log.info("Failed to move " + tempFile.getAbsolutePath() + " to " + newFile.getAbsolutePath());
-			sendFailureEmail();
+			throw new IOException("Failed to move " + tempFile.getAbsolutePath() + " to " + newFile.getAbsolutePath());
 		}
 	}
 
 	/**
 	 * Send an email to infrastructure to inform of RDF gen failure
 	 */
-	private void sendFailureEmail() {
-		String emailAddress = modulesConstants.getModulesInfraEmail();
-		String mailSubject = messageSource.getMessage(ServiceConstants.RDF_GEN_FAILED_SUBJECT, null, null);
-
-		Object[] bodyArgs = new Object[] {modulesConstants.getModulesAccountURL()};
-		String mailBody = messageSource.getMessage(ServiceConstants.RDF_GEN_FAILED_BODY, bodyArgs, null);
+	private void sendFailureEmail(File logFile) {
+		// here, we are reading the rdflog file and adding it into the email to be sent
+		// to infrastructure.
+		String rdfLogContent = null;
 
 		try {
-			mailEngine.sendMail(mailSubject, mailBody, null, emailAddress);
-		} catch (MessagingException e) {
-			log.error("Error occured while trying to email infrastructure about failed RDF gen");
-			e.printStackTrace();
+			rdfLogContent = BRICSFilesUtils.readFile(logFile, StandardCharsets.UTF_8);
+			rdfLogContent = rdfLogContent.replace("\n", "<br>");
+		} catch (IOException e) {
+			rdfLogContent = "Error occurred while trying to read rdfgen.log content to email";
+			log.error(rdfLogContent, e);
+		} finally {
+			// we still want to send the email even if reading the log file caused an error
+			String emailAddress = modulesConstants.getModulesInfraEmail();
+			String mailSubject = messageSource.getMessage(ServiceConstants.RDF_GEN_FAILED_SUBJECT, null, null);
+
+			Object[] bodyArgs = new Object[] {modulesConstants.getModulesAccountURL(), rdfLogContent};
+			String mailBody = messageSource.getMessage(ServiceConstants.RDF_GEN_FAILED_BODY, bodyArgs, null);
+
+			try {
+				mailEngine.sendMail(mailSubject, mailBody, null, emailAddress);
+			} catch (MessagingException e) {
+				log.error("Error occured while trying to email infrastructure about failed RDF gen", e);
+			}
 		}
 	}
 
@@ -481,7 +498,8 @@ public class RDFGeneratorManagerImpl {
 			}
 		}
 
-		// This was added by MV to mirror the keyword logic. I'm not sure if this should actually be here. (Also
+		// This was added by MV to mirror the keyword logic. I'm not sure if this should
+		// actually be here. (Also
 		// I created the PROPERTY_LABEL constant).
 		if (de.getLabels() != null) {
 			for (Keyword l : de.getLabels()) {
@@ -492,12 +510,27 @@ public class RDFGeneratorManagerImpl {
 			}
 		}
 
+		if (de.getSeeAlso() != null) {
+			model.add(deResource, DataElementRDF.PROPERTY_SEE_ALSO,
+					ResourceFactory.createPlainLiteral(de.getSeeAlso()));
+		}
+
 		if (de.getValueRangeList() != null && !de.getValueRangeList().isEmpty()) {
 			for (ValueRange valueRange : de.getValueRangeList()) {
 				if (valueRange.getValueRange() != null) {
-
+					// **** Remove this once the code change for QT get merged back in with the
+					// release brach
 					model.add(deResource, DataElementRDF.PROPERTY_PERMISSIBLE_VALUE,
 							ResourceFactory.createPlainLiteral(valueRange.getValueRange()));
+					// ****
+
+					Resource pvResource = DataElementRDF.createPermissibleValueResource(de.getName(), valueRange);
+					model.add(pvResource, DataElementRDF.PROPERTY_PERMISSIBLE_VALUE_VALUE,
+							ResourceFactory.createPlainLiteral(valueRange.getValueRange()));
+					model.add(pvResource, RDFS.subClassOf, DataElementRDF.PERMISSIBLE_VALUE_CLASS);
+					model.add(pvResource, DataElementRDF.PROPERTY_PERMISSIBLE_VALUE_DESCRIPTION,
+							valueRange.getDescription());
+					model.add(deResource, DataElementRDF.PROPERTY_PERMISSIBLE_VALUES, pvResource);
 				}
 			}
 		}
@@ -514,11 +547,9 @@ public class RDFGeneratorManagerImpl {
 
 	}
 
-
 	public void createFormRDF() {
 		Model model = ModelFactory.createDefaultModel();
 		List<FormStructure> formList;
-
 
 		// Get Forms
 		formList = new ArrayList<FormStructure>(fsCache.values());
@@ -537,7 +568,6 @@ public class RDFGeneratorManagerImpl {
 	}
 
 	public Model addRDFForForm(Model model, FormStructure form) {
-
 
 		// Only create form triples if they are in a dataset
 		if (dsdsDao.isFormInAnyDataset(form.getId())) {
@@ -610,8 +640,10 @@ public class RDFGeneratorManagerImpl {
 
 				model.add(rgResource, RepeatableGroupRDF.PROPERTY_REPEAT_TYPE, rg.getType().toString());
 
-				// If the number of data elements is larger than the data element count threshold, then we need to have
-				// this repeatable group set to repeat in order to get around a problem in the query tool when there are
+				// If the number of data elements is larger than the data element count
+				// threshold, then we need to have
+				// this repeatable group set to repeat in order to get around a problem in the
+				// query tool when there are
 				// too many data elements in a single non-repeating repeatable group
 				if (dataElementCount > LARGE_REPEATABLE_GROUP_THRESHOLD) {
 					model.add(rgResource, RepeatableGroupRDF.PROPERTY_THRESHOLD, INFINITE_REPEAT_THRESHOLD);
@@ -650,6 +682,20 @@ public class RDFGeneratorManagerImpl {
 						model.add(rgResource, DataElementRDF.createDEProperty(de.getStructuralObject()),
 								ResourceFactory.createPlainLiteral(me.getPosition().toString()));
 					}
+
+					if (me.getRequiredType() != null) {
+						Resource requiredTypeResource =
+								DataElementRDF.createRequiredTypeResource(me);
+						model.add(requiredTypeResource, RDF.type, DataElementRDF.RESOURCE_REQUIRED_TYPE);
+						model.add(requiredTypeResource, DataElementRDF.PROPERTY_ELEMENT_NAME,
+								ResourceFactory.createPlainLiteral(de.getName()));
+						model.add(requiredTypeResource, RDFS.subClassOf, deResource);
+						model.add(requiredTypeResource, RDFS.label,
+								ResourceFactory.createPlainLiteral(me.getRequiredType().name()));
+						model.add(rgResource, RepeatableGroupRDF.RELATION_PROPERTY_HAS_REQUIRED_TYPE,
+								requiredTypeResource);
+					}
+
 					// DE --> RG
 					model.add(deResource, DataElementRDF.RELATION_PROPERTY_HAS_REPEATABLE_GROUP, rgResource);
 				}
@@ -675,7 +721,8 @@ public class RDFGeneratorManagerImpl {
 
 	public Model addRDFForStudy(Model model, Study study) {
 
-		// Only create triples if Private / Public study AND the study contains at least one dataset that is private or
+		// Only create triples if Private / Public study AND the study contains at least
+		// one dataset that is private or
 		// shared
 		if ((StudyStatus.PUBLIC.equals(study.getStudyStatus()) || StudyStatus.PRIVATE.equals(study.getStudyStatus()))) {
 			Resource studyResource = StudyRDF.createStudyResource(study);
@@ -711,6 +758,11 @@ public class RDFGeneratorManagerImpl {
 				model.add(studyResource, StudyRDF.PROPERTY_STATUS,
 						ResourceFactory.createPlainLiteral(study.getStudyStatus().getName()));
 			}
+
+			if (study.getPrefixedId() != null) {
+				model.add(studyResource, StudyRDF.PROPERTY_PREFIXED_ID,
+						ResourceFactory.createPlainLiteral(study.getPrefixedId()));
+			}
 		}
 
 		return model;
@@ -720,7 +772,6 @@ public class RDFGeneratorManagerImpl {
 	public void createDatasetRDF() {
 		Model model = ModelFactory.createDefaultModel();
 		List<BasicDataset> datasetList;
-
 
 		// Get Forms
 		datasetList = basicDatasetDao.getAll();
@@ -793,7 +844,9 @@ public class RDFGeneratorManagerImpl {
 	public void createRelationships() {
 		Model model = ModelFactory.createDefaultModel();
 
-		log.info("Creating RDF Relationships: " + studyCache.size() + " studies");
+		if (log.isDebugEnabled()) {
+			log.debug("Creating RDF Relationships: " + studyCache.size() + " studies");
+		}
 
 		// Iterate through list
 		for (Study study : studyCache.values()) {
@@ -802,7 +855,8 @@ public class RDFGeneratorManagerImpl {
 			if (study.getStudyStatus().equals(StudyStatus.PUBLIC)
 					|| study.getStudyStatus().equals(StudyStatus.PRIVATE)) {
 
-				// refactoring that creates a separate public method for calling each object in the loop.
+				// refactoring that creates a separate public method for calling each object in
+				// the loop.
 				// This mimics the behavior for the other methods in this class.
 				model = createRDFForStudyRelationship(model, study);
 			}
@@ -984,11 +1038,11 @@ public class RDFGeneratorManagerImpl {
 
 		// Get DataStoreInfo
 		List<DataStoreInfo> dsInfos = dsInfoDao.getAll();
-		List<Long> nonArchivedDatasetIds = basicDatasetDao.getNonArchivedDatasetIds();
+		List<Long> privateSharedDatasetIds = basicDatasetDao.getPrivateSharedDatasetIds();
 		Set<String> guidsFound = new HashSet<String>();
 		for (DataStoreInfo dsInfo : dsInfos) {
 			if (doesDataStoreHaveData(dsInfo)) {
-				createRDFForDSInfo(dsInfo, nonArchivedDatasetIds, guidsFound);
+				createRDFForDSInfo(dsInfo, privateSharedDatasetIds, guidsFound);
 			}
 		}
 	}
@@ -1075,12 +1129,15 @@ public class RDFGeneratorManagerImpl {
 			submissionToFormInstance.put(submissionString, formInstance);
 			model.add(formInstance, RDF.type, FormStructureRDF.createFormResource(form));
 
-			// we need to add all of the repeatable group instance rows as soon as the form instance is created.
-			// if we don't, then instanced repeatable group nodes may be missing if the row does not contain any data
+			// we need to add all of the repeatable group instance rows as soon as the form
+			// instance is created.
+			// if we don't, then instanced repeatable group nodes may be missing if the row
+			// does not contain any data
 			// for the entire repeatable group.
 			for (RepeatableGroup rg : form.getRepeatableGroups()) {
 
-				// to reuse all of the new nodes we are putting here, we need to keep track of the available rg nodes
+				// to reuse all of the new nodes we are putting here, we need to keep track of
+				// the available rg nodes
 				Resource rgInstance = RepeatableGroupRDF.createRGResourceInstance(rg, rowNum);
 				availableRgs.put(getAvailableRgKey(submissionString, rg), rgInstance);
 
@@ -1217,7 +1274,7 @@ public class RDFGeneratorManagerImpl {
 	 * during form submission.
 	 */
 	@Transactional
-	public void createRDFForDSInfo(DataStoreInfo dsInfo, List<Long> nonArchivedDatasetIds, Set<String> guidsFound) {
+	public void createRDFForDSInfo(DataStoreInfo dsInfo, List<Long> privateSharedDatasetIds, Set<String> guidsFound) {
 		log.info("Adding RDF for dsInfoID: " + dsInfo.getId());
 		// Model model = ModelFactory.createDefaultModel();
 
@@ -1239,7 +1296,7 @@ public class RDFGeneratorManagerImpl {
 
 			// cache of map element id's to the data element object
 			Map<Long, DataElement> mapElementCache = constructMapElementCache(rgCache.values());
-			DiagnosisChangeResourceBuilder diagnosisChangeBuilder = null;
+			Map<String, RDFGenResourceBuilder> resourceBuilders = new HashMap<>();
 
 			int rowNum = 1;
 			long startTime = System.currentTimeMillis();
@@ -1253,7 +1310,7 @@ public class RDFGeneratorManagerImpl {
 					log.info("Generating Triples for: " + tabInfo.getTableName());
 					long tabularStartTime = System.currentTimeMillis();
 
-					GenericTable tableResult = repoDao.queryByDataStoreTabInfo(tabInfo, nonArchivedDatasetIds);
+					GenericTable tableResult = repoDao.queryByDataStoreTabInfo(tabInfo, privateSharedDatasetIds);
 
 					if (tableResult != null) {
 						int chunkIndex = 0;
@@ -1275,14 +1332,33 @@ public class RDFGeneratorManagerImpl {
 						}
 
 						if (CHANGE_DIAGNOSIS_FORM.equalsIgnoreCase(form.getShortName())) {
+
+							RDFGenResourceBuilder diagnosisChangeBuilder = resourceBuilders.get(CHANGE_DIAGNOSIS_FORM);
+
 							if (diagnosisChangeBuilder == null) {
 								diagnosisChangeBuilder = new DiagnosisChangeResourceBuilder();
+								resourceBuilders.put(CHANGE_DIAGNOSIS_FORM, diagnosisChangeBuilder);
 							}
 
 							RepeatableGroup rg = rgCache.get(tabInfo.getRepeatableGroupId());
 							log.info("Storing data for PDBPChangeDiagnosis to create change in diagnosis flags for "
 									+ rg.getName());
 							diagnosisChangeBuilder.putTableResult(rg.getName(), tableResult);
+						}
+
+						if (rdfGenConstants.getMdsUpdrsXName().equalsIgnoreCase(form.getShortName())) {
+							RDFGenResourceBuilder mdsUpdrsXBuilder =
+									resourceBuilders.get(rdfGenConstants.getMdsUpdrsXName());
+
+							if (mdsUpdrsXBuilder == null) {
+								mdsUpdrsXBuilder = new MdsUpdrsXResourceBuilder();
+								resourceBuilders.put(rdfGenConstants.getMdsUpdrsXName(), mdsUpdrsXBuilder);
+							}
+
+							RepeatableGroup rg = rgCache.get(tabInfo.getRepeatableGroupId());
+							log.info(
+									"Storing data for MDS UPDRS X to create subject mapping flags for " + rg.getName());
+							mdsUpdrsXBuilder.putTableResult(rg.getName(), tableResult);
 						}
 					}
 
@@ -1314,14 +1390,16 @@ public class RDFGeneratorManagerImpl {
 			// long tripleNum = model.size();
 			log.info("Finished Generating all triples: " + (endTime - startTime) + "ms");
 
-			if (diagnosisChangeBuilder != null) {
-				log.info("Generating diagnosis flags...");
-				Model diagnosisChangeModel = diagnosisChangeBuilder.buildModel();
-				rdfFileWriter.writeToFile(diagnosisChangeModel);
-			}
-		} catch (
+			// write post processed triples to the triples file
+			for (Entry<String, RDFGenResourceBuilder> resourceBuilderEntry : resourceBuilders.entrySet()) {
+				String formName = resourceBuilderEntry.getKey();
+				RDFGenResourceBuilder builder = resourceBuilderEntry.getValue();
 
-		Exception e) {
+				log.info("Generating triples for: " + formName);
+				Model model = builder.buildModel();
+				rdfFileWriter.writeToFile(model);
+			}
+		} catch (Exception e) {
 			// instead of failing fast here, we will write the stack trace to the log file
 			log.error(e.getMessage());
 			e.printStackTrace(logStream);

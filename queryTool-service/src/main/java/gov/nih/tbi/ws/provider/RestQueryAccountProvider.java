@@ -82,19 +82,18 @@ public class RestQueryAccountProvider extends RestAuthenticationProvider {
 		return isAdmin;
 	}
 
-	public Account getUserAccountByUserName(String userName, String path /* constants.getAccountWebServiceURL() */)
-			throws UnsupportedEncodingException, WebApplicationException {
+	public Account getUserAccountByUserName(String userName, String path /* constants.getAccountWebServiceURL() */) {
 		log.debug("Request made to get user account by user name.");
 		ticketValid();
-		
+
 		WebClient client = createWebClient(path + "/" + userName);
 
 		client.query("ticket", getEncodedTicket());
 
 		log.info("Web service call to " + client.getCurrentURI().toString());
-		
+
 		Account userAccount = client.accept(MediaType.TEXT_XML).get(Account.class);
-		
+
 		log.debug("Got user account " + userAccount.getId());
 		cleanup();
 
@@ -111,8 +110,7 @@ public class RestQueryAccountProvider extends RestAuthenticationProvider {
 	 * @throws WebApplicationException When the web service sends a HTTP error response.
 	 */
 	public Map<String, Account> getUserAccountsByUserName(List<String> userNameList,
-			String path /* constants.getAccountMapByUserNameURL() */)
-			throws UnsupportedEncodingException, WebApplicationException {
+			String path /* constants.getAccountMapByUserNameURL() */) {
 		StringListWrapper slw = new StringListWrapper(userNameList);
 		WebClient client = createWebClient(path);
 
@@ -120,9 +118,8 @@ public class RestQueryAccountProvider extends RestAuthenticationProvider {
 
 		log.info("Web service call to " + client.getCurrentURI().toString());
 
-		AccountsMapByUsernameWrapper amw =
-				client.accept(MediaType.APPLICATION_XML).type(MediaType.APPLICATION_XML).post(slw,
-						AccountsMapByUsernameWrapper.class);
+		AccountsMapByUsernameWrapper amw = client.accept(MediaType.APPLICATION_XML).type(MediaType.APPLICATION_XML)
+				.post(slw, AccountsMapByUsernameWrapper.class);
 
 		return amw.getAccountMap();
 	}
@@ -131,7 +128,7 @@ public class RestQueryAccountProvider extends RestAuthenticationProvider {
 			String path /* constants.getSavedQueryAccessWebServiceURL() */)
 			throws UnsupportedEncodingException, WebApplicationException {
 		WebClient client = createWebClient(path);
-		
+
 		// Apply the query parameters
 		client.query("accountId", account.getId());
 		client.query("entityId", entityId);
@@ -139,15 +136,16 @@ public class RestQueryAccountProvider extends RestAuthenticationProvider {
 		client.query("ticket", getEncodedTicket());
 
 		Response response = client.accept("text/xml").get();
-		
-		if(response.getStatus() == HttpStatus.FORBIDDEN.value()) {
-			log.info("RestQueryAccountProvider :: getSavedQueryEntityPermission " + response.getStatus() + " cannot access saved query, user access denied");
+
+		if (response.getStatus() == HttpStatus.FORBIDDEN.value()) {
+			log.info("RestQueryAccountProvider :: getSavedQueryEntityPermission " + response.getStatus()
+					+ " cannot access saved query, user access denied");
 			throw new RuntimeException(account.getUserName() + " User denied access ");
 		}
-		
-		EntityMap em = (EntityMap)response.readEntity(EntityMap.class);
 
-		
+		EntityMap em = (EntityMap) response.readEntity(EntityMap.class);
+
+
 		return em;
 	}
 
@@ -160,18 +158,19 @@ public class RestQueryAccountProvider extends RestAuthenticationProvider {
 
 		// Apply the query parameters.
 		client.query("username", account.getUserName());
-		//client.query("ticket", getEncodedTicket());
+		// client.query("ticket", getEncodedTicket());
 
-		log.error("Permissions URL:" + client.getCurrentURI().toString());
-		
-		
-		
+		log.info("Permissions URL:" + client.getCurrentURI().toString());
+
+
+
 		queryPermissions = client.accept(MediaType.TEXT_XML).get(QueryPermissions.class);
 
 		return queryPermissions;
 	}
 
-	public List<EntityMap> listEntityAccess(Long entityId, EntityType type, Account account, String path /*constants.listSavedQueryPermissionsWebServiceURL()*/) throws UnsupportedEncodingException {
+	public List<EntityMap> listEntityAccess(Long entityId, EntityType type, Account account,
+			String path /* constants.listSavedQueryPermissionsWebServiceURL() */) {
 
 		WebClient client = createWebClient(path);
 
@@ -196,8 +195,7 @@ public class RestQueryAccountProvider extends RestAuthenticationProvider {
 	 * @throws WebApplicationException When the web service all produces a HTTP error response.
 	 */
 	public List<EntityMap> saveEntityList(List<EntityMap> entityList,
-			String path /* constants.updateSavedQueryPermissionListWebServiceURL() */)
-			throws UnsupportedEncodingException, WebApplicationException {
+			String path /* constants.updateSavedQueryPermissionListWebServiceURL() */) {
 		WebClient client = createWebClient(path);
 
 		client.query("ticket", getEncodedTicket());

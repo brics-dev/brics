@@ -1,0 +1,15 @@
+[DB-SRC]
+host=ibis-db-prod.cit.nih.gov
+database=dictionary_prod
+schema=dictionary
+user=dictionary
+
+[DB-TRG]
+host=localhost
+database=dictdb
+schema=dictschema
+user=dictuser
+
+[FILE-SYS]
+logDir=/var/lib/brics/log/pgCloner/prod-build-dict
+;dumpDir=/var/lib/brics/data/pgCloner/prod-build-dict

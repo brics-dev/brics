@@ -194,7 +194,11 @@ public class MetaStudyDocumentationAction extends BaseMetaStudyAction implements
 		}
 		sd.setFileType(this.getSupportingDocType());
 		
-		if("softwareName"!=null){
+		if (isEditingDoc && PortalConstants.FILETYPE_PUBLICATION.equals(sd.getFileType().getName())) {
+			sd.setPublication(pubEntry);
+		}
+		
+		if(softwareName!=null){
 			sd.setSoftwareName(this.getSoftwareName());
 		}
 		if(version!=null){

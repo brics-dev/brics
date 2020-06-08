@@ -18,8 +18,12 @@ import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlID;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
+import gov.nih.tbi.commons.model.WebServiceStringToLongAdapter;
 
 @Entity
 @Table(name = "EMAIL_TRIGGER")
@@ -32,7 +36,8 @@ public class EmailTrigger implements Serializable{
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EMAIL_TRIGGER_SEQ")
 	@SequenceGenerator(name = "EMAIL_TRIGGER_SEQ", sequenceName = "EMAIL_TRIGGER_SEQ", allocationSize = 1)
-	@XmlTransient
+	@XmlID
+	@XmlJavaTypeAdapter(WebServiceStringToLongAdapter.class)
 	private Long id;
 	
 	@Column(name = "VERSION")

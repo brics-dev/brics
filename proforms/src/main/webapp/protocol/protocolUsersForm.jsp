@@ -25,6 +25,11 @@
 
 <html>
 
+
+<%-- <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.12/css/select2.css" rel="stylesheet" /> --%>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.12/css/select2.min.css" rel="stylesheet" />
+
+
 <%-- Include Header --%>
 <s:set var="pageTitle" scope="request">
 	<s:text name="study.roles.title.display"/>
@@ -32,6 +37,8 @@
 <jsp:include page="/common/header_struts2.jsp" />
 
 <script type="text/javascript" src="<s:property value="#webRoot"/>/common/filterlist.js"></script>
+<%-- <script	src= "https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.12/js/select2.js"></script> --%>
+ <script	src= "https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.12/js/select2.min.js"></script>
 
 <script type="text/javascript">
 var canEdit = false;
@@ -62,37 +69,24 @@ function roleChanged(dropdown) {
 	var userId = target.attr("id").split("_")[1];
 	var userName = $("#username_" + userId).val();
 	var roleId = target.val();
-	var siteId = 0;
+	var siteIds = [];
 	
 	if (otherDrop.length > 0) {
-		if (roleId == 2 || roleId == 3) {
 			otherDrop.prop("disabled", false);
-			siteId = otherDrop.val();
-		}
-		else {
-			otherDrop.prop("disabled", true);
-		}
+			siteIds = otherDrop.val();
+			if (siteIds == null) {
+				otherDrop.val("0");
+				otherDrop.trigger('change');
+			}
 		
-		ChangeHandler.addChange(userId, userName, roleId, siteId);
+		ChangeHandler.addChange(userId, userName, roleId, siteIds);
 	}
 	else {
 		// site ID does not exist 
-		ChangeHandler.addChange(userId, userName, roleId, 0);
+		ChangeHandler.addChange(userId, userName, roleId, null);
 	}
 	
 	var columnIdx = 2;
-	updateDTCellContent(columnIdx, target);
-}
-
-function siteChanged(dropdown) {
-	var target = $(dropdown);
-	var roleId = target.parent().prev().children("select").val();
-	var userId = target.attr("id").split("_")[1];
-	var userName = $("#username_" + userId).val();
-	var siteId = target.val();
-	ChangeHandler.addChange(userId, userName, roleId, siteId);
-		
-	var columnIdx = 3;
 	updateDTCellContent(columnIdx, target);
 }
 
@@ -100,21 +94,35 @@ function siteChanged(dropdown) {
 function updateDTCellContent(columnIdx, target){
 	
 	var rowData = $("#protocolUsersListTable").idtApi('getApiRow', target.parent()).data(); 
-	var rowIndex = $("#protocolUsersListTable").idtApi('getApiRow', target.parent()).index(); //console.log("current row index: "+rowIndex);
+	var rowIndex = $("#protocolUsersListTable").idtApi('getApiRow', target.parent()).index();
 	
 	var roleName = target.find('option:selected').text();
-	var selectedOptionValue = target.find('option:selected').val(); //console.log("selectedOptionValue: "+selectedOptionValue);
+	var selectedOptionValue = target.find('option:selected').val();
 	//clear the selected option for further selection
 	target.find("option").attr("selected",false);
 	target.find("option[value='"+selectedOptionValue+"']").attr("selected",true);
-	//console.log("target parent html: "+target.parent().html());
 
 	var hiddenElement = target.next(); 
 	hiddenElement.text(roleName);
 	rowData.role = target.parent().html();
-	//console.log("roleChanged() after rowData.role: "+JSON.stringify(rowData.role));
 	
 	$("#protocolUsersListTable").dataTable().fnUpdate(rowData.role, rowIndex, columnIdx);
+}
+function siteChangedMultiple(dropdown) {
+	var target = $(dropdown);
+	var roleId = target.parent().prev().children("select").val();
+	var userId = target.attr("id").split("_")[1];
+	var userName = $("#username_" + userId).val();
+	var siteIds = [];
+	var i = 0;
+	$("#user_" + userId + "_site :selected").each(function(){
+		if ($(this).val() == 0) {
+			$(this).attr("selected", false);
+		} else {
+			siteIds[i++]=$(this).val();
+		}
+	});
+	ChangeHandler.addChange(userId, userName, roleId, siteIds);
 }
 
 var ChangeHandler = {
@@ -124,14 +132,14 @@ var ChangeHandler = {
 	 * two changes to be created for the same user.
 	 * They will just be updated.
 	 */
-	addChange : function(userId, userName, roleId, siteId) {
+	addChange : function(userId, userName, roleId, siteIds) {
 		var currentChange = this.findUser(userId);
 		if (currentChange != null) {
-			currentChange.update(userId, userName, roleId, siteId);
+			currentChange.update(userId, userName, roleId, siteIds);
 		}
 		else {
 			var change = new Change();
-			change.update(userId, userName, roleId, siteId);
+			change.update(userId, userName, roleId, siteIds);
 			this.changes.push(change);
 		}
 	},
@@ -169,20 +177,20 @@ function Change() {
 	this.userId = 0;
 	this.userName = '';
 	this.roleId = 0;
-	this.siteId = 0;
+	this.siteIds = [];
 }
 Change.prototype.fromJSON = function(jsonString) {
 	var obj = (typeof jsonString == "string") ? jQuery.parseJson(jsonString) : jsonString;
 	this.userId = (typeof obj.userId == "undefined") ? 0 : obj.userId;
 	this.userName = (typeof obj.userName == "undefined") ? '' : obj.userName;
 	this.roleId = (typeof obj.roleId == "undefined") ? 0 : obj.roleId;
-	this.siteId = (typeof obj.siteId == "undefined") ? 0 : obj.siteId;
+	this.siteIds = (typeof obj.siteIds == "undefined") ? 0 : obj.siteIds;
 }
-Change.prototype.update = function(userId, userName, roleId, siteId) {
+Change.prototype.update = function(userId, userName, roleId, siteIds) {
 	this.userId = userId;
 	this.userName = userName;
 	this.roleId = roleId;
-	this.siteId = siteId;
+	this.siteIds = siteIds;
 }
 
 
@@ -255,7 +263,7 @@ function cancel() {
 
 <s:form id="assignForm" method="post" theme="simple" action="saveAssignment">
 	<s:hidden name="id" id="protocolId" />
-	<s:hidden name="siteId" id="siteId" />
+	<s:hidden name="siteIds" id="siteIds" />
 	<s:hidden name="userRolesAssignment" id="userRolesAssignment" />
 </s:form>
 
@@ -425,7 +433,7 @@ $(document).ready(function() {
 <security:hasProtocolPrivilege privilege="assignuserstoprotocol">
 	<div class="formrow_1">
 		<input type="button" value="<s:text name='button.Cancel'/>" onclick="cancel()" title = "Click to cancel (changes will not be saved)." />
-		<input type="reset" value="<s:text name='button.Reset'/>" onclick="resetSelects()" title = "Click to clear fields" />
+		<input type="reset" value="<s:text name='button.Reset'/>" onclick="resetSelects()" title = "Click to reset fields" />
 		<input type="button" value="<s:text name='button.Save'/>" onclick="save()" title ="Click to save changes" />
 	</div>
 </security:hasProtocolPrivilege>

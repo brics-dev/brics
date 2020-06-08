@@ -58,7 +58,7 @@
 				{{i.name}} 
 		</div>
 	</div>
-	<button data-ng-click = "selectedIntervals()" data-ng-show="showEformButton" style="margin-top: 15px;">Get eForms</button>
+	<button data-ng-click = "selectedIntervals()" data-ng-show="showEformButton" style="margin-top: 15px; color:#ffffff;font-weight:bold">Get eForms</button>
 	<div id="errorMsg"></div>
 	<div class="eformsAndCharts">	
 		<div class="eformsContainer" data-ng-show="showEforms" style="margin-top: 5px; ">

@@ -1,0 +1,9 @@
+[DB-TRG]
+host=brics-build.cit.nih.gov
+database=dictdb
+schema=dictschema
+user=dictuser
+
+[FILE-SYS]
+queueDir=D:\DEV\BRIX\pg-rev\dict
+logDir=D:\DEV\appdata\log\pgDeployer\build-dict

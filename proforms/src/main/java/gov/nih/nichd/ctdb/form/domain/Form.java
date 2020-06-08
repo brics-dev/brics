@@ -20,6 +20,7 @@ import gov.nih.nichd.ctdb.protocol.domain.Interval;
 import gov.nih.nichd.ctdb.protocol.domain.Protocol;
 import gov.nih.nichd.ctdb.question.domain.Question;
 import gov.nih.nichd.ctdb.response.domain.DataEntryWorkflowType;
+import gov.nih.tbi.dictionary.model.EformPfCategory;
 /**
  * Form DomainObject for the NICHD CTDB Application
  * 
@@ -107,12 +108,31 @@ public class Form extends CtdbDomainObject {
 	//ordered sectionList
 	private ArrayList<Section> orderedSectionList;
 	
+	//question ids in S_Q_ format that have a calc rule
+	private Set<String> calcRuleQuestions;
+	
+	//question ids in S_Q_ format that are involved in  calc rule
+	private Set<String> calcRuleDependentQuestions;
+	
+	//question ids in S_Q_ format that have a skip rule
+	private Set<String> skipRuleQuestions;
+	
+	//question ids in S_Q_ format that are involved in  skip rule
+	private Set<String> skipRuleDependentQuestions;
+	
+	
 	// added by Ching-Heng
 	private boolean isCAT;
 	
 	private String catOid;
 	
 	private String measurementType;
+	
+	private EformPfCategory pfCategory;
+
+	private Boolean hasBtrisMappingQuestion = false;
+
+	private HashMap<String, Question> btrisQuestionMap;
 
 	/**
 	 * Default Constructor for the Form Domain Object
@@ -198,6 +218,38 @@ public class Form extends CtdbDomainObject {
 	 */
 	public CtdbLookup getStatus() {
 		return status;
+	}
+
+	public Set<String> getCalcRuleQuestions() {
+		return calcRuleQuestions;
+	}
+
+	public void setCalcRuleQuestions(Set<String> calcRuleQuestions) {
+		this.calcRuleQuestions = calcRuleQuestions;
+	}
+
+	public Set<String> getCalcRuleDependentQuestions() {
+		return calcRuleDependentQuestions;
+	}
+
+	public void setCalcRuleDependentQuestions(Set<String> calcRuleDependentQuestions) {
+		this.calcRuleDependentQuestions = calcRuleDependentQuestions;
+	}
+
+	public Set<String> getSkipRuleQuestions() {
+		return skipRuleQuestions;
+	}
+
+	public void setSkipRuleQuestions(Set<String> skipRuleQuestions) {
+		this.skipRuleQuestions = skipRuleQuestions;
+	}
+
+	public Set<String> getSkipRuleDependentQuestions() {
+		return skipRuleDependentQuestions;
+	}
+
+	public void setSkipRuleDependentQuestions(Set<String> skipRuleDependentQuestions) {
+		this.skipRuleDependentQuestions = skipRuleDependentQuestions;
 	}
 
 	/**
@@ -789,6 +841,14 @@ public class Form extends CtdbDomainObject {
 	public void setMeasurementType(String measurementType) {
 		this.measurementType = measurementType;
 	}
+		
+	public EformPfCategory getPfCategory() {
+		return pfCategory;
+	}
+	
+	public void setPfCategory(EformPfCategory pfCategory) {
+		this.pfCategory = pfCategory;
+	}
 
 	public Question getQuestion(int questionId) {
 		Question question = null;
@@ -1026,6 +1086,9 @@ public class Form extends CtdbDomainObject {
 			root.setAttribute("displayQids",
 					(Boolean.toString(this.displayQids)).toLowerCase());
 
+			root.setAttribute("hasBtrisMappingQuestion",
+					(Boolean.toString(this.hasBtrisMappingQuestion)).toLowerCase());
+
 			Element descriptionNode = document.createElement("description");
 			if (this.description != null && !this.description.equals("")) {
 				descriptionNode.appendChild(document
@@ -1246,6 +1309,22 @@ public class Form extends CtdbDomainObject {
 		this.copyRight = copyRight;
 	}
 	
+	public Boolean getHasBtrisMappingQuestion() {
+		return this.hasBtrisMappingQuestion;
+	}
+
+	public void setHasBtrisMappingQuestion(Boolean hasBtrisMappingQuestion) {
+		this.hasBtrisMappingQuestion = hasBtrisMappingQuestion;
+	}
+
+	public HashMap<String, Question> getBtrisQuestionMap() {
+		return btrisQuestionMap;
+	}
+
+	public void setBtrisQuestionMap(HashMap<String, Question> btrisQuestionMap) {
+		this.btrisQuestionMap = btrisQuestionMap;
+	}
+
 	public String validateFormInformation(){
 		String msg  = "";
 		if(this.name == null || this.name.trim().isEmpty()){

@@ -16,9 +16,9 @@
 		<property name="jdbcUrl" value="${jdbc.meta.url}" />
 		<property name="username" value="${jdbc.meta.username}" />
 		<property name="password" value="${jdbc.meta.password}" />
-		<property name="maximumPoolSize" value="10" />
-		<property name="idleTimeout" value="600000" />
-		<property name="maxLifetime" value="3600000" />
+		<property name="maximumPoolSize" value="${jdbc.meta.maximumPoolSize}" />
+		<property name="idleTimeout" value="${jdbc.meta.idleTimeout}" />
+		<property name="maxLifetime" value="${jdbc.meta.maxLifetime}" />
 	</bean>
 
 	<bean id="rdfConnection" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
@@ -26,9 +26,9 @@
 		<property name="jdbcUrl" value="${rdf.url}" />
 		<property name="username" value="${rdf.username}" />
 		<property name="password" value="${rdf.password}" />
-		<property name="maximumPoolSize" value="10" />
-		<property name="idleTimeout" value="600000" />
-		<property name="maxLifetime" value="3600000" />
+		<property name="maximumPoolSize" value="${rdf.maximumPoolSize}" />
+		<property name="idleTimeout" value="${rdf.idleTimeout}" />
+		<property name="maxLifetime" value="${rdf.maxLifetime}" />
 	</bean>
 
 	<bean id="repositoryConnection" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
@@ -36,9 +36,19 @@
 		<property name="jdbcUrl" value="${jdbc.repo.url}" />
 		<property name="username" value="${jdbc.repo.username}" />
 		<property name="password" value="${jdbc.repo.password}" />
-		<property name="maximumPoolSize" value="10" />
-		<property name="idleTimeout" value="600000" />
-		<property name="maxLifetime" value="3600000" />
+		<property name="maximumPoolSize" value="${jdbc.repo.maximumPoolSize}" />
+		<property name="idleTimeout" value="${jdbc.repo.idleTimeout}" />
+		<property name="maxLifetime" value="${jdbc.repo.maxLifetime}" />
+	</bean>
+	
+	<bean id="proformsConnection" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
+		<property name="driverClassName" value="${proforms.db.jdbc.Driver}" />
+		<property name="jdbcUrl" value="${proforms.db.jdbc.url}" />
+		<property name="username" value="${proforms.db.username}" />
+		<property name="password" value="${proforms.db.password}" />
+		<property name="maximumPoolSize" value="${proforms.cp.maximumPoolSize}" />
+		<property name="idleTimeout" value="${proforms.cp.idleTimeout}" />
+		<property name="maxLifetime" value="${proforms.cp.maxLifetime}" />
 	</bean>
 
 
@@ -78,6 +88,23 @@
 			</props>
 		</property>
 	</bean>
+	
+	<!-- PROFORMS FACTORY -->
+	<bean id="proformsFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<property name="dataSource" ref="proformsConnection" />
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.PostgreSQLDialect</prop>
+				<prop key="hibernate.show_sql">false</prop>
+				<prop key="hibernate.format_sql">false</prop>
+				<prop key="hibernate.use_sql_comments">false</prop>
+				<prop key="javax.persistence.validation.mode">NONE</prop>
+				<prop key="hibernate.jdbc.batch_size">30</prop>
+				<prop key="hibernate.temp.use_jdbc_metadata_defaults">false</prop>
+			</props>
+		</property>
+		<property name="packagesToScan" value="gov.nih.tbi" />
+	</bean>
 
 
 
@@ -91,11 +118,16 @@
 	<bean id="repositoryTransactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
 		<property name="sessionFactory" ref="reposFactory" />
 	</bean>
+	
+	<bean id="proformsTransactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+		<property name="sessionFactory" ref="proformsFactory" />
+	</bean>
 	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 	<!-- enable the configuration of transactional behavior based on annotations -->
 	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 	
 	<tx:annotation-driven transaction-manager="metaTransactionManager" />
 	<tx:annotation-driven transaction-manager="repositoryTransactionManager" />
+	<tx:annotation-driven transaction-manager="proformsTransactionManager" />
 	
 </beans>

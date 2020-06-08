@@ -136,14 +136,14 @@ public class ProtocolUsersAction extends BaseAction {
         try {
         	if ( !Utils.isBlank(getUserRolesAssignment()) ) {
         		JSONArray input = new JSONArray(getUserRolesAssignment());
-        		JSONObject inputObj = null;
+        		JSONObject inputObj = new JSONObject();
 
         		for (int i = 0; i < input.length(); i++) {
         			inputObj = (JSONObject) input.get(i);
        			
         			String userName = "";
         			int roleId = 0;
-        			int siteId = 0;
+        			JSONArray siteIds = new JSONArray();
 
         			if (inputObj.has("roleId")) {
         				roleId = Integer.parseInt(inputObj.getString("roleId"));
@@ -151,11 +151,19 @@ public class ProtocolUsersAction extends BaseAction {
         			if (inputObj.has("userName")) {
         				userName = inputObj.getString("userName");
         			}
-        			if (inputObj.has("siteId")) {
-        				siteId = inputObj.getInt("siteId");
-        			}
-       			
-        			// enforce required data
+        			
+        			if (inputObj.has("siteIds")) {
+        				try {
+         					siteIds = inputObj.getJSONArray("siteIds");
+         					if(siteIds.length() == 0) {
+         						siteIds = null;
+         					}
+        				} catch (Exception e) {
+        					logger.info("User Role is not assigned any site.");
+        					siteIds = null;
+        				}
+       				}
+           			// enforce required data
         			if (userName.length() == 0) {
         				addActionError("The user name was not set when trying to change roles");
         				throw new CtdbException("The user name was not set when trying to change roles");
@@ -177,7 +185,7 @@ public class ProtocolUsersAction extends BaseAction {
         			ProtocolManager protoMan = new ProtocolManager();
         			
         			try {
-        				protoMan.associateProtocolUser(protocol.getId(), siteId, roleId, doesExistUser.getId());
+        				protoMan.associateProtocolUser(protocol.getId(), siteIds, roleId, doesExistUser.getId());
         			}
         			catch (Exception e) {
         				addActionError(getText(StrutsConstants.ERROR_DUPLICATE, Arrays.asList("study users")));
@@ -223,15 +231,15 @@ public class ProtocolUsersAction extends BaseAction {
     	List<ProtocolRoleUser> users = new ArrayList<ProtocolRoleUser>(allUsers.size());
     	ProtocolRoleUser protocolUser;
     	Role userRole;
-    	Site userSite;
+    	List<Site> userSites = new ArrayList<Site>();
     	
     	for (User user : allUsers) {
     		protocolUser = new ProtocolRoleUser();
     		protocolUser.setUser(user);
     		userRole = secMan.getUserRole(user.getId(), protocolId);
-    		userSite = secMan.getUserProtocolSite(user.getId(), protocolId);
-    		protocolUser.setRole(userRole);
-    		protocolUser.setSite(userSite);
+    		userSites = secMan.getUserProtocolSites(user.getId(), protocolId);
+      		protocolUser.setRole(userRole);
+    		protocolUser.setSites(userSites);
     		users.add(protocolUser);
     	}
     	

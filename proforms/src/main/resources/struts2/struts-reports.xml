@@ -11,12 +11,26 @@
 		<action name="studyReport" class="gov.nih.nichd.ctdb.response.action.StaticQueryAction">
 			<result name="success">studyReportHome.jsp</result>
 		</action>
+		<action name="detailedStudyReport" class="gov.nih.nichd.ctdb.response.action.StaticQueryAction">
+			<result name="success">detailedStudyReportHome.jsp</result>
+		</action>
 		<action name="getStudyReportList" class="gov.nih.nichd.ctdb.response.action.StaticQueryAction" method="getStudyReportList">
 			<result name="success" type="json">
 				<param name="noCache">true</param>
 				<param name="excludeNullProperties">true</param>
 			</result>
-		</action>		
+		</action>
+		<action name="getDetailedStudyReportList" class="gov.nih.nichd.ctdb.response.action.StaticQueryAction" method="getDetailedStudyReportList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>
+		
+		
+		<action name="studyReportExport" class="gov.nih.nichd.ctdb.response.action.StaticQueryAction" method="exportDetailedProtocolCSV">
+
+		</action>				
 		
 		<!-- Completed Visits -->
 		<action name="completedVisits" class="gov.nih.nichd.ctdb.response.action.ReportingAction" method="showCompletedVisits">
@@ -128,6 +142,36 @@
 				<param name="errorMessage">${errRespMsg}</param>
 			</result>
 			<allowed-methods>getClinicLocListByProto,getPatientListByProto</allowed-methods>
+		</action>
+		
+		<!-- Adverse Event -->
+		<action name="adverseEvent" class="gov.nih.nichd.ctdb.response.action.ReportingAction" method="adverseEvent">
+			<result name="success">adverseEvent.jsp</result>
+		</action>
+		<!-- Adverse Event Table-->
+		<action name="getAEs" class="gov.nih.nichd.ctdb.response.action.ReportingAction" method="getAEs">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>
+		<!-- View Query -->
+		<action name="viewAuditComments" class="gov.nih.nichd.ctdb.response.action.ReportingAction" method="viewAuditorComments">
+			<result name="success">viewAuditorComments.jsp</result>
+		</action>
+		<!-- View Auditor Comments Summary-->
+		<action name="getVQSum" class="gov.nih.nichd.ctdb.response.action.ReportingAction" method="getVQSum">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>
+		<!-- View Auditor Comments Details-->
+		<action name="getAuditorCommentsDetailList" class="gov.nih.nichd.ctdb.response.action.ReportingAction" method="getAuditorCommentsDetailList">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
 		</action>
 	</package>
 	

@@ -6,6 +6,10 @@
 
 <script type="text/javascript" src="/proforms/workspace/dashboardChartNg.js"></script>
 <link rel="stylesheet" type="text/css" href="<s:property value="#webRoot"/>/common/css/dataCollection.css">
+<script type="text/javascript">
+var basePath = "<s:property value='#webRoot'/>";
+var exportServerUrl = '<s:property  value="#systemPreferences.get('highcharts.exportserver.url')"/>';
+</script>
 <div ng-app="dashboardApp" ng-controller="DashboardCtrl" id="dashboardChart">
 	<div ng-if="chartFilters.currentStudyId != 'all'">
 		<div id="dashboardSubStatusDiv" class="ng-scope">
@@ -26,16 +30,16 @@
 						   	</tr>
 						</table>
 						<br/>
-						<table cellspacing="0" cellpadding="0" >
+						<table cellspacing="0" cellpadding="0" id="table_id">
 						   	<tr>
-						    	<td ng-repeat="(key, value) in studyInfo.studyMap">
+						    	<td ng-repeat="(key, value) in studyInfo.sortedStudyMap">
 						    	<div ng-if="value.length!=0">
-		  					    	<div class="dashboartooltip badge blue" id="popUpMSDiv12">{{key}}
+		  					    	<div class="dashboartooltip badge blue" id="popUpMSDiv12">Year {{key}}
 										<span class="tooltiptext"><ul><b>Major Milestones for {{key}}</b></ul><br><ul ng-repeat="v in value"> - {{v}}</ul></span>
 		  					    	</div>
 							    </div>
 							    <div ng-if="value.length==0">
-							    	<div class="badge">{{key}}</div>
+							    	<div class="badge">Year {{key}}</div>
 							    </div>
 							   	</td>
 							</tr>
@@ -53,16 +57,16 @@
 						<colgroup span="5"></colgroup>
 					   	<tbody>
 					     	<tr class="status">
-					       		<div><th>Assessment Type</th></div>
-					      		<div><th>Complete<div class="greenCircle statusBox"></div></th> </div>
-								<div><th>&nbsp;&nbsp;In complete<div class="redCircle floatRight statusBox"></div> </th></div>
-								<div><th>&nbsp;&nbsp;In progress<div class="blue floatRight statusBox"></div> </th></div>
-								<div><th>&nbsp;&nbsp;Deviations<div class="yellowCircle floatRight statusBox"></div></th></div>
+					       		<div><th align="left" width="25%">Assessment Type</th></div>
+					      		<div><th align="center">&nbsp;&nbsp;&nbsp;Complete</th> </div>
+								<div><th align="center">&nbsp;&nbsp;&nbsp;&nbsp;Locked</th></div>
+								<div><th align="center">In progress</th></div>
+								<div><th align="center">Deviations</th></div>
 					     	</tr>
 					     	<tr ng-repeat="status in statusData">
-							    <td align="left">{{ status.assessmentType }}</td>
+							    <td align="left"  width="25%">{{ status.assessmentType }}</td>
 							    <td align="center">{{ status.compVal }}</td>
-							    <td align="center">{{ status.inCompVal }}</td>
+							    <td align="center">{{ status.lockedVal }}</td>
 							    <td align="center">{{ status.inProgVal }}</td>
 							    <td align="center">{{ status.devVal }}</td>
 							 </tr>

@@ -1,0 +1,7 @@
+[FILE-SYS]
+logDir=/var/lib/brics/log/propPasswdUtil/prod-nti-cas
+passFile=/home/buildman/.pgpass
+
+[DEPLOY]
+trgRoot=/var/lib/brics/remote/prod/nti-cas
+srcRoot=/var/lib/brics/src/local/prop/prod/nti-cas

@@ -18,8 +18,7 @@
 		</div>
 		
 		<h2>
-			Account Renewal: User
-			<s:property value="currentAccount.userName" />
+			Account Renewal: <s:property value="currentAccount.userName" />
 		</h2>
 
 		<div class="margin-top-sm">
@@ -388,10 +387,9 @@
 									id: "renew",
 									text: "Renew",
 									click: function() {
-										if(validateComments()) {
-											renewPrivileges();
+										if (validateComments()) {
 											$(this).dialog("close");
-											window.location.href = "accountReportsAction!renewalList.action"
+											$("#renewAccountForm").submit();
 										}
 									}
 								}
@@ -413,28 +411,6 @@
 					}
 				}
 				return valid;
-		   }
-		   
-		   function renewPrivileges() {
-			   
-			   var expirationDate = $("#renewPrivilegesExpireDate").val();
-			   var renewPrivilegesComment = $("#renewPrivilegesComment").val();
-
-			   $.ajax({
-					 type: "POST",
-					 url: "accountReportsAction!renewPrivileges.ajax",
-					 data: {"expirationDate" : expirationDate,
-						 "renewPrivilegesComment" :renewPrivilegesComment},
-					 success: function(data) {
-						//reload datatable
-						 if (data == "success"){ 
-								$('#accountHistoryTable').DataTable().ajax.reload();	
-								$('#accountRoleListTable').DataTable().ajax.reload();
-						 }else{
-							 console.log("error!!!");
-						 }		
-					 } 
-				 }); 
 		   }
 	
 </script>

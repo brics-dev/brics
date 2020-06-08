@@ -152,5 +152,8 @@
             </props>
         </property>
     </bean>
+    
+    <!-- Register a context closed handler to do some cleanup when the Spring Context shuts down. -->
+    <bean id="contextClosedHandler" class="gov.nih.brics.cas.config.CasContextClosedHandler" />
 
 </beans>

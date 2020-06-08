@@ -52,6 +52,8 @@ public class AccountDetailService implements UserDetailsService, AuthenticationU
 	private static Logger logger = Logger.getLogger(AccountDetailService.class);
 	private static final long serialVersionUID = 2628156955029307389L;
 
+	private static final String ROLE_UNSIGNED = "ROLE_UNSIGNED";
+
 	private static SavedRequestAwareAuthenticationSuccessHandler SUCCESS_HANDLER =
 			new SavedRequestAwareAuthenticationSuccessHandler();
 
@@ -74,12 +76,7 @@ public class AccountDetailService implements UserDetailsService, AuthenticationU
 				QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
 
 		Account acc = null;
-		try {
-			acc = accountProvider.getUserAccountByUserName(auth.getName(), constants.getAccountWebServiceURL());
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		acc = accountProvider.getUserAccountByUserName(auth.getName(), constants.getAccountWebServiceURL());
 
 		AccountUserDetails userDetails = null;
 
@@ -108,12 +105,7 @@ public class AccountDetailService implements UserDetailsService, AuthenticationU
 				QueryRestProviderUtils.getProxyTicket(constants.getModulesAccountURL()));
 
 		Account acc = null;
-		try {
-			acc = accountProvider.getUserAccountByUserName(username, constants.getAccountWebServiceURL());
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		acc = accountProvider.getUserAccountByUserName(username, constants.getAccountWebServiceURL());
 		AccountUserDetails userDetails = null;
 
 		if (acc != null) {
@@ -192,13 +184,18 @@ public class AccountDetailService implements UserDetailsService, AuthenticationU
 	 * @param accountRoleList
 	 * @return
 	 */
-	public static Collection<GrantedAuthority> getAuthorities(Collection<AccountRole> accountRoleList) {
+	public static Collection<GrantedAuthority> getAuthorities(Account account) {
 
 		Set<GrantedAuthority> authorities = new HashSet<GrantedAuthority>();
 
+		if (account.getBricsESignature() == null) {
+			authorities.add(new SimpleGrantedAuthority(ROLE_UNSIGNED));
+			return authorities;
+		}
+
 		Date currentDate = new Date();
 
-		for (AccountRole ar : accountRoleList) {
+		for (AccountRole ar : account.getAccountRoleList()) {
 			if (ar.getIsActive() && (ar.getExpirationDate() == null || currentDate.before(ar.getExpirationDate()))) {
 				authorities.add(new SimpleGrantedAuthority(ar.getRoleType().getName()));
 			}
@@ -226,25 +223,19 @@ public class AccountDetailService implements UserDetailsService, AuthenticationU
 	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
 			AuthenticationException exception) throws IOException, ServletException {
 
-/*		AuthenticationException.getAuthentication() is deprecated to avoid potential leaking of sensitive information
-		// Got a null pointer here so added check
-		if (exception != null && exception.getAuthentication() != null
-				&& exception.getAuthentication().getName() != null) {
-			logger.debug("Someone failed to log into the system with the username: "
-					+ exception.getAuthentication().getName());
-			logger.debug("exception type was: " + exception.getClass());
-		}
+		/*
+		 * AuthenticationException.getAuthentication() is deprecated to avoid potential leaking of sensitive information
+		 * // Got a null pointer here so added check if (exception != null && exception.getAuthentication() != null &&
+		 * exception.getAuthentication().getName() != null) {
+		 * logger.debug("Someone failed to log into the system with the username: " +
+		 * exception.getAuthentication().getName()); logger.debug("exception type was: " + exception.getClass()); }
+		 * 
+		 * // Make updates to failed attempts table if the credentials were wrong if (exception instanceof
+		 * BadCredentialsException) { // Don't log a blank username/password combination if
+		 * (!(QueryToolConstants.EMPTY_STRING.equals(exception.getAuthentication().getName()) &&
+		 * QueryToolConstants.EMPTY_STRING .equals((String) exception.getAuthentication().getCredentials()))) { } }
+		 */
 
-		// Make updates to failed attempts table if the credentials were wrong
-		if (exception instanceof BadCredentialsException) {
-			// Don't log a blank username/password combination
-			if (!(QueryToolConstants.EMPTY_STRING.equals(exception.getAuthentication().getName())
-					&& QueryToolConstants.EMPTY_STRING
-							.equals((String) exception.getAuthentication().getCredentials()))) {
-			}
-		}
-*/
-		
 		String redirectUrl = QueryToolConstants.LOGIN_FAILURE_DEFAULT;
 
 		// sets information for the login-error page to display when the account is unlocked

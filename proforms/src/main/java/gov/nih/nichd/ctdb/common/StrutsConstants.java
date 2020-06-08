@@ -58,9 +58,11 @@ public class StrutsConstants {
 	public static final String SUBJECT_INTERVAL_NAME ="pIntervName";
 	//session variable to track which subject is collecting data
 	public static final String SUBJECT_COLLECTING_DATA = "subjectCollecting";
+	public static final String AUDITCOMMENTS = "auditComments";
 	
 	public static final String TOKEN = "token";
 	
+	public static final String HIDDENIDS = "hiddenSectionsQuestionsPVsElementIdsJSON";
 	
     /**
      * Struts Constant used for Action Forwarding if the action failed
@@ -801,6 +803,8 @@ public class StrutsConstants {
     public static final String ACTION_PROCESS_CHANGE_ORDER = "action_process_order_change";
     
     public static final String ACTION_CLEAR_SESSION_VARIABLES = "action_clear_session_variables";
+    
+    public static final String ACTION_VIEW_RANDOMIZATION = "viewRandomization";
 
     /**
      * Struts Constant used for ActionMessages if the action succeeded in sending an email from CTDB application
@@ -808,8 +812,6 @@ public class StrutsConstants {
     public static final String SUCCESS_EMAIL_SEND = "email.success.send";
 
     public static final String IMPORTED_FORM_ANSWER_JS = "importFormAnswerJs";
-
-    public static final String CHANGE_PASSWORD = "_changePassword";
     
     public static final String ERROR_STUDY_NUMBER_REQUIRED = "errors.study.number.required";
     public static final String ERROR_STUDY_NAME_REQUIRED = "errors.study.name.required";

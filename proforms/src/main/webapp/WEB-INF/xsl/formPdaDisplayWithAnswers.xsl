@@ -2,6 +2,7 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <xsl:param name="webroot"/>
     <xsl:variable name="displaytop" select="/form/TOC/@display"/>
+    <xsl:variable name="hasBtrisMappingQuestion" select="/form/@hasBtrisMappingQuestion"/>
     <xsl:param name="imageroot"/>
     <xsl:param name="cssstylesheet"/>
     <xsl:variable name="fontReduction" select="'smaller'"/>
@@ -29,7 +30,18 @@
                 <tr><td><img src="{$imageroot}/spacer.gif" width="1" height="10" alt="" border="0"/></td></tr>
             </tr>
             -->
-
+          	<tr align="left"><!-- BTRIS Get All Button -->
+	          <td>
+		           <xsl:choose>
+	                     <xsl:when test="$hasBtrisMappingQuestion = 'true'">
+	                     	<input type="button" id="getAllBtrisData" value="Get All BTRIS Data" class="allBtrisDataBtn" 
+	  									title="Get All BTRIS Data for All Mapped Questions"
+	  									onclick="openMappedBtrisQuestionsDlg();" 
+	  									style="float: right; display: none;"/>
+	   					</xsl:when>
+	   			    </xsl:choose>
+	          </td>
+	        </tr>
             <xsl:apply-templates select="TOC"/>
             <!--  <tr>
            <td> -->
@@ -623,6 +635,7 @@
                     <td align="{formQuestionAttributes/htmlAttributes/align}"
                         valign="{formQuestionAttributes/htmlAttributes/valign}" width="40%"
                         style="font-family: {formQuestionAttributes/htmlAttributes/fontFace}; color: {formQuestionAttributes/htmlAttributes/color};">
+                        <div style="display: table-cell; float: left;">
                         <!-- DETERMINE IF QUESTION HAS SKIP RULE -->
                         <xsl:choose>
                             <xsl:when test="$hasSkipRule = 'false'">
@@ -913,6 +926,10 @@
                                 </xsl:choose>
                             </xsl:otherwise>
                         </xsl:choose>
+                      </div>
+                   	  <div width="5%" class="enterAuditComment" style="display: none; float: right; margin-right: 10%;" id="enterAuditComment_S_{$questionSectionNode}_Q_{$qid}"   >
+                     	  <img  id="imgAuditComment_S_{$questionSectionNode}_Q_{$qid}" src="{$webroot}/images/icons/comment.png" alt="Enter Comments" title="Enter comments" width="20" height="20"  />
+                      </div>
                         <input type="hidden" id="Q_{$qid}_default" value="{$default}"/>
                     </td>
                 </xsl:otherwise>

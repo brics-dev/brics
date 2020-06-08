@@ -1,6 +1,12 @@
 package gov.nih.tbi.filter;
 
-import static org.testng.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,40 +15,17 @@ import org.testng.annotations.Test;
 
 import com.google.gson.JsonObject;
 
-import gov.nih.tbi.constants.QueryToolConstants;
+import gov.nih.tbi.commons.model.DataType;
+import gov.nih.tbi.exceptions.FilterEvaluatorException;
 import gov.nih.tbi.pojo.DataElement;
 import gov.nih.tbi.pojo.FilterType;
 import gov.nih.tbi.pojo.FormResult;
 import gov.nih.tbi.pojo.RepeatableGroup;
-import gov.nih.tbi.repository.model.InstancedRepeatableGroupRow;
+import gov.nih.tbi.repository.model.InstancedRecord;
 import gov.nih.tbi.repository.model.InstancedRow;
 import gov.nih.tbi.repository.model.NonRepeatingCellValue;
-import gov.nih.tbi.repository.model.RepeatingCellColumn;
-import gov.nih.tbi.repository.model.RepeatingCellValue;
-
-import static org.mockito.Mockito.*;
 
 public class FreeFormFilterTest {
-
-	@Test
-	public void testFactory() {
-		FormResult form = new FormResult();
-		form.setShortName("testForm");
-		form.setVersion("1.0");
-
-		RepeatableGroup rg = new RepeatableGroup();
-		rg.setUri("testRg");
-		rg.setName("testRg");
-
-		DataElement de = new DataElement();
-		de.setUri("testDe");
-		de.setName("testDe");
-
-		Filter f1 = FilterFactory.createFreeFormFilter(form, rg, de, false, "test");
-		FreeFormFilter f2 = new FreeFormFilter(form, rg, de, false, "test");
-
-		assertEquals(f1, f2);
-	}
 
 	@Test
 	public void testEquals() {
@@ -58,8 +41,8 @@ public class FreeFormFilterTest {
 		de.setUri("testDe");
 		de.setName("testDe");
 
-		FreeFormFilter f1 = FilterFactory.createFreeFormFilter(form, rg, de, false, "test");
-		FreeFormFilter f2 = FilterFactory.createFreeFormFilter(form, rg, de, false, "test");
+		FreeFormFilter f1 = new FreeFormFilter(form, rg, de, "test", "f", null, null, null, FilterMode.EXACT);
+		FreeFormFilter f2 = new FreeFormFilter(form, rg, de, "test", "f", null, null, null, FilterMode.EXACT);
 		assertEquals(f1, f2);
 
 		f2.setValue("test123");
@@ -81,8 +64,8 @@ public class FreeFormFilterTest {
 		de.setUri("testDe");
 		de.setName("testDe");
 
-		Filter f1 = FilterFactory.createFreeFormFilter(form, rg, de, false, "test");
-		Filter f2 = FilterFactory.createFreeFormFilter(form, rg, de, false, "test");
+		Filter f1 = new FreeFormFilter(form, rg, de, "test", "f", null, null, null, FilterMode.EXACT);
+		Filter f2 = new FreeFormFilter(form, rg, de, "test", "f", null, null, null, FilterMode.EXACT);
 		assertEquals(f1.hashCode(), f2.hashCode());
 	}
 
@@ -100,17 +83,17 @@ public class FreeFormFilterTest {
 		de.setUri("testDe");
 		de.setName("testDe");
 
-		Filter f = FilterFactory.createFreeFormFilter(form, rg, de, false, "test");
+		Filter f = new FreeFormFilter(form, rg, de, "test", "f", null, null, null, FilterMode.EXACT);
 		JsonObject j = f.toJson();
 		assertEquals("testRg", j.get("groupUri").getAsString());
 		assertEquals("testDe", j.get("elementUri").getAsString());
 		assertEquals("test", j.get("freeFormValue").getAsString());
-		assertEquals(false, j.get("blank").getAsBoolean());
+		assertEquals("exact", j.get("mode").getAsString());
 		assertEquals(FilterType.FREE_FORM.name(), j.get("filterType").getAsString());
 	}
 
 	@Test
-	public void testEval1() {
+	public void testExactEval1() {
 		FormResult form = new FormResult();
 		form.setShortName("testForm");
 		form.setVersion("1.0");
@@ -122,10 +105,11 @@ public class FreeFormFilterTest {
 		DataElement de = new DataElement();
 		de.setUri("testDe");
 		de.setName("testDe");
+		de.setType(DataType.ALPHANUMERIC);
 
-		Filter f = FilterFactory.createFreeFormFilter(form, rg, de, false, "test");
+		Filter f = new FreeFormFilter(form, rg, de, "test", "f", null, null, null, FilterMode.EXACT);
 		InstancedRow row = mock(InstancedRow.class);
-		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue("test");
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.ALPHANUMERIC, "test");
 		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
 
 		boolean eval = f.evaluate(row);
@@ -134,7 +118,7 @@ public class FreeFormFilterTest {
 	}
 
 	@Test
-	public void testEval2() {
+	public void testExactEval2() {
 		FormResult form = new FormResult();
 		form.setShortName("testForm");
 		form.setVersion("1.0");
@@ -146,34 +130,11 @@ public class FreeFormFilterTest {
 		DataElement de = new DataElement();
 		de.setUri("testDe");
 		de.setName("testDe");
+		de.setType(DataType.ALPHANUMERIC);
 
-		Filter f = FilterFactory.createFreeFormFilter(form, rg, de, false, "test");
+		Filter f = new FreeFormFilter(form, rg, de, "test", "f", null, null, null, FilterMode.EXACT);
 		InstancedRow row = mock(InstancedRow.class);
-		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue("123test123");
-		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
-
-		boolean eval = f.evaluate(row);
-
-		assertTrue(eval);
-	}
-
-	@Test
-	public void testEval3() {
-		FormResult form = new FormResult();
-		form.setShortName("testForm");
-		form.setVersion("1.0");
-
-		RepeatableGroup rg = new RepeatableGroup();
-		rg.setUri("testRg");
-		rg.setName("testRg");
-
-		DataElement de = new DataElement();
-		de.setUri("testDe");
-		de.setName("testDe");
-
-		Filter f = FilterFactory.createFreeFormFilter(form, rg, de, false, "test");
-		InstancedRow row = mock(InstancedRow.class);
-		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue("random stuff");
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.ALPHANUMERIC, "123test123");
 		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
 
 		boolean eval = f.evaluate(row);
@@ -182,7 +143,7 @@ public class FreeFormFilterTest {
 	}
 
 	@Test
-	public void testEval4() {
+	public void testExactEval3() {
 		FormResult form = new FormResult();
 		form.setShortName("testForm");
 		form.setVersion("1.0");
@@ -194,84 +155,11 @@ public class FreeFormFilterTest {
 		DataElement de = new DataElement();
 		de.setUri("testDe");
 		de.setName("testDe");
+		de.setType(DataType.ALPHANUMERIC);
 
-		Filter f = FilterFactory.createFreeFormFilter(form, rg, de, false, "test");
+		Filter f = new FreeFormFilter(form, rg, de, "test", "f", null, null, null, FilterMode.EXACT);
 		InstancedRow row = mock(InstancedRow.class);
-		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue("123test");
-		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
-
-		boolean eval = f.evaluate(row);
-
-		assertTrue(eval);
-	}
-
-	@Test
-	public void testEval5() {
-		FormResult form = new FormResult();
-		form.setShortName("testForm");
-		form.setVersion("1.0");
-
-		RepeatableGroup rg = new RepeatableGroup();
-		rg.setUri("testRg");
-		rg.setName("testRg");
-
-		DataElement de = new DataElement();
-		de.setUri("testDe");
-		de.setName("testDe");
-
-		Filter f = FilterFactory.createFreeFormFilter(form, rg, de, false, "test");
-		InstancedRow row = mock(InstancedRow.class);
-		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue("tEsT123");
-		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
-
-		boolean eval = f.evaluate(row);
-
-		assertTrue(eval);
-	}
-
-	@Test
-	public void testEval6() {
-		FormResult form = new FormResult();
-		form.setShortName("testForm");
-		form.setVersion("1.0");
-
-		RepeatableGroup rg = new RepeatableGroup();
-		rg.setUri("testRg");
-		rg.setName("testRg");
-
-		DataElement de = new DataElement();
-		de.setUri("testDe");
-		de.setName("testDe");
-
-		FreeFormFilter f = FilterFactory.createFreeFormFilter(form, rg, de, false, "test");
-		f.setBlank(true);
-		InstancedRow row = mock(InstancedRow.class);
-		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue("");
-		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
-
-		boolean eval = f.evaluate(row);
-
-		assertTrue(eval);
-	}
-
-	@Test
-	public void testEval7() {
-		FormResult form = new FormResult();
-		form.setShortName("testForm");
-		form.setVersion("1.0");
-
-		RepeatableGroup rg = new RepeatableGroup();
-		rg.setUri("testRg");
-		rg.setName("testRg");
-
-		DataElement de = new DataElement();
-		de.setUri("testDe");
-		de.setName("testDe");
-
-		FreeFormFilter f = FilterFactory.createFreeFormFilter(form, rg, de, false, "test");
-		f.setBlank(false);
-		InstancedRow row = mock(InstancedRow.class);
-		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue("");
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.ALPHANUMERIC, "random stuff");
 		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
 
 		boolean eval = f.evaluate(row);
@@ -280,7 +168,7 @@ public class FreeFormFilterTest {
 	}
 
 	@Test
-	public void testRgEval() {
+	public void testExactEval4() {
 		FormResult form = new FormResult();
 		form.setShortName("testForm");
 		form.setVersion("1.0");
@@ -288,43 +176,24 @@ public class FreeFormFilterTest {
 		RepeatableGroup rg = new RepeatableGroup();
 		rg.setUri("testRg");
 		rg.setName("testRg");
-		rg.setThreshold(0);
-		rg.setType(QueryToolConstants.RG_EXACTLY);
-		
+
 		DataElement de = new DataElement();
 		de.setUri("testDe");
 		de.setName("testDe");
-		de.setType("type");
+		de.setType(DataType.ALPHANUMERIC);
 
-		FreeFormFilter f = FilterFactory.createFreeFormFilter(form, rg, de, false, "test");
-		f.setBlank(false);
+		Filter f = new FreeFormFilter(form, rg, de, "test", "f", null, null, null, FilterMode.EXACT);
 		InstancedRow row = mock(InstancedRow.class);
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.ALPHANUMERIC, "123test");
+		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
 
-		RepeatingCellValue rcv = new RepeatingCellValue("type", 1, 3);
-		rcv.setExpanded(true);
-		List<InstancedRepeatableGroupRow> rgRows = new ArrayList<>();
-		InstancedRepeatableGroupRow rgRow1 = new InstancedRepeatableGroupRow();
-		rgRow1.insertCell(new RepeatingCellColumn("testFormV1.0", "testRg", "testDe", "type"), "test");
-		InstancedRepeatableGroupRow rgRow2 = new InstancedRepeatableGroupRow();
-		rgRow2.insertCell(new RepeatingCellColumn("testFormV1.0", "testRg", "testDe", "type"), "test2");
-		InstancedRepeatableGroupRow rgRow3 = new InstancedRepeatableGroupRow();
-		rgRow3.insertCell(new RepeatingCellColumn("testFormV1.0", "testRg", "testDe", "type"), "blah");
+		boolean eval = f.evaluate(row);
 
-		rgRows.add(rgRow1);
-		rgRows.add(rgRow2);
-		rgRows.add(rgRow3);
-		
-		rcv.setRows(rgRows);
-
-		when(f.getRepeatingData(row)).thenReturn(rcv);
-
-		f.evaluate(row);
-
-		assertEquals(rcv.getRows().size(), 2);
+		assertFalse(eval);
 	}
-	
+
 	@Test
-	public void testRgEval2() {
+	public void testExactEval5() {
 		FormResult form = new FormResult();
 		form.setShortName("testForm");
 		form.setVersion("1.0");
@@ -332,35 +201,95 @@ public class FreeFormFilterTest {
 		RepeatableGroup rg = new RepeatableGroup();
 		rg.setUri("testRg");
 		rg.setName("testRg");
-		rg.setThreshold(0);
-		rg.setType(QueryToolConstants.RG_EXACTLY);
-		
+
 		DataElement de = new DataElement();
 		de.setUri("testDe");
 		de.setName("testDe");
-		de.setType("type");
+		de.setType(DataType.ALPHANUMERIC);
 
-		FreeFormFilter f = FilterFactory.createFreeFormFilter(form, rg, de, false, "test");
-		f.setBlank(false);
+		Filter f = new FreeFormFilter(form, rg, de, "test123", "f", null, null, null, FilterMode.EXACT);
 		InstancedRow row = mock(InstancedRow.class);
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.ALPHANUMERIC, "tEsT123");
+		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
 
-		RepeatingCellValue rcv = new RepeatingCellValue("type", 1, 3);
-		rcv.setExpanded(true);
-		List<InstancedRepeatableGroupRow> rgRows = new ArrayList<>();
-		InstancedRepeatableGroupRow rgRow1 = new InstancedRepeatableGroupRow();
-		rgRow1.insertCell(new RepeatingCellColumn("testFormV1.0", "testRg", "testDe", "type"), "test");
-		InstancedRepeatableGroupRow rgRow2 = new InstancedRepeatableGroupRow();
-		rgRow2.insertCell(new RepeatingCellColumn("testFormV1.0", "testRg", "testDe", "type"), "test2");
-		InstancedRepeatableGroupRow rgRow3 = new InstancedRepeatableGroupRow();
-		rgRow3.insertCell(new RepeatingCellColumn("testFormV1.0", "testRg", "testDe", "type"), "blah");
+		boolean eval = f.evaluate(row);
 
-		rgRows.add(rgRow1);
-		rgRows.add(rgRow2);
-		rgRows.add(rgRow3);
-		
-		rcv.setRows(rgRows);
+		assertTrue(eval);
+	}
 
-		when(f.getRepeatingData(row)).thenReturn(rcv);
+	@Test
+	public void testExactEval6() {
+		FormResult form = new FormResult();
+		form.setShortName("testForm");
+		form.setVersion("1.0");
+
+		RepeatableGroup rg = new RepeatableGroup();
+		rg.setUri("testRg");
+		rg.setName("testRg");
+
+		DataElement de = new DataElement();
+		de.setUri("testDe");
+		de.setName("testDe");
+		de.setType(DataType.ALPHANUMERIC);
+
+		Filter f = new FreeFormFilter(form, rg, de, "Mayo", "f", null, null, null, FilterMode.EXACT);
+		InstancedRow row = mock(InstancedRow.class);
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.ALPHANUMERIC, "Mayo Clinic");
+		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
+
+		boolean eval = f.evaluate(row);
+
+		assertFalse(eval);
+	}
+
+
+	@Test
+	public void testExactEval7() {
+		FormResult form = new FormResult();
+		form.setShortName("testForm");
+		form.setVersion("1.0");
+
+		RepeatableGroup rg = new RepeatableGroup();
+		rg.setUri("testRg");
+		rg.setName("testRg");
+
+		DataElement de = new DataElement();
+		de.setUri("testDe");
+		de.setName("testDe");
+		de.setType(DataType.ALPHANUMERIC);
+
+		Filter f = new FreeFormFilter(form, rg, de, "Mayo Clinic", "f", null, null, null, FilterMode.EXACT);
+		InstancedRow row = mock(InstancedRow.class);
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.ALPHANUMERIC, "Mayo Clinic");
+		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
+
+		boolean eval = f.evaluate(row);
+
+		assertTrue(eval);
+	}
+
+	@Test
+	public void testExactFileEval() {
+		FormResult form = new FormResult();
+		form.setShortName("testForm");
+		form.setVersion("1.0");
+
+		RepeatableGroup rg = new RepeatableGroup();
+		rg.setUri("testRg");
+		rg.setName("testRg");
+
+		DataElement de = new DataElement();
+		de.setUri("testDe");
+		de.setName("testDe");
+		de.setType(DataType.FILE);
+
+		Filter f = new FreeFormFilter(form, rg, de,
+				"TBI_INVUD366VHA_ImagingCT_1410797710238_PI-1145_--_Ct_Head_Or_Brain_Witho_-_0_--_DR_20_______AXIALS_3.zip",
+				"f", null, null, null, FilterMode.EXACT);
+		InstancedRow row = mock(InstancedRow.class);
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.ALPHANUMERIC,
+				"/image_output/TBI_INVUD366VHA_ImagingCT_1410797710238_PI-1145_--_Ct_Head_Or_Brain_Witho_-_0_--_DR_20_______AXIALS_3.zip");
+		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
 
 		boolean eval = f.evaluate(row);
 
@@ -368,7 +297,7 @@ public class FreeFormFilterTest {
 	}
 	
 	@Test
-	public void testRgEval3() {
+	public void testExactTriplanarEval() {
 		FormResult form = new FormResult();
 		form.setShortName("testForm");
 		form.setVersion("1.0");
@@ -376,43 +305,27 @@ public class FreeFormFilterTest {
 		RepeatableGroup rg = new RepeatableGroup();
 		rg.setUri("testRg");
 		rg.setName("testRg");
-		rg.setThreshold(0);
-		rg.setType(QueryToolConstants.RG_EXACTLY);
-		
+
 		DataElement de = new DataElement();
 		de.setUri("testDe");
 		de.setName("testDe");
-		de.setType("type");
+		de.setType(DataType.TRIPLANAR);
 
-		FreeFormFilter f = FilterFactory.createFreeFormFilter(form, rg, de, false, "test");
-		f.setBlank(false);
+		Filter f = new FreeFormFilter(form, rg, de,
+				"TBI_INVUD366VHA_ImagingCT_1410797710238_PI-1145_--_Ct_Head_Or_Brain_Witho_-_0_--_DR_20_______AXIALS_3.zip",
+				"f", null, null, null, FilterMode.EXACT);
 		InstancedRow row = mock(InstancedRow.class);
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.ALPHANUMERIC,
+				"/image_output/TBI_INVUD366VHA_ImagingCT_1410797710238_PI-1145_--_Ct_Head_Or_Brain_Witho_-_0_--_DR_20_______AXIALS_3.zip");
+		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
 
-		RepeatingCellValue rcv = new RepeatingCellValue("type", 1, 3);
-		rcv.setExpanded(true);
-		List<InstancedRepeatableGroupRow> rgRows = new ArrayList<>();
-		InstancedRepeatableGroupRow rgRow1 = new InstancedRepeatableGroupRow();
-		rgRow1.insertCell(new RepeatingCellColumn("testFormV1.0", "testRg", "testDe", "type"), "dog");
-		InstancedRepeatableGroupRow rgRow2 = new InstancedRepeatableGroupRow();
-		rgRow2.insertCell(new RepeatingCellColumn("testFormV1.0", "testRg", "testDe", "type"), "cow");
-		InstancedRepeatableGroupRow rgRow3 = new InstancedRepeatableGroupRow();
-		rgRow3.insertCell(new RepeatingCellColumn("testFormV1.0", "testRg", "testDe", "type"), "cat");
+		boolean eval = f.evaluate(row);
 
-		rgRows.add(rgRow1);
-		rgRows.add(rgRow2);
-		rgRows.add(rgRow3);
-		
-		rcv.setRows(rgRows);
-
-		when(f.getRepeatingData(row)).thenReturn(rcv);
-
-		f.evaluate(row);
-
-		assertEquals(rcv.getRows().size(), 0);
+		assertTrue(eval);
 	}
 	
 	@Test
-	public void testRgEval4() {
+	public void testExactThumbnailEval() {
 		FormResult form = new FormResult();
 		form.setShortName("testForm");
 		form.setVersion("1.0");
@@ -420,41 +333,311 @@ public class FreeFormFilterTest {
 		RepeatableGroup rg = new RepeatableGroup();
 		rg.setUri("testRg");
 		rg.setName("testRg");
-		rg.setThreshold(0);
-		rg.setType(QueryToolConstants.RG_EXACTLY);
-		
+
 		DataElement de = new DataElement();
 		de.setUri("testDe");
 		de.setName("testDe");
-		de.setType("type");
+		de.setType(DataType.THUMBNAIL);
 
-		FreeFormFilter f = FilterFactory.createFreeFormFilter(form, rg, de, false, "test");
-		f.setBlank(false);
+		Filter f = new FreeFormFilter(form, rg, de,
+				"TBI_INVUD366VHA_ImagingCT_1410797710238_PI-1145_--_Ct_Head_Or_Brain_Witho_-_0_--_DR_20_______AXIALS_3.zip",
+				"f", null, null, null, FilterMode.EXACT);
 		InstancedRow row = mock(InstancedRow.class);
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.ALPHANUMERIC,
+				"/image_output/TBI_INVUD366VHA_ImagingCT_1410797710238_PI-1145_--_Ct_Head_Or_Brain_Witho_-_0_--_DR_20_______AXIALS_3.zip");
+		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
 
-		RepeatingCellValue rcv = new RepeatingCellValue("type", 1, 3);
-		rcv.setExpanded(true);
-		List<InstancedRepeatableGroupRow> rgRows = new ArrayList<>();
-		InstancedRepeatableGroupRow rgRow1 = new InstancedRepeatableGroupRow();
-		rgRow1.insertCell(new RepeatingCellColumn("testFormV1.0", "testRg", "testDe", "type"), "dog");
-		InstancedRepeatableGroupRow rgRow2 = new InstancedRepeatableGroupRow();
-		rgRow2.insertCell(new RepeatingCellColumn("testFormV1.0", "testRg", "testDe", "type"), "cow");
-		InstancedRepeatableGroupRow rgRow3 = new InstancedRepeatableGroupRow();
-		rgRow3.insertCell(new RepeatingCellColumn("testFormV1.0", "testRg", "testDe", "type"), "cat");
+		boolean eval = f.evaluate(row);
 
-		rgRows.add(rgRow1);
-		rgRows.add(rgRow2);
-		rgRows.add(rgRow3);
-		
-		rcv.setRows(rgRows);
+		assertTrue(eval);
+	}
+	
+	@Test
+	public void testExactFileEval2() {
+		FormResult form = new FormResult();
+		form.setShortName("testForm");
+		form.setVersion("1.0");
 
-		when(f.getRepeatingData(row)).thenReturn(rcv);
+		RepeatableGroup rg = new RepeatableGroup();
+		rg.setUri("testRg");
+		rg.setName("testRg");
 
+		DataElement de = new DataElement();
+		de.setUri("testDe");
+		de.setName("testDe");
+		de.setType(DataType.THUMBNAIL);
+
+		Filter f = new FreeFormFilter(form, rg, de,
+				"TBI_INVUD366VHA_ImagingCT_1410797710238_PI-1145_--_Ct_Head_Or_Brain_Witho_-_0_--_DR_20_______AXIALS_3.zip",
+				"f", null, null, null, FilterMode.INCLUSIVE);
+		InstancedRow row = mock(InstancedRow.class);
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.ALPHANUMERIC,
+				"/image_output/TBI_INVUD366VHA_ImagingCT_1410797710238_PI-1145_--_Ct_Head_Or_Brain_Witho_-_0_--_DR_20_______AXIALS_3.zip");
+		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
+
+		boolean eval = f.evaluate(row);
+
+		assertTrue(eval);
+	}
+
+	@Test
+	public void testInclusiveEval1() {
+		FormResult form = new FormResult();
+		form.setShortName("testForm");
+		form.setVersion("1.0");
+
+		RepeatableGroup rg = new RepeatableGroup();
+		rg.setUri("testRg");
+		rg.setName("testRg");
+
+		DataElement de = new DataElement();
+		de.setUri("testDe");
+		de.setName("testDe");
+		de.setType(DataType.ALPHANUMERIC);
+
+		Filter f = new FreeFormFilter(form, rg, de, "rom1", "f", null, null, null, FilterMode.INCLUSIVE);
+		InstancedRow row = mock(InstancedRow.class);
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.ALPHANUMERIC, "prom1");
+		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
+		boolean eval = f.evaluate(row);
+
+		assertTrue(eval);
+	}
+
+	@Test
+	public void testInclusiveEval2() {
+		FormResult form = new FormResult();
+		form.setShortName("testForm");
+		form.setVersion("1.0");
+
+		RepeatableGroup rg = new RepeatableGroup();
+		rg.setUri("testRg");
+		rg.setName("testRg");
+
+		DataElement de = new DataElement();
+		de.setUri("testDe");
+		de.setName("testDe");
+		de.setType(DataType.ALPHANUMERIC);
+
+		Filter f = new FreeFormFilter(form, rg, de, "rom1", "f", null, null, null, FilterMode.INCLUSIVE);
+		InstancedRow row = mock(InstancedRow.class);
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.ALPHANUMERIC, "prom");
+		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
 		boolean eval = f.evaluate(row);
 
 		assertFalse(eval);
 	}
-	
+
+	@Test
+	public void testInclusiveEval3() {
+		FormResult form = new FormResult();
+		form.setShortName("testForm");
+		form.setVersion("1.0");
+
+		RepeatableGroup rg = new RepeatableGroup();
+		rg.setUri("testRg");
+		rg.setName("testRg");
+
+		DataElement de = new DataElement();
+		de.setUri("testDe");
+		de.setName("testDe");
+		de.setType(DataType.ALPHANUMERIC);
+
+		Filter f = new FreeFormFilter(form, rg, de, "rom1", "f", null, null, null, FilterMode.INCLUSIVE);
+		InstancedRow row = mock(InstancedRow.class);
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.ALPHANUMERIC, "I went to prom1");
+		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
+		boolean eval = f.evaluate(row);
+
+		assertTrue(eval);
+	}
+
+	@Test
+	public void testInclusiveAndGroupEval() throws FilterEvaluatorException {
+		String testExpression = "f1 && f2";
+
+		FormResult form = mock(FormResult.class);
+		when(form.getShortNameAndVersion()).thenReturn("form");
+
+		RepeatableGroup rg = mock(RepeatableGroup.class);
+		when(rg.getName()).thenReturn("rg");
+
+		DataElement de = mock(DataElement.class);
+		when(de.getName()).thenReturn("de");
+		when(de.getType()).thenReturn(DataType.ALPHANUMERIC);
+
+		Filter f1 = new FreeFormFilter(form, rg, de, "Harvard", "f1", null, null, null, FilterMode.INCLUSIVE);
+		Filter f2 = new FreeFormFilter(form, rg, de, "BRIGHAM", "f2", null, null, null, FilterMode.INCLUSIVE);
+
+		List<Filter> filters = new ArrayList<>();
+		filters.add(f1);
+		filters.add(f2);
+
+		when(form.getFilters()).thenReturn(filters);
+		when(form.hasFilter()).thenReturn(true);
+
+		List<FormResult> forms = new ArrayList<>();
+		forms.add(form);
+
+		FilterEvaluator evaluator = new FilterEvaluator(testExpression, forms);
+
+		InstancedRecord record = mock(InstancedRecord.class);
+
+		List<InstancedRow> rows = new ArrayList<>();
+		InstancedRow row = mock(InstancedRow.class);
+		rows.add(row);
+
+		when(record.getSelectedRows()).thenReturn(rows);
+
+		NonRepeatingCellValue nameCellValue = new NonRepeatingCellValue(DataType.ALPHANUMERIC,
+				"the Brigham and women's hospitals, INC and Harvard Medical school (Boston, MA)");
+		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(nameCellValue);
+
+		boolean result = evaluator.evaluate(record);
+		assertTrue(result);
+	}
+
+	@Test
+	public void testInclusiveAndGroupEval2() throws FilterEvaluatorException {
+		String testExpression = "f1 && f2";
+
+		FormResult form = mock(FormResult.class);
+		when(form.getShortNameAndVersion()).thenReturn("form");
+
+		RepeatableGroup rg = mock(RepeatableGroup.class);
+		when(rg.getName()).thenReturn("rg");
+
+		DataElement de = mock(DataElement.class);
+		when(de.getName()).thenReturn("de");
+		when(de.getType()).thenReturn(DataType.ALPHANUMERIC);
+
+		Filter f1 = new FreeFormFilter(form, rg, de, "Harvard", "f1", null, null, null, FilterMode.INCLUSIVE);
+		Filter f2 = new FreeFormFilter(form, rg, de, "BRIGHAM", "f2", null, null, null, FilterMode.INCLUSIVE);
+
+		List<Filter> filters = new ArrayList<>();
+		filters.add(f1);
+		filters.add(f2);
+
+		when(form.getFilters()).thenReturn(filters);
+		when(form.hasFilter()).thenReturn(true);
+
+		List<FormResult> forms = new ArrayList<>();
+		forms.add(form);
+
+		FilterEvaluator evaluator = new FilterEvaluator(testExpression, forms);
+
+		InstancedRecord record = mock(InstancedRecord.class);
+
+		List<InstancedRow> rows = new ArrayList<>();
+		InstancedRow row = mock(InstancedRow.class);
+		rows.add(row);
+
+		when(record.getSelectedRows()).thenReturn(rows);
+
+		NonRepeatingCellValue nameCellValue =
+				new NonRepeatingCellValue(DataType.ALPHANUMERIC, "the Brigham and women's hospitals");
+		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(nameCellValue);
+
+		boolean result = evaluator.evaluate(record);
+		assertFalse(result);
+	}
+
+	@Test
+	public void testInclusiveOrGroupEval3() throws FilterEvaluatorException {
+		String testExpression = "f1 || f2";
+
+		FormResult form = mock(FormResult.class);
+		when(form.getShortNameAndVersion()).thenReturn("form");
+
+		RepeatableGroup rg = mock(RepeatableGroup.class);
+		when(rg.getName()).thenReturn("rg");
+
+		DataElement de = mock(DataElement.class);
+		when(de.getName()).thenReturn("de");
+		when(de.getType()).thenReturn(DataType.ALPHANUMERIC);
+
+		Filter f1 = new FreeFormFilter(form, rg, de, "Harvard", "f1", null, null, null, FilterMode.INCLUSIVE);
+		Filter f2 = new FreeFormFilter(form, rg, de, "BRIGHAM", "f2", null, null, null, FilterMode.INCLUSIVE);
+
+		List<Filter> filters = new ArrayList<>();
+		filters.add(f1);
+		filters.add(f2);
+
+		when(form.getFilters()).thenReturn(filters);
+		when(form.hasFilter()).thenReturn(true);
+
+		List<FormResult> forms = new ArrayList<>();
+		forms.add(form);
+
+		FilterEvaluator evaluator = new FilterEvaluator(testExpression, forms);
+
+		InstancedRecord record = mock(InstancedRecord.class);
+
+		List<InstancedRow> rows = new ArrayList<>();
+		InstancedRow row = mock(InstancedRow.class);
+		rows.add(row);
+
+		when(record.getSelectedRows()).thenReturn(rows);
+
+		NonRepeatingCellValue nameCellValue =
+				new NonRepeatingCellValue(DataType.ALPHANUMERIC, "the Brigham and women's hospitals");
+		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(nameCellValue);
+
+		boolean result = evaluator.evaluate(record);
+		assertTrue(result);
+	}
+
+	@Test
+	public void testEvalExactText() {
+		FormResult form = new FormResult();
+		form.setShortName("testForm");
+		form.setVersion("1.0");
+
+		RepeatableGroup rg = new RepeatableGroup();
+		rg.setUri("testRg");
+		rg.setName("testRg");
+
+		DataElement de = new DataElement();
+		de.setUri("testDe");
+		de.setName("testDe");
+		de.setType(DataType.ALPHANUMERIC);
+
+		Filter f = new FreeFormFilter(form, rg, de, "rom", "f", null, null, null, FilterMode.EXACT);
+		InstancedRow row = mock(InstancedRow.class);
+		NonRepeatingCellValue testCellValue =
+				new NonRepeatingCellValue(DataType.ALPHANUMERIC, "I went to prom last week");
+		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
+		boolean eval = f.evaluate(row);
+
+		assertFalse(eval);
+	}
+
+	@Test
+	public void testEvalExactText2() {
+		FormResult form = new FormResult();
+		form.setShortName("testForm");
+		form.setVersion("1.0");
+
+		RepeatableGroup rg = new RepeatableGroup();
+		rg.setUri("testRg");
+		rg.setName("testRg");
+
+		DataElement de = new DataElement();
+		de.setUri("testDe");
+		de.setName("testDe");
+		de.setType(DataType.ALPHANUMERIC);
+
+		Filter f =
+				new FreeFormFilter(form, rg, de, "I went to prom last week", "f", null, null, null, FilterMode.EXACT);
+		InstancedRow row = mock(InstancedRow.class);
+		NonRepeatingCellValue testCellValue =
+				new NonRepeatingCellValue(DataType.ALPHANUMERIC, "I went to prom last week");
+		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
+		boolean eval = f.evaluate(row);
+
+		assertTrue(eval);
+	}
+
 	@Test
 	public void testNullEval() {
 		FormResult form = new FormResult();
@@ -469,9 +652,9 @@ public class FreeFormFilterTest {
 		de.setUri("testDe");
 		de.setName("testDe");
 
-		Filter f = FilterFactory.createFreeFormFilter(form, rg, de, false, null);
+		Filter f = new FreeFormFilter(form, rg, de, null, "f", null, null, null, FilterMode.EXACT);
 		InstancedRow row = mock(InstancedRow.class);
-		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue("test");
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.ALPHANUMERIC, "test");
 		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
 
 		boolean eval = f.evaluate(row);
@@ -479,4 +662,214 @@ public class FreeFormFilterTest {
 		assertTrue(eval);
 	}
 
+	@Test
+	public void testToString() {
+		FormResult form = new FormResult();
+		form.setShortName("testForm");
+		form.setVersion("1.0");
+
+		RepeatableGroup rg = new RepeatableGroup();
+		rg.setUri("testRg");
+		rg.setName("testRg");
+
+		DataElement de = new DataElement();
+		de.setUri("testDe");
+		de.setName("testDe");
+
+		Filter f = new FreeFormFilter(form, rg, de, "test", "f", null, null, null, FilterMode.EXACT);
+
+		String actualString = f.toString();
+		String expectedString = "(testForm.testRg.testDe = 'test')";
+
+		assertEquals(actualString, expectedString);
+	}
+
+	@Test
+	public void testFreeTextEval() {
+		FormResult form = new FormResult();
+		form.setShortName("testForm");
+		form.setVersion("1.0");
+
+		RepeatableGroup rg = new RepeatableGroup();
+		rg.setUri("testRg");
+		rg.setName("testRg");
+
+		DataElement de = new DataElement();
+		de.setUri("testDe");
+		de.setName("testDe");
+		de.setType(DataType.ALPHANUMERIC);
+
+		Filter f = new FreeFormFilter(form, rg, de, "Doge wow", "f", null, null, null, FilterMode.EXACT);
+		InstancedRow row = mock(InstancedRow.class);
+		NonRepeatingCellValue testCellValue =
+				new NonRepeatingCellValue(DataType.ALPHANUMERIC, "This is doge gone crazy!");
+		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
+
+		boolean eval = f.evaluate(row);
+
+		assertFalse(eval);
+	}
+
+	@Test
+	public void testFreeTextEval2() {
+		FormResult form = new FormResult();
+		form.setShortName("testForm");
+		form.setVersion("1.0");
+
+		RepeatableGroup rg = new RepeatableGroup();
+		rg.setUri("testRg");
+		rg.setName("testRg");
+
+		DataElement de = new DataElement();
+		de.setUri("testDe");
+		de.setName("testDe");
+		de.setType(DataType.ALPHANUMERIC);
+
+		Filter f = new FreeFormFilter(form, rg, de, "Doge wow", "f", null, null, null, FilterMode.EXACT);
+		InstancedRow row = mock(InstancedRow.class);
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.ALPHANUMERIC, "doge wow");
+		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
+
+		boolean eval = f.evaluate(row);
+
+		assertTrue(eval);
+	}
+
+	@Test
+	public void testFreeTextEval3() {
+		FormResult form = new FormResult();
+		form.setShortName("testForm");
+		form.setVersion("1.0");
+
+		RepeatableGroup rg = new RepeatableGroup();
+		rg.setUri("testRg");
+		rg.setName("testRg");
+
+		DataElement de = new DataElement();
+		de.setUri("testDe");
+		de.setName("testDe");
+		de.setType(DataType.ALPHANUMERIC);
+
+		Filter f = new FreeFormFilter(form, rg, de, "5345 AD.pdf", "f", null, null, null, FilterMode.EXACT);
+		InstancedRow row = mock(InstancedRow.class);
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.ALPHANUMERIC, "1234 AD.pdf");
+		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
+
+		boolean eval = f.evaluate(row);
+
+		assertFalse(eval);
+	}
+
+	/**
+	 * Make sure pattern gets set in the constructor
+	 */
+	@Test
+	public void testRegexPatternSingleConstructor() {
+		FormResult form = new FormResult();
+		form.setShortName("testForm");
+		form.setVersion("1.0");
+
+		RepeatableGroup rg = new RepeatableGroup();
+		rg.setUri("testRg");
+		rg.setName("testRg");
+
+		DataElement de = new DataElement();
+		de.setUri("testDe");
+		de.setName("testDe");
+		de.setType(DataType.ALPHANUMERIC);
+
+		FreeFormFilter f = new FreeFormFilter(form, rg, de, "Doge", "f", null, null, null, FilterMode.EXACT);
+		assertEquals("(Doge)", f.regexPattern.toString());
+	}
+
+	/**
+	 * Make sure pattern gets set in the constructor
+	 */
+	@Test
+	public void testRegexPatternConstructor() {
+		FormResult form = new FormResult();
+		form.setShortName("testForm");
+		form.setVersion("1.0");
+
+		RepeatableGroup rg = new RepeatableGroup();
+		rg.setUri("testRg");
+		rg.setName("testRg");
+
+		DataElement de = new DataElement();
+		de.setUri("testDe");
+		de.setName("testDe");
+		de.setType(DataType.ALPHANUMERIC);
+
+		FreeFormFilter f = new FreeFormFilter(form, rg, de, "Doge      wow     such    tokens", "f", null, null, null,
+				FilterMode.EXACT);
+		assertEquals("(Doge      wow     such    tokens)", f.regexPattern.toString());
+	}
+
+	@Test
+	public void testRegexPatternConstructorNull() {
+		FormResult form = new FormResult();
+		form.setShortName("testForm");
+		form.setVersion("1.0");
+
+		RepeatableGroup rg = new RepeatableGroup();
+		rg.setUri("testRg");
+		rg.setName("testRg");
+
+		DataElement de = new DataElement();
+		de.setUri("testDe");
+		de.setName("testDe");
+
+		FreeFormFilter f = new FreeFormFilter(form, rg, de, null, "f", null, null, null, FilterMode.EXACT);
+		assertNull(f.regexPattern);
+
+		FreeFormFilter f1 = new FreeFormFilter(form, rg, de, "", "f", null, null, null, FilterMode.EXACT);
+		assertNull(f1.regexPattern);
+	}
+
+	/**
+	 * Make sure pattern gets set in the setValue call
+	 */
+	@Test
+	public void testRegexPatternSetter() {
+		FormResult form = new FormResult();
+		form.setShortName("testForm");
+		form.setVersion("1.0");
+
+		RepeatableGroup rg = new RepeatableGroup();
+		rg.setUri("testRg");
+		rg.setName("testRg");
+
+		DataElement de = new DataElement();
+		de.setUri("testDe");
+		de.setName("testDe");
+		de.setType(DataType.ALPHANUMERIC);
+
+		FreeFormFilter f = new FreeFormFilter(form, rg, de, null, "f", null, null, null, FilterMode.EXACT);
+		assertNull(f.regexPattern);
+		f.setValue("Doge     wow");
+		assertEquals("(Doge     wow)", f.regexPattern.toString());
+	}
+
+	@Test
+	public void testRegexPatternSetterNull() {
+		FormResult form = new FormResult();
+		form.setShortName("testForm");
+		form.setVersion("1.0");
+
+		RepeatableGroup rg = new RepeatableGroup();
+		rg.setUri("testRg");
+		rg.setName("testRg");
+
+		DataElement de = new DataElement();
+		de.setUri("testDe");
+		de.setName("testDe");
+		de.setType(DataType.ALPHANUMERIC);
+
+		FreeFormFilter f = new FreeFormFilter(form, rg, de, "Doge       wow", "f", null, null, null, FilterMode.EXACT);
+		assertEquals("(Doge       wow)", f.regexPattern.toString());
+		f.setValue(null);
+		assertNull(f.regexPattern);
+		f.setValue("");
+		assertNull(f.regexPattern);
+	}
 }

@@ -109,6 +109,7 @@ public class ProtocolForm extends CtdbForm
     private boolean addedFromDashboard = false;
     private boolean allowPii = false;
 	private String locProcPOCDisplay = "default";
+	private String psrHeader = "";
 
 	//section procedure
 	private List<ClinicalLocation> protoClinicLocList = new ArrayList<ClinicalLocation>();
@@ -787,6 +788,20 @@ public class ProtocolForm extends CtdbForm
 		return this.locProcPOCDisplay;
 	}
 	
+	/**
+	 * @return the psrHeader
+	 */
+	public String getPsrHeader() {
+		return psrHeader;
+	}
+
+	/**
+	 * @param psrHeader the psrHeader to set
+	 */
+	public void setPsrHeader(String psrHeader) {
+		this.psrHeader = psrHeader;
+	}
+
 	public void setLocProcPOCDisplay(String locProcPOCDisplay) {
 		this.locProcPOCDisplay = locProcPOCDisplay;
 	}

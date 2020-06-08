@@ -6,8 +6,6 @@ QTDT.DataTableView = BaseView.extend({
 	events: {
 		"click #bulkOrderButton": "addSelectedSamples",
 		// events for table cells
-//		"click .expandText": "expandText",
-//		"click .collapseText": "collapseText",
 		"click .expandData": "expandData",
 		"click .collapseData": "collapseData",
 		"click .viewTriplanar": "viewTriplanar",
@@ -28,35 +26,30 @@ QTDT.DataTableView = BaseView.extend({
 
 	},
 
-
-	// pager : null,
-	// lengthMenu : null,
-	// resultsView : null,
-//	frozenResultsView: null,
 	renderedOnce: false,
 	inTableData: [],
-//	inTableColumns: [],
-//	inTableForms: [],
-//	inTableRepeatableGroups: [],
 	hiddenColumns: [],
+	hiddenColumnsProperties: [], //this is used in case the table has not been rendered yet
 	hideColumn: false,
 	numRows: 0,
 	// frozen columns info:
-	frozenIndex: -1,           // the index of the icon the user just froze/unfroze
-	frozenOffsetX: -1,         // the current index of the left-most frozen visible cell
-	scrollOffsetX: -1,         // the current index of the left-most visible cell
-	scrollPositionX: -1,       // the current scrollX position
-	frozenScrollPositionX: -1, // the frozen scrollX position
-	frozenScrollOffsetX: -1,   // the frozen scrollX offset.
-	updateFrozen: false,
+	frozenIndex: 0,           // the index of the icon the user just froze/unfroze
+	frozenOffsetX: 0,         // the current index of the left-most frozen visible cell
+	scrollOffsetX: 0,         // the current index of the left-most visible cell
+	scrollPositionX: 0,       // the current scrollX position
+	frozenScrollPositionX: 0, // the frozen scrollX position
+	frozenScrollOffsetX: 0,   // the frozen scrollX offset.
+	updateFrozen: true,
 	headerData: [],
+	headerColor: "",
 
 	updateRepeatableGroupFunction: function () {},
 	sortFunction: function () {},
 	applyVirtFilters: function () {},
 	renderVirtTable: function () {},
-	applyDisplayOption: function () {},
-
+	applyVirtDisplayOption: function () {},
+	defaultTableHeight : 800,
+	defaultTableWidth : 1040,
 
 	initialize: function () {
 		this.inTableData.columns = [];
@@ -64,7 +57,6 @@ QTDT.DataTableView = BaseView.extend({
 
 
 		this.model.set("rows", new QTDT.Rows());
-		// this.model.set("columns", new QTDT.Cols());
 		this.model.set("dataTables", new QTDT.DataTables());
 
 		this.model.set("ColCells", new QTDT.ColCells());
@@ -77,15 +69,14 @@ QTDT.DataTableView = BaseView.extend({
 		};
 
 		EventBus.on("window:resize", this.onWindowResize, this);
-
-		EventBus.on("select:refineDataTab", this.rerender, this);
+		EventBus.on("renderTable", this.render, this);
+		EventBus.on("rerenderTable", this.rerender, this);
 		EventBus.on("column:lock", this.freezeColumns, this);
 		EventBus.on("column:unlock", this.freezeColumns, this);
+		EventBus.on("query:reset", this.destroyTable, this);
 		EventBus.on("clearDataCart", this.destroyTable, this);
 		EventBus.on("DataTableView:destroyTable", this.destroyTable, this);
 		EventBus.on("renderResults", this.renderResults, this);
-		EventBus.on("DataTableView:addQueryListener", this.addQueryListener, this);
-		EventBus.on("DataTableView:removeQueryListener", this.removeQueryListener, this);
 		EventBus.on("DataTableView:resetHiddenColumns", this.resetHiddenColumns, this);
 
 		EventBus.on("DataTableView:setTableWidth", this.setTableWidth, this);
@@ -97,14 +88,14 @@ QTDT.DataTableView = BaseView.extend({
 		EventBus.on("DataTableView:reloadRepeatableGroup", this.reloadRepeatableGroup, this);
 
 		EventBus.on("hamburgerview:showHideCol", this.toggleShowHide, this);
-
-		EventBus.on("query:formDetailsAvailable", this.updateJoinDescription, this);
+		EventBus.on("addTohiddenColumnsProperties",this.addTohiddenColumnsProperties,this);
 		EventBus.on("clearDataCart", this.updateJoinDescription, this);
-
+		
 		EventBus.on("applyFilters", this.applyFilters, this);
 		EventBus.on("dataTableView:changeDisplayOption", this.applyDisplayOption, this);
-
-		this.listenTo(QueryTool.query, "change:tableResults", this.render);
+		EventBus.on("query:formDetailsAvailable", this.updateJoinDescription, this);
+		EventBus.on("set:queryState", this.setQueryState, this);
+		EventBus.on("resultsView:resizeMainContainer",this.rerender,this);
 
 
 		QTDT.DataTableView.__super__.initialize.call(this);
@@ -117,21 +108,26 @@ QTDT.DataTableView = BaseView.extend({
 	},
 	render: function () {
 		// #resultsDatatableContainer
-		// switch to this tab
-		EventBus.trigger("openDataTableViewTab");
 
 		if (!this.$el.parent().is(":visible")) {
 			return;
 		}
 
-
+		// switch to this tab
+		EventBus.trigger("openDataTableViewTab");
+		
 //		if (this.model.frozenColumnsExist) {
 //			this.destroyFrozenTable(); // if we are rendering a new table we
 //										// should destroy a frozen table if any
 //										// existed
 //		}
+		
+		//empty biosample arrays
+		this.model.set("biosampleArray",[]);
+		this.model.set("unselectedBioSampleArray",[]);
+		
 		this.loadData();
-
+		
 		this.$el.html(this.template(this.model.attributes)); // TODO: figure
 																// out how we
 																// can utilize
@@ -147,6 +143,9 @@ QTDT.DataTableView = BaseView.extend({
 				id: 'innerdiv',
 				"class": 'base-container base-layer'
 			}));
+			
+			this.updateJoinDescription();
+			EventBus.trigger("updateResultsCount");
 
 			// create table
 			this.createTable();
@@ -158,20 +157,21 @@ QTDT.DataTableView = BaseView.extend({
 			if (rawData.hasHighlightedGuid !== "undefined" && rawData.hasHighlightedGuid === true) {
 				$.ibisMessaging("dialog", "warning", "This query contains a GUID(s) that has a change in diagnosis. GUIDs with a change in diagnosis are highlighted in yellow. You can filter the returned data to only display GUIDs with a change in diagnosis/highlighted by using the GUID column filter menu.");
 			}
-			// create bulk order buttong
-			// this.addBulkOrderButton();
 
 			this.renderedOnce = true;
 
 		}
 
 	},
-	/** this is used to refresh rowdata and keep headers intact */
+	/** this is used to refresh data on tabs */
 	renderResults: function () {
-		// if the full table hasn't been previously rendered let's go back and
-		// do that.
-		if (this.model.columns.length == 0 || !this.renderedOnce) {
+		
+		if (this.model.get("queryState")) {
+			// switch to this tab
+			EventBus.trigger("openDataTableViewTab");
 			this.render();
+			this.model.set("queryState",0);
+			QueryTool.query.set("onReload",false);
 			return;
 		}
 	},
@@ -179,7 +179,6 @@ QTDT.DataTableView = BaseView.extend({
 	loadData: function () {
 
 		var resultsData = $.extend(true, {}, QueryTool.query.get("tableResults"));
-		// console.log("loadData", resultsData);
 
 		// once the virtual table headers are styled this can be removed:
 		this.model.set("data", resultsData);
@@ -196,6 +195,7 @@ QTDT.DataTableView = BaseView.extend({
 			var forms = [];
 			var repeatableGroups = [];
 			var columns = [];
+			var groupIndex = 0;
 			// header offset
 
 			resultsData.header.forEach(function(top, a) {
@@ -215,7 +215,7 @@ QTDT.DataTableView = BaseView.extend({
 						name: group.name,
 						selfIndex: b,
 						parentIndex: a,
-						grandParentId: a,
+						// grandParentId: a,
 						grandParentIndex: -1,
 						childCount: group.dataElementHeaders.length
 					};
@@ -225,13 +225,14 @@ QTDT.DataTableView = BaseView.extend({
 							name: value,
 							selfIndex: i,
 							parentIndex: b,
-							parentId: (b + a),
+							parentId: groupIndex,
 							grandParentIndex: a,
 							childCount: 0,
 						};
 					})
 
 					columns = columns.concat(group.dataElementHeaders);
+					groupIndex += 1;
 				})
 				forms.push(formObj);
 			});
@@ -242,14 +243,11 @@ QTDT.DataTableView = BaseView.extend({
 			this.inTableData = resultsData.data.aaData.map(function(row) {
 				output = {};
 				row.forEach(function(val, i) {
-					output[columns[i].name] = val;
+					output[i+"_"+columns[i].name] = val;
 				});
 				return output;
 			});
 
-			// inTableColumns : [],
-			// inTableForms : [],
-			// inTableRepeatableGroups : [],
 			this.inTableData.columns = columns;
 			this.inTableData.headers = headers; // e.g.
 												// [["one","two"],["childoneone","childonetwo","childtwoone"],["a","b","c","d"]]
@@ -294,6 +292,7 @@ QTDT.DataTableView = BaseView.extend({
 		// Type: 1. rows change because of scroll, 2. rows changed because
 		// repeatable group expansion, or collapse
 		var type = 1;
+		var activeFilter = false; // this tells us we are filtering
 		// Model, when there is a change for repeatable groups we need to send a
 		// model to the query object
 		var rgModel = {};
@@ -309,11 +308,28 @@ QTDT.DataTableView = BaseView.extend({
 		}
 		// container for 2D array of table entries (not a <table>)
 		// sized to fit the entire grid, for scrolling in x,y
+		
 		var tbody = config.container.select(".centerScroll").select(".tableBody");
+		var scroller = config.container.select(".centerScroll").select(".scroller");
 		if (tbody.empty()) {
-			tbody = config.container.append("div").classed("centerScroll", true)
+			var cent = config.container.append("div").classed("centerScroll", true)
+				.style("position", "relative");
+			
+			tbody = cent.append("div")
+				.style("width", "calc(100% - 18px")
+				.style("height", "calc(100% - 26px")
+				.style("position", "absolute")
+				.style("top", "0")
+				.style("overflow", "hidden")
 				.append("div").classed("tableBody", true);
+			scroller = cent.append("div")
+				.classed("scrollerContainer", true)
+				.style("width", "100%")
+				.style("height", "100%")
+				.style("overflow", "auto")
+				.append("div").classed("scroller", true);
 		}
+		config.container.select(".centerScroll").style("overflow", "hidden");
 
 		// create row data, checking for invalid names. rowData will be an array
 		// of row objects that have a data property
@@ -323,11 +339,14 @@ QTDT.DataTableView = BaseView.extend({
 			rowData[rowOffset + i] = {
 				data: inTableData.columns.map(function(colObj, i) {
 					return {
-						name: (row[colObj.name] === undefined || row[colObj.name] === null) ? '-' : row[colObj.name]
+						name: (row[i+"_"+colObj.name] === undefined || row[i+"_"+colObj.name] === null) ? '-' : row[i+"_"+colObj.name]
 					};
 				})
 			};
 		});
+		
+		var currentDataStart = 0;
+		var currentDataEnd = rowData.length;
 
 		// Local sorting here, but sort now happens on the server.
 		// save the row index with each row, after sorting.
@@ -349,9 +368,6 @@ QTDT.DataTableView = BaseView.extend({
 		});
 
 
-		// tableData.columns.forEach(function(name) {
-		// console.log(name, tableData.columns.indexOf(name) );
-		// });
 		// TODO: NOTE: I just duplicated efforts here pretty sure i can just
 		// user tableData.headers
 		headerDataRows.forEach(function(h, a) {
@@ -367,54 +383,44 @@ QTDT.DataTableView = BaseView.extend({
 			})
 		})
 
-
-
-		// console.log("headerDataRows", headerDataRows );
-		// create header list with index. origIndex used if columns are deleted.
-		/*
-		 * var headerData = tableData.columns.map(function(name, i) { return { key:
-		 * i, name: name, origIndex: i }; });
-		 */
-
-//		headerDataRows[1].data.forEach(function(d) {
-//			console.log(d);
-//		});
-
 		var headerData = headerDataRows[2].data;
 		that.headerData = headerData;
-		// the header widths are set based on the header name length * 10 + 60
+		// the header widths are set based on the header name length * 7 + 80
+		// The + 80 accounts for the size of the hamburger menu, the lock icon, and sort icons.
 		// change the scale and margin for a better fit for the column widths
 		// here:
 		headerData.forEach(function(d) {
 			// initial column widths are set here:
-			d.width = Math.min(250, d.name.length * 10 + 60);
-			if ( headerDataRows[1].data[d.parentIndex].childCount === 1 ) {
+			d.width = Math.min(250, (d.name.length * 7 + 80) + (d.name == "OrderableBiosampleID" ? 20 : 0));
+			if ( headerDataRows[1].data[d.parentId].childCount === 1 ) {
 				// if the column is the only child make sure the width accommodates the parent name:
-				var parentName = headerDataRows[1].data[d.parentIndex].name;
-				d.width = Math.max(d.width, (parentName.length * 10 + 60));
+				var parentName = headerDataRows[1].data[d.parentId].name;
+				d.width = Math.max(d.width, (parentName.length * 7));
 			}
+		
 			if (d.key === 0) {
 				d.offset = 0;
 			} else {
 				d.offset = headerData[d.key - 1].width + headerData[d.key - 1].offset;
 			}
-			// console.log(d.name, d.width, d.offset);
 		});
-
-		// console.log( "numRows: ", config.numRows, " headerData: " );
-		// console.log("headerData", headerData);
-
+		
 		var numRows = config.numRows;
-		var rowHeight = 17;
+		var rowHeight = 19;
 		// set the height to match all rows, so scrolling works, even though
 		// many are 'virtual'
-		tbody.style("height", "" + (numRows * rowHeight) + "px")
+		var tbodyHeight = numRows * rowHeight;
+//		tbody.style("height", "" + (tbodyHeight) + "px")
+		tbody.style("height", "100%")
+		var maxScrollerHeight = Math.min( 1000000, tbodyHeight );
+		scroller.style("height", "" + maxScrollerHeight + "px")
+		
 
 		// set the width to match all columns, so scrolling works, even though
 		// many are 'virtual'
 		var numCols = tableData.columns.length;
 		tbody.style("width", "" + (getTableWidth()) + "px")
-		// console.log(numCols*colWidth);
+		scroller.style("width", "" + (getTableWidth()) + "px")
 
 		if (resize) {
 			tbody.selectAll("div").remove();
@@ -448,22 +454,110 @@ QTDT.DataTableView = BaseView.extend({
 		}
 
 		// prevent too many requests for data when scrolling rapidly.
-		var debounceUpdateRowData = debounce(updateRowData, 100);
+		var debounceUpdateRowData = debounce(updateRowData, 200);
 
 		// called on every scroll event
-
 		function render() {
-			renderHeader();
-			renderBody();
-			debounceUpdateRowData();
-			// create bulk order button
-			that.addBulkOrderButton();
+			renderTable(false, true);
+		}
+		
+		
+		var scrollX = 0; 
+		var scrollY = 0; 
+		var lastScrollX = -1;
+		var lastScrollY = -1;
+		var scrollingNode = undefined;
+		var rowCount = 0;
+		var offsetY = 0;
+		var nonUserScroll = false;
+		var lastHeight = -1;
+		var preventUpdate = false;
+		function renderScroll() {
+			if ( scrollingNode === undefined ) {
+				scrollingNode = config.container.select(".scrollerContainer").node();
+				scrollX = scrollingNode.scrollLeft; 
+				scrollY = scrollingNode.scrollTop; 
+			} else {
+				scrollX = scrollingNode.scrollLeft; 
+				scrollY = scrollingNode.scrollTop; 
+			}
+			
+			var scrollerHeight = maxScrollerHeight;
+//			var scrollerHeight = scroller.node().clientHeight;
+//			if(scrollerHeight === 0) {
+//				var cssScrollHeight = scroller.style("height").substr(0, scroller.style("height").length-2);
+//				tbodyHeight = parseFloat(cssScrollHeight).toPrecision();
+//			}
+//			var tbodyHeight = tbody.node().clientHeight;
+//			if(tbodyHeight === 0) {
+//				var cssTableHeight = tbody.style("height").substr(0, tbody.style("height").length-2);
+//				tbodyHeight = parseFloat(cssTableHeight).toPrecision();
+//			}
+			
+			 if ( scrollerHeight !== tbodyHeight ) {
+	                var scrollTopMax = scrollingNode.scrollTopMax ? scrollingNode.scrollTopMax : scrollingNode.scrollHeight - scrollingNode.clientHeight;
+	                var diff = scrollerHeight - scrollTopMax;
+	                scrollY = (tbodyHeight - diff + 10) * (scrollY / scrollTopMax); 
+	         }
+			
+			var isHorizontal = ( scrollX !== undefined && lastScrollX !== undefined) ? (lastScrollX !== -1) ? (scrollX !== lastScrollX ) : false : false;
+			var isVertical = ( scrollY !== undefined && lastScrollY !== undefined) ? (lastScrollY !== -1) ? (scrollY !== lastScrollY ) : false : false;
+			
+			type = 1;
+			if ( isHorizontal ) {
+				tableHead.style("transform", "translate3d(" + (-scrollX) + "px,0,0)");
+				tbody.style("transform", "translate3d(" + (-scrollX) + "px," + "0px,0)");
+//				tbody.style("transform", "translate3d(" + (-scrollX) + "px,"+ (-scrollY) + "px,0)");
+			}
+			else if ( isVertical ) {
+				tbody.style("transform", "translate3d(" + (-scrollX) + "px," + "0px,0)");
+//				tbody.style("transform", "translate3d(" + (-scrollX) + "px,"+ (-scrollY) + "px,0)");
+			}
+			if ( isHorizontal || isVertical ) {
+				renderTable(isHorizontal, isVertical);
+				// create bulk order button
+				that.addBulkOrderButton();
+			}
+			if ( isVertical ) {
+				// debounce prevents too many calls to updateRowData when the user is jumping the scrollbar around:
+				if(!preventUpdate){
+					debounceUpdateRowData();
+				} else {
+					preventUpdate = false;
+				}
+//				updateRowData();
+			}
+			
+			lastScrollX = scrollX;
+			lastScrollY = scrollY;	
 		}
 
-		function renderScroll() {
-			type = 1;
-			render();
+		function redirectEvent(eventType, fromElement, toElement) {
+			fromElement.addEventListener(eventType, function (event) {
+				toElement.dispatchEvent(new event.constructor(event.type, event));
+				event.preventDefault();
+				event.stopPropagation();
+			});
 		}
+		
+		function resetTableHeight() {
+			var newHeight = that.numRows * rowHeight;
+			tbody.style("height",  "100%");
+			//we need a minimum height of 1px so the user can scroll horizontally
+			var scrollerHeight = ((that.numRows * rowHeight) == 0) ? 1 : that.numRows * rowHeight;
+			var maxScrollerHeight = Math.min( 1000000, scrollerHeight );
+			scroller.style("height", "" + maxScrollerHeight + "px"); 
+
+			// Change the height forces the scroll listener to trigger as a result it re-renders the page without a filter,
+			// if the filter returns zero
+			// so we need to set nonUserScroll to true
+
+			if((newHeight < lastHeight) && newHeight == 0 && scrollY != 0){
+				nonUserScroll = true;
+			}
+			lastHeight = newHeight;
+		}
+		
 		this.updateRepeatableGroupFunction = function renderRepeatableGroup(expandOrCollapse, e) {
 			rgModel = $(e.target).data("model");
 			type = expandOrCollapse;
@@ -472,11 +566,18 @@ QTDT.DataTableView = BaseView.extend({
 
 		this.sortFunction = function sortTable() {
 			type = 4;
-			render();
+			scrollingNode.scrollTop = 0;
+			offsetY = 0;
+			updateRowData();
 		}
 
 		this.applyVirtFilters = function applyTableFilters() {
 			type = 5;
+			activeFilter = true;
+			scrollingNode.scrollTop = 0;
+			//prevent renderScroll
+			preventUpdate = true;
+			offsetY = 0;
 			updateRowData();
 		}
 		
@@ -529,7 +630,6 @@ QTDT.DataTableView = BaseView.extend({
 				}
 			}
 
-			// console.log("getColumnInfo", offsetX, columnsPerPage);
 			return {
 				offsetX: offsetX,
 				columnsPerPage: columnsPerPage,
@@ -539,7 +639,6 @@ QTDT.DataTableView = BaseView.extend({
 
 		var storedHiddenChildren = [];
 
-		var lastScrollX = -1;
 
 		var minColWidth = 80;
 		var dragStartOffset = 0;
@@ -550,7 +649,6 @@ QTDT.DataTableView = BaseView.extend({
         	dragStartX = d3.event.x;
        		dragStartOffset = headerData[d.key].offset + headerData[d.key].width;
         	dragStartWidth = d.width;
-//        	console.log("dragStart", d.name, d.key, dragStartX, dragStartOffset, dragStartWidth);
         })
         .on("drag", function(d) {
         	d3.select(this);
@@ -566,7 +664,6 @@ QTDT.DataTableView = BaseView.extend({
         			}
         		} else if (headerData[d.key + 1].offset !== dragOffset) {
         			changed = true;
-//	  			    console.log("dragged ", d.name, dragOffset);
 				    lastScrollX = -1;
 				    lastScrollY = -1;
 		        	headerData[d.key + 1].offset = dragOffset;
@@ -581,309 +678,296 @@ QTDT.DataTableView = BaseView.extend({
         		if (!changed) return;
 
         		var tbody = config.container.select(".centerScroll").select(".tableBody");
-//	    		console.log(tbody);
 	    		if (!tbody.empty()) {
-//	    			console.log("width", getTableWidth());
 					tbody.style("width", "" + (getTableWidth()) + "px");
+					scroller.style("width", "" + (getTableWidth()) + "px");
 	    		}
-	        	renderHeader();
-	        	renderBody();
+	        	renderTable(true, false);
         	}
         });
-
-		function renderHeader() {
-			var scrollingNode = config.container.select(".centerScroll").node();
-			var scrollX = scrollingNode.scrollLeft;
-			if ((lastScrollX === scrollX) && !that.hideColumn) return;
-
-			if (that.frozenIndex !== -1) {
-				scrollX = Math.max(scrollX, that.frozenScrollPositionX);
-				scrollingNode.scrollLeft = scrollX;
-			}
-
-			var vizWidth = scrollingNode.getBoundingClientRect().width;
-			var colInfo = getColumnInfo(scrollX, vizWidth);
-			var offsetX = colInfo.offsetX; 
-			var columnsPerPage = colInfo.columnsPerPage;
-			var colCount = columnsPerPage + 1;
-
-			var headerSliceRows = headerDataRows;
-
-			headerSliceRows.reverse();
-			var headerSlice = [];
-
-			// hide any hidden columns
-			if (that.hiddenColumns.length > 0) {
-
-				var hiddenChildren = [];
-				that.hiddenColumns.forEach(function (index, i) {
-					var removeIndex = headerSliceRows[0].data.findIndex(function (a) {
-						return (index == a.col && a.row == 2);
-					})
-					if (removeIndex > -1) {
-						var removedCol = headerSliceRows[0].data.slice(removeIndex, removeIndex + 1)[0];
-						removedCol.hidden = true;
-						removedCol.width = 0;
-						headerSliceRows[0].data.forEach(function (col, i) {
-							if (col.key === 0) {
-								col.offset = 0;
-							} else {
-								col.offset = headerData[col.key - 1].width + headerData[col.key - 1].offset;
-							}
-
-						});
-						hiddenChildren.push(removedCol);
-
-					}
-				});
-			}
-
-
-			var frozenCount = (that.frozenIndex !== -1) ? (that.frozenIndex - that.frozenOffsetX + 1) : 0;
-			if ( that.frozenIndex !== -1 ) {
-				offsetX = Math.max(offsetX + frozenCount - 1, that.frozenOffsetX + frozenCount) ;
-			}
-
-			// console.log(headerSliceRows);
-			headerSliceRows.forEach(function(row, i) {
-				var headerSliceCols = [];
-				if (row.rowIndex == 2) {
-					// clip each row in X (columns) and reassemble into 2D
-					// array:
-					if ( this.frozenIndex !== -1 ) {
-
-						var dataSliceCols = row.data.slice(that.frozenOffsetX, that.frozenOffsetX + frozenCount);
-
-						dataSliceCols.forEach(function(cell, j) {
-							if ( j === 0 ) {
-								cell.frozen = Math.max(that.frozenScrollPositionX + that.frozenScrollOffsetX, scrollX + that.frozenScrollOffsetX);
-//								cell.frozen = scrollX + that.frozenScrollOffsetX;
-							}
-							else {
-								cell.frozen = headerSliceCols[j-1].frozen + getTableHeaderWidth2(headerSliceCols[j-1]);
-							}
-							headerSliceCols.push(cell);
-						});
-
-						dataSliceCols = row.data.slice(offsetX, offsetX + (colCount - frozenCount) );
-						dataSliceCols.forEach(function(cell) {
-							cell.frozen = undefined;
-							headerSliceCols.push(cell);
-						});
-
-					}
-					else {
-						headerSliceCols = row.data.slice(offsetX, offsetX + colCount);
-					}
-				} else {
-					var rIndex = row.rowIndex;
-					row.data.forEach(function(obj, i) {
-						// check if child exists in headerSlice
-						var child = undefined;
-						obj.frozen = undefined;
-						if (rIndex == 1) {
-							child = headerSlice.find(function(o) {
-
-								return (o.parentIndex === obj.selfIndex && o.grandParentIndex === obj.parentIndex)
-							});
-						} else if (rIndex == 0) {
-							child = headerSlice.find(function(o) {
-								return (o.parentIndex === obj.selfIndex && o.grandParentIndex === -1)
-							});
-						}
-
-						if (child != undefined ) {
-							if ( child.frozen  != undefined ) {
-								if ( obj.frozen === undefined ) {
-									obj.frozen = child.frozen;
-								}
-								else {
-									obj.frozen = Math.min(obj.frozen, child.frozen);
-								}
-							}
-//							console.log("header", rIndex, obj, obj.frozen, child.name, child.frozen );
-							headerSliceCols.push(obj);
-						}
-
-					});
-					headerSliceCols.reverse();
-				}
-				headerSliceCols.forEach(function(column) {
-					(row.rowIndex == 2) ? headerSlice.push(column): headerSlice.unshift(column);
-				});
-			});
-
-			headerSliceRows.reverse(); // TODO: find a better way to manage
-										// this
-			// var rowCells = tbody.selectAll("div").data(dataSlice);
-			// console.log("headersSlice", headerSlice);
-			// console.log(tableHead);
-			// request a div for each header cell in headerSlice
-			// pass in a key function so each cell is uniquely identified
-			// this makes sure that when cells scroll they aren't recreated as
-			// long as the content of the cells
-			// hasn't changed. Cells should only be remove/recreated when the
-			// content scrolls out of view.
-			var headcells = tableHead.selectAll("div.headerCell").data(headerSlice, function(d) { return "" + (d.col) + "_" + (d.row); });
-			// translate the container - we need this because the header
-			// container is separate from the data array, which has the
-			// scrollbars
-			tableHead.style("transform", "translate3d(" + (-scrollX) + "px,0,0)");
-
-			// console.log("table.js.render columnsPerPage", columnsPerPage,
-			// "colCount", colCount, "colWidth", colWidth, "offset", offset,
-			// "scrollX", scrollX );
-
-			var exitNodes = headcells.exit();
-			// uses exitNodes to find a div that can be reused - avoids creating
-			// too many divs which is very very slow.
-			var cellsEnter = headcells.enter().append(function() {
-					var reusableNode = 0;
-					for (var i = 0; i < exitNodes._groups[0].length; i++) {
-						reusableNode = exitNodes._groups[0][i];
-						if (reusableNode) {
-							exitNodes._groups[0][i] = undefined;
-							d3.select(reusableNode).selectAll("*").remove();
-							return reusableNode;
-						}
-					}
-					return document.createElement("div");
-				})
-				.classed("headerCell deHeader", true)
-				.style("display", "flex")
-				.style("height", "20px");
-			cellsEnter.append("div")
-				.html(function(d) { return that.renderColumn(d); })
-				.style("text-align", "center")
-				.style("flex", "1")
-				.on("mouseover", config.hoverTitle);
-			cellsEnter.filter(function(d) { return d.row === 2; })
-		 	  .append("div")
-				.classed("resizeHandle", true)
-				.style("width", "7px")
-				.style("height", "20px")
-				.style("flex", "0 0 7px")
-				.style("cursor", "ew-resize")
-				.style("background-color", "#fff")
-				.call(dragBehavior);
-
-			headcells.exit().remove();
-
-			// console.log(headerData);
-			// new and existing header cells
-			var cellsUpdate = cellsEnter.merge(headcells)
-				.classed("frozen", function(d) { return d.frozen !== undefined; })
-				// put them in the right place
-				.style("transform", function(d, i) {
-					if ( d.frozen !== undefined ) return "translate3d(" + ( d.frozen) + "px,"
-					 + (d.row * 20) + "px,0)";
-					return "translate3d(" + ( headerData[d.key].offset) + "px,"
-					+ (d.row * 20) + "px,0)";
-				});
-			cellsUpdate
-				.style("width", function(d, i) {
-					return getTableHeaderWidth(d, i);
-				})
-				.attr("title", function(d) { return d.name; });
-
-			//cellsUpdate.selectAll(".ui-resizable-handle").on("click", function(d) {
-				//console.log("click resize handle", d.key, d.name);
-			//});
-		}
-
-
-
-		var rowCount = 0;
-		var offsetY = 0;
-		var lastScrollY = -1;
-		var nonUserScroll = false;
-		var lastHeight = -1;
-
-		function renderBody() {
-			var scrollingNode = config.container.select(".centerScroll").node();
-			
-			var scrollX = scrollingNode.scrollLeft;
-			var vizWidth = scrollingNode.getBoundingClientRect().width;
-			var currentHeight = tbody.node().getBoundingClientRect().height;
-			if(lastHeight == -1){ lastHeight = currentHeight};
-
-			if (that.frozenIndex !== -1) {
-				scrollX = Math.max(scrollX, that.frozenScrollPositionX);
-				scrollingNode.scrollLeft = scrollX;
-			}
-
-			var colInfo = getColumnInfo(scrollX, vizWidth);
-			var offsetX = colInfo.offsetX; 
-			var columnsPerPage = colInfo.columnsPerPage;
-			var colCount = columnsPerPage + 1;
-			
-			var scrollY = scrollingNode.scrollTop;
-			if ((lastScrollX === scrollX) && (lastScrollY === scrollY) && !that.updateFrozen && !that.hideColumn && type == 1) return;
-	
+		
+		function checkStoredHiddenColumns(){
+			if(that.hiddenColumnsProperties.length > 0){
 				
-			if(nonUserScroll) {
+				var headerData = (that.inTableData.headers != undefined) ? that.inTableData.headers[2] : [];
+				var parentHeader = (that.inTableData.headers != undefined) ? that.inTableData.headers[1] : [];
+				var gParentHeader = (that.inTableData.headers != undefined) ? that.inTableData.headers[0] : [];
+				
+				var columnsNotShown = [];
+				that.hiddenColumnsProperties.forEach(function(columnProperties, i) {
+					var formName = columnProperties.formName;
+					if ( formName === undefined ) {
+						formName = columnProperties.formUri.slice(columnProperties.formUri.lastIndexOf("/") + 1);
+					}
+					var columnHeader = headerData.filter(function (d) {
+						// make sure the name and parent name match:
+						return ((d.name === columnProperties.deName) && (parentHeader[d.parentId].name === columnProperties.rgName) 
+								&& (gParentHeader[d.grandParentIndex].name === formName) )
+					});
+					
+					if ( columnHeader.length !== 0 ) {
+						var col = columnHeader[0].col;
+						that.hiddenColumns.push(col);
+					} else {
+						columnsNotShown.push(columnProperties);
+					}
+				});
+				
+				if(columnsNotShown.length > 0) {
+					that.hiddenColumnsProperties = columnsNotShown;
+				} else {
+					// remove from hiddenColumnsProperties 
+					that.hiddenColumnsProperties = [];
+				}
+				
+			}
+		}
+		
+		// only calculate the new rows on vertical scroll:
+		var dataSliceRows;
+		function renderTable( isHorizontal, isVertical ) {
+
+			if ((lastScrollX === scrollX) && (lastScrollY === scrollY) && !that.updateFrozen && !that.hideColumn && type === 1) return;
+			
+			if( nonUserScroll ) {
 				nonUserScroll = false;
 				return;
 			}
-			
-			if(type == 5){
-				//reset scrolls on filter
-				//scrollingNode.scrollLeft = 0;
-				//scrollingNode.scrollTop = 0;
-				var newHeight = that.numRows * rowHeight;
-				tbody.style("height", "" + (that.numRows * rowHeight) + "px");
-				
-				//Change the height forces the scroll listener to trigger as a result it re-renders the page without a filter,
-				//if the filter returns zero
-				// so we need to set nonUserScroll to true
-				
-				if((newHeight < lastHeight) && newHeight == 0 && scrollY != 0){
-					nonUserScroll = true;
-				}
-				lastHeight = newHeight;
-				
-				
+			// hide any hidden columns
+			if (that.hiddenColumns.length > 0) {
+				// re-calculate table body width
+				tbody.style("width", "" + (getTableWidth()) + "px");
+				scroller.style("width", "" + (getTableWidth()) + "px");
 			}
+			that.hideColumn = false; // reset hide column flag
+			
+			
+			// calculate visible width and the number of columns to display:
+			var vizWidth = scrollingNode.getBoundingClientRect().width || that.defaultTableWidth;
+			
+			var tbodyHeight = tbody.node().getBoundingClientRect().height;
+			if(tbodyHeight <= 0) {
+				var cssTableHeight = tbody.style("height").substr(0, tbody.style("height").length-2);
+				tbodyHeight = parseFloat(cssTableHeight).toPrecision();
+			}
+			
+			var currentHeight = tbodyHeight || that.defaultTableHeight;
+			if(lastHeight == -1){ lastHeight = currentHeight};
 
-			lastScrollX = scrollX;
-			lastScrollY = scrollY;
+			var frozenCount = (that.frozenIndex !== -1) ? (that.frozenIndex - that.frozenOffsetX + 1) : 0;
+			// check and respositiong / lock the scroll bar:
+			if (that.frozenIndex !== -1) {
+				scrollX = Math.max(scrollX, that.frozenScrollPositionX);
+				scrollingNode.scrollLeft = scrollX;
+			}
+			// repositioning has to happen after scrollLeft is reset in case of frozeen columns:
+			if ( type === 1 ) {
+					tableHead.style("transform", "translate3d(" + (-scrollX) + "px,0,0)");
+					tbody.style("transform", "translate3d(" + (-scrollX) + "px," + "0px,0)");
+//					tbody.style("transform", "translate3d(" + (-scrollX) + "px,"+ (-scrollY) + "px,0)");
+			}
+			
+			var colInfo = getColumnInfo(scrollX, vizWidth);
+			var offsetX = colInfo.offsetX; 
+			var columnsPerPage = colInfo.columnsPerPage;
+			var colCount = columnsPerPage + 1;
+			
+			if ( that.frozenIndex !== -1 ) {
+				offsetX = Math.max(offsetX, that.frozenOffsetX + frozenCount) ;
+			}
 			that.scrollOffsetX = offsetX;
 			that.scrollPositionX = scrollX;
 
-			var vizHeight = scrollingNode.getBoundingClientRect().height;
+			// calculate the visible height and the number of rows to display:
+			var vizHeight = scrollingNode.getBoundingClientRect().height || that.defaultTableHeight;
 			var rowsPerPage = Math.ceil(vizHeight / rowHeight);
 			// add some buffer beyond what is visible on the page. Scrolling
 			// down is most common.
 			rowCount = rowsPerPage + 15;
 			offsetY = Math.max(0, Math.floor(scrollY / rowHeight) - 1);
-			thisDataTable.set("offsetY", offsetY);
-
-			// get the visible section of row data
-			// console.log(rowData);
-
-			// hide any hidden columns
-			if (that.hiddenColumns.length > 0) {
-				// re-calculate table body width
-				tbody.style("width", "" + (getTableWidth()) + "px");
+			that.model.set("offsetY", offsetY);
+			
+			if ( isVertical ) {
+				dataSliceRows = rowData.slice(offsetY, offsetY + rowCount);
 			}
+			if ( isVertical || isHorizontal ) {
 
+				// Reslice Header:
+				var headerSliceRows = headerDataRows;
+				headerSliceRows.reverse();
 
-			that.hideColumn = false; // reset hide column flag
+				//check for columns, hidden prior to table rendering
+				checkStoredHiddenColumns();
+				
+				// hide any hidden columns
+				if (that.hiddenColumns.length > 0) {
+					var newColCount = colCount;
+					var hiddenChildren = [];
+					that.hiddenColumns.forEach(function (index, i) {
+						var removeIndex = headerSliceRows[0].data.findIndex(function (a) {
+							return (index == a.col && a.row == 2);
+						})
+						if (removeIndex > -1) {
+							var removedCol = headerSliceRows[0].data.slice(removeIndex, removeIndex + 1)[0];
+							removedCol.hidden = true;
+							removedCol.width = 0;
+							++newColCount;
+							
+							headerSliceRows[0].data.forEach(function (col, i) {
+								if (col.key === 0) {
+									col.offset = 0;
+								} else {
+									col.offset = headerData[col.key - 1].width + headerData[col.key - 1].offset;
+								}
 
+							});
+							hiddenChildren.push(removedCol);
 
-			var dataSliceRows = rowData.slice(offsetY, offsetY + rowCount);
-			// console.log("renderBody", dataSliceRows.length);
-			// console.log(dataSliceRows);
+						}
+					});
+					colCount = newColCount;
+				}
+
+				
+				var headerSlice = [];
+				headerSliceRows.forEach(function(row, i) {
+					var headerSliceCols = [];
+					if (row.rowIndex == 2) {
+						// clip each row in X (columns) and reassemble into 2D
+						// array:
+						if ( that.frozenIndex !== -1 ) {
+
+							var dataSliceCols = row.data.slice(that.frozenOffsetX, that.frozenOffsetX + frozenCount);
+
+							dataSliceCols.forEach(function(cell, j) {
+								if ( j === 0 ) {
+									cell.frozen = that.frozenScrollOffsetX;
+								}
+								else {
+									cell.frozen = headerSliceCols[j-1].frozen + getTableHeaderWidth2(headerSliceCols[j-1]);
+								}
+								headerSliceCols.push(cell);
+							});
+
+							dataSliceCols = row.data.slice(offsetX, offsetX + colCount );
+							dataSliceCols.forEach(function(cell) {
+								cell.frozen = undefined;
+								headerSliceCols.push(cell);
+							});
+
+						}
+						else {
+							headerSliceCols = row.data.slice(offsetX, offsetX + colCount);
+							headerSliceCols.forEach(function(cell) {
+								cell.frozen = undefined;
+							});
+						}
+					} else {
+						var rIndex = row.rowIndex;
+						row.data.forEach(function(obj, i) {
+							// check if child exists in headerSlice
+							var child = undefined;
+							obj.frozen = undefined;
+							if (rIndex == 1) {
+								child = headerSlice.find(function(o) {
+
+									return (o.parentIndex === obj.selfIndex && o.grandParentIndex === obj.parentIndex)
+								});
+							} else if (rIndex == 0) {
+								child = headerSlice.find(function(o) {
+									return (o.parentIndex === obj.selfIndex && o.grandParentIndex === -1)
+								});
+							}
+
+							if (child != undefined ) {
+								if ( child.frozen  != undefined ) {
+									if ( obj.frozen === undefined ) {
+										obj.frozen = child.frozen;
+									}
+									else {
+										obj.frozen = Math.min(obj.frozen, child.frozen);
+									}
+								}
+								headerSliceCols.push(obj);
+							}
+
+						});
+						headerSliceCols.reverse();
+					}
+					headerSliceCols.forEach(function(column) {
+						(row.rowIndex == 2) ? headerSlice.push(column): headerSlice.unshift(column);
+					});
+				});
+
+				headerSliceRows.reverse(); // TODO: find a better way to manage
+											// this
+				
+				// D3 Code for rendering the Header:
+				// request a div for each header cell in headerSlice
+				// pass in a key function so each cell is uniquely identified
+				// this makes sure that when cells scroll they aren't recreated as
+				// long as the content of the cells
+				// hasn't changed. Cells should only be remove/recreated when the
+				// content scrolls out of view.
+				var headcells = tableHead.selectAll("div.headerCell").data(headerSlice, function(d) { return "" + (d.col) + "_" + (d.row); });
+
+				var headCellsExitNodes = headcells.exit();
+				// uses exitNodes to find a div that can be reused - avoids creating
+				// too many divs which is very very slow.
+				var headCellsEnter = headcells.enter().append(function() {
+						var reusableNode = 0;
+						for (var i = 0; i < headCellsExitNodes._groups[0].length; i++) {
+							reusableNode = headCellsExitNodes._groups[0][i];
+							if (reusableNode) {
+								headCellsExitNodes._groups[0][i] = undefined;
+								d3.select(reusableNode).selectAll("*").remove();
+								return reusableNode;
+							}
+						}
+						return document.createElement("div");
+					})
+					.classed("headerCell deHeader", true)
+					.style("display", "flex")
+					.style("height", "20px");
+				headCellsEnter.append("div")
+					.html(function(d) { return that.renderColumn(d); })
+					.style("text-align", "center")
+					.style("flex", "1")
+					.on("mouseover", config.hoverTitle);
+				headCellsEnter.filter(function(d) { return d.row === 2; })
+			 	  .append("div")
+					.classed("resizeHandle", true)
+					.style("width", "7px")
+					.style("height", "20px")
+					.style("flex", "0 0 7px")
+					.style("cursor", "ew-resize")
+					.style("background-color", "#fff")
+					.call(dragBehavior);
+
+				headcells.exit().remove();
+
+				// new and existing header cells
+				var headCellsUpdate = headCellsEnter.merge(headcells)
+					.classed("frozen", function(d) { return d.frozen !== undefined; })
+					// put them in the right place
+					.style("transform", function(d, i) {
+						if ( d.frozen !== undefined ) return "translate3d(" + ( d.frozen + scrollX) + "px,"
+						 + (d.row * 20) + "px,0)";
+						return "translate3d(" + ( headerData[d.key].offset) + "px,"
+						+ (d.row * 20) + "px,0)";
+					});
+				headCellsUpdate
+					.style("width", function(d, i) {
+						return getTableHeaderWidth(d, i);
+					})
+					.attr("title", function(d) { return d.name; });
+				// retrieve the current header theme color from background - passed to knowledge graph
+				headerColor = headCellsUpdate.select(".hdrcolor").style("background-color");
+			}
+			
+			// reslice table body after header:
 			var dataSlice = [];
 			var count = 0;
-
-			var frozenCount = (that.frozenIndex !== -1) ? (that.frozenIndex - that.frozenOffsetX + 1) : 0;
-			if ( that.frozenIndex !== -1 ) {
-				offsetX = Math.max(offsetX + frozenCount - 1, that.frozenOffsetX + frozenCount) ;
-			}
-
-//			console.log(that.frozenIndex, that.frozenOffsetX, frozenCount );
-//			console.log(offsetX, (offsetX + (colCount - frozenCount) ) );
 
 			dataSliceRows.forEach(function(row, i) {
 				// clip each row in X (columns) and reassemble into 2D array:
@@ -893,8 +977,7 @@ QTDT.DataTableView = BaseView.extend({
 
 					dataSliceCols.forEach(function(cell, j) {
 						if ( j === 0 ) {
-							cell.frozen = Math.max(that.frozenScrollPositionX + that.frozenScrollOffsetX, scrollX + that.frozenScrollOffsetX);
-//							cell.frozen = scrollX + that.frozenScrollOffsetX;
+							cell.frozen = that.frozenScrollOffsetX;
 						}
 						else {
 							cell.frozen = dataSlice[count-1].frozen + headerData[dataSlice[count-1].col].width;
@@ -903,7 +986,7 @@ QTDT.DataTableView = BaseView.extend({
 						count++;
 					});
 
-					dataSliceCols = row.data.slice(offsetX, offsetX + (colCount - frozenCount) );
+					dataSliceCols = row.data.slice(offsetX, offsetX + colCount);
 					dataSliceCols.forEach(function(cell) {
 						cell.frozen = undefined;
 						dataSlice.push(cell);
@@ -921,12 +1004,7 @@ QTDT.DataTableView = BaseView.extend({
 				}
 			});
 
-//			console.log(scrollX);
-//			console.log("renderBody", dataSlice[0] );
-//			console.log("          ", dataSlice[1] );
-//			console.log("          ", dataSlice[2] );
-
-
+			// D3 Code for rendering the table Body:
 			// pass in a key function so each cell is uniquely identified
 			// this makes sure that when cells scroll they aren't recreated as
 			// long as the content of the cells
@@ -935,201 +1013,255 @@ QTDT.DataTableView = BaseView.extend({
 			// the old.
 			var rowCells = tbody.selectAll("div.tableCell").data(dataSlice, function(d) {
 				return  "" + (d.col) + "_" + (d.row);
-				});
-			// console.log("renderBody", dataSlice.length);
-
-			// console.log("table.js.render rowCount", rowCount, "offsetX",
-			// offsetX, "offsetY", offsetY, "scrollX", scrollX, "scrollY",
-			// scrollY );
+			});
 
 			// here we re-use exit nodes when they aren't visible.
 			var exitNodes = rowCells.exit();
 			var cellsEnter = rowCells.enter().append(function() {
-					var reusableNode = 0;
-					for (var i = 0; i < exitNodes._groups[0].length; i++) {
-						reusableNode = exitNodes._groups[0][i];
-						if (reusableNode) {
-							exitNodes._groups[0][i] = undefined;
-							return reusableNode;
-						}
+				var reusableNode = 0;
+				for (var i = 0; i < exitNodes._groups[0].length; i++) {
+					reusableNode = exitNodes._groups[0][i];
+					if (reusableNode) {
+						exitNodes._groups[0][i] = undefined;
+						return reusableNode;
 					}
-					return document.createElement("div");
-				})
-				.classed("tableCell", true)
-				.classed("highlightRow", false)
-				.classed("even", function (d) {
-					return (d.row % 2 == 0);
-				})
-				.style("height", "" + (rowHeight) + "px")
-				.html(function(d) {
+				}
+				return document.createElement("div");
+			})
+			.classed("tableCell", true)
+			.classed("highlightRow", false)
+			.classed("even", function (d) {
+				return (d.row % 2 == 0);
+			})
+			.style("height", "" + (rowHeight) + "px")
+			.html(function(d) {
 
-					return that.renderCell(d)
-					})
-				.classed("disabled", function(d) {  return d.disabled } )
-				.classed("highlight-row", function(d) {  return d.highlightRow } )
-				.style("text-align", "center")
-				.on("mouseover", config.hoverRow)
-				.on("mouseleave", config.hoverTitle);
+				return that.renderCell(d)
+			})
+			.classed("disabled", function(d) {  return d.disabled } )
+			.classed("highlight-row", function(d) {  return d.highlightRow } )
+			.style("text-align", "center")
+			.on("mouseover", config.hoverRow)
+			.on("mouseleave", config.hoverTitle);
 			rowCells.exit().remove();
 
 			var cellsUpdate = cellsEnter.merge(rowCells)
-				.html(function(d) {
-					return that.renderCell(d)
-				})
-				.classed("disabled", function(d) { return d.disabled } )
-				.classed("frozen", function(d) { return d.frozen !== undefined; })
-				.style("width", function (d) {
-					return "" + (headerData[d.col].width) + "px"
-				})
-				.attr("title", function(d){ return d.title })
-				.classed("highlight-row", function(d) {  return d.highlightRow } )
-				// move only cells that aren't frozen
-//				.filter(function(d) { return !d.frozen; })
-				// put them in the right place.
-				// Variable column width requires a list of each column width
-				// and offset.
-				.style("transform", function (d) {
-//					console.log(d.name, headerData[d.col].offset);
-					if ( d.frozen !== undefined ) {
-						return "translate3d(" + (d.frozen) + "px," + (d.row * rowHeight) + "px,0)";
-					}
-					return "translate3d(" + (headerData[d.col].offset) + "px," + (d.row * rowHeight) + "px,0)";
-				});
+			.html(function(d) {
+				return that.renderCell(d)
+			})
+			.classed("disabled", function(d) { return d.disabled } )
+			.classed("frozen", function(d) { return d.frozen !== undefined; })
+			.style("width", function (d) {
+				return "" + (headerData[d.col].width) + "px"
+			})
+			.attr("title", function(d){ return d.title })
+			.classed("highlight-row", function(d) {  return d.highlightRow } )
+			// move only cells that aren't frozen
+			// put them in the right place.
+			// Variable column width requires a list of each column width
+			// and offset.
+			.style("transform", function (d) {
+				if ( d.frozen !== undefined ) {
+					return "translate3d(" + (d.frozen + scrollX) + "px," + ((d.row * rowHeight) - scrollY) + "px,0)";
+				}
+				return "translate3d(" + (headerData[d.col].offset) + "px," + ((d.row * rowHeight) - scrollY) + "px,0)";
+			});					
+			
 		}
 
+		
 		// configure prefetch of data.
-		var bufferRows = 30; // extra rows above/below the rendered rows.
-		var marginRows = bufferRows / 2; // how close to the end before
-											// requesting more data
-		var startIndex = 0; // start of requested data.
-		var rowDataStart = 0; // start of data that's been returned by the
-								// server
-		var rowDataEnd = 100; // end of data returned by the server.
+		var bufferRows = 30;  // extra rows above/below the rendered rows.
 		var fetchCount = 0; // how many fetch requests are in flight.
+		var previousOffsetY = -1;
+		var prefetchSize = 500;
+		var startIndex = 0;
+		var fetchCallParam = -1;
 		function updateRowData() {
+			var direction = 1;
+			if ( (previousOffsetY !== -1) && (previousOffsetY !== offsetY) ) {
+				direction = offsetY - previousOffsetY;
+			}
+			previousOffsetY = offsetY;
+			
 			// rowCount is the number of rendered rows.
-			// we are actually using rows from offsetY to offsetY + rowCount
-			// Fetch data with bufferRows on either side. If we get within 1/2
-			// that (marginRows) of
-			// the edge of our current data, fetch new data.
-			var prefetchSize = rowCount + 2 * bufferRows;
-			var endIndex = startIndex + prefetchSize;
-			var endOffsetY = offsetY + rowCount;
-			// console.log("updateRodData viz ", offsetY, " -> ", endOffsetY );
-			// console.log("updateRodData pre ", startIndex, " -> ", endIndex );
-			// if offset is increasing (scroll down) check if we're getting
-			// close to the end of the prefetch:
-			// Type: 1. rows change because of scroll, 2. and 3. rows changed
+			var displayedEnd = offsetY + rowCount;
+			var lowerBound = Math.max(0, offsetY - bufferRows);
+			var upperBound = Math.min( numRows, displayedEnd + bufferRows );
+			
+			// Type: 1. rows change because of scroll, i.e. pagination 2. and 3. rows changed
 			// because repeatable group expansion, or collapse, 4. sort, 5.
 			// filters, 6. Display Options
 			if (type == 2 || type == 3 || type == 4 || type == 5 || type == 6) {
 				// do nothing
-
-			} else
-			if (endOffsetY < (endIndex - marginRows) && offsetY > (startIndex + marginRows) ||
-				(endIndex >= numRows && offsetY > startIndex) ||
-				(startIndex <= 0 && endOffsetY < endIndex)) {
+			}
+			else if ( !( (lowerBound < currentDataStart) || (upperBound > currentDataEnd) ) ) {
+				EventBus.trigger("close:processing");
 				return;
 			}
-			// need to fetch
-			startIndex = Math.max(0, offsetY - bufferRows);
-			// console.log("fetching ", startIndex);
-			fetchCount += 1;
+			else {
+				startIndex = currentDataEnd;
+				
+				if ( (direction > 0) && (upperBound > currentDataEnd) ) {
+					// fetch the next set of rows:
+					startIndex = currentDataEnd;
+					// jump forward:
+					startIndex = Math.max(startIndex, offsetY);
+					var prefetchStartIndex = Math.max(0, numRows - prefetchSize);
+					// bounds check:
+					startIndex = Math.min( prefetchStartIndex, startIndex);
+				}
+				if ( (direction < 0 ) && (lowerBound < currentDataStart) ) {
+					// fetch the previous set of rows:
+					startIndex = Math.max(0, currentDataStart - prefetchSize);
+					// jump backward:
+					startIndex = Math.min(startIndex, offsetY);
+				}
+			}
+			if ( type === 1 ) {
+				if ( startIndex === fetchCallParam ) return;
+				fetchCallParam = startIndex;
+			}
+			if ( type === 4 || (type === 5 || activeFilter) ) {
+				// scrollTop was reset so reset startIndex:
+				startIndex = 0;
+			}
 			
+			// need to fetch
+			fetchCount += 1;
+			//EventBus.trigger("open:processing", "Retrieving data...");
+			$(".containerFontIcon").show();
 			var valueObj = (type == 6) ? displayOptionModel : rgModel;
 			config.getRows(startIndex, prefetchSize, tableData.columns, type, valueObj)
 				.then(function (response) {
-
-					if (type == 5 ) {
-						// if were are filtering, collapsing, or expanding rg we should reset rowData to
-						// empty
-						rowData.length = 0;
-						response.offsetY = 0;
-					}
-					
 					if(type == 2 || type == 3) {
+						// expand / collapses repeatable group
 						rowData.length = 0;
 					}
-					// console.log(response);
 					fetchCount -= 1;
+					fetchCallParam = -1;
 					if (!response) return;
-					var offsetY = response.offsetY;
+					if ( (type === 1) && (startIndex !== response.offsetY) ) return;
+					var responseOffsetY = response.offsetY;
 					var rowCount = response.rowCount;
 					var data = response.data;
 					var modelData = response.modelData;
 					that.numRows = response.modelData.iTotalDisplayRecords;
+					numRows = that.numRows;
 
-					config.dtv.model.set("offsetY", offsetY);
-					config.dtv.loadRowData(modelData);
-
-
-					data.forEach(function(row, i) {
-						// add new data row
-						rowData[offsetY + i] = {
-							// guid: row.GUID || row.ID,
-							data: tableData.columns.map(function(col, j) {
-								return {
-									name: (row[col.name] === undefined || row[col.name] === null) ? '-' : row[col.name],
-									row: offsetY + i,
-									col: j
-								};
-							}),
-						};
-					});
-
-					// console.log(rowData);
-					// delete stale data - only if all fetches are complete.
-					if (fetchCount === 0) {
-						var newEnd = offsetY + data.length;
-						var newStart = offsetY;
-						// console.log("updateRowData", startIndex, endIndex,
-						// newStart, newEnd, (offsetY + data.length) );
-						if (newStart > rowDataStart) {
-							for (var i = rowDataStart; i < newStart; ++i) {
-								// console.log("remove", i);
-								rowData[i] = {
-									data: []
-								};
-							}
-						} else if (newStart < rowDataStart) {
-							for (var i = rowDataEnd; i > newEnd; --i) {
-								// console.log("remove", i);
-								rowData[i] = {
-									data: []
-								};
-							}
+					config.dtv.model.set("offsetY", responseOffsetY);
+					if(data.length > 0) { 
+						if(type == 5 || activeFilter) {
+							//if the data has been filtered, let's clear out all the old data
+							//and start from new
+							rowData = [];
+							currentDataEnd = 0;
+							tbodyHeight = that.numRows * rowHeight;
+							maxScrollerHeight = Math.min( 1000000, tbodyHeight );
+							scroller.style("height", "" + maxScrollerHeight + "px");
+							scrollY = scrollX = 0;
+							
 						}
-						// TODO: this may need to be updated when fetchCount > 0
-						rowDataStart = newStart;
-						rowDataEnd = newEnd;
+						data.forEach(function(row, i) {
+							// add new data row
+							rowData[responseOffsetY + i] = {
+								// guid: row.GUID || row.ID,
+								data: tableData.columns.map(function(col, j) {
+									return {
+										name: (row[j+"_"+col.name] === undefined || row[j+"_"+col.name] === null) ? '-' : row[j+"_"+col.name],
+										row: responseOffsetY + i,
+										col: j
+									};
+								}),
+							};
+						});
+					} else {
+						rowData = [];	
 					}
-					// rowData stays consistently small even when the scroll bar
-					// jumps positions.
-					// var dataCount = 0;
-					// for ( var i = 0; i < rowData.length; i++ ) {
-					// if ( rowData[i] && rowData[i].data.length > 0 ) {
-					// dataCount++;
-					// }
-					// }
-					// console.log( "rowData current use", dataCount );
+					
+					// when scrolling (type == 1) clear data:
+					if ( (type == 1) && responseOffsetY > currentDataEnd ) {
+						// jumped 
+						for (var i = currentDataStart; i < currentDataEnd; ++i) {
+							rowData[i] = {
+								data: []
+							};
+						}
+						currentDataStart = responseOffsetY;
+						currentDataEnd = responseOffsetY + data.length;
+					}
+					else if ( (type == 1) && (responseOffsetY + data.length) < currentDataStart ) {
+						// jumped:
+						for (var i = currentDataStart; i < currentDataEnd; ++i) {
+							rowData[i] = {
+								data: []
+							};
+						}
+
+						currentDataStart = responseOffsetY;
+						currentDataEnd = responseOffsetY + data.length;
+					}
+					else {
+						currentDataStart = Math.min( currentDataStart, responseOffsetY );
+						currentDataEnd = Math.max( currentDataEnd, responseOffsetY + data.length );
+					}
+					
+					// delete stale data - only if all fetches are complete.
+					if (fetchCount === 0) {						
+						if ( direction > 0 ) {
+							var newCDS = Math.max(currentDataStart, lowerBound - prefetchSize);
+							for (var i = currentDataStart; i < newCDS; ++i) {
+								rowData[i] = {
+									data: []
+								};
+							}
+							currentDataStart = newCDS;
+						}
+						else if ( direction < 0 ) {
+							var newCDE = Math.min( upperBound + prefetchSize, currentDataEnd );
+							for (var i = currentDataEnd; i > newCDE; --i) {
+								rowData[i] = {
+									data: []
+								};
+							}
+							currentDataEnd = newCDE;
+						}
+					}
 					// reset the last scroll positions to ensure the table
 					// updates:
-					lastScrollX = lastScrollY = -1;
-					renderBody();
-
+					if ( type === 5 || activeFilter ) {
+						resetTableHeight();
+					}
 					// reset type to 1
 					type = 1;
+					//reset active Filter
+					activeFilter = false;
+					lastScrollX = lastScrollY = -1;
+					renderTable(false, true);
+					//EventBus.trigger("close:processing");
+					$(".containerFontIcon").hide();
 
 				})
 				.catch(function (error) {
+					fetchCount -= 1;
 					console.log(error);
+					//EventBus.trigger("close:processing");
+					$(".containerFontIcon").hide();
 				});
 		}
 
+		var scrollCont = config.container.select(".scrollerContainer");
+		scrollingNode = scrollCont.node();
 		render();
 
-		// update visible rows when scrolling.
-		config.container.select(".centerScroll").on("scroll", renderScroll);
+		// link scrolling callback:
+		scrollCont.on("scroll", renderScroll);
+		
+		tbody.on("wheel", function () {
+			scrollingNode.scrollTop += d3.event.wheelDeltaY || d3.event.deltaY || 0;
+			d3.event.preventDefault(); 
+		});
+		
 	},
 	renderColumn: function (column) {
 
@@ -1138,7 +1270,6 @@ QTDT.DataTableView = BaseView.extend({
 		 * if(column.row >= 100) { var rowLength = this.model.rows.length;
 		 * newRowNum = (cell.row - (Math.floor(cell.row/100)*100)); }
 		 */
-		// console.log(newRowNum);
 		// var cellModel =
 		// this.model.rows.at(newRowNum).get("cells").at(cell.col);
 		var colModel;
@@ -1175,7 +1306,7 @@ QTDT.DataTableView = BaseView.extend({
 
 	     h5Html += (modelName == "OrderableBiosampleID") ? '<div class="colValue"><input id="sampleCheckAll" type="checkbox" '+checkedAllStatus+' value="0" />&nbsp;Select All</div>' : "";
 	     HBHtml = "";
-	     (hType == "repeatableGroup" && (colModel.get("name") != "Repeatable Groups:" && colModel.get("name") != "")) ? HBHtml = '<span class="rghbmenu hbblack"></span>': (hType == "dataElement" && !(colModel.get("name") == "GUID" && colModel.get("index") == 0)) ? (hType == "dataElement" && colModel.get("name") != "Study ID" && colModel.get("name") != "Dataset") ? HBHtml = '<span class="hbmenu"></span>' : "" : "";
+	     (hType == "repeatableGroup" && (colModel.get("name") != "Repeatable Groups:" && colModel.get("name") != "")) ? HBHtml = '<span class="rghbmenu hbblack"></span>': (hType == "dataElement" && !(colModel.get("name") == "GUID" && colModel.get("index") == 1)) ? (hType == "dataElement" && colModel.get("name") != "Study ID" && colModel.get("name") != "Row No.") ? HBHtml = '<span class="hbmenu"></span>' : "" : "";
 	     // this is for the repeatable group label column, such that when you
 			// freeze the columns the table isn't misaligned
 	     HBHtml += (hType == "repeatableGroup" && colModel.get("name") == "Repeatable Groups:") ? '<span style="height: 12px;display: inline-block;"></span>' : "";
@@ -1199,7 +1330,7 @@ QTDT.DataTableView = BaseView.extend({
 			}
 
 		 h5Html += (hType == "dataElement") ? ' <a href="javascript:void(0);" class="icon frozenIcon ' + frozenClass + '" data-model=\''+cellObjJson+'\'>&nbsp</a>' : "";
-	     h5Html += (hType == "dataElement" && !colModel.get("doesRepeat")) ? '<div class="'+sorting+'" data-model=\''+cellObjJson+'\'></div>' : "";
+	     h5Html += (hType == "dataElement" && !colModel.get("doesRepeat") && colModel.get("name") != "Row No.") ? '<div class="'+sorting+'" data-model=\''+cellObjJson+'\'></div>' : "";
 	     htmlOutput = $('<div>');
 	     htmlOutput.append($('<h5>', { "class": h5Class, id: (modelName == "OrderableBiosampleID") ? "OrderableBiosampleID" : "" }).html(h5Html));
 
@@ -1239,31 +1370,8 @@ QTDT.DataTableView = BaseView.extend({
 	},
 	renderCell: function (cell) {
 		cell.title = "";
-		// console.log(cell.row);
-		newRowNum = cell.row;
-		if (cell.row >= 100) {
-			var rowLength = this.model.rows.length;
-			newRowNum = (cell.row - (Math.floor(cell.row / 100) * 100));
-		}
-		// console.log(newRowNum);
-		// var cellModel =
-		// this.model.rows.at(newRowNum).get("cells").at(cell.col);
-		var currentRow = this.model.rows.findWhere({
-			index: cell.row
-		});
-
-		if(currentRow == undefined){
-			cell.title = cell.name;
-			return cell.name;
-		} else {
-			var cellModel = currentRow.get("cells").at(cell.col);
-			cellModel.set('row', newRowNum);
-			cellModel.set('col', cell.col);
-
-			return this.parseCellHtml(cell, cellModel);
-		}
+		return this.parseCellHtml(cell);
 	},
-
 	// asynchronous request for more row data. Returns a Promise.
 	// Type: 1. rows change because of scroll, 2. rows changed because
 	// repeatable group expansion, or collapse
@@ -1272,14 +1380,21 @@ QTDT.DataTableView = BaseView.extend({
 		return new Promise(function(resolve, reject) {
 			QueryTool.query.updateVirtTable(offsetY, numRows, type, valueObj).then(function(data) {
 				// data.aaData is array of arrays of row data.
-				var dataSlice = data.aaData.map(function(row) {
-					// d3 expects an object with key/value pairs for each row.
-					output = {};
-					row.forEach(function(val, i) {
-						output[columns[i].name] = val;
+				var dataSlice = {};
+				if ( data.aaData !== undefined ) {
+					dataSlice = data.aaData.map(function(row,i) {
+						
+						var rowCount = offsetY+i+1;
+						row.unshift(rowCount.toString());
+						// d3 expects an object with key/value pairs for each row.
+						output = {};
+						row.forEach(function(val, i) {
+							output[i+"_"+columns[i].name] = val;
+						});
+						return output;
 					});
-					return output;
-				});
+				}
+				
 				// list of column names added as additional property, mirroring
 				// d3.csvParse()
 				dataSlice.columns = columns;
@@ -1290,18 +1405,15 @@ QTDT.DataTableView = BaseView.extend({
 					modelData: data
 				};
 				resolve(ret);
-			}).catch(function(err) { reject(err); });
+			}).catch(function(err) { reject(err); EventBus.trigger("close:processing"); });
 		});
 	},
+	
 
 	createTable: function () {
 		// updating options in the schema drop down
 		EventBus.trigger("updateSchemaOptions");
-
-		var thisDataTableView = this;
-
 		var container = d3.select("#innerdiv");
-
 		var resize = true;
 		this.makeVirtTable(this.inTableData, {
 			numRows: this.numRows,
@@ -1494,7 +1606,12 @@ QTDT.DataTableView = BaseView.extend({
 //	},
 	addBulkOrderButton: function () {
 		if ($("[id^='OrderableBiosampleID']").length) {
-			orderButton = '<a id="bulkOrderButton"  class="buttonWithIcon addSelectedSamples" style="position: relative;margin-bottom: 20px;width: 200px;right: 0px; justify-content: stretch;" ><span class="icon pe-is-ec-basket-up"></span><span class="ui-button-text ui-c">Add Selected Samples to Cart</span></a><div class="space-line"></div>';
+			 	bioSampleArray = this.model.get("biosampleArray");
+			 	disabledClass = "disabled";
+		        if (bioSampleArray.length > 0) {
+		        	disabledClass = "";
+		        }
+			orderButton = '<a id="bulkOrderButton"  class="buttonWithIcon addSelectedSamples '+disabledClass+'" style="position: relative;margin-bottom: 20px;width: 200px;right: 0px; justify-content: stretch;" ><span class="icon pe-is-ec-basket-up"></span><span class="ui-button-text ui-c">Add Selected Samples to Cart</span></a><div class="space-line"></div>';
 			if (!$('#bulkOrderButton').length) {
 				$("#innerdiv").append(orderButton);
 			}
@@ -1515,9 +1632,6 @@ QTDT.DataTableView = BaseView.extend({
             return false;
         }
     },
-	addQueryListener: function () {
-		this.listenTo(QueryTool.query, "change:tableResults", this.render);
-	},
 	reloadRepeatableGroup: function () {
 		var rowLength = this.model.rows.length;
 		for (var i = 0; i < rowLength; i++) {
@@ -1536,9 +1650,6 @@ QTDT.DataTableView = BaseView.extend({
 				}
 			};
 		}
-	},
-	removeQueryListener: function () {
-		this.stopListening(QueryTool.query, "change:tableResults");
 	},
 	resetHiddenColumns: function () {
 		this.model.columns.each(function (header) {
@@ -1602,7 +1713,9 @@ QTDT.DataTableView = BaseView.extend({
 
 	updateJoinDescription: function () {
 		var output = "";
-		var data = QueryTool.query.get("formDetails");
+		var formShortNames = [];
+		var formTitles = [];
+		var data = QueryTool.query.get("formUris");
 		if (data.length == 0) {
 			output = "";
 		} else {
@@ -1611,33 +1724,46 @@ QTDT.DataTableView = BaseView.extend({
 					output += " joined with ";
 				}
 				var formJson = data[i];
-				var form = QueryTool.page.get("forms").get(formJson.uri);
+				var form = QueryTool.page.get("forms").get(formJson);
+				formShortNames.push(form.get("shortName"));
+				formTitles.push(form.get("title"));
 				output += "<b>" + form.get("title") + "</b>";
 			}
 		}
-		// console.log(output);
 		var elem = $(".formJoinDescription");
 		elem.html(output);
-		var height = elem.outerHeight(true);
+		
+		//update table notification message
+
+		var found = false;
+		for (var i = 0; i < formTitles.length; i++) {
+		    if ( Config.mdsUpdrsOptions.formNames.indexOf(formShortNames[i]) > -1) {
+		        found = true;
+		        break;
+		    }
+		}
+		var msgElem = $("#tableNotificationMessage");
+		if(found) {
+			msgElem.html(Config.mdsUpdrsOptions.message);
+			msgElem.show();
+		} else {
+			msgElem.html("");
+			msgElem.hide();
+		}
+		
+		elemHeight = elem.outerHeight(true);
+		msgElemHeight = msgElem.outerHeight(true);;
+		var height = elemHeight + msgElemHeight;
+		
 		$("#innerdiv").css("height", "calc(100% - " + height + "px)");
 	},
 
-
 	destroyTable: function () {
-		// if we are creating a new table we should destroy all existing views
-		// that are related to the table
-		EventBus.trigger("colview:removeall", this);
-		EventBus.trigger("rowview:removeall", this);
-		// EventBus.trigger("cellview:removeall",this);
-		EventBus.trigger("hamburgerview:removeall", this);
-		EventBus.trigger("resultsview:removeall", this);
-
 		this.renderedOnce = false;
-
+		this.hiddenColumns = [];
+		this.hiddenColumnsProperties = [];
 		// clear results from table
-		this.removeQueryListener();
 		QueryTool.query.set("tableResults", {});
-
 		this.model.set("data", []);
 		// clear form cols
 		this.model.formColumns.reset(null);
@@ -1648,20 +1774,28 @@ QTDT.DataTableView = BaseView.extend({
 		// clear rows
 		this.model.rows.reset(null);
 
-		this.addQueryListener();
-		// remove pager
-		// if(this.pager) {
-		// this.pager.destroy();
-		// }
-		// remove length menu
-		// if(this.lengthMenu) {
-		// this.lengthMenu.destroy();
-		// }
-
 		// remove add samples button
 		this.$("#bulkOrderButton").remove();
+		
+		//empty biosample arrays
+		this.model.set("biosampleArray",[]);
+		this.model.set("unselectedBioSampleArray",[]);
+		
 		// also empty collections for the frozen table
-//		this.destroyFrozenTable();
+		//this.destroyFrozenTable();
+		this.$el.find("#tableContainer").empty();
+		
+		//remove title 
+		var elem = $(".formJoinDescription");
+		elem.html("");
+		//remove message
+		var msgElem = $("#tableNotificationMessage");
+		msgElem.html("");
+		msgElem.hide();
+		
+		
+		EventBus.trigger("openSelectCriteriaViewTab");
+		
 
 	},
 //	destroyFrozenTable: function () {
@@ -1678,11 +1812,7 @@ QTDT.DataTableView = BaseView.extend({
 //	},
 
 	destroy: function () {
-
 		EventBus.off("window:resize", this.onWindowResize, this);
-		EventBus.off("select:refineDataTab", this.render, this);
-//		EventBus.off("column:lock", this.freezeColumns, this);
-//		EventBus.off("column:unlock", this.freezeColumns, this);
 		this.close();
 		QTDT.DataTableView.__super__.destroy.call(this);
 	},
@@ -1764,7 +1894,7 @@ QTDT.DataTableView = BaseView.extend({
 	addItemToBioSampleList: function (e) {
 		var bioSampleArray = this.model.get("biosampleArray");
 		var unselectedBioSampleArray = this.model.get("unselectedBioSampleArray");
-		if ($(e.target).attr("checked")) {
+		if ($(e.target).prop("checked")) {
 			bioSampleArray.push($(e.target).val());
 
 			//remove from unselected array
@@ -1774,10 +1904,20 @@ QTDT.DataTableView = BaseView.extend({
 			index = $.inArray($(e.target).val(), bioSampleArray);
 			bioSampleArray.splice(index, 1);
 			if(this.model.get('selectAllChecked')) {
+				 
 				unselectedBioSampleArray.push($(e.target).val());
 			}
 		}
-
+		
+		if(unselectedBioSampleArray.length > 0 && this.model.get('selectAllChecked')){
+			$("#sampleCheckAll").prop("indeterminate", true);
+		} else if(bioSampleArray.length > 0){
+			$("#sampleCheckAll").prop("indeterminate", true);
+		} else {
+			$("#sampleCheckAll").prop("indeterminate", false);
+		}
+		
+		this.disableEnableBulkOrderButton();
 	},
 	viewTriplanar: function (e) {
 		var model = $(e.target).data("model");
@@ -1805,10 +1945,8 @@ QTDT.DataTableView = BaseView.extend({
 		$(e.target).switchClass(frozenClassCurrent, frozenClassNew, 300, "easeInOutQuad");
 		//toggle frozen value:
 		isFrozen = !isFrozen;
-//		console.log("frozenIcon", isFrozen);
         var frozenIndex = -1;
         var frozenScrollPositionX = this.frozenScrollPositionX;
-        console.log(frozenScrollPositionX);
         if ( !isFrozen && (frozenScrollPositionX > 0) ) {
 			$(".frozenIcon").each(function (s) {
 				var model = $(this).data("model");
@@ -1846,11 +1984,19 @@ QTDT.DataTableView = BaseView.extend({
 			});
         }
 		this.frozenIndex = frozenIndex;
-		this.frozenOffsetX = this.scrollOffsetX;
-		this.frozenScrollPositionX = this.scrollPositionX;
-		this.frozenScrollOffsetX = this.headerData[this.frozenOffsetX].offset - this.scrollPositionX;
+		if ( frozenIndex === -1 ) {
+			this.frozenOffsetX = -1;
+			this.frozenScrollPositionX = -1;
+			this.frozenScrollOffsetX = -1;
+		}
+		else {
+			if ( this.frozenOffsetX === -1 ) {
+				this.frozenOffsetX = this.scrollOffsetX;
+			}
+			this.frozenScrollPositionX = this.scrollPositionX;
+			this.frozenScrollOffsetX = this.headerData[this.frozenOffsetX].offset - this.scrollPositionX;
+		}
 		this.updateFrozen = true;
-//		console.log("frozenIcon", "done", this.frozenIndex);
 		this.renderVirtTable();
 	},
 	// column header methods
@@ -1944,6 +2090,8 @@ QTDT.DataTableView = BaseView.extend({
 					$('.applyFilter').on('click', dtv.applyFilter);
 
 					$('.applyDiagnosisFilter').on('click', dtv.applyDiagnosisFilter);
+					
+					$('.knowledgeGraph').on('click', dtv.knowledgeGraph);
 
 				}
 				break;
@@ -1953,6 +2101,12 @@ QTDT.DataTableView = BaseView.extend({
 		}
 
 		// ------------
+		var DataSetOptions = [
+			{
+     			title : 'Apply Filter',
+     			callback : "applyFilter"
+     		} ];
+
 		var DEOptions = [
      		// Commented out in response to CRIT-1794. This is requested
      		// functionality but has a time-consuming bug in it
@@ -1965,7 +2119,10 @@ QTDT.DataTableView = BaseView.extend({
      		}, {
      			title : 'Apply Filter',
      			callback : "applyFilter"
-     		} ];
+     		}, {
+     			title : 'Knowledge Graph',
+     			callback : "knowledgeGraph"
+     		}  ];
 
  		var Rgmenuoptions = [
  		// Commented out in response to CRIT-1794. This is requested
@@ -1995,17 +2152,20 @@ QTDT.DataTableView = BaseView.extend({
 	     			callback : "applyDiagnosisFilter"
 	     		});
 			}
-		}
-
+		}	
 
 		var linkList = '';
 		var HBOptions = [];
 
 		if(colModel.get("headerType") == "dataElement"){
-			HBOptions = DEOptions;
+			if(deName == "Dataset"){
+				HBOptions = DataSetOptions;
+			} else {
+				HBOptions = DEOptions;
+			}			
 		} else if (colModel.get("headerType") == "repeatableGroup") {
 			HBOptions = Rgmenuoptions;
-		}
+		} 
 
 		var cellObj = {
 				colId : colModel.get("col") || 0
@@ -2046,10 +2206,10 @@ QTDT.DataTableView = BaseView.extend({
 	// Hamburger Methods
 	onClickShowHide: function (e) {
 		e.data.dtv.hideColumn = true;
-		var model = $(e.target).data("model");
+		var model = $(e.target).data("model");	
 		var column = thisDataTable.columns.at(model.colId);
 		EventBus.trigger("hamburgerview:showHideCol", {
-			formUri: column.formUri,
+			formUri:column.formUri,
 			rgUri: column.rgUri,
 			rgName: column.rgName,
 			deUri: column.deUri,
@@ -2065,42 +2225,98 @@ QTDT.DataTableView = BaseView.extend({
 	},
 	toggleShowHide: function (columnProperties) {
 		this.hideColumn = true;
-		// console.log(this.inTableData.headers );
-		var column = this.model.columns.findWhere({
-			formUri: columnProperties.formUri,
-			deUri: columnProperties.deUri,
-			name: columnProperties.deName
+		
+		var formName = columnProperties.formName;
+		if ( formName === undefined ) {
+			formName = columnProperties.formUri.slice(columnProperties.formUri.lastIndexOf("/") + 1);
+		 }	
+		var headerData = (this.inTableData.headers != undefined) ? this.inTableData.headers[2] : [];
+		var parentHeader = (this.inTableData.headers != undefined) ? this.inTableData.headers[1] : [];
+		var gParentHeader = (this.inTableData.headers != undefined) ? this.inTableData.headers[0] : [];
+		var columnHeader = headerData.filter(function (d) {
+			// make sure the name and parent name match:
+			return ((d.name === columnProperties.deName) && (parentHeader[d.parentId].name === columnProperties.rgName) 
+					&& (gParentHeader[d.grandParentIndex].name === formName) )
 		});
-
-		column.showHide();
-
-		var state = column.get("visible");
-		if (state) {
-			headerData = this.inTableData.headers[2];
-			// remove from hiddenColumns and set width to actual value
-			this.hiddenColumns = this.hiddenColumns.filter(function (value) {
-				return value != column.get("col")
-			});
-			// get column object from virtTable array, at some point we need to
-			// consolidate column objects
-			this.inTableData.headers[2].forEach(function (col, i) {
-				if (col.col == column.get("col")) {
-					col.hidden = false;
-					col.width = Math.min(250, col.name.length * 10 + 30);
-				}
-				if (col.key === 0) {
-					col.offset = 0;
-				} else {
-					col.offset = headerData[col.key - 1].width + headerData[col.key - 1].offset;
-				}
-			});
+		//Hide columns on server
+		var col = this.model.columns.where({
+			name: columnProperties.deName, 
+			formUri: columnProperties.formUri,
+			rgName: columnProperties.rgName});		
+		if(col.length > 0) {
+			col[0].showHide(); 
 		} else {
-			this.hiddenColumns.push(column.get("col"));
+			if(columnProperties.visible === false){
+				
+				this.hiddenColumnsProperties.push(columnProperties);
+			} else {
+				
+				// remove from hiddenColumnsProperties 
+				this.hiddenColumnsProperties = this.hiddenColumnsProperties.filter(function (value) {
+					return (value.deUri != columnProperties.deUri && value.formUri != columnProperties.formUri && value.rgUri != columnProperties.rgUri)
+				});
+			}
+			EventBus.trigger("processed:columnCheckBox");
+			return;
 		}
 		
-		//TODO: Ideally i don't want to render the table for each hidden column, we should be able to do this once after setting
-		//the columns to hidden. Right now this helps render efficiently
-		this.renderVirtTable();
+		
+		
+			if ( columnHeader.length === 0 ) {
+				console.log("toggleShowHide: failed to find", columnProperties.deName );
+				if(columnProperties.visible === false){
+				
+					this.hiddenColumnsProperties.push(columnProperties);
+				} else {
+					
+					// remove from hiddenColumnsProperties 
+					this.hiddenColumnsProperties = this.hiddenColumnsProperties.filter(function (value) {
+						return (value.deUri != columnProperties.deUri && value.formUri != columnProperties.formUri && value.rgUri != columnProperties.rgUri)
+					});
+				}
+				if(this.model.columns.length > 0) {
+					this.renderVirtTable();
+				}
+				return;
+			}
+			
+			var col = columnHeader[0].col;
+		
+			// if hidden === -1 then the col is not in the list of hidden columns:
+			var hidden = this.hiddenColumns.indexOf(col);
+			// sometimes messages come from the same 'hide all blank' button press with the same column name and different
+			// visible values = so this cannot be a toggle it's important to check the value of columnProperties.visible
+			// to see what the message is setting the visiblity of the column to be.
+			if ( (hidden !== -1) && (columnProperties.visible === true) ) { // if hidden and the message says change to visible:
+				// remove from hiddenColumns and set width to actual value
+				this.hiddenColumns = this.hiddenColumns.filter(function (value) {
+					return value != col
+				});
+				// get column object from virtTable array, at some point we need to
+				// consolidate column objects
+				this.inTableData.headers[2].forEach(function (column, i) {
+					if (column.col === col) {
+						column.hidden = false;
+						column.width = Math.min(250, column.name.length * 10 + 30);
+					}
+					if (column.key === 0) {
+						column.offset = 0;
+					} else {
+						column.offset = headerData[column.key - 1].width + headerData[column.key - 1].offset;
+					}
+				});
+			} else if ( (hidden === -1) && (columnProperties.visible === false) ) { // if message says to make hidden:
+				this.hiddenColumns.push(col);
+			}
+			hidden = this.hiddenColumns.indexOf(col);
+			if ( ((hidden === -1) && (columnProperties.visible === false)) || ((hidden !== -1) && (columnProperties.visible === true))) {
+				console.log( "toggleShowHide: ", columnProperties.deName, col, (hidden === -1), columnProperties.visible );
+			}
+			
+			if(this.model.columns.length > 0) {
+				this.renderVirtTable();
+			}
+		
 
 	},
 
@@ -2150,35 +2366,59 @@ QTDT.DataTableView = BaseView.extend({
 		$('.actionContainer').remove();
 	},
 
-	applyFilter: function (e) {
+	applyFilter: function (e) {	
 		var model = $(e.target).data("model");
 		var column = thisDataTable.columns.at(model.colId);
 		var deUri = "";
 		var formUri = "";
-		var deName = column.get("name");
-		var rgName = column.get("parent").get("name");
-		var formName = column.get("parent").get("parent").get("name");
+		var deName = "";
+		var rgName = "";
+		var formName = "";
+		
+		if(column.get("name")=="Dataset"){
+			
+			//The repeatable group that has Dataset on non-joined form is named Forms 
+			// and we need to get the formName from the dataTable
+			if(column.formName == "Forms:"){
+				 formName = thisDataTable.formColumns.models[1].get("name");
+			} else {
+				 formName = column.formName;
+			}
+				
+			var form = QueryTool.page.get("forms").byShortName(formName);
+			if (typeof form === 'object') {
+				formUri = form.get("uri");
+			}
+			
+			$('[uri="' + formUri + '"] [dename="Dataset"][filterType="DATASET"] .selectCriteriaDeFilter').click();
 
+		} else{
 
-		// this method will retrieve the DE details from the server and then
-		// call the eventbus
-		var dataElement = QueryTool.page.get("dataElements").byShortName(column.get("name"));
-		if (typeof dataElement === 'object') {
-			deUri = dataElement.get("uri");
+			deName = column.get("name");
+			rgName = column.get("parent").get("name");
+			formName = column.get("parent").get("parent").get("name");
+		
+			// this method will retrieve the DE details from the server and then
+			// call the eventbus
+			var dataElement = QueryTool.page.get("dataElements").byShortName(column.get("name"));
+			if (typeof dataElement === 'object') {
+				deUri = dataElement.get("uri");
+			}
+	
+			var form = QueryTool.page.get("forms").byShortName(formName);
+			if (typeof form === 'object') {
+				formUri = form.get("uri");
+			}
+	
+	
+			$('[uri="' + formUri + '"] [groupname="' + rgName + '"] [dename="' + deName + '"] .selectCriteriaDeFilter').click();
 		}
-
-		var form = QueryTool.page.get("forms").byShortName(formName);
-		if (typeof form === 'object') {
-			formUri = form.get("uri");
-		}
-
-
-		$('[uri="' + formUri + '"] [groupname="' + rgName + '"] [dename="' + deName + '"] .selectCriteriaDeFilter').click();
-
-		$('.actionContainer').slideUp(300);
-		$('.actionContainer').remove();
+	
+			$('.actionContainer').slideUp(300);
+			$('.actionContainer').remove();
 
 	},
+	
 	applyDiagnosisFilter: function (e) {
 		var model = $(e.target).data("model");
 		var column = thisDataTable.columns.at(model.colId);
@@ -2211,7 +2451,7 @@ QTDT.DataTableView = BaseView.extend({
 
 	},
 	applyFilters: function (e) {
-		this.applyVirtFilters();
+			this.applyVirtFilters();
 	},
 	applyDisplayOption: function (displayOption) {
 		this.applyVirtDisplayOption(displayOption);
@@ -2223,120 +2463,196 @@ QTDT.DataTableView = BaseView.extend({
 		var dataElement = QueryTool.page.get("dataElements").byShortName(column.get("name"));
 		EventBus.trigger("open:details", dataElement);
 	},
+
+	knowledgeGraph: function(e) {
+		var model = $(e.target).data("model");
+		var column = thisDataTable.columns.at(model.colId);
+		var dataElement = QueryTool.page.get("dataElements").byShortName(column.get("name"));
+		var deShortName = column.get("name");
+		if (typeof dataElement === 'object') {
+
+			var selectedDENames = [];
+			selectedDENames.push(deShortName);			
+			
+			$.ajax({
+				url: "service/query/knowledgeGraphInfo",
+				cache : false,
+				traditional: true,
+				data: {
+					deNames : selectedDENames 
+				},
+				success : function(data) {	
+					if ( data.length > 0 ) {
+						if ( data[0].seeAlso.length > 0 ) {
+							var valArray = data[0].seeAlso[0].split(";").map(function(s) { return s.trim(); });
+							if ( valArray.length == 1 ) {
+								if (valArray[0].length > 0 ) {
+									valArray = data[0].seeAlso[0].split(" ").map(function(s) { return s.trim(); });
+								}
+								else {
+									valArray = [];
+								}
+							}
+							if ( valArray.length > 0 ) {
+								var url = System.urls.query + "/knowledgeGraph.jsp?dataElementName=" + deShortName + "?color=" + headerColor;
+								window.open( url, '_blank');
+							}
+							else {
+								$.ibisMessaging("dialog", "error", "No data elements listed in See Also for " + deShortName );
+							}
+						}
+					}
+				},
+				error: function(err,x,a) {            		
+					$.ibisMessaging("dialog", "error", "No data elements listed in See Also for " + deShortName );
+				}
+			});
+		}
+		
+		$('.actionContainer').slideUp(300);
+		$('.actionContainer').remove();
+	},
+	
 	parseCellHtml : function(d, model) {
 
-		var modelHtml = model.html();
-		var finalHtml = model.get("originalHtml");
+		var finalHtml = d.name;
+		var finalTitle = finalHtml;
 
 
 		// should this text be disabled, TODO: add css disabled class
 		if (finalHtml.indexOf("%greydis%") >= 0) {
 
-			finalHtml = finalHtml.replace("%greydis%","");
+			finalHtml = finalTitle = finalHtml.replace("%greydis%","");
 			d.disabled = true;
 		}
 
 		d.highlightRow = false;
 		// should this text be disabled, TODO: add css disabled class
 		if (finalHtml.indexOf("%highlightdis%") >= 0) {
-			model.set("highlightRow",true);
 			d.highlightRow = true;
-			finalHtml = finalHtml.replace("%highlightdis%","");
+			finalHtml = finalTitle = finalHtml.replace("%highlightdis%","");
+		}
+		
+		d.colorText = "";
+		if (finalHtml.indexOf("%colorDis%") >= 0) {
+			finalHtml = finalTitle = finalHtml.replace("%colorDis%","");
+			var formTitles = [];
+			var data = QueryTool.query.get("formDetails");
+			for (var i = 0; i < data.length; i++) {
+				var formJson = data[i];
+				var form = QueryTool.page.get("forms").get(formJson.uri);
+				 if ( Config.mdsUpdrsOptions.formNamesForRedText.indexOf(form.get("shortName")) > -1) { 
+				        d.colorText = "color-text";
+				        break;
+				 }
+			}
+			
 		}
 
-		model.set("parsedHtml",finalHtml);
-
+		
+		var cellColumn = this.model.columns.at(d.col);
+		
 		if (finalHtml.toLowerCase().indexOf("tbiosample")  >= 0) {
 
 			var tempBioArray = finalHtml.substr(finalHtml.indexOf(":") + 1).split(",");
 			if (tempBioArray.length > 0) {
-				finalHtml = this.createBioSampleOrderButton(tempBioArray,model); // TODO:
+				finalHtml = this.createBioSampleOrderButton(tempBioArray,d); // TODO:
 																					// replace
 																					// nTd
+				finalTitle = "Click on this link to add this Item to your Order Manager Queue";
 			} else {
-				finalHtml = "";
+				finalHtml = finalTitle = "";
 			}
 		} else if (finalHtml.toLowerCase().indexOf("tri-planar:") >= 0) {
 
 			var triPlanarArray = finalHtml.substr(finalHtml.indexOf(":") + 1).split(",");
-			finalHtml = this.createTriPlanarLink(triPlanarArray,model);
+			
+			d.triplanarName = triPlanarArray[2];
+			if (d.triplanarName.lastIndexOf("/") >= 0) {
+				d.triplanarName = d.triplanarName.substr(d.triplanarName.lastIndexOf("/") + 1);
+			}
+			
+			finalTitle = d.triplanarName;
+			finalHtml = this.createTriPlanarLink(triPlanarArray,d);
 
 		} else if (finalHtml.indexOf("Thumbnail:") >= 0) {
-
+			
 			var thumbnailArray = finalHtml.substr(finalHtml.indexOf(":") + 1).split(",");
 
 			if (thumbnailArray.length == 3) {
-				finalHtml = this.createThumbnailLink(thumbnailArray,model);
+				
+				d.imageName = thumbnailArray[2];
+
+				if (d.imageName.lastIndexOf("/") >= 0) {
+					d.imageName = d.imageName.substr(d.imageName.lastIndexOf("/") + 1);
+				}
+				finalTitle = d.imageName;
+				finalHtml = this.createThumbnailLink(thumbnailArray,d);
 			} else {
-				finalHtml = "";
+				finalHtml = finalTitle = "";
 			}
 		} else if (finalHtml.indexOf("File:") >= 0){
 
 			var fileArray = finalHtml.substr(finalHtml.indexOf(":") + 1).split(",");
 
 			if (fileArray.length == 3) {
-				finalHtml = this.createFileLink(fileArray,model);
+				d.fileName = fileArray[2];
+				if (d.fileName.lastIndexOf("/") >= 0) {
+					d.fileName = d.fileName.substr(d.fileName.lastIndexOf("/") + 1);
+				}
+				
+				finalTitle = d.fileName;
+				finalHtml = this.createFileLink(fileArray,d);
 			} else{
-				finalHtml = "";
+				finalHtml = finalTitle = "";
 			}
 
 		} else if (finalHtml.toLowerCase().indexOf("-disabledbutton") >= 0) {
 			// create expand repeatable group button for empty sets
+			finalTitle = 'Empty Group';
 			finalHtml = '<a href="javascript:void(0);" class="expandDataEmpty ui-corner-all">Empty Group</a><br>';
+			
 		} else if (finalHtml.toLowerCase().indexOf("rgbutton") >= 0) {
 
 			// create expand repeatable
 			// group button
 
 			var tempArray = finalHtml.substr(finalHtml.indexOf(":") + 1).split(",");
-
-
-			formName = model.get("column").get("parent").get("parent").get("name");
+			formName= (cellColumn == null) ? "" : cellColumn.get("parent").get("parent").get("name");
 	    	var form = QueryTool.page.get("forms").byShortName(formName);
 			formUri = "";
 	    	if(typeof form === 'object') {
 	    		formUri = form.get("uri");
 	    	}
-
-			model.rowUri = tempArray[1];
-			model.rgFormUri = formUri;
-			model.rgName = tempArray[3].replace('&', '%26');
-
 			var cellObj = {
-	                rowUri: model.rowUri,
-	                rgFormUri: model.rgFormUri,
-	                rgName: model.rgName
+	                rowUri: tempArray[1],
+	                rgFormUri:formUri,
+	                rgName: tempArray[3].replace('&', '%26')
 	            };
 			var cellObjJson = JSON.stringify(cellObj);
-
-			finalHtml = '<a href="javascript:void(0);" class="expandData ui-corner-all" data-model=\''+cellObjJson+'\'>Expand Group</a><br>';
-
-
+			finalTitle = "Expand Group";
+			finalHtml = '<a href="javascript:void(0);" title="Expand Group" class="expandData ui-corner-all" data-model=\''+cellObjJson+'\'>Expand Group</a><br>';
 
 		} else if (finalHtml.toLowerCase().indexOf("collapsebutton") >= 0) {
 			// create close repeatable
 			// group button
 			var tempArray = finalHtml.substr(finalHtml.indexOf(":") + 1).split(",");
-
-			formName = model.get("column").get("parent").get("parent").get("name");
+			formName = (cellColumn == null) ? "" : cellColumn.get("parent").get("parent").get("name");
 	    	var form = QueryTool.page.get("forms").byShortName(formName);
 			formUri = "";
 	    	if(typeof form === 'object') {
 	    		formUri = form.get("uri");
 	    	}
 
-			model.rowUri = tempArray[1];
-			model.rgFormUri = formUri;
-			model.rgName = tempArray[3].replace('&', '%26');
-
 			var cellObj = {
-	                rowUri: model.rowUri,
-	                rgFormUri: model.rgFormUri,
-	                rgName: model.rgName
+	                rowUri: tempArray[1],
+	                rgFormUri: formUri,
+	                rgName: tempArray[3].replace('&', '%26')
 	            };
 			var cellObjJson = JSON.stringify(cellObj);
+			finalTitle = "Collapse Group";
 			finalHtml = '<a id="' + tempArray[1].replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/gi,'')
-							+ '" href="javascript:void(0);" class="collapseData ui-corner-all" data-model=\''+cellObjJson+'\'>Collapse Group</a><br>';
+							+ '" href="javascript:void(0);" title="Collapse Group" class="collapseData ui-corner-all" data-model=\''+cellObjJson+'\'>Collapse Group</a><br>';
 
 		} /* else if (finalHtml.length > 38) {
 			// if there is a lot of text
@@ -2358,18 +2674,16 @@ QTDT.DataTableView = BaseView.extend({
 		} */
 
 
-		else if (model.get("column").get("name") == "Study ID") {
+		else if (cellColumn != null && cellColumn.get("name") == "Study ID") {
 			var studyId = parseInt(finalHtml);
 			if(!isNaN(studyId) ) {
 				var studyArray = QueryTool.page.get("studies").where({"studyId": studyId});
 				var study = studyArray[0];
 				var studyName = study.get("title");
-				model.set("studyId", studyId );
-				model.studyName = studyName;
 				// var dataObj = { name: "John", age: 30, city: "New York" };
-				var dataObj = { studyId : model.get("studyId") || 0};
+				var dataObj = { studyId : studyId || 0};
 				var dataObjJson = JSON.stringify(dataObj);
-
+				finalTitle = studyName;
 				finalHtml = '<a href="javascript:void(0);" class="study_details" title="'+studyName+'" data-model=\''+dataObjJson+'\'>'+finalHtml +'</a><br>';
 			}
 		} else {
@@ -2377,26 +2691,23 @@ QTDT.DataTableView = BaseView.extend({
 			// linkify
 			var exp = /(\b(((https?|ftp|file|):\/\/)|www[.])[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/i;
 			if (exp.test(finalHtml)) {
-
+				finalTitle = finalHtml;
 				finalHtml = linkifyStr(finalHtml);
-
-
 			}
 		}
-		d.title = finalHtml;
-		model.set("html",finalHtml);
-		return '<h5 class="colCell" data-row="'+d.row+'">'+finalHtml+'</h5>';
+		d.title = finalTitle;
+		return '<h5 class="colCell '+d.colorText+'" data-row="'+d.row+'">'+finalHtml+'</h5>';
 	},
-	createBioSampleOrderButton : function (tempBioArray, model) {
+	createBioSampleOrderButton : function (tempBioArray,  d) {
 		// tempBioArray[0] = formName
 		// tempBioArray[1] = rowUri
 		// tempBioArray[2] = value:rowIsDerived
-
+			
 		var value = tempBioArray[2];
 		var rowIsDerived = tempBioArray[2].substr(tempBioArray[2].indexOf(":")+1);
-
+		var columnName = (this.model.columns.at(d.col) == null) ? "" : this.model.columns.at(d.col).get("name");
 		var cellObj = {
-				colId : model.idAttribute || 0,
+				colId : d.col || 0,
 
 	                rowUri: tempBioArray[1],
 
@@ -2404,22 +2715,26 @@ QTDT.DataTableView = BaseView.extend({
 
 	                value: value,
 
-	                columnName: model.get("column").get("name")
+	                columnName: columnName
 	            };
+		
+		
 		var cellObjJson = JSON.stringify(cellObj);
 
 		var checkBoxValue = tempBioArray[1] + '|' + tempBioArray[0] + '|' + value + '|' + rowIsDerived;
 
 		//check if this has been checked already
 		var checkedSamples = this.model.get("biosampleArray");
+		var uncheckedSamples = this.model.get("unselectedBioSampleArray");
 
 		var sample = checkedSamples.filter(function(v){ return v === checkBoxValue });
+		
+		var uncheckedSample = uncheckedSamples.filter(function(v){ return v === checkBoxValue });
 
-		var checked = ""
+		var checked = "";
 
 
-
-		if(sample.length > 0 || this.model.get('selectAllChecked')){
+		if((sample.length > 0 || this.model.get('selectAllChecked')) && (uncheckedSample.length === 0)){
 			checked = "checked='checked'";
 		}
 
@@ -2435,7 +2750,7 @@ QTDT.DataTableView = BaseView.extend({
 		 +'" data-formname="'
 		 + tempBioArray[0]
 		 +'" data-columnname="'
-		 + model.get("column").get("name")
+		 + columnName
 		 + '" data-value="'+value+'">'
 		 + value + '</a><div style="clear:both"></div>';
 
@@ -2444,91 +2759,87 @@ QTDT.DataTableView = BaseView.extend({
 
 
 
-	},createTriPlanarLink : function(triPlanarArray, model) {
-		model.studyName = triPlanarArray[0].replace("'", "\\'");
-		model.datasetName = triPlanarArray[1];
-		model.triplanarName = triPlanarArray[2];
-
-		if (model.triplanarName.lastIndexOf("/") >= 0) {
-			model.triplanarName = model.triplanarName.substr(model.triplanarName.lastIndexOf("/") + 1);
-		}
+	},createTriPlanarLink : function(triPlanarArray, d) {
+		d.studyName = triPlanarArray[0].replace("'", "\\'");
+		d.datasetName = triPlanarArray[1];
 		var cellObj = {
-				studyName : model.studyName,
-				datasetName : model.datasetName ,
-				triplanarName : model.triplanarName
+				studyName : d.studyName,
+				datasetName : d.datasetName ,
+				triplanarName : d.triplanarName
 			};
 		var cellObjJson = JSON.stringify(cellObj);
-		var link = '<a href="javascript:void(0);" class="viewTriplanar" data-model=\''+cellObjJson+'\'>' + model.triplanarName + "</a>";
+		var link = '<a href="javascript:void(0);" class="viewTriplanar" title="' + d.triplanarName + '" data-model=\''+cellObjJson+'\'>' + d.triplanarName + "</a>";
 
 		return link;
-	},createThumbnailLink : function(thumbnailArray,model) {
-		model.studyName = thumbnailArray[0].replace("'", "\\'");
-		model.datasetName = thumbnailArray[1];
-		model.imageName = thumbnailArray[2];
+	},createThumbnailLink : function(thumbnailArray,d) {
+		d.studyName = thumbnailArray[0].replace("'", "\\'");
+		d.datasetName = thumbnailArray[1];
 
-		if (model.imageName.lastIndexOf("/") >= 0) {
-			model.imageName = model.imageName.substr(model.imageName.lastIndexOf("/") + 1);
-		}
-
-		var linkId = model.datasetName.replace(/[^a-zA-Z0-9]/g, '_') + "_link";
+		var linkId = d.datasetName.replace(/[^a-zA-Z0-9]/g, '_') + "_link";
 
 		var cellObj = {
-				studyName : model.studyName,
-				datasetName : model.datasetName ,
-				imageName : model.imageName
+				studyName : d.studyName,
+				datasetName : d.datasetName ,
+				imageName : d.imageName
 			};
 		var cellObjJson = JSON.stringify(cellObj);
 		var link = '<a id="' + linkId
-				+ '" href="javascript:void(0);" class="downloadImage" data-model=\''+cellObjJson+'\'>' + model.imageName + "</a>";
+				+ '" href="javascript:void(0);" class="downloadImage" title="'+d.imageName+'" data-model=\''+cellObjJson+'\'>' + d.imageName + "</a>";
 
 		return link;
 	},
-	createFileLink : function (fileArray,model) {
-		model.studyName = fileArray[0].replace("'", "\\'");
-		model.datasetName = fileArray[1];
-		model.fileName = fileArray[2];
+	createFileLink : function (fileArray,d) {
+		d.studyName = fileArray[0].replace("'", "\\'");
+		d.datasetName = fileArray[1];
 
-		if (model.fileName.lastIndexOf("/") >= 0) {
-			model.fileName = model.fileName.substr(model.fileName.lastIndexOf("/") + 1);
-		}
-
-		var linkId = model.datasetName.replace(/[^a-zA-Z0-9]/g, '_') + "_link";
+		var linkId = d.datasetName.replace(/[^a-zA-Z0-9]/g, '_') + "_link";
 		var cellObj = {
-				studyName : model.studyName,
-				datasetName : model.datasetName ,
-				fileName : model.fileName
+				studyName : d.studyName,
+				datasetName : d.datasetName ,
+				fileName : d.fileName
 			};
 		var cellObjJson = JSON.stringify(cellObj);
 
 		var link = '<a id="' + linkId
-				+ '" href="javascript:void(0);" class="downloadFile" data-model=\''+cellObjJson+'\'>' + model.fileName + "</a>";
+				+ '" href="javascript:void(0);" class="downloadFile" title="'+d.fileName+'" data-model=\''+cellObjJson+'\'>' + d.fileName + "</a>";
 
 		return link;
 	},
 	checkAllBioSamples: function(e) {
 
         bioSampleArray = this.model.get("biosampleArray");
-        if ($(e.target).attr("checked")) {
+        if ($(e.target).prop("checked")) {
         	this.model.set('selectAllChecked',true);
             $('[name="bioSampleItem"]').each(function() {
-                $(this).attr("checked", true);
+                $(this).prop("checked", true);
 
                 if ($.inArray($(this).val(), bioSampleArray) == -1) {
                     bioSampleArray.push($(this).val());
                 }
             });
         } else {
-
+        	this.model.set('selectAllChecked',false);
             $('[name="bioSampleItem"]').each(function() {
-                $(this).attr("checked", false);
+                $(this).prop("checked", false);
                 index = $.inArray($(this).val(), bioSampleArray);
                 bioSampleArray.splice(index, 1);
 
             });
 
         }
+        
+        this.disableEnableBulkOrderButton();
 
 
+    },
+    disableEnableBulkOrderButton : function() {
+    	if ($('#bulkOrderButton').length) {
+			if (bioSampleArray.length > 0) {
+				$('#bulkOrderButton').removeClass("disabled");
+			} else {
+				$('#bulkOrderButton').addClass("disabled");
+			}
+		}
     },
 	checkSelectedBiosamples: function() {
         bioSampleArray = this.model.get("biosampleArray");
@@ -2536,16 +2847,22 @@ QTDT.DataTableView = BaseView.extend({
         if ($('[name="bioSampleItem"]').length > 0) {
             $('[name="bioSampleItem"]').each(function(e) {
                 if ($.inArray($(this).val(), bioSampleArray) != -1) {
-                    $(this).attr("checked", true);
+                    $(this).prop("checked", true);
                 }
             });
         }
     },
     deselectSelectAll: function() {
         if ($('#sampleCheckAll').length > 0) {
-            $('#sampleCheckAll').attr("checked", false);
+            $('#sampleCheckAll').prop("checked", false);
         }
     },
+    setQueryState: function(state) {
+    	this.model.set("queryState",state);
+    },
+    addTohiddenColumnsProperties : function(columnProperties){
+    	this.hiddenColumnsProperties.push(columnProperties);
+    }
 
 
 

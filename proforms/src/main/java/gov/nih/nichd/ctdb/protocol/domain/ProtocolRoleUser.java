@@ -1,5 +1,7 @@
 package gov.nih.nichd.ctdb.protocol.domain;
 
+import java.util.List;
+
 import gov.nih.nichd.ctdb.security.domain.Role;
 import gov.nih.nichd.ctdb.security.domain.User;
 import gov.nih.nichd.ctdb.site.domain.Site;
@@ -7,7 +9,9 @@ import gov.nih.nichd.ctdb.site.domain.Site;
 public class ProtocolRoleUser extends User {
 	private static final long serialVersionUID = 4774687085227920569L;
 	private Role role;
-	private Site site;
+	private List<Site> sites;
+
+
 	private Protocol study;
 	
 	public ProtocolRoleUser() {
@@ -18,10 +22,10 @@ public class ProtocolRoleUser extends User {
 		setUser(user);
 	}
 	
-	public ProtocolRoleUser(User user, Role role, Site site, Protocol study) {
+	public ProtocolRoleUser(User user, Role role, List<Site> sites, Protocol study) {
 		setUser(user);
 		setRole(role);
-		setSite(site);
+		setSites(sites);
 		setStudy(study);
 	}
 	
@@ -31,12 +35,15 @@ public class ProtocolRoleUser extends User {
 	public void setRole(Role role) {
 		this.role = role;
 	}
-	public Site getSite() {
-		return site;
+
+	public List<Site> getSites() {
+		return sites;
 	}
-	public void setSite(Site site) {
-		this.site = site;
+
+	public void setSites(List<Site> sites) {
+		this.sites = sites;
 	}
+	
 	public Protocol getStudy() {
 		return study;
 	}

@@ -23,8 +23,6 @@ public class ResponseManagerTest {/*
             ds.setServerName("localhost");
             ds.setPortNumber(5432);
             ds.setDatabaseName("proforms_data");
-            ds.setUser("REPLACED");
-            ds.setPassword("REPLACED");
             ds.setMaxConnections(10);
             new InitialContext().rebind("DataSource", ds);
             

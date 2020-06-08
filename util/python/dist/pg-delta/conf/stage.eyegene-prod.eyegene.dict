@@ -1,0 +1,16 @@
+[DB-SRC]
+host=eyegene-dbdictionary-stage.cit.nih.gov
+database=dictionary_stage
+schema=dictionarystg
+user=dictionarystg
+label=STAGE-SRC
+
+[DB-TRG]
+host=eyegene-dbdictionary-prod.cit.nih.gov
+database=dictionary_prod
+schema=dictionary
+user=dictionary
+label=PROD-TRG
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\pgDelta\stageeyegene-prodeyegene-dict

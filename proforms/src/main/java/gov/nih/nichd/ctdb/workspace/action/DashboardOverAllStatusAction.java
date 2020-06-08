@@ -35,8 +35,6 @@ import gov.nih.nichd.ctdb.workspace.manager.DashboardReportingManager;
 public class DashboardOverAllStatusAction extends BaseAction {
 	private static final long serialVersionUID = 264237781763391123L;
 	private static final Logger logger = Logger.getLogger(DashboardOverAllStatusAction.class);
-	private static final String YEAR_1 = "Year 1";
-	private static final String YEAR_VAL = "Year ";
 	private static final String YEARS_VAL = " years";
 
 	// Dashboard data
@@ -76,7 +74,7 @@ public class DashboardOverAllStatusAction extends BaseAction {
 				JSONObject statusJsonObj = new JSONObject();
 				statusJsonObj.put("assessmentType", aModel.getAssessmentType());
 				statusJsonObj.put("compVal", aModel.getCompleteVal());
-				statusJsonObj.put("inCompVal", aModel.getInCompleteVal());
+				statusJsonObj.put("lockedVal", aModel.getLockedVal());
 				statusJsonObj.put("inProgVal", aModel.getInProgressVal());
 				statusJsonObj.put("devVal", aModel.getDeviationsVal());
 
@@ -123,21 +121,19 @@ public class DashboardOverAllStatusAction extends BaseAction {
 					String startIntDt = df.format(startDate);
 					String endIntDt = df.format(endDate);
 					int diff = Integer.parseInt(endIntDt) - Integer.parseInt(startIntDt);
-					HashMap<String, List<String>> studyMap = new HashMap<>();
+					HashMap<Integer, List<String>> studyMap = new HashMap<>();
 
 					if (diff == 0) {
-						String year = YEAR_1;
 						msList = dashboardReporting.getMilesStone(protocol.getId(), Integer.parseInt(startIntDt));
-						studyMap.put(year, msList);
+						studyMap.put(1, msList);
 					} else {
 						for (int i = 1, j = 0; i <= diff + 1; i++, j++) {
-							String year = YEAR_VAL + i;
 							msList = dashboardReporting.getMilesStone(protocol.getId(), Integer.parseInt(startIntDt) + j);
-							studyMap.put(year, msList);
+							studyMap.put(i, msList);
 						}
 					}
 
-					studyJsonObj.put("studyMap", DashboardUtil.sortMap(studyMap));
+					studyJsonObj.put("studyMap", studyMap);
 					
 					int totYears = diff + 1;
 					studyJsonObj.put("studyDuration", DashboardUtil.diffDate(bs.getStudyStartDate()) + "/" + totYears + YEARS_VAL);

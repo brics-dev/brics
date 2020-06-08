@@ -1,0 +1,16 @@
+[DB-ONE]
+host=fitbir-db-stage.cit.nih.gov
+database=tbi_stage
+schema=tbi_reposstg
+user=tbi_reposstg
+label=STAGE
+
+[DB-TWO]
+host=fitbir-db-prod.cit.nih.gov
+database=tbi_prod
+schema=tbi_repos
+user=tbi_repos
+label=PROD
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\pgDelta\tbistage-tbiprod-repo

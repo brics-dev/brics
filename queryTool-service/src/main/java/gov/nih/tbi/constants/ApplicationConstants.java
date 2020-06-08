@@ -107,6 +107,8 @@ public class ApplicationConstants implements Serializable {
 	// Describer what URL to use for the functionality
 	@Value("#{applicationProperties['modules.public.url.server']}")
 	private String modulesPublicURL;
+	@Value("#{applicationProperties['template.public.url']}")
+	private String templatePublicURL;
 	@Value("#{applicationProperties['modules.pf.url.server']}")
 	private String modulesPFURL;
 	@Value("#{applicationProperties['modules.ddt.url.server']}")
@@ -174,7 +176,7 @@ public class ApplicationConstants implements Serializable {
 	@Value("#{applicationProperties['modules.duplicates']}")
 	private String modulesDuplicates;
 
-	private static final Integer DEFAULT_VIRTUOSO_FETCH_SIZE = 100;
+	private static final Integer DEFAULT_VIRTUOSO_FETCH_SIZE = 10000;
 
 	@Value("#{applicationProperties['queryTool.fetchSize']}")
 	private Integer virtuosoFetchSize;
@@ -222,7 +224,7 @@ public class ApplicationConstants implements Serializable {
 	// Secure web services true or false (false on local only)
 	// There is a hack here to support autowiring of a static field. (The set property is defined in context.xml)
 	@Value("#{applicationProperties['modules.webservices.secured']}")
-	private boolean wsSecuredNonStatic;
+	private Boolean wsSecuredNonStatic;
 	private static boolean wsSecured;
 
 	// RDF Generation Properties
@@ -246,11 +248,19 @@ public class ApplicationConstants implements Serializable {
 
 	@Value("#{applicationProperties['modules.downloadThreshold']}")
 	private String downloadThreshold;
-
-	@Value("#{applicationProperties['Last-Deployed']}")
-	private String lastDeployedTimeStamp;
 	
 	private static DatafileEndpointInfo dataDropEndpointInfo;
+	
+	@Value("#{applicationProperties['modules.env.isLocal']}")
+	private String modulesEnvIsLocal;
+	//Two Factor Authentication
+	@Value("#{applicationProperties['modules.twoFa.enabled']}")
+	private Boolean isTwoFaEnabled;
+	@Value("#{applicationProperties['modules.twoFa.codeExpiresInMinutes']}")
+	private Long twoFaCodeExpiresInMinutes;	
+	@Value("#{applicationProperties['modulee.twoFa.applyToAdminAccount']}")
+	private Boolean twoFaApplyToAdmin;
+	
 
 	@PostConstruct
 	public void init() {
@@ -435,7 +445,7 @@ public class ApplicationConstants implements Serializable {
 	public String getDevEmail() {
 
 		if (modulesDevEmail == null || modulesDevEmail.isEmpty()) {
-			return "REPLACED@mail.nih.gov";
+			return "FITBIR-DEV@mail.nih.gov";
 		} else {
 			return modulesDevEmail;
 		}
@@ -1129,7 +1139,7 @@ public class ApplicationConstants implements Serializable {
 	public String getRdfLoadFailureNotificationEmail() {
 
 		if (rdfLoadFailureNotificationEmail == null || rdfLoadFailureNotificationEmail.isEmpty()) {
-			return "REPLACED@mail.nih.gov";
+			return "FITBIR-DEV@mail.nih.gov";
 		} else {
 			return rdfLoadFailureNotificationEmail;
 		}
@@ -1248,7 +1258,7 @@ public class ApplicationConstants implements Serializable {
 
 	public String getTriplanarImageGenerateWebServiceUrl() {
 		if (triplanarHostDomain == null || triplanarHostDomain.isEmpty()) {
-			return "http://REPLACED/integration-web-services/workflow";
+			return "http://brics-host-dev.cit.nih.gov/integration-web-services/workflow";
 		} else {
 			return triplanarHostDomain;
 		}
@@ -1339,8 +1349,14 @@ public class ApplicationConstants implements Serializable {
 	private static final String WEBSERVICE_QUERYTOOL_SAVED_QUERY__NAME_UNIQUE_PER_META_STUDY_PATH =
 			"/ws/savedQueryService/SavedQuery/util/unique/queryName";
 
+	private static final String WEBSERVICE_QUERYTOOL_IS_QUERY_LINKED_TO_META_STUDY_PATH =
+			"/ws/savedQueryService/SavedQuery/util/isLinkedToMetaStudy";
+	
 	private static final String WEBSERVICE_QUERYTOOL_GET_SAVED_QUERY_BY_META_STUDY_AND_QUERY_NAME_PATH =
 			"/ws/savedQueryService/SavedQuery/util/savedQueryPerMetaStudy";
+	
+	private static final String WEBSERVICE_DICTIONARY_GET_DE_CSV_EXPORT = 
+			"/ws/ddt/dictionary/DataElement/getDataElementInfo";
 
 	public String getLogInURL() {
 		if (wsSecured) {
@@ -1451,6 +1467,10 @@ public class ApplicationConstants implements Serializable {
 	public String getSchemaListByFormURL() {
 		return getModulesDDTURL() + WEBSERVICE_DICTIONARY_GET_SCHEMA_LIST_BY_FORM_PATH;
 	}
+	
+	public String getDeInfoListURL() {
+		return getModulesDDTURL() + WEBSERVICE_DICTIONARY_GET_DE_CSV_EXPORT;
+	}
 
 	public String getPermissionsWebserviceURL() {
 
@@ -1494,6 +1514,10 @@ public class ApplicationConstants implements Serializable {
 		return getModulesAccountURL() + WEBSERVICE_QUERYTOOL_SAVED_QUERY__NAME_UNIQUE_PER_META_STUDY_PATH;
 	}
 
+	public String getQueryLinkedToMetaStudyPath() {
+		return getModulesAccountURL() + WEBSERVICE_QUERYTOOL_IS_QUERY_LINKED_TO_META_STUDY_PATH;
+	}
+	
 	public String getSavedQueryByNameAndMetaStudyPath() {
 		return getModulesAccountURL() + WEBSERVICE_QUERYTOOL_GET_SAVED_QUERY_BY_META_STUDY_AND_QUERY_NAME_PATH;
 	}
@@ -1525,13 +1549,45 @@ public class ApplicationConstants implements Serializable {
 	public void setVirtuosoFetchSize(Integer virtuosoFetchSize) {
 		this.virtuosoFetchSize = virtuosoFetchSize;
 	}
+	
+	public Boolean getEnvIsLocal() {
+
+		if (this.modulesEnvIsLocal == null || this.modulesEnvIsLocal.isEmpty()) {
+			return false;
+		} else {
+			return Boolean.parseBoolean(this.modulesEnvIsLocal);
+		}
+	}
+	
+	public Boolean getIsTwoFaEnabled() {
+		if (isTwoFaEnabled == null) {
+			return false;
+		}
+		return isTwoFaEnabled;
+	}
+	public Long getTwoFaCodeExpiresInMinutes() {
+		if (twoFaCodeExpiresInMinutes == null || twoFaCodeExpiresInMinutes<=0L) {
+			return 0L;
+		} else {
+			return	twoFaCodeExpiresInMinutes;
+		}
+	}	
+
+	public Boolean getTwoFaApplyToAdmin() {
+		if (twoFaApplyToAdmin == null) {
+			return false;
+		}
+		return twoFaApplyToAdmin;
+	}
+	
+	public String getTemplatePublicURL() {
+		return templatePublicURL;
+	}
+
+	public void setTemplatePublicURL(String templatePublicURL) {
+		this.templatePublicURL = templatePublicURL;
+	}
+	
 	/** END QUERY TO WS HELPER METHODS */
 
-	public String getLastDeployedTimeStamp() {
-		return lastDeployedTimeStamp;
-	}
-
-	public void setLastDeployedTimeStamp(String lastDeployedTimeStamp) {
-		this.lastDeployedTimeStamp = lastDeployedTimeStamp;
-	}
 }

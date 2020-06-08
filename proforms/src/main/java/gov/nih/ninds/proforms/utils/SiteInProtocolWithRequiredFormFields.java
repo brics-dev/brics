@@ -37,7 +37,7 @@ public class SiteInProtocolWithRequiredFormFields {
 		int  protocolNo = 8;
 		
 		// TODO Auto-generated method stub
-		String url = "jdbc:postgresql://ibis-db.cit.nih.gov:5432/pdbp_data";
+		String url = "jdbc:postgresql://db:5432/pdbp_data";
 		Properties props = new Properties();
 		props.setProperty("user","proforms_app_prod");
 		props.setProperty("password","");

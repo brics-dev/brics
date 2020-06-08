@@ -1,0 +1,16 @@
+[DB-TRG]
+host=cnrm-db-prod.ninds.nih.gov
+database=cnrm_prod
+schema=cnrm_meta
+user=cnrm_meta
+label=TRG-CNRM
+
+[DB-SRC]
+host=fitbir-db-prod.cit.nih.gov
+database=tbi_prod
+schema=tbi_meta
+user=tbi_meta
+label=SRC-PROD-TBI
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\pgDelta\prodcnrm-prodtbi-meta

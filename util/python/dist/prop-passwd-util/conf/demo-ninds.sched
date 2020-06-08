@@ -1,0 +1,7 @@
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\propPasswdUtil\demo-ninds-sched
+passFile=D:\DATA\secur\.pgpass
+
+[DEPLOY]
+trgRoot=D:\DEV\workspace\conf\demo\ninds-sched
+srcRoot=D:\DEV\BRIX\local\prop\demo\ninds-sched

@@ -98,8 +98,10 @@ $nav-hover1: $footer-bg1;
 #logo {
     margin: 17px 0 0 1px;
     background-color: transparent;
-    height: 73px;
-    width: 214px;
+    /*height: 73px;
+    width: 214px;*/
+    height: 83px;
+    width: 268px;
 }
 
 #login-button {
@@ -108,4 +110,9 @@ $nav-hover1: $footer-bg1;
 
 #header .content {
   height: 100px;
+}
+
+#header .content {
+/*    background: url(images/layout/bkg-header.png) no-repeat 200px 0; */
+  background-color: #fff; 
 }

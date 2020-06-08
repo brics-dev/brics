@@ -1,0 +1,1 @@
+python rdfCloner.py --props=.\conf\build-local.dict

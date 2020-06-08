@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -12,6 +14,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import gov.nih.tbi.commons.model.DatasetStatus;
+import gov.nih.tbi.commons.model.StudyStatus;
 import gov.nih.tbi.commons.service.QueryToolManager;
 import gov.nih.tbi.commons.service.RepositoryManager;
 import gov.nih.tbi.repository.model.hibernate.BasicStudySearch;
@@ -20,7 +23,7 @@ import gov.nih.tbi.repository.model.hibernate.Study;
 public class StudySubmittedFormCache {
 
 	private static StudySubmittedFormCache instance = null;
-	private LinkedHashMap<String, List<StudySubmittedForm>> studySubmittedFormData;
+	private LinkedHashMap<Long, List<StudySubmittedForm>> studySubmittedFormData;
 
 	private RepositoryManager repositoryManager;
 	private QueryToolManager queryToolManager;
@@ -35,7 +38,7 @@ public class StudySubmittedFormCache {
 		this.repositoryManager = repositoryManager;
 		this.queryToolManager = queryToolManager;
 		
-		studySubmittedFormData = new LinkedHashMap<String, List<StudySubmittedForm>>();
+		studySubmittedFormData = new LinkedHashMap<Long, List<StudySubmittedForm>>();
 	}
 
 	/**
@@ -65,10 +68,10 @@ public class StudySubmittedFormCache {
 
 	public void cacheAllStudySubmittedForms() {
 		
-		Multimap<String, StudySubmittedForm> studySubmittedForms = queryToolManager.getAllStudySubmittedForms();
+		Multimap<Long, StudySubmittedForm> studySubmittedForms = queryToolManager.getAllStudySubmittedForms();
 		
-		for(String studyTitle:studySubmittedForms.keySet()){
-			this.studySubmittedFormData.put(studyTitle, (List<StudySubmittedForm>) studySubmittedForms.get(studyTitle));
+		for(Long studyId:studySubmittedForms.keySet()){
+			this.studySubmittedFormData.put(studyId, (List<StudySubmittedForm>) studySubmittedForms.get(studyId));
 		}
 		
 	}
@@ -156,7 +159,7 @@ public class StudySubmittedFormCache {
 			studySubmittedForms = queryToolManager.getStudySubmittedForms(study.getTitle());
 
 			// cache the objects before returning
-			cacheStudySubmittedFormData(study.getTitle(), studySubmittedForms);
+			cacheStudySubmittedFormData(study.getId(), studySubmittedForms);
 		}
 
 		return studySubmittedForms;
@@ -176,15 +179,15 @@ public class StudySubmittedFormCache {
 			studySubmittedForms = queryToolManager.getStudySubmittedForms(study.getTitle());
 
 			// cache the objects before returning
-			cacheStudySubmittedFormData(study.getTitle(), studySubmittedForms);
+			cacheStudySubmittedFormData(study.getId(), studySubmittedForms);
 		}
 
 		return studySubmittedForms;
 	}
 	
-	public void cacheStudySubmittedFormData(String studyTitle, List<StudySubmittedForm> studySubmittedForms) {
+	public void cacheStudySubmittedFormData(Long studyId, List<StudySubmittedForm> studySubmittedForms) {
 
-		this.studySubmittedFormData.put(studyTitle, studySubmittedForms);
+		this.studySubmittedFormData.put(studyId, studySubmittedForms);
 	}
 
 	public String getTotalRecordCount(List<StudySubmittedForm> studySubmittedForms) {
@@ -250,6 +253,19 @@ public class StudySubmittedFormCache {
 		
 		for(BasicStudySearch basicStudySearch: basicStudyList){
 			if(basicStudySearch.getSharedDatasetCount().signum() == 1){
+				sharedStudiesCount++;
+			}
+		}
+		
+		return String.valueOf(sharedStudiesCount);
+	}
+	
+	public String getSharedStudiesCount(Map<Long,BasicStudySearch> basicStudyList){
+		
+		int sharedStudiesCount =0;
+		
+		for(Entry<Long, BasicStudySearch> basicStudySearch: basicStudyList.entrySet()){
+			if(basicStudySearch.getValue().getSharedDatasetCount().signum() == 1 && Long.valueOf(basicStudySearch.getValue().getStudyStatus()).equals(StudyStatus.PUBLIC.getId())){
 				sharedStudiesCount++;
 			}
 		}

@@ -18,12 +18,34 @@
 		
 		
 		<s:if test="!alternateWorkflow()">
-			<p>Thank you for your interest in the <s:property value="orgName" /> system. Please complete the following steps to request an account:</p>
+			<p>Thank you for your interest in the <span id="orgName"><s:property value="orgName" /></span> system. Please complete the following steps to request an account:</p>
 			<ol start="1">
 		</s:if>
 		<s:else>
 			<ol start="4">
 		</s:else>
+
+		<s:if test="instanceType.name == 'FITBIR'">
+			<li>Determine which Account Permissions you require:
+				<br><br>
+				<h3>Account Types</h3><br>
+				<ol>
+					<li>Data Submitter with ProFoRMS: Select this option if you will be submitting data to FITBIR and will be 
+					using the ProFoRMS module to collect data for your study. This permission will require you to submit the 
+					"Data Submission Request" document found in the template table below. </li>
+					<li>Data submitter without ProFoRMS: Select this option if you will be submitting data to FITBIR but will 
+					NOT be using the ProFoRMS module to collect data for your study. This permission will require you to submit 
+					the "Data Submission Request" document found in the template table below. </li>
+					<li>Data Accessor: Select this option if you will be accessing data from FITBIR. This permission will require 
+					you to submit the "Data Access Request" and "Biosketch" documents found in the template table below. </li>
+					<li>Other: Please select Option as Other, if you have an account type need which doesn't fall in the above categories.</li>
+				</ol>
+				
+				<br>
+				<p>NOTE: If you would like to have both submitter and accessor privileges, you will be able to select two options 
+				from above and will be required to submit the documentation required for both privileges. </p>
+			</li>
+		</s:if>
 		
 		<li>Download the appropriate template(s) from the list below.
 			<br><br>
@@ -116,6 +138,8 @@
 	$('document').ready(function() {
 		$("#navigation").hide();		
 		$("#availabilityDisplay").hide();
+		var orgName = $("#orgName").text();
+		$("#orgName").text(orgName.replace(/_/g, ' '));
 	});
 
 	function submitPdForm(){

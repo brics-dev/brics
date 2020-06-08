@@ -1,0 +1,503 @@
+openapi: 3.0.0
+info:
+  description: Provides file upload/download to the BRICS file repository
+  version: 1.0.0
+  title: BRICS File Repository
+servers:
+  - url: 'https://brics.cit.nih.gov/filerepository'
+tags:
+  - name: file
+    description: File Repository
+  - name: validate
+    description: validation
+  - name: status
+    description: determine if service is running
+  - name: query
+    description: retrieve file details
+    
+paths:
+  /validate/md5Hash/{fileId}/{clientHash}:
+    get:
+      tags:
+        - validate
+      summary: Generate an MD5 hash of a file associated with the specified file ID, and checks it against a given hash
+      operationId: checkMd5Hash
+      parameters:
+        - name: "fileId"
+          in: path
+          description: the ID of the file
+          required: true
+          schema:
+            type: string
+        - name: "clientHash"
+          in: path
+          description: The MD5 hash provided by the client
+          required: true
+          schema:
+            type: string
+      responses:
+        200: 
+          description: "JSON Object identifying the results of the comparison"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationResult"
+        401:
+          description: If the user is not logged into the system.
+        403:
+          description: When there is a perimssions valiation on the file being accessed.
+        404:
+          description: The file ID was not found in the system.
+        500:
+          description: An error resulting from reading the file from the file system, database error, or an error with contructing the response JSON object.
+
+  /validate/crcCheck/{fileId}/{clientCrc}:
+    get:
+      tags:
+        - validate
+      summary: Generate an CRC hash of a file associated with the specified file ID, and checks it against a given hash
+      operationId: checkCrcValue
+      parameters:
+        - name: "fileId"
+          in: path
+          description: the ID of the file
+          required: true
+          schema:
+            type: string
+        - name: "clientCrc"
+          in: path
+          description: The CRC hash provided by the client
+          required: true
+          schema:
+            type: string
+      responses:
+        200: 
+          description: "JSON Object identifying the results of the comparison"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationResult"
+        401:
+          description: When the user is not logged in.
+        403:
+          description: When there is a perimssions valiation on the file being accessed.
+        404:
+          description: The file ID was not found in the system.
+        500:
+          description: An error resulting from reading the file from the file system, database error, or an error with contructing the response JSON object.
+
+  /files:
+    head:
+      tags: 
+        - file
+      summary: Sends back all of the HTTP methods that this endpoint supports. Needed for some JS file uploading frameworks.
+      operationId: handleHeadRequest
+      responses:
+        200:
+          description: No content is sent just headers.
+    options:
+      tags: 
+        - file
+      summary: Handles any HTTP OPTIONS requests from JS file uploading frameworks.
+      operationId: handleOptionsRequest
+      responses:
+        200:
+          description: Only headers are sent which contains all of the HTTP methods that is supported by this endpoint.
+    post:
+      tags: 
+        - file
+      summary: Saves a file or part of a file to the server's file system.
+      operationId: saveFileData
+      parameters: 
+        - name: "Content-Range"
+          in: header
+          description: Its existence indicates that only part of the file was sent. It provides the range of bytes sent, as well as the size of the original file.
+          required: false
+          schema:
+            type: string
+        - name: "Content-Length"
+          in: header
+          description: This can be either be the size of the uploaded file (in bytes) or the size of the chunk of the file.
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: The multipart form with the file or file chunck along with some meta data.
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/fileUploadBody"
+      responses:
+        200:
+          description: A JSON object with the details of the file or chunk that was just saved.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileUploadDetails"
+        401:
+          description: When the user is not logged in.
+        403:
+          description: When there is a perimssions valiation on the file being accessed.
+        500:
+          description: When there is any database, file system, or JSON construction errors.
+          
+  /files/{fileId}:
+    get:
+      tags: 
+        - file
+      summary: Downloads a specified file from the server's file system.
+      operationId: downloadFile
+      parameters: 
+        - name: "fileId"
+          in: path
+          description: The alphanumeric ID of the file to be downloaded.
+          required: true
+          schema:
+            type: string
+        - name: "Range"
+          in: header
+          description: Its existance indicates that an interrupted download will need to be resumed starting at the indicated range.
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: The file data that corresponds to the given file ID.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        206:
+          description: The file data being sent is a sub-section of the requested file as indicated by the "Range" header in the request
+        401:
+          description: When the user is not logged in.
+        403:
+          description: When there is a perimssions valiation on the file being accessed.
+        404:
+          description: If the given file ID is not found in the system.
+        416:
+          description: If the "Range" header of the request refers to an invalid range of the requested file.
+        500:
+          description: When there is either a database or file system.
+    delete:
+      tags: 
+        - file
+      summary: Deletes a file from the system that matches the given file ID.
+      operationId: deleteFile
+      parameters: 
+        - name: "fileId"
+          in: path
+          description: The alphanumeric ID of the file to be deleted.
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: A JSON object with the details of the file that was just deleted. Or an empty JSON object if the file ID is not found in the system.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileDetails"
+        401:
+          description: When the user is not logged in.
+        403:
+          description: When there is a perimssions valiation on the file being accessed.
+        500:
+          description: When there is either a database, file system, or JSON construction error.
+  
+  /files/getUserFile/{userFileId}:
+    get:
+      tags:
+        - file
+      summary: Downloads a specified file from the data drop share location.
+      operationId: downloadLegacyFile
+      parameters: 
+        - name: "userFileId"
+          in: path
+          description: The ID of the UserFile to be downloaded.
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: "Range"
+          in: header
+          description: Its existance indicates that an interrupted download will need to be resumed starting at the indicated range.
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: The file data that corresponds to the given UserFile ID.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        206:
+          description: The file data being sent is a sub-section of the requested file as indicated by the "Range" header in the request
+        401:
+          description: When the user is not logged in.
+        403:
+          description: When there is a perimssions valiation on the file being accessed.
+        404:
+          description: If the given UserFile ID is not found in the system.
+        416:
+          description: If the "Range" header of the request refers to an invalid range of the requested file.
+        500:
+          description: When there is either a database or file system.
+  
+  /files/saveFileDetails:
+    post:
+      tags: 
+        - file
+      summary: Creates or updates a database record that will or currently represent a file stored on the server's file system. Should be called first before a file upload is attempted.
+      operationId: saveFileDbRecord
+      requestBody:
+        description: The form containing the meta data for the new file record.
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/FileFormBody"
+      responses:
+        200:
+          description: A JSON object with the file details that were just saved in the system.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileDetails"
+        400:
+          description: If the instance and/or the group IDs are not given.
+        401:
+          description: When the user is not logged in.
+        403:
+          description: When there is a perimssions valiation if the user can't create or update the file that is associated with a BRICS module.
+        404:
+          description: If the given file ID is not found in the system.
+        500:
+          description: When there was either a database, file system, or JSON generation error.
+  
+  /status:
+    get:
+      tags: 
+        - status
+      summary: Produces a simple status page, which is used to quickly verify that the web service is running.
+      operationId: getRunningStatus
+      responses:
+        200: 
+          description: Information about the running service.
+          content:
+            text/html:
+             schema:
+               type: string
+               description: A simple page with the status of the service.
+        401:
+          description: When the user is not logged in.
+               
+  /query/{fileId}:
+   get:
+     tags: 
+       - query
+     summary: Retrieves the file details from the database for the given file ID.
+     operationId: getFileDetails
+     parameters: 
+        - name: "fileId"
+          in: path
+          description: The ID of the file that the client needs details for.
+          required: true
+          schema:
+            type: string
+     responses:
+        200:
+          description: A JSON object containing the files ID, name, instance ID, and group ID.
+          content:
+            application/json:
+             schema:
+              $ref: "#/components/schemas/FileDetails"
+        404:
+          description: File ID is not in the system.
+        401:
+          description: When the user is not logged in.
+        403:
+          description: When there is a perimssions valiation on the file being accessed.
+        500:
+          description: A database error or JSON parse or generation error.
+  
+  /query/fileSize/{fileId}:
+    get:
+      tags: 
+        - query
+      summary: Looks up the file size (in bytes) of the specified file.
+      operationId: getFileSize
+      parameters: 
+        - name: "fileId"
+          in: path
+          description: The ID of the file for the requested file size.
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: The size of the requested file in bytes.
+          content:
+            text/plain:
+              schema:
+                type: string
+        401:
+          description: When the user is not logged in.
+        403:
+          description: When there is a perimssions valiation on the file being accessed.
+        404:
+          description: File ID is not in the system.
+        500:
+          description: File system access error occured.
+
+components:
+  securitySchemes:
+    bearerAuth:
+       type: http
+       scheme: bearer
+       bearerFormat: JWT
+
+  schemas:
+    ValidationResult:
+      type: object
+      properties:
+        isHashValid:
+          type: boolean
+          description: boolean "is the hash valid"
+        generatedHash:
+          type: string
+          description: the MD5 or CRC hash generated from the file target
+        providedHash:
+          type: string
+          description: the provided MD5 or CRC hash
+    FileDetails:
+      type: object
+      properties:
+        fileId:
+          type: string
+          description: The file's ID string
+        fileCategoryId:
+          type: integer
+          format: int64
+          description: The ID of the category that the file is assigned to. Like study, data set, etc.
+        linkedObjectId:
+          type: integer
+          format: int64
+          description: The ID of the assoicated object in the system. Like the study or data set ID. This will closly corrispond to the file's chosen category.
+        fileName:
+          type: string
+          description: The file's name. This will be used when downloading the file, since the file names on the server are anonymize.
+        fileUrl:
+          type: string
+          description: The URL used to download the file.
+        filePath:
+          type: string
+          description: The relative path to the file.
+        fileSize:
+          type: integer
+          format: int64
+          description: The size of the file in bytes.
+    fileUploadBody:
+      type: object
+      properties:
+        fileId:
+          type: string
+          description: The alphanumeric identifer for the file.
+        fileCategoryId:
+          type: integer
+          format: int64
+          description: The file's category ID to be used to calculate the file path on the server.
+        linkedObjectId:
+          type: integer
+          format: int64
+          description: The ID of the object associated with this file. Like a study or data set ID. This ID will depeand on what is chosen as the file category.
+        file:
+          type: string
+          format: binary
+          description: The data contents of the file or the chunk of the file being updoaded.
+      required: 
+        - fileId
+        - fileCategoryId
+        - linkedObjectId
+        - file
+    FileFormBody:
+      type: object
+      properties:
+        fileId:
+          type: string
+          description: The existing alphanumeric file ID for updating an existing record or not included to create a new file record.
+        fileCategoryId:
+          type: integer
+          format: int64
+          description: The file category identifier used to store the file.
+        linkedObjectId:
+          type: integer
+          format: int64
+          description: The ID of the object that is assoicated with the file. Like a study or data set ID. The ID will depend on what file category is chosen.
+        fileName:
+          type: string
+          description: The file's name.
+        legacyUserFileId:
+          type: integer
+          format: int64
+          description: The ID of the UserFile object of an existing file stored in the SFTP share.
+      required:
+        - fileCategoryId
+        - linkedObjectId
+        - fileName
+    FileUploadDetails:
+      type: object
+      properties:
+        fileId:
+          type: string
+          description: The file's ID string
+        fileCategoryId:
+          type: integer
+          format: int64
+          description: The ID of the category that the file is assigned to. Like study, data set, etc.
+        linkedObjectId:
+          type: integer
+          format: int64
+          description: The ID of the object that is assoicated with the file. Like a study or data set ID. The ID will depend on what file category is chosen.
+        fileName:
+          type: string
+          description: The file's name. This will be used when downloading the file, since the file names on the server are anonymize.
+        fileUrl:
+          type: string
+          description: The URL used to download the file.
+        filePath:
+          type: string
+          description: The relative path to the file.
+        fileSize:
+          type: integer
+          format: int64
+          description: The size of the file in bytes.
+        fileType:
+          type: string
+          description: The uploaded file type from the form data content disposition object.
+        crc:
+          type: integer
+          format: int64
+          description: The CRC value that was calculated while reading in the data from the uploaded file or chunck.
+        uploadFileSize:
+          type: integer
+          format: int64
+          description: The total size of the file in bytes as reported from the "Content-Range" header. This property will only be included if a file chunck is sent.
+        minRange:
+          type: integer
+          format: int64
+          description: The minimum byte range from the "Content-Range" header. This property will only be included if a file chunck is sent.
+        maxRange:
+          type: integer
+          format: int64
+          description: The maximum byte range from the "Content-Range" header. This poperty will only be included if a file chunck is sent.
+  responses:
+    UnauthorizedError:
+      description: Access token is missing or invalid
+  
+security:
+  - bearerAuth: []

@@ -34,7 +34,8 @@ var Page = BaseModel.extend({
 		layoutEditView		:	null,	// editor for section and question layout
 		tableLayoutEditView	:	null,	// Table layout edit view
 		dataElementsView2	:	null,	// dataelements view for new auto create form builder
-		questionTextEditView : null  //question edit view for advanced question text formatting
+		questionTextEditView : null,  //question edit view for advanced question text formatting
+		countDialogView		:	null	// count question dialog view
 	},
 	
 	activeSectionId : function() {

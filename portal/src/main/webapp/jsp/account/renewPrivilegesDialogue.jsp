@@ -1,6 +1,6 @@
 <%@include file="/common/taglibs.jsp"%>
 
-<form id="theForm">
+<form id="renewAccountForm" action="renewAccountAction!renewAccount.action">
 	<div class="float-left">
 		<p>
 			Please provide an administrative comment associated with renewing this account. This reason will not be sent

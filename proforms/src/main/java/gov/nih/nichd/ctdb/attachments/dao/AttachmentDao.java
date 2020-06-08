@@ -148,7 +148,8 @@ public class AttachmentDao extends CtdbDao
      * @throws DuplicateObjectException	When a duplicate mapping insertion was attempted
      * @throws CtdbException	When any other database error occurs while creating the mapping
      */
-    public void createAttachmentOrganization (Attachment a) throws DuplicateObjectException, CtdbException
+	public void createAttachmentOrganization(Attachment a, int protocolId)
+			throws DuplicateObjectException, CtdbException
     {
         PreparedStatement stmt = null;
         
@@ -169,6 +170,7 @@ public class AttachmentDao extends CtdbDao
             }
             
             stmt.setLong(4, a.getAssociatedId());
+			stmt.setLong(5, protocolId);
             
             stmt.executeUpdate();
         }
@@ -211,8 +213,9 @@ public class AttachmentDao extends CtdbDao
      */
     private String getCreateAttachmentOrgStatement()
     {
-    	String sqlStmt = "insert into attachmentorganization (attachmentid, xattachmenttypeid, attachmentcategoryid, associatedid ) " +
-    					 " values (?, ?, ?, ?) ";
+		String sqlStmt =
+				"insert into attachmentorganization (attachmentid, xattachmenttypeid, attachmentcategoryid, associatedid, associatedprotocolid ) "
+						+ " values (?, ?, ?, ?, ?) ";
     	
     	return sqlStmt;
     }
@@ -446,7 +449,8 @@ public class AttachmentDao extends CtdbDao
      * @throws DuplicateObjectException When the association is not unique
      * @throws CtdbException 	When other database errors are encountered while updating the mapping.
      */
-    public void updateAttachmentOrganization(Attachment a) throws DuplicateObjectException, CtdbException
+	public void updateAttachmentOrganization(Attachment a, int protocolId)
+			throws DuplicateObjectException, CtdbException
     {
         PreparedStatement stmt = null;
         
@@ -466,6 +470,7 @@ public class AttachmentDao extends CtdbDao
             stmt.setLong(2, a.getId());
             stmt.setLong(3, a.getType().getId());
             stmt.setLong(4, a.getAssociatedId());
+			stmt.setLong(5, protocolId);
             stmt.executeUpdate();
         }
         catch ( PSQLException e )
@@ -508,7 +513,7 @@ public class AttachmentDao extends CtdbDao
     private String getUpdateAttachmentOrgStatement()
     {
     	String sqlStmt = "update attachmentorganization set attachmentcategoryid = ? " +
-    					 "where attachmentid = ? and xattachmenttypeid = ? and associatedid = ? ";
+				"where attachmentid = ? and xattachmenttypeid = ? and associatedid = ? and associatedprotocolid = ? ";
     	
     	return sqlStmt;
     }
@@ -994,6 +999,47 @@ public class AttachmentDao extends CtdbDao
 			this.close(rs);
 		}
 		
+		return attchList;
+	}
+
+	/**
+	 * Gets a list of attachments from the database. The retrieval is based on its type and associated ID.
+	 * 
+	 * @param typeId - The type of the attachment (see "xattachmenttype" table for type listing)
+	 * @param associatedId - The ID of the associated object (i.e. study ID, subject ID, etc.)
+	 * @param protocolId - The ID of the protocol object
+	 * @return A list of attachment objects, or an empty list if there are no attachments matching the specified type
+	 *         and associated ID.
+	 * @throws CtdbException If any database errors occurred during the retrieval.
+	 */
+	public List<Attachment> getProtocolAttachments(int typeId, long associatedId, long protocolId)
+			throws CtdbException {
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		ArrayList<Attachment> attchList = new ArrayList<Attachment>();
+
+		try {
+			String sql = getSelectAttachmentStatement()
+					+ "where ao.xattachmenttypeid = ? and ao.associatedid = ? and ao.associatedprotocolid = ? order by a.name, ac_name ";
+
+			stmt = this.conn.prepareStatement(sql);
+			stmt.setLong(1, typeId);
+			stmt.setLong(2, associatedId);
+			stmt.setLong(3, protocolId);
+			rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				attchList.add(rsToAttachment(rs, false));
+			}
+
+		} catch (SQLException sqle) {
+			throw new CtdbException("Failure getting attachemnts with associatedid " + Long.toString(protocolId)
+					+ " : " + sqle.getMessage(), sqle);
+		} finally {
+			this.close(stmt);
+			this.close(rs);
+		}
+
 		return attchList;
 	}
     

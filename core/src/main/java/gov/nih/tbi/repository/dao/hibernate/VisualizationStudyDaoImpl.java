@@ -60,23 +60,24 @@ public class VisualizationStudyDaoImpl extends GenericDaoImpl<VisualizationStudy
 		Root<Study> root = query.from(Study.class);
 		root.fetch("sponsorInfoSet", JoinType.LEFT);
 		root.fetch("studySiteSet", JoinType.LEFT);
-		root.fetch("researchMgmtSet", JoinType.LEFT).fetch("pictureFile", JoinType.LEFT);
+		root.fetch("grantSet", JoinType.LEFT);
 		root.fetch("studyForms", JoinType.LEFT);
+		root.fetch("researchMgmtSet", JoinType.LEFT).fetch("pictureFile", JoinType.LEFT);
 		
-		//predicate = cb.and(predicate, cb.notEqual(root.get("studyStatus"), 1));
+		//predicate = cb.and(predicate, cb.equal(root.get("studyStatus"), 0));
 		//if we want to add teh above predicate this must be included below where(predicate)
-
+		//query.where(predicate);
 		return createQuery(query.distinct(true)).getResultList();
 	}
 	
 	@Override
-	public List<VisualizationStudy> getAllVisualizationStudyData() {
+	public Map<Long, VisualizationStudy> getAllVisualizationStudyData() {
 		
 		String hql = "SELECT ds.study_id as \"studyId\", SUM(uf.user_file_size) as \"totalDataFileSize\" FROM dataset ds " 
 					+ "join study s on s.id = ds.study_id "
 					+ "join dataset_file dsf on ds.id = dsf.dataset_id " 
 					+ "join user_file uf on dsf.user_file_id = uf.id "
-					// + "where s.study_status_id <> 1 "
+					//+ "where s.study_status_id = 0 "
 					+ "GROUP BY ds.study_id "
 					+ "ORDER BY ds.study_id;";
 
@@ -84,7 +85,13 @@ public class VisualizationStudyDaoImpl extends GenericDaoImpl<VisualizationStudy
 		((NativeQueryImpl) query).setResultTransformer(Transformers.aliasToBean(VisualizationStudy.class));
 		List<VisualizationStudy> vsList = query.getResultList();
 		
-		return vsList;
+		Map<Long, VisualizationStudy> VisualizationStudyMap = new HashMap<Long, VisualizationStudy>();
+		
+		for (VisualizationStudy obj : vsList) {
+			VisualizationStudyMap.put(obj.getStudyId().longValue(), obj);
+		}
+		
+		return VisualizationStudyMap;
 	}
 		
 }

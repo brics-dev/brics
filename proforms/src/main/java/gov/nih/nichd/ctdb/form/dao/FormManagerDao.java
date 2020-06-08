@@ -1,6 +1,7 @@
 package gov.nih.nichd.ctdb.form.dao;
 
 import java.io.File;
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -34,6 +35,7 @@ import gov.nih.nichd.ctdb.common.Version;
 import gov.nih.nichd.ctdb.common.util.Utils;
 import gov.nih.nichd.ctdb.emailtrigger.dao.EmailTriggerDao;
 import gov.nih.nichd.ctdb.emailtrigger.domain.EmailTrigger;
+import gov.nih.nichd.ctdb.emailtrigger.domain.EmailTriggerValue;
 import gov.nih.nichd.ctdb.form.common.FormConstants;
 import gov.nih.nichd.ctdb.form.common.FormHtmlAttributes;
 import gov.nih.nichd.ctdb.form.common.FormResultControl;
@@ -5348,8 +5350,11 @@ public class FormManagerDao extends CtdbDao {
 				if (i == 0) {
 					qAttrs = this.rsToQuestionAttributes(rs);
 				}
-				
-				qAttrs.getEmailTrigger().getTriggerAnswers().add(rs.getString("answer"));
+				EmailTriggerValue etv = new EmailTriggerValue();
+				etv.setId(rs.getInt("emailtriggerid"));
+				etv.setAnswer(rs.getString("answer"));
+				etv.setTriggerCondition(rs.getString("triggercondition"));
+				qAttrs.getEmailTrigger().addToTriggerValues(etv);
 			}
 			
 			if (qAttrs == null) {
@@ -7667,6 +7672,99 @@ public class FormManagerDao extends CtdbDao {
 		}
 	}
 	
+	/**
+	 * Determines if the passed-in aformIds refer to the same eform.  Will return false
+	 * if the provided list of aformIds is empty.
+	 * 
+	 * @param aformIds array of aform IDs to test
+	 * @return boolean true if the eformIds are the same, otherwise false
+	 * @throws CtdbException if the query fails
+	 */
+	public boolean areAllAFormsTheSameEForm(int[] aformIds)
+			throws CtdbException {
+		
+		// protects the query from an empty request set
+		if (aformIds.length == 0) {
+			return false;
+		}
+		
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		try {
+			Integer[] aforms = ArrayUtils.toObject(aformIds);
+			Array aformIdsArray = conn.createArrayOf("BIGINT", aforms);
+			stmt = conn.prepareStatement("select count(eformid) as cnt FROM administeredform where administeredformid = ANY (?) group by eformid;");
+			stmt.setArray(1, aformIdsArray);
+			rs = stmt.executeQuery();
+			// if the resultset has more than one entry, return false
+			if (rs.next()) {
+				if (rs.next()) {
+					return false;
+				}
+			}
+			else {
+				// if the resultset is empty, something's wrong
+				throw new CtdbException("Failed verifying consistency in eform - no results");
+			}
+			
+			return true;
+		} catch (SQLException sqle) {
+			throw new CtdbException(
+					" Failure verifying that all aforms refer to the same eform "
+							+ sqle.getMessage(), sqle);
+		} finally {
+			close(stmt);
+			close(rs);
+		}
+	}
+	
+	/**
+	 * Determines if all of the passed-in aformIds refer to aforms that are locked.
+	 * Returns false if there are no forms passed in
+	 * 
+	 * @param aformIds array of aform IDs to test
+	 * @return boolean true if the aforms are locked, otherwise false
+	 * @throws CtdbException if the query fails
+	 */
+	public boolean areAllAFormsLocked(int[] aformIds)
+			throws CtdbException {
+		
+		// protects the query from an empty request set
+		if (aformIds.length == 0) {
+			return false;
+		}
+		
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		try {
+			// Arrays.toString joins the way we want but it adds square braces to both ends
+			Integer[] aforms = ArrayUtils.toObject(aformIds);
+			Array aformIdsArray = conn.createArrayOf("BIGINT", aforms);
+			stmt = conn.prepareStatement("select count(*) as cnt FROM administeredform where administeredformid = ANY (?) AND finallockdate IS NULL;");
+			stmt.setArray(1, aformIdsArray);
+			rs = stmt.executeQuery();
+			// if the cnt entry in the resultset has count larger than 0, return false
+			if (rs.next()) {
+				int count = rs.getInt("cnt");
+				if (count > 0) {
+					return false;
+				}
+			}
+			else {
+				// if the resultset is empty, something's wrong
+				throw new CtdbException("Failed verifying locked status in eform - no results");
+			}
+			
+			return true;
+		} catch (SQLException sqle) {
+			throw new CtdbException(
+					" Failure verifying that all aforms refer to the same eform "
+							+ sqle.getMessage(), sqle);
+		} finally {
+			close(stmt);
+			close(rs);
+		}
+	}
 	
 	/**
 	 * Method to get the name for given eformid in particular protocol

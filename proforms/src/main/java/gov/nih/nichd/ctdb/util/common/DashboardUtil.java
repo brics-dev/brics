@@ -14,16 +14,6 @@ public class DashboardUtil {
 
 	}
 
-	public static TreeMap<String, List<String>> sortMap(Map<String, List<String>> studyMap) {
-		Map<String, List<String>> treeMap = new TreeMap<String, List<String>>(studyMap);
-
-		for (String str : treeMap.keySet()) {
-			treeMap.get(str);
-		}
-
-		return (TreeMap<String, List<String>>) treeMap;
-	}
-
 	public static String diffDate(String startDate) {
 		String yearStr = startDate.substring(0, 4);
 		String monthStr = startDate.substring(5, 7);

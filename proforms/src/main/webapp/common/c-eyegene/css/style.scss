@@ -160,6 +160,12 @@ table.dataTable tr.odd.row_selected {
 	width: 120px;
 }
 
+.build-notes {
+	float: left;
+	clear: both;
+	margin: 10px -20px 20px 0;
+}
+
 #primary-nav li .missingPermission {
 	background: $dark-gray;
 	color: $lightest-gray;

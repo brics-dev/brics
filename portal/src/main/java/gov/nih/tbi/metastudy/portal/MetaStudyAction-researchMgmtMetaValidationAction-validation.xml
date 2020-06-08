@@ -96,7 +96,7 @@
 	</field> 
 	<field name="pictureFileName">
 		<field-validator type="regex">
-			<param name="regex"><![CDATA[(.*/)*.+\.(png|jpg|gif|bmp|jpeg|PNG|JPG|GIF|BMP)$]]></param>
+			<param name="regex"><![CDATA[(.*/)*.+\.(png|jpg|bmp|jpeg|PNG|JPG|BMP)$]]></param>
 			<message key="errors.pictureFileName" />
 		</field-validator>	
 	</field>

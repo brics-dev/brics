@@ -18,23 +18,20 @@
 						<div id="footerContentContainer">
 						    <div class="footernav clearboth">
 						        <ul class="clearboth">
-						        	<li><a class="ext-link" target="_blank" href="https://nei.nih.gov/tools/policies">Privacy Statement</a></li>
+						        	<li><a class="ext-link" target="_blank" href="http://www.nih.gov/about/access.htm">Privacy Statement</a></li>
 						            <li><a class="ext-link" target="_blank" href="http://www.nih.gov/about/access.htm">Accessibility Policy</a></li>
 						            <li><a class="ext-link" target="_blank" href="http://www.nih.gov/icd/od/foia/index.htm">FOIA</a></li>
 						        </ul>
 						    </div>
 						    <p>NIH ... Turning Discovery Into Health</p>
 						    <div class="branding">
-						       <div class="hhs"><a href="http://www.hhs.gov">The United States Department of Health and Human Services</a></div>
-						       <div class="nih"><a href="http://www.nih.gov">The National Institutes of Health</a></div>
-						       <div class="usa"><a href="http://www.usa.gov">USA.gov : Government Made Easy</a></div>
+						       <a href="http://www.hhs.gov" target="_blank"><div class="hhs">The United States Department of Health and Human Services</div></a>
+						       <a href="http://www.nih.gov" target="_blank"><div class="nih">The National Institutes of Health</div></a>
+						       <a href="http://www.usa.gov" target="_blank"><div class="usa">USA.gov : Government Made Easy</div></a>
 						    </div>
 
-  						    <div class="contact build-notes" style="clear: both; margin: 10px -20px 20px 0;">
-								<p class="left">Build Version:<s:property value="%{buildID}" /></br>
-								Repository ID: <s:property value="%{deploymentID}" /></br>
-								Last Deployed: <s:property value="%{lastDeployed}" /></p>
-							</div>
+  						    <!-- Include release info section -->
+							<jsp:include page="/common/release-info.jsp" />
 						</div>
 					</div>
 				</div>

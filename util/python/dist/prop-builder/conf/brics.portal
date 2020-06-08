@@ -1,0 +1,6 @@
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\prop-builder-portal
+;instFile=D:\DEV\BRIX\local\conf\brics\propMatrix-portal.xlsx
+instFile=D:\DEV\BRIX\local\conf\brics\props-portal.json
+workDir=D:\DEV\workspace\conf\brics\portal
+passFile=D:\DATA\secur\.pgpass

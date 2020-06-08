@@ -74,11 +74,22 @@
 	}
 %>
 
+<script type="text/javascript" src = "/portal/formbuilder/js/tinymce/tinymce.min.js"></script>  
+<script type="text/javascript" src='/portal/formbuilder/js/tinymce/jquery.tinymce.min.js'></script> 
 <script type="text/javascript">
 	var webRoot = "<s:property value='#webRoot'/>";
 	var canEdit = false;
 	var bricsStudySites = new HashTable();
 	var currentPatientDisplayType;
+	
+	tinymce.init({
+		  selector: 'textarea#psrHeader',
+		  menubar: false,
+		  statusbar: false,
+		  plugins: ['textcolor'],
+		  toolbar: 'undo redo | styleselect fontsizeselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist | link | forecolor backcolor | removeformat'
+	
+	});
 	
 	function StudySite(bricsStudySiteId, siteName, address1, address2, city, stateId, stateName, countryId, countryName, zipCode, isPrimary) {
 		this.bricsStudySiteId = bricsStudySiteId;
@@ -554,6 +565,15 @@
 		
 /****************************************************** END --  Drug Device Event Handlers -- END  ***********************************************************/
 	});
+	
+	tinymce.init({
+		  selector: 'textarea#psrHeader',
+		  menubar: false,
+		  statusbar: false,
+		  plugins: ['textcolor'],
+		  toolbar: 'undo redo | styleselect fontsizeselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist | link | forecolor backcolor | removeformat'
+	
+	});
 </script>
 
 <s:if test="%{!hasActionErrors() && !hasFieldErrors()}">
@@ -875,8 +895,6 @@ $(document).ready(function() {
 				<s:radio name="protoForm.useEbinder" list="#{'true':''}" /><s:text name="protocol.add.eUseBinder.yes" />
 			</div>
 	
-
-	
 			<div id="eSigBtnDiv" class="formrow_1">
 				<label for="EnableEsignature"><s:text name="protocol.add.enableEsignature" /></label>
 				<s:radio id="enableEsignatureNo" name="protoForm.enableEsignature" list="#{'false':''}" /><s:text name="protocol.add.enableEsignature.no" />
@@ -893,13 +911,19 @@ $(document).ready(function() {
 					name="protoForm.milesStones"
 					value="protoForm.milesStones.id" headerKey="" />
 			</div> --%>
-			
+				<div class="formrow_1" id="psrHeaderDiv">
+					<label for="psrHeader"><s:text name="protocol.add.psrHeader.display" /></label>
+					<div class="tinymce" style="float:right;"><s:textarea name="protoForm.psrHeader" id="psrHeader" rows="4" cols="30" />
+					</div>
+				</div>
 		</div>
 	</div>
+
 	<%-- ---------------------------------------------------Protocol Details ends---------------------------------------------------- --%>
 
 	<s:set var="displayClinicalPoint" value="#systemPreferences.get('display.protocol.clinicalPoint')" />
 	<s:if test="#displayClinicalPoint">
+
 	<%-- ---------------------------------------------------Protocol Miles Stones starts---------------------------------------------------- --%>
 	<h3 id="protomilesStones" class="toggleable <s:if test="%{protoForm.locProcPOCDisplay != 'default'}">collapsed</s:if>">
 		<s:text name="protocol.create.milesStones.title.display"/>

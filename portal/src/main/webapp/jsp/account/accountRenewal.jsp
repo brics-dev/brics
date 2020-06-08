@@ -107,11 +107,11 @@
                     test: function (oSettings, aData, iDataIndex, filterData) {
                     	
                    	 var isExpired = aData[6];
-                   	 var isExpringSoon = aData[7];
+                   	 var isExpiringSoon = aData[7];
                    	 
                    	 var filterStatus = filterData['Expiring status:Active-Expiring Soon'];
                    	 
-                   	 if((filterStatus == "" || filterStatus == "Active-Expiring Soon") && isExpringSoon == "true") {
+                   	 if((filterStatus == "" || filterStatus == "Active-Expiring Soon") && isExpiringSoon == "true") {
                    		 return true;
                    	 }
                    	 else if (filterStatus == "Active-Expired Privilege(s)" && isExpired == "true"){

@@ -1,5 +1,7 @@
 <%@include file="/common/taglibs.jsp"%>
 <input type="hidden" id="inAdmin" name="inAdmin" value="${inAdmin}" />
+<input type="hidden" id="hostName" name="hostName" value="${pageContext.request.serverName}" />
+<input type="hidden" id="hostStyle" name="hostStyle" value="${modulesConstants.modulesStyleKey}" />
 
 <div class="clear-float" id="advancedSearchDialog">
 	<jsp:include page="advancedSearch-lightbox.jsp"></jsp:include>
@@ -103,33 +105,20 @@ input#resetLink {
 	$('document').ready(function() {	
 
         var hostName = $("#hostName").val();
-        var hostStyle = "brics-style";
-        if (typeof hostName !== 'undefined') {
-            if (hostName.indexOf('pdbp') > -1) {
-                hostStyle = "pdbp-style";
-            } else if (hostName.indexOf('fitbir') > -1) {
-                hostStyle = "fitbir-style";
-            } else if (hostName.indexOf('eyegene') > -1 || hostName.indexOf('nei') > -1) {
-                hostStyle = "eyegene-style";
-            } else if (hostName.indexOf('cnrm') > -1) {
-                hostStyle = "cnrm-style";
-            } else if (hostName.indexOf('gsdr') > -1) {
-                hostStyle = "gsdr-style";
-            } else if (hostName.indexOf('ninds') > -1) {
-                hostStyle = "ninds-style";
-            } else if (hostName.indexOf('cistar') > -1) {
-                hostStyle = "cistar-style";
-            } else if (hostName.indexOf('cdrns') > -1) {
-                hostStyle = "cdrns-style";
-            } else if (hostName.indexOf('nia') > -1) {
-                hostStyle = "nia-style";
-            } else if (hostName.indexOf('grdr') > -1) {
-                hostStyle = "grdr-style";
-            }
+        var hostStyle = $("#hostStyle").val();
+        if (typeof hostName === 'undefined') {
+           hostStyle = "brics-style";           
         }
 
 		//set scroll bar styles
 		$("#diseaseSelections").mCustomScrollbar({
+			theme:"inset-dark",
+		    scrollButtons:{ enable: true },
+		    autoHideScrollbar: true
+		});
+		
+		//set scroll bar styles
+		$("#labelSelections").mCustomScrollbar({
 			theme:"inset-dark",
 		    scrollButtons:{ enable: true },
 		    autoHideScrollbar: true
@@ -148,7 +137,8 @@ input#resetLink {
 		})
 		
 		// this is configs for search list to add into idtCustomSearch plugin
-		
+		var orgName = '<s:property value="%{orgName}" />'; 
+		var newOrgName = orgName.replace(/_/g, ' ');
 		var searchListConfigs = [
             {
 	              type: 'radio',
@@ -173,7 +163,7 @@ input#resetLink {
 	              type: 'radio',
 	              name: 'selectedRequiredOptions',
 	              containerId: 'dataStructureRequiredOptions',
-	              legend: '<s:property value="%{orgName}" />',
+	              legend: newOrgName,
 	              defaultValue: '',
 	              options: [
 	                {
@@ -229,6 +219,37 @@ input#resetLink {
 	                  },
 	                </s:iterator>
 	              ],
+	            },
+	            {
+	              type: 'checkbox',
+	              name: 'selectedFormLabelOptions',
+	              containerId: 'dataStructureLabelOptions',
+	              legend: 'Labels',
+	              dynamicTitle: true,
+					render: function(containerId, aName, $input, filterData) {
+						var form = '', secondList = '',	id, name, value;
+						
+						<s:iterator value="formLabelOptions" status="stat">
+							id ='label<s:property value="%{id}" />';
+							value ='<s:property value="%{id}" />';
+							name = '<s:property value="%{label}" />';
+
+							<s:if test="#stat.index < 5">
+								form += '<li><input type="checkbox" name="'+ aName +'" id="' + id +'" value="'+ value + '"/><label for="'+id+'">' + name + '</label></li>';
+							</s:if>
+							<s:else>
+								secondList += '<li><input type="checkbox" name="'+ aName +'" id="' + id +'" value="'+ value + '"/><label for="'+id+'">' + name + '</label></li>';
+							</s:else>
+						</s:iterator>
+						
+						var list = form;
+						if (secondList && secondList.length > 0) {
+							list += '<div style="display: none;"><ul>' + secondList +  '</ul></div><a href="#labelSelections" class="more" onClick="javascript:showMore(this);" style="float:right; font-size:10px; padding-right:15px;">more</a>';
+						}
+						
+						($input).find('ul').wrap('<div id="labelSelections" class="diseaseSelections" style="max-height:200px;overflow-y:scroll;"></div>').append(list);
+						return [];
+					},
 	            },
 	            {
 	                type: 'checkbox',
@@ -351,8 +372,8 @@ input#resetLink {
 								name = "<s:property value='%{name}'/>";
 								secondList += '<li><input type="checkbox" ' + checked + '  name="'+ aName +'" id="'+ id +'" value="'+ id + '"/><label for="'+id+'">' + name + '</label></li>';
 							</s:iterator>
-							var list = form +'<div style="display: none;"><ul>' + secondList +  '</ul></div><a href="#diseaseSelections" class="more" onClick="javascript:showMore(this);" style="float: right; font-size: 10px;padding-right: 15px;">more</a>';
-							($input).find('ul').wrap('<div id="diseaseSelections" class="diseaseSelections" style="max-height:200px;overflow-y:scroll;"></div>')
+							var list = form +'<div style="display: none;"><ul>' + secondList +  '</ul></div><a href="#diseaseSelections" aria-label="click here to show more or less of the list of diseases" class="more" onClick="javascript:showMore(this);" style="float: right; font-size: 10px;padding-right: 15px;">more</a>';
+							($input).find('ul').wrap('<div id="diseaseSelections" class="diseaseSelections"  style="max-height:200px;overflow-y:scroll;"></div>')
 												.append(list);
 							return arr;
 								

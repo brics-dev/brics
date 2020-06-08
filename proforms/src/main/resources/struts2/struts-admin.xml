@@ -133,17 +133,26 @@
 				<param name="error">500</param>
 				<param name="errorMessage">Couldn't send back the test XML file.</param>
 			</result>
-		</action>
-		
+		</action>	
 		<!-- This is the navigation for the admin form submit to the data submission table  -->
 		<action name="formSubmissionAdmin" class="gov.nih.nichd.ctdb.security.action.AdminDataSubmissionAction">
 			<result name="success">dataSubmission/dataSubmission.jsp</result>
 			<result name="error">dataSubmission/dataSubmission.jsp</result>
-		</action>
-		
+		</action>	
 		<action name="addCollection" class="gov.nih.nichd.ctdb.security.action.AdminDataSubmissionAction" method="setCollectionForMirth">
 			<result name="success">dataSubmission/dataSubmission.jsp</result>
 			<result name="error">dataSubmission/dataSubmission.jsp</result>
+		</action>		
+		<!--  This is the navigation for the admin form search  -->
+		<action name="formSearchAdmin" class="gov.nih.nichd.ctdb.security.action.AdminDataSearchAction">
+			<result name="success">formSearch/formAdminSearch.jsp</result>
+			<result name="error">formSearch/formAdminSearch.jsp</result>
 		</action>
+		<action name="searchFormParams" class="gov.nih.nichd.ctdb.security.action.AdminDataSearchAction" method="searchFormParams">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>			
 	</package>
 </struts>

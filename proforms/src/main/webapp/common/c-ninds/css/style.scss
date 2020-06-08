@@ -139,6 +139,11 @@ $nav-hvr: $lighter-gray;
 	top: -50px;
 }
 
+.build-notes {
+	float: left;
+	margin: 20px;
+}
+
 /* Import Stylesheets */
 
 @import "../../css/formalize.css";

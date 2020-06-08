@@ -1,6 +1,8 @@
 package gov.nih.tbi.util;
 
 import java.util.Comparator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import gov.nih.tbi.constants.QueryToolConstants;
 import gov.nih.tbi.repository.model.CellValue;
@@ -82,22 +84,64 @@ public class InstancedRecordComparator implements Comparator<InstancedRecord> {
 
 			if (QueryToolConstants.GUID_COLUMN_VAR.equals(hardCodedColumn)) {
 				return record.getPrimaryKey();
+			} else if (QueryToolConstants.DATASET_COLUMN_VAR.equals(hardCodedColumn)) {
+				if (record.getSelectedRows() != null && !record.getSelectedRows().isEmpty()) {
+					return record.getSelectedRows().get(0).getReadableDatasetId();
+				}
+			} else if (QueryToolConstants.STUDY_COLUMN_VAR.equals(hardCodedColumn)) {
+				if (record.getSelectedRows() != null && !record.getSelectedRows().isEmpty()) {
+					return record.getSelectedRows().get(0).getStudyId();
+				}
 			}
 		}
 
 		return "";
 	}
 
+	protected int compareAux(String value1, String value2) {
+		final Pattern p = Pattern.compile("-?\\d+(\\.\\d+)?");
+
+		Matcher m = p.matcher(value1);
+		Matcher n = p.matcher(value2);
+		Double number1 = null;
+		Double number2 = null;
+		if (!m.matches()) {
+			return compareNonNumeric(value1, value2, sortOrder);
+		} else {
+			number1 = Double.parseDouble(m.group());
+			if (!n.matches()) {
+				return compareNonNumeric(value1, value2, sortOrder);
+			} else {
+				number2 = Double.parseDouble(n.group());
+				int comparison;
+				if (QueryToolConstants.ASCENDING.equalsIgnoreCase(sortOrder)) {
+					comparison = number1.compareTo(number2);
+				} else {
+					comparison = number2.compareTo(number1);
+				}
+
+				if (comparison != 0) {
+					return comparison;
+				} else {
+					return compareNonNumeric(value1, value2, sortOrder);
+				}
+			}
+		}
+	}
+
 	@Override
 	public int compare(InstancedRecord record1, InstancedRecord record2) {
-		// TODO: Implement for types other than strings
 		String value1 = getValueFromRecord(record1, sortColumn);
 		String value2 = getValueFromRecord(record2, sortColumn);
+		return compareAux(value1, value2);
+	}
 
+	private int compareNonNumeric(String value1, String value2, String sortOrder) {
 		if (QueryToolConstants.ASCENDING.equalsIgnoreCase(sortOrder)) {
 			return value1.compareTo(value2);
 		} else {
 			return value2.compareTo(value1);
 		}
 	}
+
 }

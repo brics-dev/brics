@@ -26,7 +26,7 @@
 			<s:property value="accountDetailsForm.userName" />
 		</div>
 		<h2>
-			Account Request: User
+			Account Request:
 			<s:property value="currentAccount.userName" />
 		</h2>
 
@@ -210,7 +210,8 @@
 			<div class="clear-both">
 					<div class="clear-both">
 						<div class="form-field">
-							<s:if test="%{currentAccount.accountStatus.name == 'Requested' || currentAccount.accountStatus.name == 'Pending' || currentAccount.accountStatus.name == 'Change Requested'}">
+							<s:if test="%{currentAccount.accountStatus.name == 'Requested' || currentAccount.accountStatus.name == 'Pending' || 
+								currentAccount.accountStatus.name == 'Change Requested' || currentAccount.accountStatus.name == 'Renewal Requested'}">
 								<div class="flex-justify-between">
 									<div>
 										<div class="button">
@@ -230,7 +231,7 @@
 												onclick="javascript:finalApprovalLightbox();" />
 										</div>
 										
-										<s:if test="%{currentAccount.accountStatus.name != 'Change Requested'}">
+										<s:if test="%{currentAccount.accountStatus.name != 'Change Requested' && currentAccount.accountStatus.name != 'Renewal Requested'}">
 											<div class="button margin-left">
 												<input id="reject-account" type="button" value="Reject Account" />
 											</div>

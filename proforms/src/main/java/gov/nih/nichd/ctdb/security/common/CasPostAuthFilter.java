@@ -124,7 +124,7 @@ public class CasPostAuthFilter implements Filter {
 					}
 					
 					// save the user's information into the database
-					User newUser = User.userFromBricsAccount(account);
+					User newUser = new User(account);
 					
 					logger.debug("New user has bricsId: " + newUser.getBricsUserId() + " and username: " + newUser.getUsername());
 					
@@ -149,7 +149,7 @@ public class CasPostAuthFilter implements Filter {
 						throw new AuthenticationFailedException("The user " + username + " does not have access to this module");
 					}
 					// refresh ALL user information on our end
-					User updateUser = User.userFromBricsAccount(account);
+					User updateUser = new User(account);
 					
 					logger.debug("User data from account web service:");
 					logger.debug("username: " + user.getUsername() + " brics ID: " + user.getBricsUserId() + " usrid: " + user.getId());

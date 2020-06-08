@@ -23,21 +23,21 @@ public class PermissionModel implements Serializable {
 	// key: studyUri
 	private Map<String, StudyResultPermission> studyResultPermissions;
 
-	// key: formId TODO: consider changing to formUri
-	private Map<Long, FormResultPermission> formResultPermissions;
+	// key: form shortName TODO: consider changing to formUri
+	private Map<String, FormResultPermission> formResultPermissions;
 
 	private boolean isQueryAdmin;
 	private boolean isSysAdmin;
 
 	public PermissionModel() {
 		this.studyResultPermissions = new HashMap<String, StudyResultPermission>();
-		this.formResultPermissions = new HashMap<Long, FormResultPermission>();
+		this.formResultPermissions = new HashMap<String, FormResultPermission>();
 	}
 
 	public PermissionModel(PermissionModel clone) {
 		this.account = clone.account;
 		this.studyResultPermissions = new HashMap<String, StudyResultPermission>(clone.studyResultPermissions);
-		this.formResultPermissions = new HashMap<Long, FormResultPermission>(clone.formResultPermissions);
+		this.formResultPermissions = new HashMap<String, FormResultPermission>(clone.formResultPermissions);
 	}
 
 	public Account getAccount() {
@@ -60,16 +60,16 @@ public class PermissionModel implements Serializable {
 		studyResultPermissions.put(srp.getStudyURI(), srp);
 	}
 
-	public Map<Long, FormResultPermission> getFormResultPermissions() {
+	public Map<String, FormResultPermission> getFormResultPermissions() {
 		return formResultPermissions;
 	}
 
-	public void setFormResultPermissions(Map<Long, FormResultPermission> formResultPermissions) {
+	public void setFormResultPermissions(Map<String, FormResultPermission> formResultPermissions) {
 		this.formResultPermissions = formResultPermissions;
 	}
 
-	public void addFormResultPermission(FormResultPermission frp) {
-		formResultPermissions.put(frp.getFormId(), frp);
+	public void addFormResultPermission(String shortName, FormResultPermission frp) {
+		formResultPermissions.put(shortName, frp);
 	}
 
 	public boolean isQueryAdmin() {

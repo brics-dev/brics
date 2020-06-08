@@ -1,9 +1,8 @@
 
 package gov.nih.tbi.commons.model.hibernate;
 
-import gov.nih.tbi.commons.model.FileClassification;
-
 import java.io.Serializable;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -14,6 +13,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+
+import gov.nih.tbi.commons.model.FileClassification;
 
 @Entity
 @Table(name = "FILE_TYPE")
@@ -72,6 +73,24 @@ public class FileType implements Serializable {
 
 	public void setIsActive(Boolean isActive) {
 		this.isActive = isActive;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(fileClassification, id, isActive, name);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof FileType)) {
+			return false;
+		}
+		FileType other = (FileType) obj;
+		return fileClassification == other.fileClassification && Objects.equals(id, other.id)
+				&& Objects.equals(isActive, other.isActive) && Objects.equals(name, other.name);
 	}
 	
 }

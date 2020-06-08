@@ -106,6 +106,8 @@ public class ImportDelegate {
 	private static int tableIndex = 0;
 
 	private final static int VALIDATION_MESSAGE_LIMIT_BYTES = 1024;
+	
+	private static final boolean IS_COMING_FROM_PROFORMS = true;
 
 	/**
 	 * Retrieve configuration for deriving data. Configuration is derived from derivedDataConfiguration.xml resource.
@@ -166,11 +168,11 @@ public class ImportDelegate {
 		}
 
 		logger.info("Validating dummy CSV: " + dummyFile);
-		List<String> errorMessages = validate(dummyFile.getParent());
+		List<String> errorMessages = validate(dummyFile.getParent() + File.separator ,metaData);
 
 		// if the csv is valid
 		if (errorMessages.toString()
-				.contains("All files are valid., A new submission file has been created in the working directory.")) {
+				.contains("All files are valid. Click on a validated file from the list to view its warnings and/or errors., A new submission file has been created in the working directory.")) {
 			logger.info("Dummy file is valid, going ahead to map derived data.");
 			return true;
 		} else { // if the csv is invalid
@@ -210,7 +212,7 @@ public class ImportDelegate {
 		return null;
 	}
 
-	public void processJob(SubmissionMetaData metaData, boolean isBiosample, String repositoryName) {
+	public String processJob(SubmissionMetaData metaData, boolean isBiosample, String repositoryName) {
 		WORK_DIRECTORY_PATH = metaData.getSubmissionLocation();
 
 		loadProperties();
@@ -222,6 +224,8 @@ public class ImportDelegate {
 		}
 
 		RepositoryProvider repositoryProvider = null;
+		
+		String result = "";
 
 		// there are some submission that are not properly linked to a BRICS user ID. Fallback to use anonymous user in
 		// that case.
@@ -245,13 +249,15 @@ public class ImportDelegate {
 		logger.info("Current submission study: " + studyName);
 
 		if (isBiosample) {
-			processBiosample(repositoryProvider, metaData, study, repositoryName);
+			result = processBiosample(repositoryProvider, metaData, study, repositoryName);
 		} else {
-			processSubmission(repositoryProvider, metaData, study, repositoryName);
+			result = processSubmission(repositoryProvider, metaData, study, repositoryName);
 		}
+		
+		return result;
 	}
 
-	public void processBiosample(RepositoryProvider repositoryProvider, SubmissionMetaData metaData, Study study,
+	public String processBiosample(RepositoryProvider repositoryProvider, SubmissionMetaData metaData, Study study,
 			String repositoryName) {
 
 		// load configurations for deriving data
@@ -280,13 +286,20 @@ public class ImportDelegate {
 			} catch (Exception e) {
 				e.printStackTrace();
 				emailToUser(e.toString(), false, metaData.getUserEmail());
+				return "Failed";
 			}
+			
+			return "Success";
 		}
+		
+		
+		return "Failed";
 	}
 
-	public void processSubmission(RepositoryProvider repositoryProvider, SubmissionMetaData metaData, Study study,
+	public String processSubmission(RepositoryProvider repositoryProvider, SubmissionMetaData metaData, Study study,
 			String repositoryName) {
-		submitToRepository(repositoryProvider, metaData, study, rootDirectoryPath, null, false);
+		String result = submitToRepository(repositoryProvider, metaData, study, rootDirectoryPath, null, false);
+		return result;
 	}
 
 	private Account getAccountById(Long id) {
@@ -303,7 +316,7 @@ public class ImportDelegate {
 		return null;
 	}
 
-	private void submitToRepository(RepositoryProvider repositoryProvider, SubmissionMetaData metaData, Study study,
+	private String submitToRepository(RepositoryProvider repositoryProvider, SubmissionMetaData metaData, Study study,
 			String submissionDirectory, List<String> messages, boolean isBiosample) {
 
 
@@ -316,13 +329,13 @@ public class ImportDelegate {
 		}
 
 		// 1. Validate package by pointing to the working directory
-		List<String> validationErrors = validate(submissionDirectory);
+		List<String> validationErrors = validate(submissionDirectory, metaData);
 		logger.info("Validation messages: " + validationErrors);
 		messages.addAll(validationErrors); // add validation errors into the rest of our messages to be sent to user.
 
 		// there are only text based returns in the controller
 		if (messages.toString()
-				.contains("All files are valid., A new submission file has been created in the working directory.")) {
+				.contains("All files are valid. Click on a validated file from the list to view its warnings and/or errors., A new submission file has been created in the working directory.")) {
 
 			if (isBiosample) {
 				// archive all
@@ -350,6 +363,7 @@ public class ImportDelegate {
 				// Email success to user
 				emailBioSampleMessageToUser(messages, true, metaData.getUserEmail());
 			}
+			return "Success";
 		} else {
 			logger.error("Submission validation failed!");
 			// Email failure to user along with the results
@@ -365,6 +379,7 @@ public class ImportDelegate {
 				emailBioSampleMessageToUser(messages, false, metaData.getUserEmail());
 			}
 		}
+		return "Failure";
 	}
 
 	private void archiveAll(String studyName) {
@@ -416,7 +431,7 @@ public class ImportDelegate {
 
 		// change this to localhost if you are going to run this locally
 		host = "mailfwd.nih.gov";
-		// host = "localhost";
+		//host = "localhost";
 
 		String portalRoot = this.modulesConstants.getModulesPortalRoot();
 
@@ -437,10 +452,10 @@ public class ImportDelegate {
 
 	}
 
-	public List<String> validate(String directoryPath) {
+	public List<String> validate(String directoryPath, SubmissionMetaData metaData) {
 		// return will be the results
 		try {
-			controller = new ValidationController(null, bricsUrl, ddtUrl, userName, password);
+			controller = new ValidationController(null, bricsUrl, ddtUrl, userName, password, IS_COMING_FROM_PROFORMS);
 
 			if (controller == null) {
 				logger.error("Validation controller was not created correctly.");
@@ -472,7 +487,7 @@ public class ImportDelegate {
 
 		// Build the submission package.
 		logger.info("Building the submission package...");
-		messages.add(controller.buildSubmission(directoryPath));
+		messages.add(controller.buildSubmission(directoryPath,true,metaData.getDatasetName()));
 
 		logger.info("Validation messages: " + messages.toString());
 
@@ -501,7 +516,7 @@ public class ImportDelegate {
 			submissionInformation.add(study.getPrefixedId());
 			submissionInformation.add(submissionTicket.getEnvironment());
 			submissionInformation.add(submissionTicket.getVersion());
-			submissionInformation.add(submissionTicket.getSubmissionPackage().getName());
+			submissionInformation.add(submissionTicket.getSubmissionPackages().get(0).getName());
 
 			logger.info("Submitted job for data set: " + dataset.getName());
 
@@ -636,6 +651,10 @@ public class ImportDelegate {
 		}
 
 		String validationResults = validationResultsText.toString();
+		
+		if(!success) {
+			emailToUser(messages, false, emailAddress);
+		}
 
 		// we used to send back the entire validation message. This turned out to be a bad idea when validation messages
 		// are over the post size limit.
@@ -659,29 +678,8 @@ public class ImportDelegate {
 		logger.debug("Validation Message:\n" + validationResults);  // this can get very long. Set it to debug instead
 		logger.info("Administered Form IDs: " + administeredFormId.toString());
 
-		try {
-			Client client = ClientBuilder.newClient();
-			WebTarget wt = client.target(url);
 
-			// Build the web form for the POST.
-			Form webForm = new Form();
-
-			webForm.param("email", emailAddress);
-			webForm.param("validation", validationResults);
-			webForm.param("administeredFormId", administeredFormId.toString());
-
-			// POST over message to Mirth.
-			Entity<Form> entity = Entity.entity(webForm, MediaType.APPLICATION_FORM_URLENCODED);
-			String response = wt.request().post(entity, String.class);
-
-			logger.info("Mirth response: " + response);
-
-			return true;
-		} catch (Exception e) {
-			logger.error("Fatal Error :", e);
-		}
-
-		return false;
+		return true;
 	}
 
 	boolean emailToUser(List<String> messages, boolean success, String emailAddress) {

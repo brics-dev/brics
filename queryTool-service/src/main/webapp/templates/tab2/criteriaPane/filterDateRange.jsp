@@ -1,16 +1,20 @@
 <script id="filterDateRange" type="text/x-handlebars-template">
-<div class="filterHeader">
-<a href="javascript:;" class="filterClose pe-is-i-close-circle"></a>
-<a href="javascript:;" class="filterToggle pe-is-i-angle-circle-up"></a>
-<div class="filter_formName"></div> 
-<div class="filter_element"></div>
-</div>
-<div class="filterBodyContainer">
-	<div class="filterErrorContainer" id="filterError_{{id}}"></div>
-	<div class="filterBody">
-		<div><input type="text" name="selectedDateMin" id="filterDateMinTextBox" /></div>
-		<div><input type="text" name="selectedDateMax" id="filterDateMaxTextBox" /></div>
-		<div class="includeBlanks"><input type="checkbox" name="selectedBlank" class="includeBlanksCheckbox" /></div>
+	<div class="filterLogicRow filterDateRangeType">
+		<select class="filterLogicSelect" currentValue="none">
+			<option value="none" class="filterLogicSingle"></option>
+			<option value="!" class="filterLogicSingle">NOT</option>
+			{{#if showFilterLogicOr }}
+			<option value="||" class="filterLogicMultiple">OR</option>
+			{{/if}}
+
+			{{#if showFilterLogicAnd }}
+			<option value="&&" class="filterLogicMultiple">AND</option>
+			{{/if}}
+		</select>
+		<div class="filterInputContainer">
+			<input type="text" class="filterDateMinTextBox" placeholder="begin date" /> -
+			<input type="text" class="filterDateMaxTextBox" placeholder="end date" />
+		</div>
 	</div>
-</div>
+	<div class="fliterLogicClear clearfix"></div>
 </script>

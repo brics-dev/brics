@@ -152,7 +152,7 @@ public class ViewEditedAnswerDecorator extends ActionDecorator
         DataEntryDraft dataEntry = (DataEntryDraft)this.getObject();
         if (dataEntry.getNumQuestionsAnswered() == Integer.MIN_VALUE)
         {
-            return "-";
+            return "";
         }
         else
         {

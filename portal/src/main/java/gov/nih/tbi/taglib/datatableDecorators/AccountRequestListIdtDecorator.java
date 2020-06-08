@@ -1,10 +1,20 @@
 package gov.nih.tbi.taglib.datatableDecorators;
 
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
+import gov.nih.tbi.account.model.AccountActionType;
 import gov.nih.tbi.account.model.hibernate.Account;
-import gov.nih.tbi.commons.model.AccountStatus;
+import gov.nih.tbi.account.model.hibernate.AccountHistory;
 import gov.nih.tbi.commons.model.BRICSTimeDateUtil;
+import gov.nih.tbi.commons.model.hibernate.User;
 import gov.nih.tbi.idt.ws.IdtDecorator;
 
 public class AccountRequestListIdtDecorator extends IdtDecorator {
@@ -22,19 +32,8 @@ public class AccountRequestListIdtDecorator extends IdtDecorator {
 
 	public String getUserName() {
 
-		// AccountStatus accountStatus = account.getAccountStatus();
 		String accountUserName = account.getUserName();
-		//
-		// switch (accountStatus) {
-		// case REQUESTED:
-		// case PENDING:
-		// return "<a href='/portal/accountReviewer/viewAccountRequest!viewAccountRequest.action?accountId="
-		// + account.getId() + "'>" + accountUserName + "</a>";
-		// default:
-		// return "<a href='/portal/accountReviewer/viewUserAccount!viewUserAccount.action?accountId="
-		// + account.getId() + "'>" + accountUserName + "</a>";
-		// }
-		//
+
 		return "<a href='/portal/accountReviewer/viewAccountRequest!viewAccountRequest.action?accountId="
 				+ account.getId() + "'>" + accountUserName + "</a>";
 	}
@@ -70,5 +69,40 @@ public class AccountRequestListIdtDecorator extends IdtDecorator {
 		}
 
 		return "";
+	}
+	
+	public String getReviewerStatus() {
+		Set<AccountHistory> accountHistorySet = account.getAccountHistory();
+		if (accountHistorySet == null || accountHistorySet.isEmpty()) {
+			return "";
+		}
+
+		Set<AccountHistory> reviewHistorySet = new HashSet<AccountHistory>();
+		for (AccountHistory accountHistory : accountHistorySet) {
+			AccountActionType actionType = accountHistory.getAccountActionType();
+			if (actionType == AccountActionType.PARTIAL_APPROVE || actionType == AccountActionType.TEMP_REJECT) {
+				reviewHistorySet.add(accountHistory);
+			}
+		}
+		if (reviewHistorySet == null || reviewHistorySet.isEmpty()) {
+			return "";
+		}
+
+		// sort the list based on the created date.
+		Comparator<AccountHistory> comparator = Comparator.comparing(AccountHistory::getCreatedDate).reversed();
+		List<AccountHistory> sortedHistoryList = reviewHistorySet.stream().sorted(comparator)
+				.collect(Collectors.toList());
+
+		JsonArray output = new JsonArray();
+		for (AccountHistory reviewHistory : sortedHistoryList) {
+			User user = reviewHistory.getChangedByUser();
+			JsonObject historyJson = new JsonObject();
+			historyJson.addProperty("type", reviewHistory.getAccountActionType().toString());
+			historyJson.addProperty("fullName", user.getFullName());
+			historyJson.addProperty("initial", "" + user.getFirstName().charAt(0) + user.getLastName().charAt(0));
+			output.add(historyJson);
+		}
+		
+		return output.toString();
 	}
 }

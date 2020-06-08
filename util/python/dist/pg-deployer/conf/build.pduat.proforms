@@ -1,0 +1,6 @@
+[DB-TRG]
+host=pdbp-db-uat.cit.nih.gov
+database=pdbp_data
+schema=proforms_app_uat
+user=proforms_app_uat
+label=TARGET

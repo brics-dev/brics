@@ -123,7 +123,7 @@ if (session.getAttribute(CtdbConstants.PRE_POP_DE_CACHE_KEY) != null) {
 				
 				// If the check box is part of the IDT selection, add it to the hash map and form order box.
 				if ( IDT.isSelectedOption($checkBox, saveVal) ) {
-					var formName = $checkBox.parent().next().next().text();
+					var formName = $checkBox.parent().next().text();
 					var manditory = $radioBtns.filter(":checked").val();
 					var selfReport = $selfReportRadio.filter(":checked").val();
 					//added by Ching-Heng
@@ -894,21 +894,22 @@ if (session.getAttribute(CtdbConstants.PRE_POP_DE_CACHE_KEY) != null) {
 		</security:hasProtocolPrivilege>
 <%-- ---------------------------------------------------Interval Details---------------------------------------------------- --%>
 <%-- ---------------------------------------------------Form Details-------------------------------------------------------- --%>
-		<div class="formrow_1">
-			<label><s:text name="protocol.intervalForm.associateEForm.title"/></label>
-			<div class="dataTableContainer formrowinput" id="formDisplayTableRef">
-				<idt:jsontable name="<%= FormConstants.PROTOCOLEFORMS %>" scope="request" decorator="gov.nih.nichd.ctdb.form.tag.ProtocolFormDecorator">
-			    	<idt:setProperty name="basic.msg.empty_list" value="There are no Public Forms found at this time."/>
-			    	<idt:column property="shortNameCheckBox" title="" />
-			        <idt:column property="name" title='<%=rs.getValue("form.name.display", l)%>' />
-			        <idt:column property="shortName" title='eForm Short Name' />
-			        <idt:column property="description" title='<%=rs.getValue("form.forms.formInformation.description", l)%>'/>
-			        <idt:column property="isMandatory" title="Required?" nowrap="true" />
-			        <security:hasProtocolPrivilege privilege="patientselfreporting">
-			       		<idt:column property="isSelfReport" title="Self Reporting?" nowrap="true" />
-			        </security:hasProtocolPrivilege>
-			    </idt:jsontable>
-			</div>			
+		<div class ="formrow_1">
+			<br/>
+			Select published eForms below to associate to this visit type:				
+		</div>
+		<div class="dataTableContainer formrowinput" id="formDisplayTableRef">
+			<idt:jsontable name="<%= FormConstants.PROTOCOLEFORMS %>" scope="request" decorator="gov.nih.nichd.ctdb.form.tag.ProtocolFormDecorator">
+		    	<idt:setProperty name="basic.msg.empty_list" value="There are no Public Forms found at this time."/>
+		    	<idt:column property="shortNameCheckBox" title="" />
+		        <idt:column property="name" title='<%=rs.getValue("form.name.display", l)%>' />
+		        <idt:column property="shortName" title='eForm Short Name' />
+		        <idt:column property="description" title='<%=rs.getValue("form.forms.formInformation.description", l)%>'/>
+		        <idt:column property="isMandatory" title="Required?" nowrap="true" />
+		        <security:hasProtocolPrivilege privilege="patientselfreporting">
+		       		<idt:column property="isSelfReport" title="Self Reporting?" nowrap="true" />
+		        </security:hasProtocolPrivilege>
+		    </idt:jsontable>
 		</div>
 <%-- ---------------------------------------------------Form Details---------------------------------------------------- --%>
 		<!-- added by Ching-Heng -->	

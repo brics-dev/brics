@@ -6,11 +6,11 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import gov.nih.tbi.filter.Filter;
+import gov.nih.tbi.exceptions.FilterEvaluatorException;
+import gov.nih.tbi.filter.FilterEvaluator;
 import gov.nih.tbi.pojo.FormResult;
 import gov.nih.tbi.repository.model.DataTableColumn;
 import gov.nih.tbi.repository.model.InstancedRecord;
-import gov.nih.tbi.repository.model.InstancedRow;
 import gov.nih.tbi.util.InstancedRecordComparator;
 
 /**
@@ -26,29 +26,31 @@ public class InstancedDataCacheUtils {
 	 * 
 	 * @param forms
 	 * @param cache
+	 * @throws FilterEvaluatorException
 	 */
-	public static void applyFilter(List<FormResult> forms, InstancedDataCache cache) {
+	public static void applyFilter(String filterExpression, List<FormResult> forms, InstancedDataCache cache)
+			throws FilterEvaluatorException {
 		long startTime = System.nanoTime();
 
-		List<List<Filter>> filterList = new ArrayList<>();
+		if (filterExpression != null && !filterExpression.isEmpty()) {
+			FilterEvaluator filterEvaluator = new FilterEvaluator(filterExpression, forms);
 
-		boolean hasFilter = false;
+			if (filterEvaluator.hasFilters()) {
+				List<InstancedRecord> records = cache.getResultCache();
 
-		// reconstruct the filters into a 2D arraylist where the index of the nested array correspond to the position of
-		// the form being filtered.
-		for (FormResult form : forms) {
-			List<Filter> subList = new ArrayList<>();
+				// start a synchronized list to store our final result. This is needed because we will be adding to the
+				// list
+				// in parallel.
+				List<InstancedRecord> finalList = Collections.synchronizedList(new ArrayList<InstancedRecord>());
 
-			subList.addAll(form.getFilters());
+				records.stream().parallel().forEach(record -> {
+					applyFilterAux(filterEvaluator, record, finalList);
+				});
 
-			if (!subList.isEmpty()) {
-				hasFilter = true;
+				// replace records with elements from final list.
+				records.clear();
+				records.addAll(finalList);
 			}
-			filterList.add(subList);
-		}
-
-		if (hasFilter) {
-			applyFilter(filterList, cache.getJoinResult());
 		}
 
 		long endTime = System.nanoTime();
@@ -56,65 +58,20 @@ public class InstancedDataCacheUtils {
 	}
 
 	/**
-	 * Applies the given filters against the collection of records by removing the records that should get filtered out.
-	 * 
-	 * @param filterList
-	 * @param records
-	 */
-	private static void applyFilter(List<List<Filter>> filterList, List<InstancedRecord> records) {
-		// start a synchronized list to store our final result. This is needed because we will be adding to the list in
-		// parallel.
-		List<InstancedRecord> finalList = Collections.synchronizedList(new ArrayList<InstancedRecord>());
-
-		records.stream().parallel().forEach(record -> applyFilter(filterList, record, finalList));
-
-		// replace records with elements from final list.
-		records.clear();
-		records.addAll(finalList);
-	}
-
-	/**
 	 * Apply filters to the given record. If the record does not get filtered out, add the record to finalList
 	 * 
-	 * @param filterList
+	 * @param filterEvaluators
 	 * @param record
 	 * @param finalList
+	 * @throws FilterEvaluatorException
 	 */
-	private static void applyFilter(List<List<Filter>> filterList, InstancedRecord record,
+	private static void applyFilterAux(FilterEvaluator filterEvaluator, InstancedRecord record,
 			List<InstancedRecord> finalList) {
-		boolean evaluationResult = true;
-
-		// short circuit the evaluation if the filter comes back as false.
-		for (int i = 0; i < filterList.size() && evaluationResult; i++) {
-			List<Filter> currentFilterList = filterList.get(i);
-
-			if (!currentFilterList.isEmpty()) {
-				evaluationResult = evaluateFilters(currentFilterList, record.getSelectedRows().get(i));
-			}
-		}
+		boolean evaluationResult = filterEvaluator.evaluate(record);
 
 		if (evaluationResult) {
 			finalList.add(record);
 		}
-	}
-
-	/**
-	 * Evaluate the filters against a given row of data
-	 * 
-	 * @param filterList
-	 * @param row
-	 * @return
-	 */
-	private static boolean evaluateFilters(List<Filter> filterList, InstancedRow row) {
-
-		for (Filter filter : filterList) {
-			// short-circuit the evaluation if it comes back false.
-			if (!filter.evaluate(row)) {
-				return false;
-			}
-		}
-
-		return true;
 	}
 
 	/**
@@ -128,11 +85,11 @@ public class InstancedDataCacheUtils {
 	 */
 	public static List<InstancedRecord> getPageData(InstancedDataCache cache, int offset, int limit,
 			DataTableColumn sortColumn, String sortOrder) {
-		if (!cache.isJoined()) {
+		if (!cache.isResultCached()) {
 			return new ArrayList<InstancedRecord>();
 		}
 
-		List<InstancedRecord> joinResult = cache.getJoinResult();
+		List<InstancedRecord> joinResult = cache.getResultCache();
 
 		// SORTING
 		// only do sorting here if the sort order/column changes

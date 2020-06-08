@@ -91,4 +91,5 @@
 	<validator name="sessionuniqueaccountupload" class="gov.nih.tbi.account.validators.SessionUniqueUploadValidator" />
 	<validator name="accountfileextension" class="gov.nih.tbi.account.validators.AccountFileExtensionValidator" />
 	<validator name="uniqueaccountfiletype" class="gov.nih.tbi.account.validators.AccountFileTypeValidator" />
+	<validator name="formlabelunique" class="gov.nih.tbi.dictionary.validators.FormLabelUniqueValidator" />
 </validators>

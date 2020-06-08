@@ -5,6 +5,8 @@
 			Select Data Elements
 		</a>
 		<div class="selectDeDescription">Data Elements are hidden until selected using the button to the left</div>
+		<a href="javascript:;" class="selectionDeSearchReset buttonSecondary">Reset Search</a>
+		
 		
 	</div>
 	<div class="currentlyFiltering">

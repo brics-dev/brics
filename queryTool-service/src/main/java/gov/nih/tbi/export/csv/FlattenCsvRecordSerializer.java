@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
@@ -23,6 +24,7 @@ import gov.nih.tbi.repository.model.InstancedRow;
 import gov.nih.tbi.repository.model.NonRepeatingCellValue;
 import gov.nih.tbi.repository.model.RepeatingCellColumn;
 import gov.nih.tbi.repository.model.RepeatingCellValue;
+import gov.nih.tbi.util.InstancedDataUtil;
 
 public class FlattenCsvRecordSerializer extends AbstractCsvRecordSerializer implements CsvRecordSerializer {
 	private static final Logger log = Logger.getLogger(FlattenCsvRecordSerializer.class);
@@ -30,8 +32,8 @@ public class FlattenCsvRecordSerializer extends AbstractCsvRecordSerializer impl
 
 	Map<String, Integer> paddingNumber;
 
-	public FlattenCsvRecordSerializer(InstancedDataTable instancedDataTable) {
-		super(instancedDataTable);
+	public FlattenCsvRecordSerializer(InstancedDataTable instancedDataTable, boolean showAgeRange) {
+		super(instancedDataTable, showAgeRange);
 
 		paddingNumber = instancedDataTable.getGreatestNumber();
 		List<FormHeader> headers = instancedDataTable.getHeaders();
@@ -55,20 +57,9 @@ public class FlattenCsvRecordSerializer extends AbstractCsvRecordSerializer impl
 	}
 
 	@Override
-	public String serializeRecord(InstancedRecord record) {
+	public String serializeRecord(InstancedRecord record, Set<DataTableColumn> visibleColumns) {
 		List<List<String>> recordList = new ArrayList<List<String>>();
 		List<InstancedRow> rowList = record.getSelectedRows();
-		InstancedRow selectedRow = rowList.get(0);
-
-		List<InstancedRow> joinedRowList = new ArrayList<InstancedRow>(headers.size() - 1);
-
-		for (int i = 1; i < headers.size(); i++) {
-			if (rowList.size() > 1) { // && rowList.get(i) != null) {
-				joinedRowList.add(rowList.get(i));
-
-			}
-		}
-
 		List<String> row = new ArrayList<String>();
 
 		int columnIndex = 0;
@@ -82,15 +73,9 @@ public class FlattenCsvRecordSerializer extends AbstractCsvRecordSerializer impl
 			columnIndex++;
 		}
 
-		// Add selected or primary row
-		columnIndex = addFlattenedInstancedRow(row, selectedRow, columnIndex, columnSpacingTracker, repeatingRows,
-				displayOption, paddingNumber);
-
-
 		// Add joined rows if there is any
-		for (int formIndex = 1; formIndex < headers.size(); formIndex++) {
-
-			if (formIndex > joinedRowList.size() || joinedRowList.get(formIndex - 1) == null) {
+		for (int formIndex = 0; formIndex < headers.size(); formIndex++) {
+			if (rowList.get(formIndex) == null) {
 				FormHeader fh = headers.get(formIndex);
 
 				// the +2 here accounts for the study and dataset columns that are not a part of the form, but
@@ -105,9 +90,9 @@ public class FlattenCsvRecordSerializer extends AbstractCsvRecordSerializer impl
 					columnIndex++;
 				}
 			} else {
-				InstancedRow joinedRow = joinedRowList.get(formIndex - 1);
-				columnIndex = addFlattenedInstancedRow(row, joinedRow, columnIndex, columnSpacingTracker, repeatingRows,
-						displayOption, paddingNumber);
+				InstancedRow currentRow = rowList.get(formIndex);
+				columnIndex = addFlattenedInstancedRow(row, currentRow, columnIndex, columnSpacingTracker,
+						repeatingRows, displayOption, paddingNumber, visibleColumns);
 			}
 		}
 
@@ -134,7 +119,7 @@ public class FlattenCsvRecordSerializer extends AbstractCsvRecordSerializer impl
 
 	private int addFlattenedInstancedRow(List<String> row, InstancedRow instancedRow, int columnIndex,
 			Map<Integer, Integer> columnSpacingTracker, Map<Integer, List<String>> repeatingRows, String displayOption,
-			Map<String, Integer> paddingNumbers) {
+			Map<String, Integer> paddingNumbers, Set<DataTableColumn> visibleColumns) {
 
 		LinkedHashMap<String, List<String>> mapForRow = new LinkedHashMap<String, List<String>>();
 
@@ -144,60 +129,79 @@ public class FlattenCsvRecordSerializer extends AbstractCsvRecordSerializer impl
 		datasetIdList.add(instancedRow.getReadableDatasetId());
 
 		mapForRow.put("studyId", studyList);
+		columnIndex++;
 		mapForRow.put("datasetId", datasetIdList);
+		columnIndex++;
 
 		if (instancedRow != null && instancedRow.getCell() != null) {
 			for (Entry<DataTableColumn, CellValue> cellEntry : instancedRow.getCell().entrySet()) {
+
+				DataTableColumn currentColumn = cellEntry.getKey();
 				CellValue cell = cellEntry.getValue();
 
-				if (!cell.getIsRepeating()) {	// if cell does not repeat
-					NonRepeatingCellValue nrc = (NonRepeatingCellValue) cell;
-					// row.add(nrc.getValue(displayOption));
+				if (visibleColumns.contains(currentColumn)) {
+					boolean isAgeYrsDe = InstancedDataUtil.AGE_YRS.equals(currentColumn.getDataElement());
+					
+					if (!cell.getIsRepeating()) {	// if cell does not repeat
+						NonRepeatingCellValue nrc = (NonRepeatingCellValue) cell;
+						String cellValue = nrc.getValue(displayOption);
 
-					List<String> nrcList = new ArrayList<String>();
-					nrcList.add(nrc.getValue(displayOption));
-					// mapForRow.put(nrc.getDataElementType(), nrcList);
-					mapForRow.put(cellEntry.getKey().toString(), nrcList);
+						if (isAgeYrsDe && showAgeRange) {
+							cellValue = InstancedDataUtil.getAgeYrsRange(cellValue);
+						}
+						List<String> nrcList = new ArrayList<String>();
+						nrcList.add(cellValue);
+						// mapForRow.put(nrc.getDataElementType(), nrcList);
+						mapForRow.put(cellEntry.getKey().toString(), nrcList);
 
-					columnIndex++;
+						columnIndex++;
 
-				} else {	// if cell does repeat
-					RepeatingCellValue rcv = (RepeatingCellValue) cell;
+					} else {	// if cell does repeat
+						RepeatingCellValue rcv = (RepeatingCellValue) cell;
 
-					if (rcv != null) {
-						for (InstancedRepeatableGroupRow rgRow : rcv.getRows()) {
+						if (rcv != null) {
+							for (InstancedRepeatableGroupRow rgRow : rcv.getRows()) {
 
-							for (Entry<RepeatingCellColumn, CellValueCode> repeatingCellEntry : rgRow.getCell()
-									.entrySet()) {
-								RepeatingCellColumn repeatingCellColumnKey = repeatingCellEntry.getKey();
-								CellValueCode cvv = repeatingCellEntry.getValue();
-								log.debug("Repeating Cell Column: " + repeatingCellColumnKey + ", Value: \""
-										+ cvv.getValue() + "\"");
-								String rgKeyColumnKey = "";
-								if (!QueryToolConstants.EMPTY_STRING
-										.equals(repeatingCellColumnKey.getRepeatableGroup())) {
-									rgKeyColumnKey = repeatingCellColumnKey.getRepeatableGroup() + ".";
-								}
-								String elementKey = repeatingCellColumnKey.getForm() + "." + rgKeyColumnKey
-										+ repeatingCellColumnKey.getDataElement();
+								for (Entry<RepeatingCellColumn, CellValueCode> repeatingCellEntry : rgRow.getCell()
+										.entrySet()) {
+									RepeatingCellColumn currentRgColumn = repeatingCellEntry.getKey();
 
-								// now that we aren't counting "empty" in the columns, we have to exclude them here....
-								// is this the correct behavior?
-								if (cvv.getValue(displayOption) != null) { // && !cvv.getValue(displayOption).isEmpty())
-																			 // {
-									// if (!cvv.getValue(displayOption).isEmpty() && mapForRow.containsKey(elementKey))
-									// {
-									if (mapForRow.containsKey(elementKey)) {
-										List<String> elementValueList = mapForRow.get(elementKey);
-										elementValueList.add(cvv.getValue(displayOption));
+									if (visibleColumns.contains(currentRgColumn)) {
+										RepeatingCellColumn repeatingCellColumnKey = repeatingCellEntry.getKey();
+										CellValueCode cvv = repeatingCellEntry.getValue();
+										log.debug("Repeating Cell Column: " + repeatingCellColumnKey + ", Value: \""
+												+ cvv.getValue() + "\"");
+										String rgKeyColumnKey = "";
+										if (!QueryToolConstants.EMPTY_STRING
+												.equals(repeatingCellColumnKey.getRepeatableGroup())) {
+											rgKeyColumnKey = repeatingCellColumnKey.getRepeatableGroup() + ".";
+										}
+										String elementKey = repeatingCellColumnKey.getForm() + "." + rgKeyColumnKey
+												+ repeatingCellColumnKey.getDataElement();
 
-									} else {
-										List<String> elementValueList = new LinkedList<String>();
-										elementValueList.add(cvv.getValue(displayOption));
-										mapForRow.put(elementKey, elementValueList);
+										// now that we aren't counting "empty" in the columns, we have to exclude them
+										// here....
+										// is this the correct behavior?
+										String rgValue = cvv.getValue(displayOption);
+										
+										if (rgValue != null) { 
+											if (isAgeYrsDe && showAgeRange) {
+												rgValue = InstancedDataUtil.getAgeYrsRange(rgValue);
+											}
+											
+											if (mapForRow.containsKey(elementKey)) {
+												List<String> elementValueList = mapForRow.get(elementKey);
+												elementValueList.add(rgValue);
+
+											} else {
+												List<String> elementValueList = new LinkedList<String>();
+												elementValueList.add(rgValue);
+												mapForRow.put(elementKey, elementValueList);
+											}
+										}
+										columnIndex++;
 									}
 								}
-								columnIndex++;
 							}
 						}
 					}

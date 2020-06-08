@@ -1,0 +1,7 @@
+[FILE-SYS]
+logDir=/var/lib/brics/log/propPasswdUtil/demo-cistar-host
+passFile=/home/buildman/.pgpass
+
+[DEPLOY]
+trgRoot=/var/lib/brics/remote/demo/cistar-host
+srcRoot=/var/lib/brics/src/local/prop/demo/cistar-host

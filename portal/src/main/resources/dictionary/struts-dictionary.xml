@@ -105,7 +105,7 @@
 					lightboxView,editDocumentDataTableSave,changeCurrentStructure,formStructureStatusChange,
 					attachedDEStatusChange,submitFSStatusChange,approve,deny,refreshEventLogTable,refreshSupportDoc,
 					listAttachedDEs,addDataElements,delete,saveAndFinish,getSupportingDocumentationList,getEventLogDocumentationList,
-					getHistoryLogList,getDictionaryEventLogList,getDataElementsList</allowed-methods>
+					getHistoryLogList,getDictionaryEventLogList,getDataElementsList,refreshPublicationInterface</allowed-methods>
 		</action>
 		<action name="fsEventLogDocumentationAction" class="gov.nih.tbi.dictionary.portal.FSEventLogDocumentationAction">
 			<result name="addDocumentationDialog"> /jsp/dictionaryTool/addDocumentationDialog.jsp
@@ -871,7 +871,7 @@
 		<action name="eformDeleteAction" class="gov.nih.tbi.dictionary.portal.EformAction" method="delete">
 			<result name="list" type="redirectAction">eFormSearchAction!list.action
 			</result>
-			<allowed-methods>delete</allowed-methods>
+			<allowed-methods>checkForCollectionsAndEformsInVT,delete</allowed-methods>
 		</action>
 		<action name="eFormDeleteQuestionsAction" class="gov.nih.tbi.dictionary.portal.EformAction" method="deleteEformQuestions">
 			<result name="list" type="redirectAction">eFormSearchAction!list.action
@@ -885,6 +885,13 @@
 				<param name="root">json</param>
 			</result>
 			<allowed-methods>createEformJSONForEdit</allowed-methods>
+		</action>
+		<action name="showQuestionBtrisMapping" class="gov.nih.tbi.dictionary.portal.eform.QuestionAction" method="showQuestionBtrisMapping">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">questionAttributeJson</param>
+			</result>
 		</action>
 		<action name="showQuestionImage" class="gov.nih.tbi.dictionary.portal.eform.QuestionAction" method="showQuestionImage">
 			<result name="success">/jsp/dictionaryTool/eform/questionImageForm.jsp
@@ -968,6 +975,25 @@
 			</result>
 			<allowed-methods>adminFormStructureImport,adminUpload,adminSaveDataElements,viewDetails,checkExistingDataElements</allowed-methods>
 		</action>
+		<action name="formLabelAction" class="gov.nih.tbi.dictionary.portal.FormLabelAction">
+			<result name="list"> /jsp/dictionaryTool/listFormLabels.jsp
+			</result>
+			<result name="success"> /jsp/dictionaryTool/listFormLabels.jsp
+			</result>
+			<result name="formLabelDialog"> /jsp/dictionaryTool/formLabelDialog.jsp
+			</result>
+			<allowed-methods>listFormLabels,getFormLabelOutput,deleteFormLabels,openFormLabelDialog</allowed-methods>
+		</action>
+		<action name="formLabelValidationAction" class="gov.nih.tbi.dictionary.portal.FormLabelAction">
+			<result name="success" type="json">
+				<param name="noCache">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="root">jsonResponse</param>
+			</result>		
+			<result name="input"> /jsp/dictionaryTool/formLabelDialog.jsp
+			</result>
+			<allowed-methods>getFormLabelOutput,addFormLabel,editFormLabel</allowed-methods>
+		</action>
 		<action name="deleteDataElementAction" class="gov.nih.tbi.dictionary.portal.DeleteDataElementAction">
 			<!-- These results are for User Data Element Import Functionality -->
 			<result name="delete">/jsp/dictionaryTool/adminDeleteDataElements.jsp</result>
@@ -984,7 +1010,12 @@
 			</result>
 			<allowed-methods>adminDataElementSchemaImport,adminUploadSchemaMapping,viewSchemaMappingValues,getSchemaPvList</allowed-methods>
 		</action>
-		
+		<action name="btrisMappingAction" class="gov.nih.tbi.dictionary.portal.BtrisMappingAction">
+			<result name="importBtrisMapping">
+				/jsp/dictionaryTool/adminImportBtrisMapping.jsp
+			</result>
+			<allowed-methods>adminBtrisMappingImport,adminUploadBtrisMapping</allowed-methods>
+		</action>
 		<action name="ePermissionAction" class="gov.nih.tbi.dictionary.portal.eform.EformPermissionAction"
 			method="load" />
 
@@ -1076,7 +1107,7 @@
 		<action name="eformDeleteAction" class="gov.nih.tbi.dictionary.portal.EformAction" method="delete">
 			<result name="list" type="redirectAction">eFormSearchAction!list.action
 			</result>
-			<allowed-methods>delete</allowed-methods>
+			<allowed-methods>checkForCollectionsAndEformsInVT,delete</allowed-methods>
 		</action>
 		<action name="eFormDeleteQuestionsAction" class="gov.nih.tbi.dictionary.portal.EformAction" method="deleteEformQuestions">
 			<result name="list" type="redirectAction">eFormSearchAction!list.action
@@ -1153,7 +1184,7 @@
 			<allowed-methods>export</allowed-methods>
 		</action>
 		<action name="eformImportAction" class="gov.nih.tbi.dictionary.portal.eform.EformImportAction">
-			<result name="input"> /jsp/dictionaryTool/eform/importEform.jsp`
+			<result name="input"> /jsp/dictionaryTool/eform/importEform.jsp
 			</result>
 			<result name="redirect"> /jsp/dictionaryTool/eform/importEform.jsp
 			</result>
@@ -1301,7 +1332,7 @@
 					moveToDetails,lightboxView,editDocumentDataTableSave,changeCurrentStructure,formStructureStatusChange,
 					attachedDEStatusChange,submitFSStatusChange,approve,deny,refreshEventLogTable,refreshSupportDoc,
 					listAttachedDEs,addDataElements,getSupportingDocumentationList,getEventLogDocumentationList,getHistoryLogList,
-					getDictionaryEventLogList,getDataElementsList</allowed-methods>
+					getDictionaryEventLogList,getDataElementsList,refreshPublicationInterface</allowed-methods>
 		</action>
 	</package>
 </struts>

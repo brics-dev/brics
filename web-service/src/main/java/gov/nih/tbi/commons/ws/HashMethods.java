@@ -16,6 +16,7 @@ public class HashMethods
 
     protected static final String SERVER_TO_CLIENT_SALT = "S*#HOfadf#%*DAk;";
     protected static final String CLIENT_TO_SERVER_SALT = "noFE(34nk;97&few";
+    protected static final String SERVICE_TO_SERVICE_SALT = "&'%FkGG2]O+M8/#"; 
 
     protected static final Integer NUMBER_OF_HASH_ATTEMPTS = 1000;
     
@@ -103,12 +104,17 @@ public class HashMethods
     {
         return Hex.encodeHexString(hashCode);
     }
+    
+    public static String getServiceAuthentication(String userName, String passWord) {
+    	
+    	return getHash(SERVICE_TO_SERVICE_SALT,userName,passWord);
+    }
 
     public static void main(String[] args)
     {
 
-        String username = "";
-        String password = "";
+        String username = "abcd";
+        String password = "abcd";
         String hashCode = null;
         Boolean test = null;
 

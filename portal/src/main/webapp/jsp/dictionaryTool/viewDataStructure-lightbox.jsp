@@ -1,8 +1,9 @@
 <%@include file="/common/taglibs.jsp"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
-
+<c:set var="hostname" value="${pageContext.request.serverName}"/>
 <s:set var="mapElement" value="mapElement" />
+
 <div class="lightbox-content-wrapper">
 	<h3>
 		Form Structure:
@@ -144,22 +145,22 @@
 	</div>
 
 </div>
-<c:if test="${fn:contains(pageContext.request.requestURL, 'pdbp' )}">
+<c:if test="${fn:contains(hostname, 'pdbp')}">  
 <link rel='stylesheet' type='text/css' href='/portal/config/pdbp/style.css'>
 </c:if>
-<c:if test="${fn:contains(pageContext.request.requestURL, 'fitbir' )}">
+<c:if test="${fn:contains(hostname, 'fitbir')}">  
 <link rel='stylesheet' type='text/css' href='/portal/config/fitbir/style.css'>
 </c:if>
-<c:if test="${fn:contains(pageContext.request.requestURL, 'cistar' )}">
+<c:if test="${fn:contains(modulesConstants.modulesStyleKey, 'cistar')}">  
 <link rel='stylesheet' type='text/css' href='/portal/config/cistar/style.css'>
 </c:if>
-<c:if test="${fn:contains(pageContext.request.requestURL, 'eyegene' ) || fn:contains(hostname, 'nei' )}">
+<c:if test="${fn:contains(modulesConstants.modulesStyleKey, 'eyegene') || fn:contains(modulesConstants.modulesStyleKey, 'nei' )}">  
 <link rel='stylesheet' type='text/css' href='/portal/config/eyegene/style.css'>
 </c:if>
-<c:if test="${fn:contains(pageContext.request.requestURL, 'cdrns' )}">
+<c:if test="${fn:contains(modulesConstants.modulesStyleKey, 'cdrns')}">  
 <link rel='stylesheet' type='text/css' href='/portal/config/cdrns/style.css'>
 </c:if>
-<c:if test="${fn:contains(pageContext.request.requestURL, 'nti' )}">
+<c:if test="${fn:contains(modulesConstants.modulesStyleKey, 'nti')}">  
 <link rel='stylesheet' type='text/css' href='/portal/config/nti/style.css'>
 </c:if>
 <link href="<s:url value='/styles/jquery/jquery-ui.css'/>" rel="stylesheet" type="text/css" media="all" />

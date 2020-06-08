@@ -2,6 +2,9 @@
 <title>View Meta Study</title>
 
 <script type="text/javascript"
+	src='/portal/js/metastudy/savedQueryViewEngine.js'></script>
+<!-- 
+<script type="text/javascript"
 	src='/portal/js/metastudy/SavedQueryViewEngine.js'></script>
 <script type="text/javascript" src='/portal/js/metastudy/SavedQuery.js'></script>
 
@@ -35,6 +38,7 @@
 	src='/portal/js/metastudy/SavedQueryStudyView.js'></script>
 <script type="text/javascript"
 	src='/portal/js/metastudy/SavedQueryView.js'></script>
+ -->
 
 <!-- begin .border-wrapper -->
 <s:if test="viewMode == 1">

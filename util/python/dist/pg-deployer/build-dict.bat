@@ -1,0 +1,1 @@
+python pgDeployer.py --props=.\conf\build.dict

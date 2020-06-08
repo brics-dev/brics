@@ -28,7 +28,6 @@ public class QuestionAnswerOption implements Serializable, Comparable<QuestionAn
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "QUESTION_ANSWER_OPTION_SEQ")
 	@SequenceGenerator(name = "QUESTION_ANSWER_OPTION_SEQ", sequenceName = "QUESTION_ANSWER_OPTION_SEQ", allocationSize = 1)
-	@XmlTransient
 	private Long id;
 	
 	@Column(name = "DISPLAY")

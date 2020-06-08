@@ -1,0 +1,7 @@
+[DB-TRG]
+host=eyegene-db-stage.cit.nih.gov
+database=eyegene_stage
+schema=eyegene_metastg
+user=eyegene_metastg
+label=TARGET
+

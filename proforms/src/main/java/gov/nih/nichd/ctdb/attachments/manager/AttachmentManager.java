@@ -50,7 +50,8 @@ public class AttachmentManager extends CtdbManager
 	 * @throws CtdbException	When any other errors occur while persisting the attachment to the database.
 	 * @throws ServerFileSystemException	When an error occurs while saving the attachment to the server's file system.
 	 */
-	public void createAttachment(Attachment a) throws DuplicateObjectException, CtdbException, ServerFileSystemException
+	public void createAttachment(Attachment a, int protocolId)
+			throws DuplicateObjectException, CtdbException, ServerFileSystemException
 	{
 		Connection conn = null;
 		
@@ -61,8 +62,8 @@ public class AttachmentManager extends CtdbManager
 			
 			// Persist the attachment object to the database
 			aDao.createAttachment(a);
-			aDao.createAttachmentOrganization(a);
-			
+			aDao.createAttachmentOrganization(a, protocolId);
+
 			// Save the attachment's physical file to the server's file system
             if ( (a.getAttachFile() != null && a.getAttachFile().length() > 0) || (a.getAttachFileContent() != null) ) {
 				aDao.saveFile(a, a.getAssociatedId(), a.getType().getId());
@@ -86,7 +87,7 @@ public class AttachmentManager extends CtdbManager
 	 * @throws CtdbException 
 	 * @deprecated As of release 2.0.3, please use the {@link #createAttachments(List, List)} method instead.
 	 */
-	public void createAttachments(List<Attachment> attachments) throws CtdbException
+	public void createAttachments(List<Attachment> attachments, int protocolId) throws CtdbException
 	{
 		Connection conn = null;
 		
@@ -99,7 +100,9 @@ public class AttachmentManager extends CtdbManager
 			{
 				// Persist the attachment object to the database
 				aDao.createAttachment(a);
-				aDao.createAttachmentOrganization(a);
+				if (protocolId > 0) {
+					aDao.createAttachmentOrganization(a, protocolId);
+				}
 				commit(conn);
 				
 				// Save the attachment's physical file to the server's file system
@@ -125,17 +128,18 @@ public class AttachmentManager extends CtdbManager
 	 * @throws CtdbException	When there are any database errors.
 	 * @throws ServerFileSystemException	When there are any file system errors.
 	 */
-	public List<Attachment> saveAttachments(Map<Long, Attachment> attachmentMap) throws CtdbException, ServerFileSystemException {
+	public List<Attachment> saveAttachments(Map<Long, Attachment> attachmentMap, int protocolId)
+			throws CtdbException, ServerFileSystemException {
 		List<Attachment> completedAttachments = new ArrayList<Attachment>(attachmentMap.size());
 		
 		for ( Attachment a : attachmentMap.values() ) {
 			// Check if the attachment is either new or updated
 			if ( a.isUpdated() && !a.isDeleted() ) {
 				if ( a.getId() <= 0 ) {
-					createAttachment(a);
+					createAttachment(a, protocolId);
 				}
 				else {
-					updateAttachment(a);
+					updateAttachment(a, protocolId);
 				}
 				
 				completedAttachments.add(a);
@@ -161,7 +165,7 @@ public class AttachmentManager extends CtdbManager
 	 * @throws DuplicateArchiveObjectException 
 	 * @throws ServerFileSystemException
 	 */
-	public List<Attachment> createUpdateAttachments (Map<String, Attachment> siteHashMap) 
+	public List<Attachment> createUpdateAttachments(Map<String, Attachment> siteHashMap, int protocolId)
 			throws ObjectNotFoundException, DuplicateObjectException, CtdbException, DuplicateArchiveObjectException
 	{
 		List<Attachment> toBeProcessed = new ArrayList<Attachment>();
@@ -182,11 +186,11 @@ public class AttachmentManager extends CtdbManager
 		}
 		
 		if ( !toBeAdded.isEmpty() ) {
-			createAttachments(toBeAdded);
+			createAttachments(toBeAdded, protocolId);
 		}
 		
 		if (!toBeEdited.isEmpty() ) {
-			updateAttachments(toBeEdited);
+			updateAttachments(toBeEdited, protocolId);
 		}
 		
 		return toBeProcessed;
@@ -201,7 +205,8 @@ public class AttachmentManager extends CtdbManager
 	 * @throws ServerFileSystemException If there is an error when saving changes to the file system.
 	 * @throws DuplicateArchiveObjectException If a duplicate entry was attempted in the "attachmentarchive" table.
 	 */
-	public void updateAttachment(Attachment a) throws DuplicateObjectException, CtdbException, ServerFileSystemException, DuplicateArchiveObjectException
+	public void updateAttachment(Attachment a, int protocolId)
+			throws DuplicateObjectException, CtdbException, ServerFileSystemException, DuplicateArchiveObjectException
 	{
 		Connection conn = null;
 		
@@ -213,7 +218,9 @@ public class AttachmentManager extends CtdbManager
 			// Persist changes to the database.
 			dao.createAttachmentArchive(a.getId());
 			dao.updateAttachment(a);
-			dao.updateAttachmentOrganization(a);
+			if (protocolId > 0) {
+				dao.updateAttachmentOrganization(a, protocolId);
+			}
 			
 			// Save changes to the server's file system.
             if ( (a.getAttachFile() != null && a.getAttachFile().length() > 0) || (a.getAttachFileContent() != null) ) {
@@ -237,7 +244,8 @@ public class AttachmentManager extends CtdbManager
 	 * @throws CtdbException
 	 * @throws DuplicateArchiveObjectException If a duplicate archive record was tried to be inserted in the "attachmentarchive" table
 	 */
-	public void updateAttachments (List<Attachment> list) throws CtdbException, DuplicateArchiveObjectException {
+	public void updateAttachments(List<Attachment> list, int protocolId)
+			throws CtdbException, DuplicateArchiveObjectException {
 		Connection conn = null;
 		
 		try {
@@ -247,7 +255,9 @@ public class AttachmentManager extends CtdbManager
 			for (Attachment s : list ) {
 	            dao.createAttachmentArchive(s.getId());
 				dao.updateAttachment(s);
-				dao.updateAttachmentOrganization(s);
+				if (protocolId > 0) {
+					dao.updateAttachmentOrganization(s, protocolId);
+				}
 				dao.deleteFileFromSystem(s.getId(), s.getAssociatedId(), s.getType().getId());
 				dao.saveFile(s, s.getAssociatedId(), s.getType().getId());
 				commit(conn);
@@ -521,5 +531,26 @@ public class AttachmentManager extends CtdbManager
 		}
 		
 		return isUnique;
+	}
+
+	/**
+	 * Gets all attachments of a certain type associated to whatever associated id is, but without the file data.
+	 * 
+	 * @param typeId - The file type
+	 * @param associatedId - The ID of the associated object (i.e. study ID, subject ID, etc)
+	 * @param protocolId - The ID of the protocol object
+	 * @return A list of Attachment objects from the database that corresponds to the specified type and associated ID.
+	 * @throws CtdbException If any database errors occurred during the retrieval.
+	 */
+	public List<Attachment> getProtocolAttachments(int typeId, long associatedId, long protocolId)
+			throws CtdbException {
+		Connection conn = null;
+
+		try {
+			conn = CtdbManager.getConnection();
+			return AttachmentDao.getInstance(conn).getProtocolAttachments(typeId, associatedId, protocolId);
+		} finally {
+			close(conn);
+		}
 	}
 }

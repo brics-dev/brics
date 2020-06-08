@@ -54,6 +54,10 @@ QTDT.Col = BaseModel.extend({
 		    		this.deUri = dataElement.get("uri");
 		    		this.set("deUri",dataElement.get("uri"));
 		    	}
+		    	
+		    	if(deName === "Row No."){
+		    		this.set("frozen",true);
+		    	}
 	    	}
 	    	
 	    	if( this.get("parent") != undefined ) {
@@ -83,11 +87,15 @@ QTDT.Col = BaseModel.extend({
 	showHide: function () {
 		//var cells = this.get("cells");
 		var toggleVisibility = !this.get("visible");
-		
+		var deModel = {
+            formUri: this.get("formUri"),
+            rgName:  this.get("rgName"),
+            deName: this.get("name")
+        }
 		if(toggleVisibility) { 
-			EventBus.trigger("query:selectDe", this);
+			EventBus.trigger("query:selectDe", deModel);
 		} else {
-			EventBus.trigger("query:deselectDe", this);
+			EventBus.trigger("query:deselectDe", deModel);
 		}
 		/*cells.each(function(cell){
 			

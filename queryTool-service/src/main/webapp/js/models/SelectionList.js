@@ -68,7 +68,11 @@ QT.SelectionList = BaseModel.extend({
 	},
 	
 	hideAllSelectionItems : function(tabName) {
-		this.collection.forEach(function(selectionItem) {
+		var attribute = this.collection.at(0).getSelectionListVisibleVariable(tabName);
+		var filterObject = {};
+		filterObject[attribute] = true;
+		var visible = this.collection.where(filterObject);
+		visible.forEach(function(selectionItem) {
 			selectionItem.setSelectionListVisible(tabName, false);
 		});
 	},

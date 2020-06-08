@@ -171,7 +171,7 @@
     <bean id="loginFlowCipherBean" class="org.cryptacular.bean.BufferedBlockCipherBean"
           p:keyAlias="${cas.webflow.keyalias:aes128}"
           p:keyStore-ref="loginFlowCipherKeystore"
-          p:keyPassword="${cas.webflow.keypassword:changeit}">
+          p:keyPassword="${cas.webflow.keypassword:abcd}">
         <property name="nonce">
             <bean class="org.cryptacular.generator.sp80038a.RBGNonce" />
         </property>
@@ -188,7 +188,7 @@
 
     <bean id="loginFlowCipherKeystoreFactory" class="org.cryptacular.bean.KeyStoreFactoryBean"
           c:type="${cas.webflow.keystore.type:JCEKS}"
-          c:password="${cas.webflow.keystore.password:changeit}">
+          c:password="${cas.webflow.keystore.password:abcd}">
         <constructor-arg name="resource">
             <bean class="org.cryptacular.io.URLResource"
                   c:url="${cas.webflow.keystore:classpath:/etc/keystore.jceks}" />

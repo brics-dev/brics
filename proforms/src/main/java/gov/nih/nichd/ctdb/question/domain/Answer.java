@@ -28,6 +28,7 @@ public class Answer extends CtdbDomainObject
     private boolean selected = false;
     private boolean includeOther = false;
     private String itemResponseOid;
+    private String idText;
 
     
     public boolean isIncludeOther() {
@@ -242,6 +243,16 @@ public class Answer extends CtdbDomainObject
 	}
 
 
+	public String getIdText() {
+		return idText;
+	}
+
+
+	public void setIdText(String idText) {
+		this.idText = idText;
+	}
+
+
 	/**
      * Compare if this Object is equal to Object o through member-wise comparison.
      *
@@ -316,6 +327,10 @@ public class Answer extends CtdbDomainObject
 			Element displayNode = document.createElement("display");
 			displayNode.appendChild(document.createTextNode(this.display));
 			root.appendChild(displayNode);
+			
+			Element pvidNode = document.createElement("pvid");
+			pvidNode.appendChild(document.createTextNode(String.valueOf(getId())));
+			root.appendChild(pvidNode);
 		}
 
 		Element includeOtherNode = document.createElement("includeOther");

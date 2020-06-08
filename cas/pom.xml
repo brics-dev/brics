@@ -9,12 +9,11 @@
 	<parent>
 		<groupId>brics</groupId>
 		<artifactId>brics</artifactId>
-		<version>4.0.0</version>
+		<version>6.0.0</version>
 	</parent>
 
 	<properties>
 		<cas.version>4.1.4</cas.version>
-		<!-- <cas.version>4.2.6</cas.version> -->
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<spring.version>4.1.8.RELEASE</spring.version>

@@ -232,17 +232,26 @@
 					action: function (e, dt, node, config) {
 								var theForm = document.forms['theForm'];
 								var rowCount = dt.settings()[0]._iRecordsTotal;
+								dt.buttons(['.buttons-excel', '.buttons-csv', '.buttons-pdf', '.buttons-print']).disable();
 								$("#rowCount").val(rowCount);
-								$("#guidType").val($("#All option:selected").val());
-								$("#hideDuplicate").val($("#Show_Duplicate_Entries option:selected").val());
-								$("#showGuidsEntity").val( $("#Show_GUIDs_From_My_Entity option:selected").val());
+								$("#guidType").val($("#All").val());
+								$("#hideDuplicate").val($("#Show_Duplicate_Entries").val());
+								if($("#Show_GUIDs_From_My_Entity").length) {
+									$("#showGuidsEntity").val( $("#Show_GUIDs_From_My_Entity").val());
+								}else {
+									$("#showGuidsEntity").val( $("#Mine_Only").val());
+								}
+								
 								$("#searchInput").val($(".idt_searchInput").val());
 								var searchColumns = $('.idt_selectColumnRow input:checked').map(function(){
 								      return $(this).val();
 								    }).toArray();
 								
 								$("#searchColumns").val(searchColumns.toString());
-								theForm.submit();
+			            	 	$.when(theForm.submit()).done(function(e) {
+			            	 		
+			            	 		setTimeout(function(){dt.buttons(['.buttons-excel', '.buttons-csv', '.buttons-pdf', '.buttons-print']).enable()}, 5000);
+			            	 	})
 			        }
 				}			
 				

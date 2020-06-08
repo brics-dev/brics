@@ -74,11 +74,15 @@ public class Protocol extends CtdbDomainObject {
 	Map<String, DrugDevice> drugDeviceHashMap;
 	
 	private boolean deleteFlag;
+
+	private String psrHeader = "";
     
 	private List<ClinicalLocation> clinicalLocationList = new ArrayList<ClinicalLocation>();
 	private List<Procedure> procedureList = new ArrayList<Procedure>();
 	private List<PointOfContact> pointOfContactList = new ArrayList<PointOfContact>();
 	private List<MilesStone> milesStoneList = new ArrayList<MilesStone>();
+	
+	private boolean hasRandomization = false;
     
     /**
      * Default Constructor for the Protocol Domain Object
@@ -452,7 +456,8 @@ public class Protocol extends CtdbDomainObject {
         	   (autoIncrementSubject ? ((autoIncrementSubject == otherStudy.autoIncrementSubject) && 
         			   subjectNumberPrefix.equals(otherStudy.subjectNumberPrefix) && (subjectNumberStart == otherStudy.subjectNumberStart) &&
         			   subjectNumberSuffix.equals(otherStudy.subjectNumberSuffix)) : autoIncrementSubject == otherStudy.autoIncrementSubject) &&
-        	   bricsStudyId.equals(otherStudy.bricsStudyId) && studyType == otherStudy.studyType;
+				bricsStudyId.equals(otherStudy.bricsStudyId) && studyType == otherStudy.studyType
+				&& psrHeader.equals(otherStudy.psrHeader);
     }
 
     public String getPatientDisplayLabel () {
@@ -610,6 +615,20 @@ public class Protocol extends CtdbDomainObject {
 		this.orginization = orginization;
 	}
 	
+	/**
+	 * @return the psrHeader
+	 */
+	public String getPsrHeader() {
+		return psrHeader;
+	}
+
+	/**
+	 * @param psrHeader the psrHeader to set
+	 */
+	public void setPsrHeader(String psrHeader) {
+		this.psrHeader = psrHeader;
+	}
+
 	public List<ClinicalLocation> getClinicalLocationList() {
 		return this.clinicalLocationList;
 	}
@@ -656,5 +675,13 @@ public class Protocol extends CtdbDomainObject {
 		if (milesStoneList != null) {
 			this.milesStoneList.addAll(milesStoneList);
 		}
+	}
+	
+	public boolean getHasRandomization() {
+		return hasRandomization;
+	}
+
+	public void setHasRandomizationg(boolean hasRandomization) {
+		this.hasRandomization = hasRandomization;
 	}
 }

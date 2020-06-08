@@ -31,9 +31,9 @@
 				<div class="col-md-12" >
 						<table>
 							<tr width="100%">
-								<td colspan="5" width="100%">
+								<td colspan="8" width="100%">
 									<a href="javascript:void(0)" id="calcBackspace"><img border="0" src="/portal/images/eform/calculator/calc_backspace.png"></a>
-						            <a href="javascript:void(0)" id="calcClear"><img border="0" src="/portal/images/eform/calculator/calc_clear.png"></a>
+						            <a href="javascript:void(0)" id="calcClear"><img border="0" src="/portal/images/eform/calculator/calc_clear.png" ></a>
 								</td>
 							</tr>
 						    <tr>
@@ -41,7 +41,9 @@
 								<td><a href="javascript:void(0)" id="calc8"><img border="0" src="/portal/images/eform/calculator/calc_eight.png"></a></td>
 								<td><a href="javascript:void(0)" id="calc9"><img border="0" src="/portal/images/eform/calculator/calc_nine.png"></a></td>
 								<td><a href="javascript:void(0)" id="calcDivide"><img border="0" src="/portal/images/eform/calculator/calc_divide.png"></a></td>
-								<td><a href="javascript:void(0)" id="calcSqrt"><img border="0" src="/portal/images/eform/calculator/calc_sqrt.png"></a></td>
+								<td><a href="javascript:void(0)" id="calcSqrt"><img border="0" src="/portal/images/eform/calculator/calc_sqrt.png"></a></td>								
+								<td><a href="javascript:void(0)" id="calcEqualEqual"><img border="0" src="/portal/images/eform/calculator/calc_equal_equal.png"></a></td>
+								<td><a href="javascript:void(0)" id="calcNotEqual"><img border="0" src="/portal/images/eform/calculator/calc_not_equal.png"></a></td>								
 							</tr>
 							<tr>
 								<td><a href="javascript:void(0)" id="calc4"><img border="0" src="/portal/images/eform/calculator/calc_four.png"></a></td>
@@ -49,6 +51,8 @@
 								<td><a href="javascript:void(0)" id="calc6"><img border="0" src="/portal/images/eform/calculator/calc_six.png"></a></td>
 								<td><a href="javascript:void(0)" id="calcMult"><img border="0" src="/portal/images/eform/calculator/calc_multiply_star.png"></a></td>
 								<td><a href="javascript:void(0)" id="calcPercent"><img border="0" src="/portal/images/eform/calculator/calc_percent.png"></a></td>
+								<td><a href="javascript:void(0)" id="calcGreater"><img border="0" src="/portal/images/eform/calculator/calc_greater.png"></a></td>
+								<td><a href="javascript:void(0)" id="calcGreaterEqual"><img border="0" src="/portal/images/eform/calculator/calc_greater_equal.png"></a></td>								
 							</tr>
 							<tr>
 								<td><a href="javascript:void(0)" id="calc1"><img border="0" src="/portal/images/eform/calculator/calc_one.png"></a></td>
@@ -56,6 +60,8 @@
 								<td><a href="javascript:void(0)" id="calc3"><img border="0" src="/portal/images/eform/calculator/calc_three.png"></a></td>
 								<td><a href="javascript:void(0)" id="calcSubt"><img border="0" src="/portal/images/eform/calculator/calc_minus.png"></a></td>
 								<td><a href="javascript:void(0)" id="calcAdd"><img border="0" src="/portal/images/eform/calculator/calc_plus.png"></a></td>
+								<td><a href="javascript:void(0)" id="calcLess"><img border="0" src="/portal/images/eform/calculator/calc_lesser.png"></a></td>
+								<td><a href="javascript:void(0)" id="calcLessEqual"><img border="0" src="/portal/images/eform/calculator/calc_lesser_equal.png"></a></td>
 							</tr>
 							<tr>
 								<td><a href="javascript:void(0)" id="calcFlip"><img border="0" src="/portal/images/eform/calculator/calc_plus_minus.png"></a></td>
@@ -63,6 +69,27 @@
 								<td><a href="javascript:void(0)" id="calcDot"><img border="0" src="/portal/images/eform/calculator/calc_decimal.png"></a></td>
 								<td><a href="javascript:void(0)" id="calcLeftP"><img border="0" src="/portal/images/eform/calculator/calc_paren_left.png"></a></td>
 								<td><a href="javascript:void(0)" id="calcRightP"><img border="0" src="/portal/images/eform/calculator/calc_paren_right.png"></a></td>
+								<td><a href="javascript:void(0)" id="calcAnd"><img border="0" src="/portal/images/eform/calculator/calc_and.png"></a></td>
+								<td><a href="javascript:void(0)" id="calcOr"><img border="0" src="/portal/images/eform/calculator/calc_or.png"></a></td>
+							</tr>
+							<tr>						
+								<td colspan="2"><a href="javascript:void(0)" id="calcIf"><img border="0" src="/portal/images/eform/calculator/calc_if.png"></a></td>
+								<td colspan="2"><a href="javascript:void(0)" id="calcElse"><img border="0" src="/portal/images/eform/calculator/calc_else.png"></a></td>
+								<td colspan="3">
+									<a href="javascript:void(0)" id="calcElseIf">
+										<img border="0" src="/portal/images/eform/calculator/calc_else_if.png" style="height: 24.67px; width: 76px;">
+									</a>
+								</td>
+							</tr>
+							<tr>
+
+								<td><a href="javascript:void(0)" id="calcOpenBrac"><img border="0" src="/portal/images/eform/calculator/calc_open_brac.png"></a></td>
+								<td><a href="javascript:void(0)" id="calcCloseBrac"><img border="0" src="/portal/images/eform/calculator/calc_close_brac.png"></a></td>	
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
 							</tr>
 						</table>
 				</div>

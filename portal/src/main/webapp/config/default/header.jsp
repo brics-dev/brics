@@ -31,6 +31,7 @@ $(document).ready(function() {
 				});
 			}
 	});
+
 });
 </script>
 <!-- end of #header -->

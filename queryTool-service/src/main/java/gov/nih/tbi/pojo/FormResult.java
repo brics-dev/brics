@@ -1,15 +1,20 @@
 package gov.nih.tbi.pojo;
 
+import gov.nih.tbi.commons.model.DataType;
 import gov.nih.tbi.constants.QueryToolConstants;
 import gov.nih.tbi.filter.DataElementFilter;
 import gov.nih.tbi.filter.Filter;
 import gov.nih.tbi.filter.FilterFactory;
 import gov.nih.tbi.filter.JaxbFilter;
+import gov.nih.tbi.repository.model.DataTableColumn;
+import gov.nih.tbi.repository.model.RepeatingCellColumn;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -17,6 +22,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -48,19 +54,19 @@ public class FormResult extends BaseResult implements Serializable, Comparable<F
 	@XmlElement(name = "filter", type = JaxbFilter.class)
 	private List<Filter> filters;
 
+	// this map is used to cache the column objects, so we don't initialize a new column object everytime and take up
+	// memory.
+	@XmlTransient
+	private Map<String, DataTableColumn> columns;
+
+	private boolean hasGuidData;
+
 	public FormResult() {
 		uri = "";
-		studies = new LinkedList<StudyResult>();
+		studies = new ArrayList<StudyResult>();
 		repeatableGroups = new ArrayList<RepeatableGroup>();
 		filters = new LinkedList<Filter>();
-	}
-
-	// TODO Do something with the "initialize" argument.
-	public FormResult(boolean initialize) {
-		uri = "";
-		studies = new LinkedList<StudyResult>();
-		repeatableGroups = new ArrayList<RepeatableGroup>();
-		filters = new LinkedList<Filter>();
+		hasGuidData = true;
 	}
 
 	/**
@@ -77,7 +83,9 @@ public class FormResult extends BaseResult implements Serializable, Comparable<F
 		}
 
 		this.uri = base.uri;
-		this.id = new Long(base.id);
+		if (base.id != null) {
+			this.id = new Long(base.id);
+		}
 		this.shortName = base.shortName;
 		this.title = base.title;
 		this.version = base.version;
@@ -91,7 +99,7 @@ public class FormResult extends BaseResult implements Serializable, Comparable<F
 		}
 
 		// Clone the study list.
-		this.studies = new LinkedList<StudyResult>();
+		this.studies = new ArrayList<StudyResult>();
 
 		for (StudyResult study : base.studies) {
 			this.studies.add(new StudyResult(study));
@@ -103,6 +111,72 @@ public class FormResult extends BaseResult implements Serializable, Comparable<F
 		for (Filter filter : base.filters) {
 			this.filters.add(filter);
 		}
+
+		this.hasGuidData = base.hasGuidData;
+	}
+
+	public boolean isHasGuidData() {
+		return hasGuidData;
+	}
+
+	public void setHasGuidData(boolean hasGuidData) {
+		this.hasGuidData = hasGuidData;
+	}
+
+	public DataTableColumn getColumnFromString(String form, String repeatableGroup, String dataElement, DataType type) {
+		if (columns == null) {
+			columns = new HashMap<>();
+		}
+
+		String key = form + "." + repeatableGroup + "." + dataElement + "." + type.getValue();
+		DataTableColumn column = columns.get(key);
+
+		if (column == null) {
+			column = new RepeatingCellColumn(form, repeatableGroup, dataElement, type);
+			columns.put(key, column);
+		}
+
+		return column;
+	}
+
+	public DataTableColumn getColumnFromString(String form, String repeatableGroup, String dataElement) {
+		if (columns == null) {
+			columns = new HashMap<>();
+		}
+
+		String key = form + "." + repeatableGroup + "." + dataElement;
+		DataTableColumn column = columns.get(key);
+
+		if (column == null) {
+			column = new DataTableColumn(form, repeatableGroup, dataElement);
+			columns.put(key, column);
+		}
+
+		return column;
+	}
+
+	public DataTableColumn getColumnFromString(String form, String hardcoded) {
+		if (columns == null) {
+			columns = new HashMap<>();
+		}
+
+		String key = form + "." + hardcoded;
+		DataTableColumn column = columns.get(key);
+
+		if (column == null) {
+			column = new DataTableColumn(form, hardcoded);
+			columns.put(key, column);
+		}
+
+		return column;
+	}
+
+	public Map<String, DataTableColumn> getColumns() {
+		return columns;
+	}
+
+	public void setColumnCache(Map<String, DataTableColumn> columns) {
+		this.columns = columns;
 	}
 
 	/*
@@ -312,10 +386,18 @@ public class FormResult extends BaseResult implements Serializable, Comparable<F
 		}
 	}
 
-	public void addFilter(RepeatableGroup group, DataElement element) {
+	public void addFilter(RepeatableGroup group, DataElement element, String name) {
 		if (!isFiltered(group, element)) {
-			filters.add(FilterFactory.createFilterByInference(this, group, element));
+			filters.add(FilterFactory.createFilterByInference(this, group, element, name));
 		}
+	}
+	
+	public void addFilter(Filter filter) {
+		if(this.filters == null) {
+			this.filters = new ArrayList<> ();
+		}
+		
+		filters.add(filter);
 	}
 
 	public DataElement getElement(String deShortName) {

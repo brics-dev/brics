@@ -15,7 +15,6 @@ import gov.nih.nichd.ctdb.protocol.domain.Interval;
 import gov.nih.nichd.ctdb.protocol.domain.Protocol;
 import gov.nih.tbi.account.model.hibernate.Account;
 import gov.nih.tbi.account.model.hibernate.AccountRole;
-import gov.nih.tbi.commons.model.RoleStatus;
 import gov.nih.tbi.commons.model.RoleType;
 import gov.nih.tbi.commons.ws.HashMethods;
 
@@ -56,18 +55,57 @@ public class User extends CtdbDomainObject implements Comparable<User> {
 	 * Default Constructor for the User Domain Object
 	 */
 	public User() {
-		// default constructor
+		super();
 	}
 
 	public User(int _id) {
+		super();
 		this.setId(_id);
-		// default constructor
 	}
 
 	public User(int _id, String username) {
+		super();
 		this.setId(_id);
 		this.setUsername(username);
-		// default constructor
+	}
+
+	/**
+	 * Constructor that translates a BRICS Account to a local User object for use throughout the system.
+	 * 
+	 * @param account - The BRICS Account object which holds user information
+	 * @throws UnsupportedEncodingException When there is an error with encoding the password.
+	 */
+	public User(Account account) throws UnsupportedEncodingException {
+		super();
+
+		this.bricsUserId = account.getId();
+		this.firstName = account.getUser().getFirstName();
+		this.lastName = account.getUser().getLastName();
+		this.username = account.getUserName();
+		this.email = account.getUser().getEmail();
+		this.displayName = account.getDisplayName();
+		this.createdBy = 0;
+		this.updatedBy = 0;
+		this.isStaff = false;
+		this.active = true;
+		this.password = HashMethods.convertFromByte(account.getPassword());
+		this.instituteId = 22;
+		this.sysAdmin = false;
+		this.createStudy = false;
+
+		// check to see if user is proforms admin
+		for (AccountRole role : account.getAccountRoleList()) {
+			if (role.getRoleType() != null) {
+				if (role.getRoleType().equals(RoleType.ROLE_PROFORMS_ADMIN) && role.getIsActive()) {
+					this.sysAdmin = true;
+				}
+
+				// Set the create study privilege
+				if (role.getRoleType().equals(RoleType.ROLE_STUDY) && role.getIsActive()) {
+					this.createStudy = true;
+				}
+			}
+		}
 	}
 
 	/**
@@ -362,7 +400,6 @@ public class User extends CtdbDomainObject implements Comparable<User> {
 
 	/**
 	 * Determines if the user has a privilege for a particular protocol.
-	 *
 	 * @param privilege The privilege to check for
 	 * @return boolean true if the user has the privilege; false if the user does not have the privilege
 	 */
@@ -428,7 +465,9 @@ public class User extends CtdbDomainObject implements Comparable<User> {
 			for (Privilege priv : role.getPrivList()) {
 				for (int idx = 0; idx < privileges.length && !hasPriv; idx++) {
 					Privilege privilege = new Privilege();
-					privilege.setCode(privileges[idx]);
+					
+					privilege.setCode(privileges[idx].trim());
+					
 
 					if (priv.getCode().equalsIgnoreCase(privilege.getCode())) {
 						hasPriv = true;
@@ -474,7 +513,8 @@ public class User extends CtdbDomainObject implements Comparable<User> {
 
 		for (int idx = 0; idx < privileges.length && !hasPriv; idx++) {
 			Privilege priv = new Privilege();
-			priv.setCode(privileges[idx]);
+			priv.setCode(privileges[idx].trim());
+			
 			hasPriv = this.hasPrivilege(priv);
 		}
 
@@ -494,7 +534,8 @@ public class User extends CtdbDomainObject implements Comparable<User> {
 
 		for (int i = 0; i < privileges.length; i++) {
 			Privilege priv = new Privilege();
-			priv.setCode(privileges[i]);
+			priv.setCode(privileges[i].trim());
+			
 			hasPriv = this.hasPrivilege(priv, protocolId);
 
 			// I don't like the syntax in the hasAnyPrivilege above, so I'll use this
@@ -617,49 +658,6 @@ public class User extends CtdbDomainObject implements Comparable<User> {
 	}
 
 	/**
-	 * Translates a BRICS Account to a local User object for use throughout the system
-	 * 
-	 * @param account a BRICS Account object which holds user information
-	 * @return a User object version of the user
-	 * @throws UnsupportedEncodingException
-	 */
-	public static User userFromBricsAccount(Account account) throws UnsupportedEncodingException {
-		User user = new User();
-
-		user.setBricsUserId(account.getId());
-		user.setFirstName(account.getUser().getFirstName());
-		user.setLastName(account.getUser().getLastName());
-		user.setUsername(account.getUserName());
-		user.setEmail(account.getUser().getEmail());
-		user.setDisplayName(account.getDisplayName());
-		user.setCreatedBy(0);
-		user.setUpdatedBy(0);
-		user.setStaff(false);
-		user.setActive(true);
-		user.setPassword(HashMethods.convertFromByte(account.getPassword()));
-		user.setInstituteId(22);
-		user.setSysAdmin(false);
-
-		// check to see if user is proforms admin
-		for (AccountRole role : account.getAccountRoleList()) {
-			if (role.getRoleType() != null) {
-				if (role.getRoleType().equals(RoleType.ROLE_PROFORMS_ADMIN)
-						&& role.getRoleStatus().equals(RoleStatus.ACTIVE)) {
-					user.setSysAdmin(true);
-				}
-
-				// Set the create study privilege
-				if (role.getRoleType().equals(RoleType.ROLE_STUDY) && role.getRoleStatus().equals(RoleStatus.ACTIVE)) {
-					user.setCreateStudy(true);
-				}
-			}
-		}
-		// get the institution if it exists
-
-		return user;
-	}
-
-	/**
 	 * Checks for the BRICS "ROLE_STUDY" for the current user and updates the associated flag
 	 * 
 	 * @param account - The BRICS user account that holds all user information from the account web service
@@ -670,7 +668,7 @@ public class User extends CtdbDomainObject implements Comparable<User> {
 
 		for (AccountRole role : account.getAccountRoleList()) {
 			// Set the create study privilege
-			if (role.getRoleType().equals(RoleType.ROLE_STUDY) && role.getRoleStatus().equals(RoleStatus.ACTIVE)) {
+			if (role.getRoleType().equals(RoleType.ROLE_STUDY) && role.getIsActive()) {
 				user.setCreateStudy(true);
 				break;
 			}

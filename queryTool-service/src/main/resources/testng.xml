@@ -6,4 +6,10 @@
             <package name="gov.nih.tbi.filter.*" />
         </packages>
     </test>
+    <test name="DataCart">
+	    <classes>
+	      <class name="gov.nih.tbi.util.DataCartUtilTest"/>
+	      <class name="gov.nih.tbi.service.impl.DataCartManagerTest"/>
+	    </classes>
+    </test>
 </suite>

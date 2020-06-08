@@ -44,6 +44,7 @@ public class SessionLogDaoImpl extends GenericDaoImpl<SessionLog, Long> implemen
 	private static final String ATTRIBUTE_TIMEOUT = "timeOut";
 	private static final String ATTRIBUTE_SESSIONSTATUS = "sessionStatus";
 	private static final String ATTRIBUTE_ID = "id";
+	private static final String ATTRIBUTE_USERNAME = "username";
 	
 	private static final String FILTERSTATUS_ACTIVE = "Active";
 	private static final String FILTERSTATUS_EXPIRED = "Expired";
@@ -280,4 +281,29 @@ public class SessionLogDaoImpl extends GenericDaoImpl<SessionLog, Long> implemen
 			return 0;
 		}
 	}
+	
+	public List<SessionLog> getAllActiveSessions() {
+		CriteriaBuilder cb = getCriteriaBuilder();
+		CriteriaQuery<SessionLog> query = cb.createQuery(persistentClass);
+		Root<SessionLog> root = query.from(persistentClass);
+		query.where(cb.isNull(root.get(ATTRIBUTE_TIMEOUT)));
+		query.orderBy(cb.asc(root.get(ATTRIBUTE_TIMEIN)));
+		Query<SessionLog> q = createQuery(query);
+		return q.getResultList();
+	}
+	
+	public List<SessionLog> getActiveSessions(String username) {
+		CriteriaBuilder cb = getCriteriaBuilder();
+		CriteriaQuery<SessionLog> query = cb.createQuery(persistentClass);
+		Root<SessionLog> root = query.from(persistentClass);
+		query.where(cb.and(
+				cb.equal(root.get(ATTRIBUTE_USERNAME), username),
+				cb.isNull(root.get(ATTRIBUTE_TIMEOUT))
+		));
+		query.orderBy(cb.asc(root.get(ATTRIBUTE_TIMEIN)));
+		Query<SessionLog> q = createQuery(query);
+		return q.getResultList();
+	}
+	
+	
 }

@@ -1,0 +1,9 @@
+[DB-TRG]
+host=localhost
+database=dictdb
+schema=dictschema
+user=dictuser
+
+[FILE-SYS]
+queueDir=/var/lib/brics/src/pg-rev/dict
+logDir=/var/lib/brics/log/pgDeployer/build-dict

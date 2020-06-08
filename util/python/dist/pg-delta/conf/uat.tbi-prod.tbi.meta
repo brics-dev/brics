@@ -1,0 +1,16 @@
+[DB-SRC]
+host=fitbir-db-uat.cit.nih.gov
+database=tbi_uat
+schema=tbi_metauat
+user=tbi_metauat
+label=UAT-SRC
+
+[DB-TRG]
+host=fitbir-db-prod.cit.nih.gov
+database=tbi_prod
+schema=tbi_meta
+user=tbi_meta
+label=PROD-TRG
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\pgDelta\uattbi-prodtbi-meta

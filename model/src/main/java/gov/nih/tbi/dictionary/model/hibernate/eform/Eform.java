@@ -26,6 +26,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 import gov.nih.tbi.commons.model.StatusType;
+import gov.nih.tbi.dictionary.model.EformPfCategory;
 
 @Entity
 @Table(name = "EFORM")
@@ -142,6 +143,10 @@ public class Eform implements Serializable{
 	@Column(name = "MEASUREMENT_TYPE")
 	private String measurementType;
 	
+	@Enumerated(EnumType.ORDINAL)
+	@Column(name = "PF_CATEGORY")
+	private EformPfCategory pfCategory;
+	
 	@XmlElementWrapper(name = "SectionSet")
 	@XmlElement(name ="Section")
 	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -181,6 +186,7 @@ public class Eform implements Serializable{
 		this.setIsCAT(eform.getIsCAT());
 		this.setCatOid(eform.getCatOid());
 		this.setMeasurementType(eform.getMeasurementType());
+		this.setPfCategory(eform.getPfCategory());
 	}
 	
 	public Boolean getIsCAT() {
@@ -450,6 +456,14 @@ public class Eform implements Serializable{
 	
 	public void addToSectionList(Section section){
 		this.sectionList.add(section);
+	}
+	
+	public EformPfCategory getPfCategory() {
+		return pfCategory;
+	}
+	
+	public void setPfCategory(EformPfCategory pfCategory) {
+		this.pfCategory = pfCategory;
 	}
 	
 	@Override

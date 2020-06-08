@@ -136,7 +136,7 @@
 			</s:iterator>
 			</ul>	
  			</div> 
- 			<a href="#diseaseSelections" class="more" style="float: right; font-size: 10px;">more</a>
+ 			<a href="#diseaseSelections" aria-label="click here to show more or less of the list of diseases" class="more" style="float: right; font-size: 10px;">more</a>
  			</li>
 		</ul>
 		

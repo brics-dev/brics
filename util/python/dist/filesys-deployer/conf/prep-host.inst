@@ -1,0 +1,19 @@
+1|sexec|temp|cat tomcat.pid
+2|sexec|temp|kill `cat tomcat.pid`
+3|sexec||sleep 10
+4|sexec|temp|rm -rf tomcat.pid
+5|sexec|webapps|rm -f portal.war
+6|sexec|webapps|rm -rf portal
+7|sexec|webapps|rm -f query.war
+8|sexec|webapps|rm -rf query
+9|sexec|webapps|rm -f guid-server.war
+10|sexec|webapps|rm -rf guid-server
+11|sexec|webapps|rm -f guid-service.war
+12|sexec|webapps|rm -rf guid-service
+13|sexec|webapps|rm -f import-RESTful.war
+14|sexec|webapps|rm -rf import-RESTful
+15|sput|archive_logs.sh|temp/archive_logs.sh
+16|sexec|temp|chmod +x archive_logs.sh
+17|sexec|temp|./archive_logs.sh
+18|sexec|temp|sudo service tomcat-2nd start
+19|sexec|temp|cat tomcat.pid

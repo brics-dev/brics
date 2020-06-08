@@ -30,10 +30,10 @@
 	    
 		<!-- LOGIN PAGE -->
 		<!-- <intercept-url access="hasRole(&apos;ROLE_GUEST&apos;)" pattern="/jsp/login.jsp" /> -->
-		<intercept-url access="hasRole(&apos;ROLE_PROFORMS&apos;)" pattern="/home.action" />
-		<intercept-url access="hasRole(&apos;ROLE_PROFORMS&apos;)" pattern="/ws/protocol/**" />
-		<intercept-url access="hasRole(&apos;ROLE_PROFORMS&apos;)" pattern="/*" />
-		<intercept-url access="hasRole(&apos;ROLE_PROFORMS&apos;)" pattern="/**" />
+		<intercept-url access="hasAnyRole(&apos;ROLE_ADMIN&apos;,&apos;ROLE_PROFORMS_ADMIN&apos;,&apos;ROLE_PROFORMS&apos;)" pattern="/home.action" />
+		<intercept-url access="hasAnyRole(&apos;ROLE_ADMIN&apos;,&apos;ROLE_PROFORMS_ADMIN&apos;,&apos;ROLE_PROFORMS&apos;)" pattern="/ws/protocol/**" />
+		<intercept-url access="hasAnyRole(&apos;ROLE_ADMIN&apos;,&apos;ROLE_PROFORMS_ADMIN&apos;,&apos;ROLE_PROFORMS&apos;)" pattern="/*" />
+		<intercept-url access="hasAnyRole(&apos;ROLE_ADMIN&apos;,&apos;ROLE_PROFORMS_ADMIN&apos;,&apos;ROLE_PROFORMS&apos;)" pattern="/**" />
 		<!-- insert intercept for /admin -->
 		
 		<!-- This prevents the crazy login messages popping up after session timeout -->

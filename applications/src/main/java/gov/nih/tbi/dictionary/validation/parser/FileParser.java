@@ -44,7 +44,8 @@ import gov.nih.tbi.dictionary.ws.validation.DictionaryAccessor;
 public class FileParser { // extends SwingWorker<DataSubmission, Integer>{
 
 	private static Logger logger = Logger.getLogger(FileParser.class);
-
+	private static final int MAX_FORM_STRUCTURE_SHORT_NAME_LENGTH = 26;
+	
 	File directory;
 	WebstartRestProvider ddtClient;
 	ExecutorService executorService;
@@ -53,6 +54,7 @@ public class FileParser { // extends SwingWorker<DataSubmission, Integer>{
 	DataSubmission submission;
 	SwingWorker worker;
 	int progressMax = 0;
+	
 
 	int N_CPU = Runtime.getRuntime().availableProcessors() - 1;
 	float U_CPU = (float) 0.75;
@@ -258,8 +260,7 @@ public class FileParser { // extends SwingWorker<DataSubmission, Integer>{
 
 		String[] names = new String[structNames.size()];
 
-		List<StructuralFormStructure> dictionary =
-				WebstartRestProvider.getDataDictionary(ddtClient, structNames.toArray(names));
+		List<StructuralFormStructure> dictionary =	WebstartRestProvider.getDataDictionary(ddtClient, structNames.toArray(names));
 
 		ConcurrentHashMap<FileNode, DataStructureTable> dataMap = new ConcurrentHashMap<FileNode, DataStructureTable>();
 		ConcurrentHashMap<String, Vector<FileNode>> structMap = new ConcurrentHashMap<String, Vector<FileNode>>();
@@ -418,12 +419,7 @@ public class FileParser { // extends SwingWorker<DataSubmission, Integer>{
 				 */
 			}
 
-			// If this file is recognized as a datafile, submissionticket, or outputlog (by title), then exclude it
-			String name = file.getName();
-			if (name.matches("dataFile\\-[0-9]{13}\\.xml") || name.matches("submissionTicket\\-[0-9]{13}\\.xml")
-					|| name.matches("output_log_[0-9]{13}\\.txt")) {
-				node.exclude();
-			}
+			excludeUnrecognizableFiles(file.getName(), node);
 
 			// Add CRC and File Size to NODE
 			node.setFileSize(file.length());
@@ -454,6 +450,15 @@ public class FileParser { // extends SwingWorker<DataSubmission, Integer>{
 		}
 		return node;
 	}
+	
+	public static void excludeUnrecognizableFiles(String fileName, FileNode node) {
+		// If this file is recognized as a datafile, submissionticket, or outputlog (by
+		// title), then exclude it
+		if (fileName.matches("[0-9A-z]\\w+_[0-9A-z]\\w+.xml") || fileName.matches("submissionTicket\\-[0-9]{13}\\.xml")
+				|| fileName.matches("output_log_[0-9]{13}\\.txt")) {
+			node.exclude();
+		}
+	}
 
 	private FileNode parseDelimFile(File file, FileNode parent, String absPath, FileType type,
 			BufferedReader fileReader, String delim) {
@@ -470,8 +475,10 @@ public class FileParser { // extends SwingWorker<DataSubmission, Integer>{
 				String name = line[0].trim();
 
 				// name = name.toLowerCase();
-				structNames.add(name);
-				node.setStructureName(name);
+				if(absPath.toLowerCase().endsWith(".csv") && name.length() <= MAX_FORM_STRUCTURE_SHORT_NAME_LENGTH) {
+					structNames.add(name);
+					node.setStructureName(name);
+				}				
 				leafNodes.put(node, fileReader);
 			} catch (IOException e) {
 				e.printStackTrace();

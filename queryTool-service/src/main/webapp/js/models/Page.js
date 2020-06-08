@@ -5,6 +5,7 @@ QT.Page = BaseModel.extend({
 	defaults : {
 		activeStepsTab: "stepOneTab",				// the ID of the currently selected main tab
 		refineFilterPaneOpen : true,				// is the "refine data" filter pane open
+		dataCartPaneOpen: true,						// is the "data cart" pane (in refine data) open
 		processingView : null,						// view referencing the processing spinner
 		forms : null,								// structural forms collection
 		studies : null,								// structural studies collection
@@ -28,7 +29,8 @@ QT.Page = BaseModel.extend({
 		deployentVersion : null,
 		schemaList : null,
 		fileDownloadDialog :null,
-		sendToMetaStudyValidationDialog :null
+		sendToMetaStudyValidationDialog :null,
+		outputCodeSelection: "pv"
 	},
 	
 	availableTilesMap: {},
@@ -42,6 +44,13 @@ QT.Page = BaseModel.extend({
 	        cache : false,
 	        type: 'GET',
 	        success: function(data) {
+	        	if (typeof data.status !== "undefined") {
+	             	if(data.status = "401") {
+	             		//redirect
+	             		window.location.href = "/query/logout";
+	             		return;
+	             	}
+	             }
 	        	view.set('deploymentVersion',data);
 	        },
 	        error: function(xhr, status, error) {
@@ -55,6 +64,13 @@ QT.Page = BaseModel.extend({
 	        cache : false,
 	        type: 'GET',
 	        success: function(data) {
+	        	if (typeof data.status !== "undefined") {
+	             	if(data.status = "401") {
+	             		//redirect
+	             		window.location.href = "/query/logout";
+	             		return;
+	             	}
+	             }
 	        	view.set('repositoryId',data);
 	        },
 	        error: function(xhr, status, error) {
@@ -68,6 +84,13 @@ QT.Page = BaseModel.extend({
 	        cache : false,
 	        type: 'GET',
 	        success: function(data) {
+	        	if (typeof data.status !== "undefined") {
+	             	if(data.status = "401") {
+	             		//redirect
+	             		window.location.href = "/query/logout";
+	             		return;
+	             	}
+	             }
 	        	view.set('lastDeployed',data);
 	        },
 	        error: function(xhr, status, error) {
@@ -91,10 +114,24 @@ QT.Page = BaseModel.extend({
 	        url: "service/savedQueries",
 	        dataType: 'script',
 	        success: function(data) {
+	        	if (typeof data.status !== "undefined") {
+	             	if(data.status = "401") {
+	             		//redirect
+	             		window.location.href = "/query/logout";
+	             		return;
+	             	}
+	             }
 	        	view.loadDefinedQueries(JSON.parse(data));
 	        },
 	        error: function() {
-	        	$.ibisMessaging("dialog", "error", "There was a problem retrieving the list of defined queries");
+	        	$.ibisMessaging("dialog", "error", "There was a problem retrieving the list of defined queries.", {
+	        	    buttons: [{
+        	            text: "OK",
+        	            click : function() {
+        	            	window.location.href = "/query/logout";
+        	            }
+	        	    }]
+	        	});	        
 	        },
 	        async: true
 	    });
@@ -106,6 +143,13 @@ QT.Page = BaseModel.extend({
 		        url: "service/query/formResults",
 		        dataType: 'script',
 		        success: function(data) {
+		        	if (typeof data.status !== "undefined") {
+		             	if(data.status = "401") {
+		             		//redirect
+		             		window.location.href = "/query/logout";
+		             		return;
+		             	}
+		             }
 		        	view.loadForms(JSON.parse(data));
 		        },
 		        error: function() {
@@ -122,6 +166,13 @@ QT.Page = BaseModel.extend({
 	        url: "service/query/studyResults",
 	        dataType: 'script',
 	        success: function(data) {
+	        	if (typeof data.status !== "undefined") {
+	             	if(data.status = "401") {
+	             		//redirect
+	             		window.location.href = "/query/logout";
+	             		return;
+	             	}
+	             }
 	        	view.loadStudies(JSON.parse(data));
 	        },
 	        error: function() {
@@ -137,7 +188,15 @@ QT.Page = BaseModel.extend({
 	        url: "service/query/deFacetItems",
 	        dataType: 'script',
 	        success: function(data) {
+	        	if (typeof data.status !== "undefined") {
+	             	if(data.status = "401") {
+	             		//redirect
+	             		window.location.href = "/query/logout";
+	             		return;
+	             	}
+	             }
 	        	view.loadDataElements(JSON.parse(data));
+	        	EventBus.trigger("view:reloadSessionDialog", this);
 	        },
 	        error: function() {
 	        	$.ibisMessaging("dialog", "error", "There was an error loading data elements.  Major functionality of this tool may be impacted.  It is suggested that you re-load the Query Tool");

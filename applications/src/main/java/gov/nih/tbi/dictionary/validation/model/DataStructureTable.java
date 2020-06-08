@@ -87,6 +87,11 @@ public class DataStructureTable extends DataTable {
 			}
 		}
 		// includedColumns[0] = false;
+		
+		if(data.isEmpty()) {
+			String message  = String.format(ApplicationsConstants.ERR_BLANK_CSV, structure.getShortName());
+			loadErrors.add(new ValidationOutput(this, OutputType.ERROR, -1, -1, message));
+		}
 
 		if (recordLocation != null && recordLocation == 0) {
 			includedColumns[recordLocation] = false;

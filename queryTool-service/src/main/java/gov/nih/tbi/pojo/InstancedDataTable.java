@@ -61,6 +61,9 @@ public class InstancedDataTable implements Serializable {
 	@XmlTransient
 	private List<DownloadPVMappingRow> downloadPVMappings;
 
+	@XmlTransient
+	private List<FormResult> forms;
+
 	private DataTableColumn sortColumn;
 	private String sortOrder;
 	private int limit;
@@ -69,6 +72,7 @@ public class InstancedDataTable implements Serializable {
 	private int rowCount;
 	private int rowCountSansFilters;
 	private String displayOption;
+	private String filterExpression;
 
 	public InstancedDataTable() {
 		this.headers = new ArrayList<FormHeader>();
@@ -77,7 +81,7 @@ public class InstancedDataTable implements Serializable {
 	}
 
 	public InstancedDataTable(int rowCount, int rowCountSansFilters, int limit, int offset, DataTableColumn sortColumn,
-			String sortOrder, List<FormHeader> headers) {
+			String sortOrder, List<FormHeader> headers, String filterExpression, List<FormResult> forms) {
 		this.rowCount = rowCount;
 		this.limit = limit;
 		this.offset = offset;
@@ -87,6 +91,8 @@ public class InstancedDataTable implements Serializable {
 		this.instancedRecords = new LinkedList<InstancedRecord>();
 		this.rowCountSansFilters = rowCountSansFilters;
 		this.rgExpandTrackers = new HashSet<RepeatableGroupExpansionTracker>();
+		this.filterExpression = filterExpression;
+		this.forms = forms;
 	}
 
 	public InstancedDataTable(InstancedDataTable clone) {
@@ -104,6 +110,42 @@ public class InstancedDataTable implements Serializable {
 			this.attachedFilesMap.putAll(clone.attachedFilesMap);
 		}
 		this.displayOption = clone.displayOption;
+		this.filterExpression = clone.filterExpression;
+		this.forms = clone.forms;
+	}
+	
+
+	public void clear() {
+		instancedRecords = null;
+		offset = -1;
+		limit = -1;
+		sortOrder = null;
+		sortColumn = null;
+		rowCount = 0;
+		rowCountSansFilters = 0;
+		if (attachedFilesMap != null) {
+			attachedFilesMap.clear();
+		}
+		
+		filterExpression = null;
+		forms = null;
+	}
+
+
+	public List<FormResult> getForms() {
+		return forms;
+	}
+
+	public void setForms(List<FormResult> forms) {
+		this.forms = forms;
+	}
+
+	public String getFilterExpression() {
+		return filterExpression;
+	}
+
+	public void setFilterExpression(String filterExpression) {
+		this.filterExpression = filterExpression;
 	}
 
 	public int getRowCount() {
@@ -176,19 +218,6 @@ public class InstancedDataTable implements Serializable {
 
 	public void setOffset(int offset) {
 		this.offset = offset;
-	}
-
-	public void clear() {
-		instancedRecords = null;
-		offset = -1;
-		limit = -1;
-		sortOrder = null;
-		sortColumn = null;
-		rowCount = 0;
-		rowCountSansFilters = 0;
-		if (attachedFilesMap != null) {
-			attachedFilesMap.clear();
-		}
 	}
 
 	public List<FormHeader> getHeaders() {
@@ -321,7 +350,7 @@ public class InstancedDataTable implements Serializable {
 				}
 			}
 		}
-		
+
 		List<String> flatHeaders = new ArrayList<String>();
 		if (isJoined()) {
 			flatHeaders.add("GUID");
@@ -333,11 +362,11 @@ public class InstancedDataTable implements Serializable {
 		for (FormHeader formHeader : headers) {
 			for (RepeatableGroupHeader rgHeader : formHeader.getRepeatableGroupHeaders()) {
 				for (String deHeader : rgHeader.getDataElementHeaders()) {
-					
+
 					if (displaySchema && schemaDeHeaderMap.containsKey(deHeader)) {
 						deHeader = schemaDeHeaderMap.get(deHeader);
 					}
-					
+
 					if (QueryToolConstants.EMPTY_STRING.equals(rgHeader.getName())) {
 						flatHeaders.add(formHeader.getName() + "." + deHeader);
 					} else {
@@ -366,7 +395,7 @@ public class InstancedDataTable implements Serializable {
 				}
 			}
 		}
-		
+
 		List<String> flatHeaders = new ArrayList<String>();
 		if (isJoined()) {
 			flatHeaders.add("GUID");
@@ -380,12 +409,13 @@ public class InstancedDataTable implements Serializable {
 		for (FormHeader formHeader : headers) {
 			for (RepeatableGroupHeader rgHeader : formHeader.getRepeatableGroupHeaders()) {
 				for (String deHeader : rgHeader.getDataElementHeaders()) {
-					
+
 					if (displaySchema && schemaDeHeaderMap.containsKey(deHeader)) {
 						deHeader = schemaDeHeaderMap.get(deHeader);
 					}
-					
-					// TODO: PUSCH: notice the problems of viewable formHeader names as opposed to actual (the version no)
+
+					// TODO: PUSCH: notice the problems of viewable formHeader names as opposed to actual (the version
+					// no)
 
 					String rgKeyColumnKey = "";
 					if (!QueryToolConstants.EMPTY_STRING.equals(rgHeader.getName())) {
@@ -486,11 +516,11 @@ public class InstancedDataTable implements Serializable {
 						if (cv instanceof RepeatingCellValue && cv.getIsRepeating()) {
 							RepeatingCellValue rcv = (RepeatingCellValue) cv;
 							for (InstancedRepeatableGroupRow rgrow : rcv.getRows()) {
-								
+
 								for (RepeatingCellColumn rcc : rgrow.getCell().keySet()) {
 									String fullName =
 											rcc.getForm() + "." + rcc.getRepeatableGroup() + "." + rcc.getDataElement();
-									
+
 									if (localCounts.containsKey(fullName)) {
 										localCounts.put(fullName, localCounts.get(fullName) + 1);
 									} else {

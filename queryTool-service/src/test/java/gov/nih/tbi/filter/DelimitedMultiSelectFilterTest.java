@@ -11,6 +11,8 @@ import org.testng.annotations.Test;
 
 import com.google.gson.JsonObject;
 
+import gov.nih.tbi.commons.model.DataType;
+import gov.nih.tbi.filter.DelimitedMultiSelectFilter.DelimitedMultiSelectMode;
 import gov.nih.tbi.pojo.DataElement;
 import gov.nih.tbi.pojo.FilterType;
 import gov.nih.tbi.pojo.FormResult;
@@ -19,27 +21,6 @@ import gov.nih.tbi.repository.model.InstancedRow;
 import gov.nih.tbi.repository.model.NonRepeatingCellValue;
 
 public class DelimitedMultiSelectFilterTest {
-	@Test
-	public void testFactory() {
-		FormResult form = new FormResult();
-		form.setShortName("testForm");
-		form.setVersion("1.0");
-
-		RepeatableGroup rg = new RepeatableGroup();
-		rg.setUri("testRg");
-		rg.setName("testRg");
-
-		DataElement de = new DataElement();
-		de.setUri("testDe");
-		de.setName("testDe");
-
-		String values = "doge;wow!;very list;such collection";
-
-		Filter f1 = FilterFactory.createDelimitedMultiSelectFilter(form, rg, de, false, values);
-		DelimitedMultiSelectFilter f2 = new DelimitedMultiSelectFilter(form, rg, de, false, values);
-
-		assertEquals(f1, f2);
-	}
 
 	@Test
 	public void testEquals() {
@@ -57,8 +38,10 @@ public class DelimitedMultiSelectFilterTest {
 
 		String values = "doge;wow!;very list;such collection";
 
-		Filter f1 = FilterFactory.createDelimitedMultiSelectFilter(form, rg, de, false, values);
-		Filter f2 = FilterFactory.createDelimitedMultiSelectFilter(form, rg, de, false, values);
+		Filter f1 = new DelimitedMultiSelectFilter(form, rg, de, values, "f", null, null, null,
+				DelimitedMultiSelectMode.EXACT);
+		Filter f2 = new DelimitedMultiSelectFilter(form, rg, de, values, "f", null, null, null,
+				DelimitedMultiSelectMode.EXACT);
 		assertEquals(f1, f2);
 	}
 
@@ -79,8 +62,10 @@ public class DelimitedMultiSelectFilterTest {
 		String values = "doge;wow!;very list;such collection";
 		String values2 = "doge;wow!;very list;such collection!";
 
-		Filter f1 = FilterFactory.createDelimitedMultiSelectFilter(form, rg, de, false, values);
-		Filter f2 = FilterFactory.createDelimitedMultiSelectFilter(form, rg, de, false, values2);
+		Filter f1 = new DelimitedMultiSelectFilter(form, rg, de, values, "f", null, null, null,
+				DelimitedMultiSelectMode.EXACT);
+		Filter f2 = new DelimitedMultiSelectFilter(form, rg, de, values2, "f", null, null, null,
+				DelimitedMultiSelectMode.EXACT);
 		assertNotEquals(f1, f2);
 	}
 
@@ -100,8 +85,10 @@ public class DelimitedMultiSelectFilterTest {
 
 		String values = "doge;wow!;very list;such collection";
 
-		Filter f1 = FilterFactory.createDelimitedMultiSelectFilter(form, rg, de, false, values);
-		Filter f2 = FilterFactory.createDelimitedMultiSelectFilter(form, rg, de, false, values);
+		Filter f1 = new DelimitedMultiSelectFilter(form, rg, de, values, "f", null, null, null,
+				DelimitedMultiSelectMode.EXACT);
+		Filter f2 = new DelimitedMultiSelectFilter(form, rg, de, values, "f", null, null, null,
+				DelimitedMultiSelectMode.EXACT);
 		assertEquals(f1.hashCode(), f2.hashCode());
 	}
 
@@ -122,8 +109,10 @@ public class DelimitedMultiSelectFilterTest {
 		String values = "doge;wow!;very list;such collection";
 		String values2 = "doge;wow!;very list;such collection!";
 
-		Filter f1 = FilterFactory.createDelimitedMultiSelectFilter(form, rg, de, false, values);
-		Filter f2 = FilterFactory.createDelimitedMultiSelectFilter(form, rg, de, false, values2);
+		Filter f1 = new DelimitedMultiSelectFilter(form, rg, de, values, "f", null, null, null,
+				DelimitedMultiSelectMode.EXACT);
+		Filter f2 = new DelimitedMultiSelectFilter(form, rg, de, values2, "f", null, null, null,
+				DelimitedMultiSelectMode.EXACT);
 		assertNotEquals(f1.hashCode(), f2.hashCode());
 	}
 
@@ -144,11 +133,11 @@ public class DelimitedMultiSelectFilterTest {
 
 		String values = "doge;wow!;very list;such collection";
 
-		Filter f = FilterFactory.createDelimitedMultiSelectFilter(form, rg, de, false, values);
+		Filter f = new DelimitedMultiSelectFilter(form, rg, de, values, "f", null, null, null,
+				DelimitedMultiSelectMode.EXACT);
 		JsonObject j = f.toJson();
 		assertEquals("testRg", j.get("groupUri").getAsString());
 		assertEquals("testDe", j.get("elementUri").getAsString());
-		assertEquals(false, j.get("blank").getAsBoolean());
 		assertEquals(j.get("filterType").getAsString(), FilterType.DELIMITED_MULTI_SELECT.name());
 		assertEquals("doge;wow!;very list;such collection", j.get("freeFormValue").getAsString());
 	}
@@ -169,7 +158,8 @@ public class DelimitedMultiSelectFilterTest {
 
 		String values = "doge;wow!;very list;such collection";
 
-		Filter f = FilterFactory.createDelimitedMultiSelectFilter(form, rg, de, false, values);
+		Filter f = new DelimitedMultiSelectFilter(form, rg, de, values, "f", null, null, null,
+				DelimitedMultiSelectMode.EXACT);
 		assertFalse(f.isEmpty());
 	}
 
@@ -189,12 +179,13 @@ public class DelimitedMultiSelectFilterTest {
 
 		String values = "";
 
-		Filter f = FilterFactory.createDelimitedMultiSelectFilter(form, rg, de, false, values);
+		Filter f = new DelimitedMultiSelectFilter(form, rg, de, values, "f", null, null, null,
+				DelimitedMultiSelectMode.EXACT);
 		assertTrue(f.isEmpty());
 	}
 
 	@Test
-	public void testEval1() {
+	public void testEvalExact1() {
 		FormResult form = new FormResult();
 		form.setShortName("testForm");
 		form.setVersion("1.0");
@@ -208,10 +199,11 @@ public class DelimitedMultiSelectFilterTest {
 		de.setName("testDe");
 
 		String values = "doge;wow!;very list;such collection";
-		DelimitedMultiSelectFilter f = FilterFactory.createDelimitedMultiSelectFilter(form, rg, de, false, values);
+		DelimitedMultiSelectFilter f = new DelimitedMultiSelectFilter(form, rg, de, values, "f", null, null, null,
+				DelimitedMultiSelectMode.EXACT);
 
 		InstancedRow row = mock(InstancedRow.class);
-		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue("doge");
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.ALPHANUMERIC, "doge");
 		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
 
 		boolean eval = f.evaluate(row);
@@ -220,7 +212,7 @@ public class DelimitedMultiSelectFilterTest {
 	}
 
 	@Test
-	public void testEval2() {
+	public void testEvalExact2() {
 		FormResult form = new FormResult();
 		form.setShortName("testForm");
 		form.setVersion("1.0");
@@ -234,10 +226,11 @@ public class DelimitedMultiSelectFilterTest {
 		de.setName("testDe");
 
 		String values = "doge;wow!;very list;such collection";
-		DelimitedMultiSelectFilter f = FilterFactory.createDelimitedMultiSelectFilter(form, rg, de, false, values);
+		DelimitedMultiSelectFilter f = new DelimitedMultiSelectFilter(form, rg, de, values, "f", null, null, null,
+				DelimitedMultiSelectMode.EXACT);
 
 		InstancedRow row = mock(InstancedRow.class);
-		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue("wow");
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.ALPHANUMERIC, "wow");
 		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
 
 		boolean eval = f.evaluate(row);
@@ -246,7 +239,7 @@ public class DelimitedMultiSelectFilterTest {
 	}
 
 	@Test
-	public void testEval3() {
+	public void testEvalExact4() {
 		FormResult form = new FormResult();
 		form.setShortName("testForm");
 		form.setVersion("1.0");
@@ -260,20 +253,47 @@ public class DelimitedMultiSelectFilterTest {
 		de.setName("testDe");
 
 		String values = "doge;wow!;very list;such collection";
-		DelimitedMultiSelectFilter f = FilterFactory.createDelimitedMultiSelectFilter(form, rg, de, false, values);
-		f.setBlank(true);
+		DelimitedMultiSelectFilter f = new DelimitedMultiSelectFilter(form, rg, de, values, "f", null, null, null,
+				DelimitedMultiSelectMode.EXACT);
 
 		InstancedRow row = mock(InstancedRow.class);
-		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue("");
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.ALPHANUMERIC, "");
+		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
+
+		boolean eval = f.evaluate(row);
+
+		assertFalse(eval);
+	}
+	
+	@Test
+	public void testEvalInclusive1() {
+		FormResult form = new FormResult();
+		form.setShortName("testForm");
+		form.setVersion("1.0");
+
+		RepeatableGroup rg = new RepeatableGroup();
+		rg.setUri("testRg");
+		rg.setName("testRg");
+
+		DataElement de = new DataElement();
+		de.setUri("testDe");
+		de.setName("testDe");
+
+		String values = "doge;wow!;very list;such collection";
+		DelimitedMultiSelectFilter f = new DelimitedMultiSelectFilter(form, rg, de, values, "f", null, null, null,
+				DelimitedMultiSelectMode.INCLUSIVE);
+
+		InstancedRow row = mock(InstancedRow.class);
+		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue(DataType.ALPHANUMERIC, "booowow!ssa");
 		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
 
 		boolean eval = f.evaluate(row);
 
 		assertTrue(eval);
 	}
-
+	
 	@Test
-	public void testEval4() {
+	public void toStringTest() {
 		FormResult form = new FormResult();
 		form.setShortName("testForm");
 		form.setVersion("1.0");
@@ -287,16 +307,35 @@ public class DelimitedMultiSelectFilterTest {
 		de.setName("testDe");
 
 		String values = "doge;wow!;very list;such collection";
-		DelimitedMultiSelectFilter f = FilterFactory.createDelimitedMultiSelectFilter(form, rg, de, false, values);
-		f.setBlank(false);
+		DelimitedMultiSelectFilter f = new DelimitedMultiSelectFilter(form, rg, de, values, "f", null, null, null,
+				DelimitedMultiSelectMode.EXACT);
+		String actual = f.toString();
+		String expected = "(testForm.testRg.testDe IN ('doge', 'wow!', 'very list', 'such collection'))";
 
-		InstancedRow row = mock(InstancedRow.class);
-		NonRepeatingCellValue testCellValue = new NonRepeatingCellValue("");
-		when(row.getCellValue(form.getShortNameAndVersion(), rg.getName(), de.getName())).thenReturn(testCellValue);
-
-		boolean eval = f.evaluate(row);
-
-		assertFalse(eval);
+		assertEquals(actual, expected);
 	}
 
+	@Test
+	public void toStringTruncateTest() {
+		FormResult form = new FormResult();
+		form.setShortName("testForm");
+		form.setVersion("1.0");
+
+		RepeatableGroup rg = new RepeatableGroup();
+		rg.setUri("testRg");
+		rg.setName("testRg");
+
+		DataElement de = new DataElement();
+		de.setUri("testDe");
+		de.setName("testDe");
+
+		String values = "doge;wow!;very list;such collection;much elements;SO doge;wow";
+		DelimitedMultiSelectFilter f = new DelimitedMultiSelectFilter(form, rg, de, values, "f", null, null, null,
+				DelimitedMultiSelectMode.EXACT);
+		String actual = f.toString();
+		String expected =
+				"(testForm.testRg.testDe IN ('doge', 'wow!', 'very list', 'such collection', 'much elements'...))";
+
+		assertEquals(actual, expected);
+	}
 }

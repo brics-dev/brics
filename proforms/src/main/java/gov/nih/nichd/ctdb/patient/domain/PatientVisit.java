@@ -31,7 +31,7 @@ public class PatientVisit extends CtdbDomainObject
 	private String mrn = null;
 	private String guid = null;
 	private int patientId = Integer.MIN_VALUE;
-	
+    private String email;
 	private String patientFirstName = null;
     private String patientLastName = null;
     private String token = null;
@@ -166,4 +166,25 @@ public class PatientVisit extends CtdbDomainObject
 	public void setIntervalClinicalPointId(int pntId) {
 		this.intervalClinicalPointId = pntId;
 	}
+
+    /**
+     * Gets the patient's email address
+     *
+     * @return The patient's email address
+     */
+    public String getEmail()
+    {
+        return email;
+    }
+
+    /**
+     * Sets the patient's email address
+     *
+     * @param email Patient's email address
+     */
+    public void setEmail(String email)
+    {
+        this.email = email;
+    }
+
 }

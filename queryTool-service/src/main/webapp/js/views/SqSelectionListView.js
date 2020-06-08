@@ -182,6 +182,13 @@ QT.SqSelectionListView = QT.SelectionListView.extend({
 			},
 			dataType: "json",
 			success : function(data) {
+				if (typeof accountInfoJson.status !== "undefined") {
+	             	if(data.status = "401") {
+	             		//redirect
+	             		window.location.href = "/query/logout";
+	             		return;
+	             	}
+	             }
 				var searchList = view.model.tilesCollection;
 				if (searchList.length == data.length) {
 					// show all

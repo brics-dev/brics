@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.mail.MessagingException;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 
@@ -220,13 +221,9 @@ public class ResponseManager extends CtdbManager {
 			List<Response> newResponses = new ArrayList<Response>();
 			List<Response> responsesHasAnswers = new ArrayList<Response>();
 			List<Response> responseAnswersToDelete = new ArrayList<Response>();
-			List answers = null; // new ArrayList();
-			List editAnswers = null; // new ArrayList();
-			List previousAnswers = null; // new ArrayList();
-			List latestAnswerInProgress = null; // new ArrayList();
 
 			for (Response response : responses) {
-
+				List<String> previousAnswers = null;
 				if (response.getId() == Integer.MIN_VALUE) {
 					newResponses.add(response);
 					if (!response.getAnswers().isEmpty()) {
@@ -245,9 +242,9 @@ public class ResponseManager extends CtdbManager {
 					}
 				}
 
-				answers = response.getAnswers();
-				editAnswers = response.getEditAnswers();
-				latestAnswerInProgress = dao.getLatestAnswerInProgress(administeredForm, response);
+				List<String> answers = response.getAnswers();
+				List<String> editAnswers = response.getEditAnswers();
+				List<String> latestAnswerInProgress = dao.getLatestAnswerInProgress(administeredForm, response);
 
 				if (editAnswers.isEmpty()) {
 					editAnswers = dao.getEditAnswers(administeredForm, response);
@@ -258,7 +255,11 @@ public class ResponseManager extends CtdbManager {
 					// archive the final answers to PATIENTADMINRESPONSE table
 					response.setEditedBy(loggedInUser.getId());
 					if (!answers.equals(previousAnswers)) {
-						// dao.deletePreviousAuditLogInProgress(administeredForm, response);
+						dao.createEditAnswersArchiveInProgress(administeredForm.getId(), response, false);
+					}
+				} else if (previousAnswers!= null && !previousAnswers.isEmpty()) { //record the action of user removing the answers
+					if (!answers.equals(previousAnswers)) {
+						response.setEditedBy(loggedInUser.getId());
 						dao.createEditAnswersArchiveInProgress(administeredForm.getId(), response, false);
 					}
 				}
@@ -300,8 +301,15 @@ public class ResponseManager extends CtdbManager {
 			throw ce;
 		} finally {
 			this.rollback(conn);
-			this.close(conn);
-
+			//In order to remove the connection leak error in the log, replace existing close statement with followings
+			try {
+				if (conn != null) {
+					conn.close();
+				}
+			}
+			catch (SQLException e) {
+				throw new CtdbException("Unable to close the connection", e);
+			}
 			long end = System.currentTimeMillis();
 			System.out.println("PERF DEBUG: saveProgress2 took " + (end - start) + " ms to complete.");
 
@@ -450,7 +458,86 @@ public class ResponseManager extends CtdbManager {
 		}
 	}
 
+    /* Audit Comment */
+    public void saveFinalAuditComments(AdministeredForm administeredForm, User user, String inprog)
+            throws CtdbException {
+    	
+        Connection conn = null;
+        try {
+            conn = CtdbManager.getConnection();
+            conn.setAutoCommit(false);
 
+            ResponseManagerDao dao = ResponseManagerDao.getInstance(conn);
+
+            List responses = administeredForm.getResponses();
+            Response response;
+            //List answers = null; //new ArrayList();  //TODO
+            String auditComment = "";
+            for (Iterator it = responses.iterator(); it.hasNext();) {
+                response = (Response) it.next();
+                //logger.info("ResponseManager->saveEditAnswers->responseId:\t"+response.getId());
+                auditComment = response.getEditAuditComment();
+                response.setAdministeredForm(administeredForm);
+                if (auditComment !=null && !auditComment.isEmpty()) {
+                    response.setEditedBy(user.getId());
+//                    logger.info("resp audit comment: "+response.getEditAuditComment()+" sectionid: "+response.getQuestion().getSectionId());
+                    
+                    if (administeredForm.getFinalLockDate() != null) { //FL
+                    	dao.createAuditCommentArchive(administeredForm.getId(), response,true, inprog); 
+                    }
+                    else { //Completed or In Progress
+                    	dao.createAuditCommentArchive(administeredForm.getId(), response,false, inprog); 
+                    }
+                }
+            }
+            conn.commit();
+        } catch (SQLException e) {
+            this.rollback(conn);
+            throw new CtdbException("Unable to save audit comment: "
+                    + e.getMessage(),
+                    e);
+        } catch (DuplicateObjectException doe) {
+            this.rollback(conn);
+            throw doe;
+        } catch (CtdbException ce) {
+            this.rollback(conn);
+            throw ce;
+        } finally {
+        	this.rollback(conn);
+            this.close(conn);
+        }
+    }
+    
+    /* Audit Comment */ //AdministeredForm administeredForm
+    public List getLastAuditComment(int administeredFormId, int sectionId,int questionId) //User loggedInUser)
+    											throws CtdbException {
+    	
+        Connection conn = null;
+        try {
+            conn = CtdbManager.getConnection();
+            conn.setAutoCommit(false);
+
+            ResponseManagerDao dao = ResponseManagerDao.getInstance(conn);
+            
+            List auditpair = dao.getLastAuditComment(administeredFormId, sectionId, questionId);  //loggedInUser 
+            conn.commit();
+            return auditpair;
+        } catch (SQLException e) {
+            this.rollback(conn);
+            throw new CtdbException("Unable to fetch audit comment: "
+                    + e.getMessage(),
+                    e);
+        } catch (DuplicateObjectException doe) {
+            this.rollback(conn);
+            throw doe;
+        } catch (CtdbException ce) {
+            this.rollback(conn);
+            throw ce;
+        } finally {
+        	this.rollback(conn);
+            this.close(conn);
+        }
+    }
 
 	/**
 	 * Saves the completed edit answers for the administered form.
@@ -575,14 +662,23 @@ public class ResponseManager extends CtdbManager {
 	 * @throws ObjectNotFoundException
 	 * @throws CtdbException
 	 */
-	public List getPatientViewDataForLandingPage(DataCollectionLandingForm pvList, int protocolId,
-			Map<String, String> searchOptions) throws ObjectNotFoundException, CtdbException {
+
+	public List getPatientViewDataForLandingPageBySites(DataCollectionLandingForm pvList, int protocolId,
+			Map<String, String> searchOptions,List<Integer> siteIds) throws ObjectNotFoundException, CtdbException {
 		Connection conn = null;
+		List pvDataList = new ArrayList();
 		try {
 			conn = CtdbManager.getConnection();
 			conn.setAutoCommit(false);
 			ResponseManagerDao dao = ResponseManagerDao.getInstance(conn);
-			List pvDataList = dao.getPatientViewDataForLandingPage(pvList, protocolId, searchOptions);
+			
+			if(siteIds == null) {
+			    pvDataList = dao.getPatientViewDataForLandingPageBySites(pvList, protocolId, searchOptions,null);
+			
+			}else {
+				pvDataList = dao.getPatientViewDataForLandingPageBySites(pvList, protocolId, searchOptions,siteIds);
+
+			}
 			conn.commit();
 			return pvDataList;
 		} catch (Exception e) {
@@ -1715,16 +1811,17 @@ public class ResponseManager extends CtdbManager {
 	 * @return
 	 * @throws CtdbException
 	 */
-	public List<AdministeredForm> myCollectionsList(int protocolId, int userId, Map<String, String> searchOptions,
-			PaginationData pageData, String key) throws CtdbException {
+	public List<AdministeredForm> myCollectionsListBySiteIds(int protocolId, int userId, Map<String, String> searchOptions,
+			PaginationData pageData, String key,List<Integer> siteIds) throws CtdbException {
 		Connection conn = null;
 
 		try {
 			conn = CtdbManager.getConnection();
 			conn.setAutoCommit(false);
 			ResponseManagerDao dao = ResponseManagerDao.getInstance(conn);
-			List<AdministeredForm> summaryList =
-					dao.myCollectionsList(protocolId, userId, searchOptions, pageData, key);
+			
+			List<AdministeredForm> summaryList = dao.myCollectionsListBySiteIds(protocolId, userId, searchOptions, pageData, key, siteIds);
+
 			conn.commit();
 			return summaryList;
 		} catch (Exception e) {
@@ -2230,6 +2327,80 @@ public class ResponseManager extends CtdbManager {
 		}
 	}
 
+    /** Audit Comment on "view audit" page.
+     */
+    public List<EditAnswerDisplay> getEditArchivesForAuditComment(Form form, int admFormId, boolean isFinalLocked) 
+    																	throws CtdbException, SQLException {
+        Connection conn = null;
+        try {
+            conn = CtdbManager.getConnection();
+            conn.setAutoCommit(false);
+            ResponseManagerDao dao = ResponseManagerDao.getInstance(conn);
+            List<EditAnswerDisplay> editArchives = dao.getEditArchivesForAuditComment(form,admFormId,isFinalLocked);
+            conn.commit();
+            return editArchives;
+       }catch (Exception e) {
+    	   this.rollback(conn);
+            e.printStackTrace();
+            throw new CtdbException("Please see stack trace");
+        } finally {
+        	this.rollback(conn);
+            this.close(conn);
+        }
+    }
+    /** Audit Comment
+     * Retrieves edit answers and comments by QId.
+     *
+     * @param admFormId The administered form ID for retrieving the edit answers and comments by QId
+     * @return List the list of Response objects for the admFormId, dict_sectionId, dict_questionId
+     * @throws CtdbException thrown if any errors occur
+     * @throws SQLException 
+     */
+    public List<EditAnswerDisplay> getEditArchivesByQId(Form form, int admFormId, 
+    		 						int dict_sectionId, int dict_questionId,
+    		 						boolean isFinalLocked) 
+    		 								throws CtdbException, SQLException {
+        Connection conn = null;
+        try {
+            conn = CtdbManager.getConnection();
+            conn.setAutoCommit(false);
+            ResponseManagerDao dao = ResponseManagerDao.getInstance(conn);
+            List<EditAnswerDisplay> editArchives = dao.getEditArchivesByQId(form,admFormId,dict_sectionId,dict_questionId, isFinalLocked);
+            conn.commit();
+            return editArchives;
+       }catch (Exception e) {
+    	   this.rollback(conn);
+            e.printStackTrace();
+            throw new CtdbException("Please see stack trace");
+        } finally {
+        	this.rollback(conn);
+            this.close(conn);
+        }
+    }
+    
+    /** Audit Comment on VQ-view queries.
+     */
+	public List<EditAnswerDisplay> getEditArchivesForVq(HttpServletRequest request, int protocolId,
+									 boolean isFinalLocked)
+											throws CtdbException {
+	       Connection conn = null;
+	        try {
+	            conn = CtdbManager.getConnection();
+	            conn.setAutoCommit(false);
+	            ResponseManagerDao dao = ResponseManagerDao.getInstance(conn);
+	            List<EditAnswerDisplay> editArchives = dao.getEditArchivesForVq(request,protocolId,isFinalLocked);
+	            conn.commit();
+	            return editArchives;
+	       }catch (Exception e) {
+	    	   this.rollback(conn);
+	            e.printStackTrace();
+	            throw new CtdbException("Please see stack trace");
+	        } finally {
+	        	this.rollback(conn);
+	            this.close(conn);
+	        }
+	}
+
 	/**
 	 * Retrieves adminisered form meta data editing history.
 	 *
@@ -2609,9 +2780,9 @@ public class ResponseManager extends CtdbManager {
 	 * @return
 	 * @throws CtdbException
 	 */
-	public List<String> getHiddenSectionsQuestionsElementIds(int protocolId, int eformId) throws CtdbException {
+	public List<String> getHiddenSectionsQuestionsPVsElementIds(int protocolId, int eformId) throws CtdbException {
 		Connection conn = null;
-		List<String> hiddenSectionsQuestionsElementIdsList = new ArrayList<String>();
+		List<String> hiddenSectionsQuestionsPVsElementIdsList = new ArrayList<String>();
 
 
 		try {
@@ -2623,7 +2794,7 @@ public class ResponseManager extends CtdbManager {
 			while (iter1.hasNext()) {
 				Integer hiddenSection = iter1.next();
 				String sectionElementId = "sectionContainer_" + hiddenSection;
-				hiddenSectionsQuestionsElementIdsList.add(sectionElementId);
+				hiddenSectionsQuestionsPVsElementIdsList.add(sectionElementId);
 			}
 
 			List<String> hiddenQuestionsList = dao.getHiddenQuestionsList(protocolId, eformId);
@@ -2631,10 +2802,19 @@ public class ResponseManager extends CtdbManager {
 			while (iter2.hasNext()) {
 				String hiddenSectionQuestion = iter2.next();
 				String questionElementId = "questionContainer_" + hiddenSectionQuestion;
-				hiddenSectionsQuestionsElementIdsList.add(questionElementId);
+				hiddenSectionsQuestionsPVsElementIdsList.add(questionElementId);
 			}
+			
+			List<String> hiddenPVList = dao.getHiddenPVList(protocolId, eformId);
+			Iterator<String> iter3 = hiddenPVList.iterator();
+			while (iter3.hasNext()) {
+				String hiddenSectionQuestionPV = iter3.next();
+				String pvElementId = "questionContainer_" + hiddenSectionQuestionPV;
+				hiddenSectionsQuestionsPVsElementIdsList.add(pvElementId);
+			}
+			
 
-			return hiddenSectionsQuestionsElementIdsList;
+			return hiddenSectionsQuestionsPVsElementIdsList;
 		} finally {
 			this.close(conn);
 		}
@@ -2937,5 +3117,65 @@ public class ResponseManager extends CtdbManager {
 			this.rollback(conn);
 			this.close(conn);
 		}
+	}
+	
+	/**
+	 * Get Summary Data result for the given chartName
+	 * 
+	 * 
+	 * @param chartName
+	 * @return
+	 * @throws CtdbException
+	 */	
+	public HashMap<String, String> getSummaryDataResult(String chartName) throws CtdbException {
+
+		Connection conn = null;
+		try {
+			conn = CtdbManager.getConnection();
+			ResponseManagerDao dao = ResponseManagerDao.getInstance(conn);
+			return dao.getSummaryDataResult(chartName);
+		} finally {
+			this.close(conn);
+		}
+		
+
+	}
+	
+	
+	/**
+	 * Checks to see if there are any data collections for a given eform shortname in all protocols
+	 * @param eformShortName
+	 * @return
+	 * @throws CtdbException
+	 */
+	public boolean areThereDataCollectionsInAnyProtocol(String eformShortName) throws CtdbException {
+		Connection conn = null;
+		try {
+			conn = CtdbManager.getConnection();
+			ResponseManagerDao dao = ResponseManagerDao.getInstance(conn);
+			return dao.areThereDataCollectionsInAnyProtocol(eformShortName);
+		} finally {
+			this.close(conn);
+		}
+		
+	}
+	
+	
+	/**
+	 * Checks to see if for a givien eform shortname if it is attached to any visittype in all protocols 
+	 * @param eformShortName
+	 * @return
+	 * @throws CtdbException
+	 */
+	public boolean areThereEformsAttachedToAnyVisitType(String eformShortName) throws CtdbException {
+		Connection conn = null;
+		try {
+			conn = CtdbManager.getConnection();
+			ResponseManagerDao dao = ResponseManagerDao.getInstance(conn);
+			return dao.areThereEformsAttachedToAnyVisitType(eformShortName);
+		} finally {
+			this.close(conn);
+		}
+		
 	}
 }

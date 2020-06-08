@@ -1,0 +1,16 @@
+[DB-TRG]
+host=nti-db-dev
+database=nti_dev
+schema=nti_metadev
+user=nti_metadev
+label=DEV-SRC
+
+[DB-SRC]
+host=pdbp-db-prod.cit.nih.gov
+database=pd_prod
+schema=tbi_meta
+user=tbi_meta
+label=PROD-TRG
+
+[FILE-SYS]
+logDir=/var/lib/brics/log/pg-delta/ntidev-pdprod-meta

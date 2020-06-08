@@ -45,6 +45,16 @@ var QuestionCalculationRuleDecorator = {
 			"click #calcSqrt" : function(){this.paren(' sqrt(');},
 			"click #calcLeftP" : function(){this.paren(' (');},
 			"click #calcRightP" : function(){this.paren(') ');},
+			
+			"click #calcGreater" : function(){this.button('>');},
+			"click #calcGreaterEqual" : function(){this.button('>=');},
+			"click #calcLesser" : function(){this.button('<');},
+			"click #calcLesserEqual" : function(){this.button('<=');},
+			
+			"click #calcEqualEqual" : function(){this.button('==');},
+			"click #calcNotEqual" : function(){this.button('!=');},
+			"click #calcAnd" : function(){this.button('&&');},
+			"click #calcOr" : function(){this.button('||');},
 		},
 		
 		

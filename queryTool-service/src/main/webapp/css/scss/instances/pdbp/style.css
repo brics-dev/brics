@@ -80,6 +80,8 @@ nav#navigation {
   padding-top: 0px; }
 
 @CHARSET "ISO-8859-1";
+/* Color Variables for structure and global colors */
+/* collapse colors */
 /* page main */
 body {
   min-width: 960px; }
@@ -87,6 +89,13 @@ body {
 #queryTool {
   padding: 0px;
   border: none; }
+
+.ui-dialog .ui-dialog-buttonpane button {
+  padding: .4em 1em; }
+
+.ui-button-icon-only {
+  text-indent: -9999px;
+  white-space: nowrap; }
 
 /**
  * Used for positioning help.  show if needed for dev
@@ -644,7 +653,6 @@ a.disabled {
   border: 1px solid #d75234;
   overflow: auto;
   position: relative;
-  margin-top: 24px;
   background-color: #f1f2f3; }
 
 .resultPaneSelect {
@@ -796,7 +804,12 @@ a.disabled {
   float: left;
   margin-top: 15px;
   margin-left: 15px;
-  width: 53%; }
+  width: 43%; }
+
+.selectionDeSearchReset {
+  margin-top: 15px;
+  margin-left: 15px;
+  float: right; }
 
 /* refine data tab */
 .resultsTabLink {
@@ -850,28 +863,37 @@ a.disabled {
   right: -1px;
   height: 24px;
   width: 24px;
-  border: 1px solid #d75234;
-  color: #d75234;
-  background: white;
+  border: 1px solid #333;
+  color: #333;
+  background: #A8A8A8;
   font-size: 16px;
   text-align: center;
-  line-height: 24px; }
+  line-height: 24px;
+  font-weight: bold; }
 
 .moveDataCartToQueue {
   float: right; }
 
-#stepTwoTab .filterPane .toggleFilterPane {
+#stepTwoTab .filterPane .toggleFilterPane,
+#stepTwoTab .filterPane .toggleCartPane {
   position: absolute;
   top: -1px;
   right: -1px;
   height: 24px;
   width: 24px;
-  border: 1px solid #d75234;
-  color: #d75234;
-  background: white;
+  border: 1px solid #333;
+  color: #333;
+  background: #A8A8A8;
   font-size: 16px;
   text-align: center;
-  line-height: 24px; }
+  line-height: 24px;
+  font-weight: bold; }
+
+#stepTwoTab .filterPane .toggleLogicBox {
+  border: 1px solid #333;
+  color: #333;
+  background: #A8A8A8;
+  font-weight: bold; }
 
 .dataCartActiveFormsHeader {
   margin-left: 5px;
@@ -891,6 +913,7 @@ a.disabled {
   height: 100%;
   border-left: 1px solid #b2b9bf;
   border-right: 1px solid #b2b9bf;
+  border-bottom: 1px solid #b2b9bf;
   overflow-y: auto; }
 
 .dataCartActiveFormsButtonsContainer {
@@ -919,7 +942,10 @@ a.disabled {
 
 #filterPaneContentContainer {
   padding: 10px;
-  border-top: 1px solid #d75234; }
+  border-top: 1px solid #d75234;
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto; }
 
 #stepTwoTab .filterPane {
   border: 1px solid #d75234; }
@@ -942,7 +968,7 @@ a.disabled {
   line-height: 22px;
   text-align: center;
   margin-left: 5px;
-  margin-right: 5px;
+  margin-right: 20px;
   padding-left: 0px;
   padding-right: 5px; }
 
@@ -950,10 +976,30 @@ a.disabled {
   float: right;
   line-height: 22px;
   text-align: center;
+  margin-right: 20px;
+  margin-left: 5px;
+  padding-left: 0px;
+  padding-right: 5px; }
+
+.filterLogicButton {
+  float: right;
+  line-height: 22px;
+  text-align: center;
   margin-right: 5px;
   margin-left: 5px;
   padding-left: 0px;
   padding-right: 5px; }
+
+#filterLogicRunQuery {
+  margin-right: 0; }
+
+#filterLogicBoxInput {
+  width: 100%;
+  max-width: 100%;
+  height: 50px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box; }
 
 .dataCartRemoveHeader {
   padding: 10px;
@@ -1006,23 +1052,60 @@ a.disabled {
 .filterBodyContainer.closed .filterBody {
   display: none; }
 
+.filterLogicContainer .filterLogicRow:not(:first-child) {
+  border-top: 1px solid #808080;
+  margin-top: 10px;
+  padding-top: 5px; }
+
 .queryFilter {
   border: 1px solid #b2b9bf;
   margin-top: 5px;
   position: relative;
   background: #f1f2f3; }
 
+.filterCombLogicContainer {
+  text-align: center; }
+
+.filterLogicAfterContainer {
+  text-align: right; }
+
+.filterLogicContainer select {
+  vertical-align: top;
+  margin-right: 10%; }
+
+.filterLogicRow {
+  margin-top: 3px; }
+
+.filterInputContainer {
+  float: left;
+  margin-left: 2%; }
+
+.filterLogicSelect {
+  float: left; }
+
 .filterNumericRangeSlider {
   width: 80%;
-  margin-left: auto;
-  margin-right: auto;
+  float: right;
+  margin-right: 1em;
+  /* corrects for the handle's width */
   background: #b2b9bf; }
+
+.filterNumericRangeMinTextBox, .filterNumericRangeMaxTextBox {
+  width: 2em; }
+
+.filterDateMinTextBox, .filterDateMaxTextBox {
+  width: 6em; }
+
+.filterNumericRangeInputContainer {
+  float: left;
+  width: 80%;
+  margin-left: 2%; }
 
 #filtersList {
   overflow: auto; }
 
 #filtersList .filterHeader .filterToggle {
-  border: 1px solid #b2b9bf;
+  border: 1px solid #333;
   font-size: 16px;
   font-weight: bold;
   height: 24px;
@@ -1032,8 +1115,8 @@ a.disabled {
   right: -1px;
   bottom: -1px;
   text-align: center;
-  background: #FFFFFF;
-  color: #b2b9bf; }
+  background: #A8A8A8;
+  color: #333; }
 
 .ui-slider-range {
   background: #d75234; }
@@ -1143,7 +1226,44 @@ a.disabled {
 .selectCriteriaFormName {
   padding-left: 10px;
   color: #d75234;
-  font-weight: bold; }
+  font-weight: bold;
+  line-height: 28px;
+  float: left; }
+
+.selectCriteriaShowHideText {
+  line-height: 28px;
+  float: right; }
+
+.formExpandCollapse {
+  width: 28px;
+  height: 28px;
+  font-size: 15px;
+  float: left;
+  line-height: 28px;
+  color: #6b7277; }
+
+.selectCriteriaGroupContainer {
+  clear: both; }
+
+.checkbox {
+  width: 16px;
+  height: 16px; }
+
+.addRemoveAllButton {
+  line-height: 28px;
+  height: 28px;
+  float: right;
+  width: 28px;
+  margin-right: 12px; }
+
+.checkboxChecked {
+  background: url(../../images/checkbox_checked.png) no-repeat right center; }
+
+.checkboxUnchecked {
+  background: url(../../images/checkbox_unchecked.png) no-repeat right center; }
+
+.checkboxIndeterminate {
+  background: url(../../images/checkbox_indeterminate.png) no-repeat right center; }
 
 .selectCriteriaGroup {
   border-top: 1px solid #6b7277; }
@@ -1164,23 +1284,43 @@ a.disabled {
   display: none; }
 
 .selectCriteriaDeNameContainer {
-  width: 58%;
+  width: 60%;
   float: left;
-  padding-left: 2%; }
+  padding-left: 2%;
+  padding-right: 8%; }
 
 .selectCriteriaDeCheckboxContainer {
   width: 20%;
   float: left;
-  text-align: center; }
+  text-align: right;
+  box-sizing: border-box;
+  padding-right: 10px; }
 
-.selectCriteriaFilterContainer {
-  width: 20%;
+.selectCriteriaDeCheckbox {
+  display: none; }
+
+.selectCriteriaDeCheckbox + label:before {
+  font-family: 'Pe-icon-set-interface';
+  speak: none;
+  display: inline-block;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  content: "\e627";
+  font-size: 23px;
+  height: 23px; }
+
+.selectCriteriaDeCheckbox:checked + label:before {
+  content: "\e687";
+  color: #d75234; }
+
+.selectCriteriaDeFilterContainer {
+  width: 10%;
   float: left; }
 
-.selectCriteriaGroupButtons {
-  padding-left: 2%; }
-
-.selectCriteriaGroupButtonsText {
+.selectCriteriaDeFilter {
   float: left; }
 
 .selectCriteriaGroupExpandCollapse {
@@ -1197,12 +1337,34 @@ a.disabled {
 .selectCriteriaDeContainer .selectCriteriaDe:nth-child(even) {
   background: #f2f9ff; }
 
-.selectCriteriaGroupButtons .buttonWithIcon {
-  float: left; }
+.selectCriteriaDeFilterContainer .selectCriteriaDeFilter {
+  font-weight: bold;
+  line-height: 22px;
+  width: 23px;
+  font-size: 21px;
+  /* sets up the fonticon for CSS control */
+  display: inline-block;
+  font-family: 'brics-qt';
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #A8A8A8; }
 
-.selectCriteriaDeFilter.filtering {
-  background: #d75234;
-  color: white; }
+.selectCriteriaDeFilterContainer .selectCriteriaDeFilter:before {
+  content: "\e900"; }
+
+.selectCriteriaDeFilterContainer .selectCriteriaDeFilter.disabled {
+  opacity: .75; }
+
+.selectCriteriaDeFilter.filtering:before {
+  content: "\e900";
+  color: #d75234; }
 
 .selectCriteriaGroupSelectionName {
   font-weight: bold; }
@@ -1265,9 +1427,6 @@ a.disabled {
 #metaStudyTable {
   height: auto;
   margin-bottom: 10px; }
-
-.lengthMenuContainer {
-  display: inline-block; }
 
 /* html forms */
 /* single-column form row */
@@ -1490,7 +1649,8 @@ table.std_table tr:nth-child(even) {
   font-weight: normal;
   margin-bottom: 5px;
   margin-left: 5%;
-  width: 70%; }
+  width: 70%;
+  overflow-wrap: break-word; }
 
 viewQuery_formHeader {
   background-color: white;
@@ -1662,6 +1822,11 @@ viewQuery_formHeader {
   width: 250px;
   color: red; }
 
+.group:after {
+  content: "";
+  display: table;
+  clear: both; }
+
 @CHARSET "ISO-8859-1";
 /* Mixins */
 /*
@@ -1681,6 +1846,12 @@ body {
   line-height: 1.42857143;
   color: #333333;
   background-color: #ffffff; }
+
+.floatLeft {
+  float: left; }
+
+.floatRight {
+  float: right; }
 
 .clearfix {
   clear: both; }
@@ -1829,6 +2000,75 @@ body {
 .ui-tabs .ui-tabs-nav {
   border-bottom: 1px solid #d75234; }
 
+/*******************   qt-toggle-switch ****************/
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 25px;
+  height: 15px; }
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0; }
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #808080;
+  -webkit-transition: .4s;
+  transition: .4s; }
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 15px;
+  width: 15px;
+  left: 0px;
+  bottom: 0px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s; }
+
+input:checked + .slider {
+  background-color: #f94936; }
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #f94936; }
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(15px);
+  -ms-transform: translateX(15px);
+  transform: translateX(15px); }
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px; }
+
+.slider.round:before {
+  border-radius: 50%; }
+
+/* Font icon processing */
+.containerFontIcon {
+  display: none;
+  top: 250px;
+  left: 65%;
+  position: absolute; }
+
+/******************* end qt toggle switch *******************/
+.hide {
+  display: none; }
+
+.show {
+  display: block; }
+
 /* The specific style rules used to suggest rendering */
 /* for the CSS table design example, starts here */
 #resultsDatatable {
@@ -1882,8 +2122,8 @@ DIV.space-line {
   width: 100%;
   /* height: 100%; */
   padding: 0 0 10px 0 !important;
-  overflow-y: auto;
-  overflow-x: auto;
+  overflow-y: hidden;
+  overflow-x: hidden;
   box-sizing: border-box; }
 
 .headerScroll {
@@ -1903,8 +2143,8 @@ DIV.space-line {
   word-wrap: break-word;
   overflow: hidden;
   box-sizing: border-box;
-  user-select: none;
-  -moz-user-select: none;
+  user-select: auto;
+  -moz-user-select: auto;
   position: absolute; }
 
 .tableCell {
@@ -1914,14 +2154,13 @@ DIV.space-line {
   overflow: hidden;
   padding: 2px !important;
   box-sizing: border-box;
-  user-select: none;
-  -moz-user-select: none;
-  position: absolute; 
-  background-color: #f1f2f3;
-}
+  user-select: auto;
+  -moz-user-select: auto;
+  position: absolute;
+  background-color: #f1f2f3; }
+
 .frozen {
-  z-index: 10;
-}  
+  z-index: 10; }
 
 /*.dataBody .table-row:nth-of-type(even) h5.colCell {background: #FFF}
 .dataBody .table-row:nth-of-type(odd) h5.colCell {background: #CCC}*/
@@ -2310,16 +2549,16 @@ ul.pagination li a:hover:not(.active) {
 .blue select {
   color: #fff; }
 
-.lengthMenuDropdown {
-  margin-right: -12px;
-  float: left; }
-
 .ui-resizable-e {
   cursor: ew-resize !important; }
 
 .highlight-row {
   background-color: #f0ff9b !important;
   background: #f0ff9b !important; }
+
+.color-text {
+  color: #f00 !important;
+  color: #f00 !important; }
 
 /***** d3 table styles ********/
 .centerScroll {
@@ -2388,8 +2627,8 @@ ul.pagination li a:hover:not(.active) {
   overflow: hidden;
   padding: 2px !important;
   box-sizing: border-box;
-  user-select: none;
-  -moz-user-select: none;
+  user-select: auto;
+  -moz-user-select: auto;
   position: absolute; }
 
 .tableCell.even {
@@ -2397,6 +2636,27 @@ ul.pagination li a:hover:not(.active) {
 
 .deHeader .colValue {
   float: left; }
+
+/****** flex styles ****/
+.flex-space-between {
+  display: flex;
+  justify-content: space-between; }
+
+/*** table header styles ****/
+.formJoinDescription {
+  padding-top: 5px;
+  display: block;
+  float: left;
+  width: 70%; }
+
+#tableNotificationMessage {
+  flex-grow: 7;
+  display: none;
+  border: 1px solid #000;
+  padding: 3px;
+  margin: 3px;
+  background: #4a545b;
+  color: #fff; }
 
 /***
 

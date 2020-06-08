@@ -1,0 +1,7 @@
+[FILE-SYS]
+logDir=/var/lib/brics/log/propPasswdUtil/uat-pd-host
+passFile=/home/buildman/.pgpass
+
+[DEPLOY]
+trgRoot=/var/lib/brics/remote/uat/pd-host
+srcRoot=/var/lib/brics/src/local/prop/uat/pd-host

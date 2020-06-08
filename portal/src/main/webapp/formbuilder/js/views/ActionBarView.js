@@ -26,14 +26,16 @@ var ActionBarView = BaseView.extend({
 		EventBus.on("change:activeSection", this.enableDisableAddQuestionButton, this);
 		EventBus.on("change:activeSection", this.enableDisableResetTable, this);
 		EventBus.on("change:section", this.enableDisableResetTable, this);
+		this.listenTo(this.model, 'change:name', this.truncateTitle, this);
 		this.template = TemplateManager.getTemplate("actionBarTemplate");
+		
 	},
 	
 	render : function() {
 		this.$el.html(this.template(this.model.attributes));
 		ActionBarView.__super__.render.call(this);
 		this.formStructureRender();
-		
+		this.truncateTitle();
 		// sticky this element to the top of the page if the page is scrolled past it
 		Config.actionBarTop = this.$el.offset().top;
 		
@@ -75,6 +77,7 @@ var ActionBarView = BaseView.extend({
 		
 		RepeatableSectionProcessor.updateCalcRule();
 		RepeatableSectionProcessor.updateSkipRule();
+		RepeatableSectionProcessor.updateCountRule();
 		
 		/*added by Ching Heng*/
 		FormBuilder.pageView.setRowsCols();
@@ -98,17 +101,21 @@ var ActionBarView = BaseView.extend({
 		$.ajax({
 			  type: "POST",
 			  url: baseUrl+"validateEformAction!validateEform.action",
-			  data: {shortName:short},
+			  data: {shortName:short,eFormAction:"save",questionsJSON:JSON.stringify(questionArray)},
 			  dataType :"json",
 			  async:true,
 			  success: function(response, status, jqxhr) {
 				  $.ibisMessaging("close", {type:"primary"}); 
 				  var data = $.parseJSON(response);
-				  for (var i=0; i<data.length; i++){
-					  	$.ibisMessaging("primary", "error", "Short Name "+data[i].msgType,{container: "#messageContainer"});
+				  if(data) {
+					  for (var i=0; i<data.length; i++){
+						  	$.ibisMessaging("dialog", "error", data[i].msgType,{container: "#messageContainer"});	  	 	
+					  }
 				  }
+				  
 				  EventBus.trigger("close:processing");
-				  if(data.length==0){
+				  
+				  if(data == null || data.length==0){
 						
 						if(questionArray.length<1){
 							EventBus.trigger("close:processing");
@@ -157,20 +164,32 @@ var ActionBarView = BaseView.extend({
 	},
 	emailTriggerAnswers : function(questionVal){
 		var etObjArray = [];
-		var triggerAnswers=questionVal.attributeObject.triggerAnswers;
-		for(var i=0;i<triggerAnswers.length;i++){
-			if(typeof triggerAnswers[i]=="string"){
-				var etObj= {
-						etValId : (i+1)*-1,
-						etAnswer : triggerAnswers[i]	
-				};
-				etObjArray.push(etObj);
-			}else if((typeof triggerAnswers[i]=="object") &&triggerAnswers[i]!=null ){
-				etObjArray.push(triggerAnswers[i]);
-			}
 		
-		}
-		questionVal.attributeObject.triggerAnswers = etObjArray;
+		var questionType = questionVal.questionType;
+		var questionTypes = Config.questionTypes;
+		
+		if(questionType == questionTypes.radio || questionType == questionTypes.checkbox 
+				|| questionType == questionTypes.select || questionType == questionTypes.multiSelect) {
+			var triggerAnswers=questionVal.attributeObject.triggerAnswers;
+			//for the new triggerAnswers
+			if(typeof triggerAnswers != "undefined"){
+				for(var i=0;i<triggerAnswers.length;i++){		
+					if(typeof triggerAnswers[i]=="string"){
+						var etObj= {
+								etValId : (i+1)*-1,
+								etAnswer : $.trim(triggerAnswers[i]),
+								etCondition : ""
+						};
+						etObjArray.push(etObj);
+					}else if((typeof triggerAnswers[i]=="object") &&triggerAnswers[i]!=null ){
+						etObjArray.push($.trim(triggerAnswers[i]));
+					}
+				
+				}
+				questionVal.attributeObject.triggerValues = etObjArray;
+			}
+			
+		}		
 	},
 	
 	addSection : function() {
@@ -228,6 +247,16 @@ var ActionBarView = BaseView.extend({
 			question.questionType = type;
 			var newQuestion = activeSectionModel.addQuestion(question);
 			EventBus.trigger("add:question", newQuestion);
+		}
+	},
+	
+	truncateTitle : function() {
+		var fullTitle = this.model.get("name");
+		if(fullTitle.length > 65){
+			this.model.set("truncatedTitle", fullTitle.substring(0,64) + "...");
+		}
+		else{
+			this.model.set("truncatedTitle", fullTitle);
 		}
 	},
 	

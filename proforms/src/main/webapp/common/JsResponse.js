@@ -5,8 +5,11 @@ function JsResponse () {
     this.deTwoAnswer = "";
     this.finalAnswer = "";
     this.questionId = null;
+    this.sectionId = null;
     this.editAnswer = "";
     this.changeReason = "";
+    this.changeAuditComment = "";
+    this.auditStatus = "";
     this.edited = false;
     this.responseId = null;
     this.sectionId = null;
@@ -43,11 +46,20 @@ JsResponse.prototype.getFinalAnswer = function () { return this.finalAnswer; }
 JsResponse.prototype.setQuestionId = function (ans) { this.questionId = ans; }
 JsResponse.prototype.getQuestionId = function () { return this.questionId; }
 
+JsResponse.prototype.setSectionId = function (ans) { this.sectionId = ans; }
+JsResponse.prototype.getSectionId = function () { return this.sectionId; }
+
 JsResponse.prototype.setEditAnswer = function (ans) { this.editAnswer = ans; }
 JsResponse.prototype.getEditAnswer = function () { return this.editAnswer; }
 
 JsResponse.prototype.setChangeReason = function (ans) { this.changeReason = ans; }
 JsResponse.prototype.getChangeReason = function () { return this.changeReason; }
+
+JsResponse.prototype.setChangeAuditComment = function (ans) { this.changeAuditComment = ans; }
+JsResponse.prototype.getChangeAuditComment = function () { return this.changeAuditComment; }
+
+JsResponse.prototype.setAuditStatus = function (ans) { this.auditStatus = ans; }
+JsResponse.prototype.getAuditStatus = function () { return this.auditStatus; }
 
 JsResponse.prototype.setResponseId = function (ans) { this.responseId = ans; }
 JsResponse.prototype.getResponseId = function () { return this.responseId; }

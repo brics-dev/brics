@@ -1,0 +1,20 @@
+
+/********************************************/
+
+ALTER TABLE sys_branch DROP CONSTRAINT fk1_sys_branch;
+ALTER TABLE sys_branch DROP CONSTRAINT fk2_sys_branch;
+ALTER TABLE sys_install DROP CONSTRAINT fk3_sys_install;
+ALTER TABLE sys_install DROP CONSTRAINT fk4_sys_install;
+ALTER TABLE sys_install DROP CONSTRAINT fk5_sys_install;
+
+DROP TABLE sys_command;
+
+DROP TABLE sys_revision;
+
+DROP TABLE sys_install;
+DROP SEQUENCE sys_install_seq;
+
+DROP TABLE sys_branch;
+DROP TABLE sys_user;
+
+/********************************************/

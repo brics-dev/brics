@@ -1,6 +1,8 @@
 package gov.nih.brics.cas.flow;
 
 import javax.servlet.http.Cookie;
+
+import org.apache.commons.lang3.StringUtils;
 import org.jasig.cas.web.support.WebUtils;
 import org.springframework.web.util.CookieGenerator;
 import org.springframework.webflow.execution.RequestContext;
@@ -13,15 +15,20 @@ public class BricsLogoutSessionLoggerAction extends BricsLoginHandler {
 	
 	public String log(final RequestContext context) {
 		
-		// the below do not work to get the TGT
+		// Try to get the TGT
 		String tgtId = WebUtils.getTicketGrantingTicketId(context);
-		if (tgtId == null || tgtId.equals("")) {
+		if (StringUtils.isBlank(tgtId)) {
 			Cookie cookie = org.springframework.web.util.WebUtils.getCookie(WebUtils.getHttpServletRequest(context), tgtCookieGenerator.getCookieName());
-			tgtId = cookie.getValue();
+
+			if (cookie != null) {
+				tgtId = cookie.getValue();
+			}
 		}
-		
+
 		// end the session in the session log db table
-		SessionLogDbUtil.endSession(getJdbcTemplate(), tgtId);
+		if (StringUtils.isNotBlank(tgtId)) {
+			SessionLogDbUtil.endSession(getJdbcTemplate(), tgtId);
+		}
 
 		return "success";
 	}

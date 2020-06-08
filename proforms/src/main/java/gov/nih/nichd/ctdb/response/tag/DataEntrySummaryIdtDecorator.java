@@ -290,8 +290,6 @@ public class DataEntrySummaryIdtDecorator extends IdtDecorator {
 		
 		
 	}
-	
-	
 
 	/**
 	 * Returns current user name 2 for this row

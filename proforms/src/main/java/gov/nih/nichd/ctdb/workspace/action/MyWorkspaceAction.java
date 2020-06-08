@@ -1,6 +1,5 @@
 package gov.nih.nichd.ctdb.workspace.action;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -30,7 +29,6 @@ import gov.nih.nichd.ctdb.protocol.action.ProtocolAdminAction;
 import gov.nih.nichd.ctdb.protocol.common.ProtocolConstants;
 import gov.nih.nichd.ctdb.protocol.domain.Protocol;
 import gov.nih.nichd.ctdb.protocol.manager.ProtocolManager;
-import gov.nih.nichd.ctdb.response.domain.AdverseEvent;
 import gov.nih.nichd.ctdb.security.util.SecuritySessionUtil;
 import gov.nih.nichd.ctdb.site.domain.Site;
 import gov.nih.nichd.ctdb.workspace.domain.DashboardChartFilter;
@@ -38,7 +36,6 @@ import gov.nih.nichd.ctdb.workspace.domain.DashboardDataCollectionStatus;
 import gov.nih.nichd.ctdb.workspace.domain.ProtocolCollectionStatusVsEformCount;
 import gov.nih.nichd.ctdb.workspace.domain.ProtocolVisitNameVsSubjectCountCharts;
 import gov.nih.nichd.ctdb.workspace.manager.DashboardReportingManager;
-import gov.nih.nichd.ctdb.workspace.util.AdverseEventJson;
 import gov.nih.tbi.idt.ws.IdtInterface;
 import gov.nih.tbi.idt.ws.InvalidColumnException;
 import gov.nih.tbi.idt.ws.Struts2IdtInterface;
@@ -186,7 +183,7 @@ public class MyWorkspaceAction extends BaseAction {
 		if(guidId != null){ 
 			/*site != null && guid != null*/
 			PatientManager patMan = new PatientManager();
-			String guid = patMan.getPatient(String.valueOf(guidId)).getGuid();
+			String guid = patMan.getPatient(String.valueOf(guidId), protocolId).getGuid();
 //			if(dataName.length() > 0){
 //				dataName += " | " + guid + " ";
 //			} else {
@@ -429,6 +426,45 @@ public class MyWorkspaceAction extends BaseAction {
 
     }
     
+	public String getDashBoardGuidsListForSite() {
+
+		try {
+			String selectedSiteId = request.getParameter("selectedSiteId");
+			Integer siteId = Integer.valueOf(selectedSiteId);
+			List<Patient> patList = new ArrayList<Patient>();
+
+			Protocol protocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
+			if (protocol != null) {
+				PatientManager patMan = new PatientManager();
+				JSONArray guidsJsonArray = new JSONArray();
+				patList = patMan.getPatientListByProtocolAndSite(protocol.getId(), siteId);
+
+				for (Patient p : patList) {
+					JSONObject guidJsonObj = new JSONObject();
+					guidJsonObj.put("id", p.getId());
+					guidJsonObj.put("guid", p.getGuid());
+					guidsJsonArray.put(guidJsonObj);
+				}
+
+				jsonList = guidsJsonArray.toString();
+
+			} else {
+				errRespMsg = "No Protocol";
+				return StrutsConstants.BAD_REQUEST;
+			}
+		} catch (JSONException je) {
+			logger.error("Error in loading Guids for the Site", je);
+			return ERROR;
+		} catch (ObjectNotFoundException oe) {
+			logger.error("Error in loading Guids for the Site", oe);
+			return ERROR;
+		} catch (CtdbException ce) {
+			logger.error("Error in loading Guids for the Site", ce);
+			return ERROR;
+		}
+		return BaseAction.SUCCESS;
+	}
+
     public String getDashBoardCollStatusList() throws JSONException, ObjectNotFoundException, CtdbException{
 			
 		JSONArray collStatusesJsonArray = new JSONArray();
@@ -531,27 +567,6 @@ public class MyWorkspaceAction extends BaseAction {
 		ddSeriesJsonObj.put("data", drillDownDataArr);
 		ddSeriesJsonObj.put("drilldownCategory", drillDownCatArr);
 		return ddSeriesJsonObj;
-	}
-	
-	public String getAEsData() throws Exception {
-		
-		Protocol protocol = (Protocol) session.get(CtdbConstants.CURRENT_PROTOCOL_SESSION_KEY);
-		List<AdverseEvent> aes = new ArrayList<AdverseEvent>();
-		if (protocol != null) {
-			aes = (List<AdverseEvent>)dashboardReporting.getAEListBySelectedStudy(protocol.getId());			
-		} 		
-		JSONArray jsonAEs = new JSONArray();
-		for (AdverseEvent ae : aes) {
-			jsonAEs.put(AdverseEventJson.fromAdverseEvent(ae));
-		}
-		
-		HttpServletResponse response = ServletActionContext.getResponse();
-		response.setContentType("text/text");
-    	PrintWriter out = response.getWriter();
-    	out.print(jsonAEs.toString());
-    	out.flush();
-		
-		return null;
 	}
 	
     public List<DashboardDataCollectionStatus> getSiteCollStatusList() {

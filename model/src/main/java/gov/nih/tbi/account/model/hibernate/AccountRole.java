@@ -1,11 +1,6 @@
 
 package gov.nih.tbi.account.model.hibernate;
 
-import gov.nih.tbi.ModelConstants;
-import gov.nih.tbi.commons.model.BRICSTimeDateUtil;
-import gov.nih.tbi.commons.model.RoleStatus;
-import gov.nih.tbi.commons.model.RoleType;
-
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -24,6 +19,12 @@ import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlTransient;
+
+import gov.nih.tbi.ModelConstants;
+import gov.nih.tbi.commons.model.AccountStatus;
+import gov.nih.tbi.commons.model.BRICSTimeDateUtil;
+import gov.nih.tbi.commons.model.RoleStatus;
+import gov.nih.tbi.commons.model.RoleType;
 
 @Entity
 @Table(name = "ACCOUNT_ROLE")
@@ -176,7 +177,8 @@ public class AccountRole implements Serializable
     }
     
     public boolean getIsActive() {
-    	return this.getRoleStatus() == RoleStatus.ACTIVE || this.getRoleStatus() == RoleStatus.EXPIRING_SOON;
+		return (this.getRoleStatus() == RoleStatus.ACTIVE || this.getRoleStatus() == RoleStatus.EXPIRING_SOON
+				|| (this.getRoleStatus() == RoleStatus.PENDING && expirationDate != null && !isExpired()));
     }
     
     @Override

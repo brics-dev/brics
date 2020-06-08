@@ -1,0 +1,16 @@
+[RDF-SRC]
+serviceURL=http://ninr-rdfdictionary-prod.cit.nih.gov:8890/sparql/
+graph=http://ninds.nih.gov:8080/allTriples.ttl
+isqlPort=1111
+batchMax=7500
+
+[RDF-TRG]
+serviceURL=http://localhost:8891/sparql/
+graph=http://ninds.nih.gov:8080/allTriples.ttl
+isqlPort=1112
+isqlUser=dba
+
+[FILE-SYS]
+logDir=D:\DEV\appdata\log\rdfCloner\prodninr-local
+workDir=D:\SOFT\Virtuoso\import
+passFile=D:\DATA\secur\passwd.conf

@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 
 import gov.nih.nichd.ctdb.common.CasProxyTicketException;
+import gov.nih.nichd.ctdb.security.util.BaseWsProvider;
 import gov.nih.nichd.ctdb.security.util.SecuritySessionUtil;
 import gov.nih.nichd.ctdb.util.common.SysPropUtil;
 import gov.nih.tbi.dictionary.model.EformRestServiceModel.BasicEformList;
@@ -23,11 +24,10 @@ import gov.nih.tbi.dictionary.model.EformRestServiceModel.DataElementNameList;
 import gov.nih.tbi.dictionary.model.hibernate.DataElement;
 import gov.nih.tbi.dictionary.model.hibernate.eform.BasicEform;
 
-public class DictionaryWSProvider {
+public class DictionaryWSProvider extends BaseWsProvider {
 	private static final Logger logger = Logger.getLogger(DictionaryWSProvider.class);
-	
-	HttpServletRequest request;
 
+	public DictionaryWSProvider() {}
 	/**
 	 * Default constructor.
 	 * 
@@ -187,18 +187,43 @@ public class DictionaryWSProvider {
 		return dataElement;
 	}
 
-	/**
-	 * @return the request
-	 */
-	public HttpServletRequest getRequest() {
-		return request;
-	}
+	public Map<String, BasicEform> getPublishedEformListFromWs()
+			throws CasProxyTicketException, WebApplicationException {
+		String restfulDomain = SysPropUtil.getProperty("webservice.restful.ddt.domain");
+		String restfulUrl = restfulDomain + SysPropUtil.getProperty("webservice.restful.published.eform.url");
 
-	/**
-	 * @param request the request to set
-	 */
-	public void setRequest(HttpServletRequest request) {
-		this.request = request;
+		try {
+			String proxyTicket = getProxyTicket(restfulDomain);
+
+			if (proxyTicket != null) {
+				restfulUrl = compileProxiedWebserviceUrl(restfulUrl, proxyTicket);
+			}
+		} catch (Exception e) {
+			throw new CasProxyTicketException(
+					"Couldn't get the proxy ticket for the Dictionary WS call to get a list of eForms.", e);
+		}
+
+		logger.info("Getting eForms with the following URL: " + restfulUrl);
+
+		Client client = ClientBuilder.newClient();
+		WebTarget wt = client.target(restfulUrl);
+		BasicEformList basicEformList = wt.request(MediaType.APPLICATION_XML).get(BasicEformList.class);
+
+		// Create the eForm map from the returned list, with the key being each eForm's short name.
+		List<BasicEform> eFormList = basicEformList.getList();
+		Map<String, BasicEform> eFromMap = new HashMap<String, BasicEform>(eFormList.size());
+		String disablePromis = SysPropUtil.getProperty("disable.promis");
+		for (BasicEform bf : eFormList) {
+			if (Boolean.valueOf(disablePromis)) {
+				if (!bf.getIsCAT()) {
+					eFromMap.put(bf.getShortName(), bf);
+				}
+			} else {
+				eFromMap.put(bf.getShortName(), bf);
+			}
+		}
+
+		return eFromMap;
 	}
 
 }

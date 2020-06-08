@@ -1,4 +1,5 @@
 <%@ taglib uri="/struts-tags" prefix="s"%>
+<%@page import="gov.nih.tbi.PortalConstants"%>
 <script>
 /**
  * Defines a configuration object for use in all parts of the application.
@@ -40,6 +41,16 @@ var Config = {
 	 * should act like it is a part of that row
 	 */
 	sectionDragTolerance : 15,
+	
+	/**
+	 * These are permissible values for File Upload
+	 */
+	fileUpload : {
+		permissibleTypes		:	"<%=PortalConstants.PERMISSIBLE_UPLOAD_FILETYPES%>",
+		permissibleSize			:	"<%=PortalConstants.PERMISSIBLE_UPLOAD_FILESIZE%>",
+		unsupportedFileExtension:   "<%=PortalConstants.UNSUPPORTED_FILE_EXTENSION%>",
+		unsupportedFileSize     :   "<%=PortalConstants.UNSUPPORTED_FILE_SIZE%>"
+	},
 	
 	/**
 	 * If the user drags a question within questionDragTolerance, the 
@@ -145,7 +156,8 @@ var Config = {
 			descriptionUp : '<s:property value="sessionEform.eform.descriptionUp" />',
 			//descriptionDown : $("#formdata-descriptionDown").html(),  
 			descriptionDown : '<s:property value="sessionEform.eform.descriptionDown" />',
-			shortName :'<s:property value="sessionEform.eform.shortName" />'
+			shortName :'<s:property value="sessionEform.eform.shortName" />',
+			pfCategory : '<s:property value="sessionEform.eform.pfCategory.id" />'
 			//statusHidden : $("#formdata-statusHidden").html()
 			
 	 },
@@ -370,6 +382,11 @@ var Config = {
 		validateEqualsSkipRuleEquals  :    "Please specify an equals value for the skip rule.",
 		validateSkipRuleType  :    "Please specify a skip rule.",
 		validateSkipRuleQuestions  :    "Please assign questions to skip for the skip rule.",
+		validateNumericSkipRuleEquals : "Please enter numeric value for the selected Skip Rule Operator.",
+		validateLessthanSkipRuleEquals  :    "Please specify a less than value for the skip rule.",
+		validateLessthanEqualtoSkipRuleEquals  :    "Please specify a less than equal to value for the skip rule.",
+		validateGreaterthanSkipRuleEquals  :    "Please specify a greater than value for the skip rule.",
+		validateGreaterthanEqualtoSkipRuleEquals  :    "Please specify a greater than equal to value for the skip rule.",
 		
 		// Question text
 		questionText 			: "Text is required.",
@@ -415,6 +432,7 @@ var Config = {
 		emailRecipientRequired  :   "When creating an email trigger, email recipient is required.",
 		emailAddress			:	"Email Address is not a valid email address; please specify only valid email addresses.",
 		triggerAnswer			:	"When creating an email trigger, answers to activate the trigger are required.",
+		triggerCondition		:	"When creating an email trigger, please at least add one condition to activate the trigger.",
 		
 		// delete Question
 		deleteSkipQuestion		:	"This question can't be deleted since it is part of another question's skip rule",

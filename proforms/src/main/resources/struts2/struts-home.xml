@@ -18,7 +18,12 @@
 			</result>
 		</action>		
         <action name="casLoginRedirect" class="gov.nih.nichd.ctdb.security.action.CasLoginRedirectAction">
-        	<result name="success">security/casLoginRedirect.jsp</result>
+        	<result name="success" type="httpheader">
+        		<param name="status">204</param>
+        	</result>
+        </action>
+        <action name="logoff" class="gov.nih.nichd.ctdb.security.action.LogoutAction">
+        	<result name="redirect" type="redirect">${ssOutCasUrl}</result>
         </action>
 		
 		<!-- Dashboard -->
@@ -65,7 +70,7 @@
 				<param name="statusCode">500</param>
 				<param name="root">errRespMsg</param>
 			</result>
-			<allowed-methods>populateViewData, getVisitTypeListByGuid, geteFormsForInterval, viewDataGraph, getGuidForViewData</allowed-methods>
+			<allowed-methods>populateViewData, getVisitTypeListByGuid, geteFormsForInterval, viewDataGraph, getGuidForViewData, getGuidsForSelectedSites</allowed-methods>
 		</action>
 		
 		<action name="getDashboardFilterAction" class="gov.nih.nichd.ctdb.workspace.action.MyWorkspaceAction">
@@ -82,7 +87,7 @@
 				<param name="error">500</param>
 				<param name="errorMessage">${errRespMsg}</param>
 			</result>
-			<allowed-methods>getDashBoardSitesList,getDashBoardGuidsList,getDashBoardCollStatusList</allowed-methods>
+			<allowed-methods>getDashBoardSitesList,getDashBoardGuidsList,getDashBoardGuidsListForSite,getDashBoardCollStatusList</allowed-methods>
         </action>
         
         <action name="getDashboardOverallStatusAction" class="gov.nih.nichd.ctdb.workspace.action.DashboardOverAllStatusAction">
@@ -101,14 +106,6 @@
 			</result>
 			<allowed-methods>getDashBoardOverAllStatusList,getDashBoardStudyInformation</allowed-methods>
         </action>
-        
-        <!-- "Adverse Event Log" JSON -->
-		<action name="aeJson" class="gov.nih.nichd.ctdb.workspace.action.MyWorkspaceAction" method="getAEsData">
-			<result name="success" type="json">
-				<param name="noCache">true</param>
-				<param name="excludeNullProperties">true</param>
-			</result>
-		</action>
 	</package>
 	
 </struts>

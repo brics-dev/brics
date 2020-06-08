@@ -1,21 +1,5 @@
 package gov.nih.tbi.dictionary.dao.sparql;
 
-import gov.nih.tbi.commons.dao.sparql.GenericSparqlDaoImpl;
-import gov.nih.tbi.commons.model.BRICSTimeDateUtil;
-import gov.nih.tbi.commons.model.StatusType;
-import gov.nih.tbi.commons.util.BRICSStringUtils;
-import gov.nih.tbi.commons.util.PaginationData;
-import gov.nih.tbi.commons.util.QueryConstructionUtil;
-import gov.nih.tbi.commons.util.RDFConstants;
-import gov.nih.tbi.commons.util.SearchFormStructureQueryConstructionUtil;
-import gov.nih.tbi.dictionary.dao.FormStructureSparqlDao;
-import gov.nih.tbi.dictionary.model.FormStructureFacet;
-import gov.nih.tbi.dictionary.model.FormStructureStandardization;
-import gov.nih.tbi.dictionary.model.InstanceRequiredFor;
-import gov.nih.tbi.dictionary.model.NameAndVersion;
-import gov.nih.tbi.dictionary.model.hibernate.Disease;
-import gov.nih.tbi.dictionary.model.rdf.SemanticFormStructure;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -49,6 +33,23 @@ import com.hp.hpl.jena.sparql.syntax.ElementTriplesBlock;
 import com.hp.hpl.jena.vocabulary.RDF;
 import com.hp.hpl.jena.vocabulary.RDFS;
 
+import gov.nih.tbi.commons.dao.sparql.GenericSparqlDaoImpl;
+import gov.nih.tbi.commons.model.BRICSTimeDateUtil;
+import gov.nih.tbi.commons.model.StatusType;
+import gov.nih.tbi.commons.util.BRICSStringUtils;
+import gov.nih.tbi.commons.util.PaginationData;
+import gov.nih.tbi.commons.util.QueryConstructionUtil;
+import gov.nih.tbi.commons.util.RDFConstants;
+import gov.nih.tbi.commons.util.SearchFormStructureQueryConstructionUtil;
+import gov.nih.tbi.dictionary.dao.FormStructureSparqlDao;
+import gov.nih.tbi.dictionary.model.FormStructureFacet;
+import gov.nih.tbi.dictionary.model.FormStructureStandardization;
+import gov.nih.tbi.dictionary.model.InstanceRequiredFor;
+import gov.nih.tbi.dictionary.model.NameAndVersion;
+import gov.nih.tbi.dictionary.model.hibernate.Disease;
+import gov.nih.tbi.dictionary.model.hibernate.FormLabel;
+import gov.nih.tbi.dictionary.model.rdf.SemanticFormStructure;
+
 @Transactional
 @Repository
 public class FormStructureSparqlDaoImpl extends GenericSparqlDaoImpl<SemanticFormStructure> implements FormStructureSparqlDao {
@@ -81,6 +82,8 @@ public class FormStructureSparqlDaoImpl extends GenericSparqlDaoImpl<SemanticFor
 		String createdBy = rdfNodeToString(row.get(RDFConstants.CREATED_BY_VARIABLE.getName()));
 		String standardization = rdfNodeToString(row.get(RDFConstants.STANDARDIZATION_VARIABLE.getName()));
 		String requiredList = rdfNodeToString(row.get(RDFConstants.REQUIRED_VARIABLE.getName()));
+		String labelIdList = rdfNodeToString(row.get(RDFConstants.LABEL_ID_VARIABLE.getName()));
+		String labelList = rdfNodeToString(row.get(RDFConstants.LABEL_VARIABLE.getName()));
 		Boolean isCopyrighted = rdfNodeToBoolean(row.get(RDFConstants.IS_COPYRIGHTED_VARIABLE.getName()));
 
 		SemanticFormStructure newForm = new SemanticFormStructure();
@@ -102,6 +105,22 @@ public class FormStructureSparqlDaoImpl extends GenericSparqlDaoImpl<SemanticFor
 			instanceRequiredList = BRICSStringUtils.delimitedStringToList(requiredList, ",");
 		}
 		newForm.addAllInstancesRequiredForStrings(instanceRequiredList);
+		
+		List<FormLabel> formLabelList = new ArrayList<FormLabel>();
+		if (labelIdList != null && labelList != null) {
+			List<String> labelIds = BRICSStringUtils.delimitedStringToList(labelIdList, ",");
+			List<String> labels = BRICSStringUtils.delimitedStringToList(labelList, ",");
+			
+			if (labels != null && labelIds != null && labelIds.size() == labels.size()) {
+				for (int i = 0; i < labelIds.size(); i++) {
+					FormLabel formLabel = new FormLabel();
+					formLabel.setId(Long.parseLong(labelIds.get(i)));
+					formLabel.setLabel(labels.get(i));
+					formLabelList.add(formLabel);
+				}
+			}
+			newForm.setFormLabels(formLabelList);
+		}
 
 		List<Disease> diseaseList = new ArrayList<Disease>();
 		diseaseList.add(new Disease(diseases, true));
@@ -134,6 +153,7 @@ public class FormStructureSparqlDaoImpl extends GenericSparqlDaoImpl<SemanticFor
 		return disease;
 	}
 
+	
 	/**
 	 * Returns a list of form structures with only their basic fields set
 	 * 
@@ -288,6 +308,16 @@ public class FormStructureSparqlDaoImpl extends GenericSparqlDaoImpl<SemanticFor
 							requiredResource);
 					model.add(requiredResource, RDFS.label, requiredInstanceName);
 				}
+			}
+		}
+		
+		if (form.getFormLabels() != null) {
+			for (FormLabel formLabel : form.getFormLabels()) {
+				Resource labelResource = model.createResource(RDFConstants.FS_LABEL_URI + formLabel.getId());
+				model.add(resource, model.createProperty(RDFConstants.PROPERTY_FS_LABEL_N), labelResource);
+				model.add(labelResource, RDFS.label, formLabel.getLabel());
+				model.add(labelResource, model.createProperty(RDFConstants.FS_LABEL.concat("#id")),
+						formLabel.getId().toString());
 			}
 		}
 
@@ -514,6 +544,30 @@ public class FormStructureSparqlDaoImpl extends GenericSparqlDaoImpl<SemanticFor
 		update(sparqlRemove);
 	}
 
+	@Override
+	public void removeFormLabel(Long formLabelId) {
+		String sparqlRemove = "WITH <http://ninds.nih.gov:8080/allTriples.ttl> DELETE {" +
+				"?form <" + RDFConstants.PROPERTY_FS_LABEL_N + "> ?label . " +
+				"?label ?labelP ?labelO . } WHERE {" +
+				"?form a <" + RDFConstants.FORM_STRUCTURE + "> . " +
+				"?form <" + RDFConstants.PROPERTY_FS_LABEL_N + "> ?label . " +
+				"?label <" + RDFConstants.FS_LABEL.concat("#id") + "> \"" + formLabelId + "\" . " +
+				"?label ?labelP ?labelO . }";
+		
+		update(sparqlRemove);
+	}
+
+	@Override
+	public void updateFormLabel(FormLabel formLabel, String newLabel) {
+		String sparqlUpdate = "WITH <http://ninds.nih.gov:8080/allTriples.ttl> DELETE { " +
+				"?label rdfs:label ?labelName . } INSERT { " + 
+				"?label rdfs:label \"" + newLabel + "\" . } WHERE { " +
+				"?label <" + RDFConstants.FS_LABEL.concat("#id") + "> \"" + formLabel.getId() + "\" . " +
+				"?label rdfs:label ?labelName . }";
+		
+		update(sparqlUpdate);
+	}
+	
 	public List<SemanticFormStructure> search(Map<FormStructureFacet, Set<String>> selectedFacets,
 			Set<String> searchTerms, boolean exactMatch, PaginationData pageData, boolean onlyOwned) {
 

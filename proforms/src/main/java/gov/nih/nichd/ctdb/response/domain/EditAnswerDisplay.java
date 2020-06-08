@@ -22,12 +22,22 @@ public class EditAnswerDisplay {
 	private List<String> previousAnswer = new ArrayList<String>();
 	private List<String> editedAnswer = new ArrayList<String>();
     private String reasonForEdit;
+    private String auditcommentForEdit;
+    private String auditStatus;
+	private String administeredformName;
     private int administeredformId;
     private int sectionId;
     private String sectionName;
     private String dataElementName;
     private String prevAnswer;
     private String editAnswer; 
+    private String collStatus;
+    
+    /* subject */
+	private String guId;
+	private String mRN;
+	private String nRN;
+	private String subject;
 
     public String getSectionName() {
 		return sectionName;
@@ -125,6 +135,30 @@ public class EditAnswerDisplay {
         this.reasonForEdit = reasonForEdit;
     }
 
+    public String getAuditcommentForEdit() {
+		return auditcommentForEdit;
+	}
+
+	public void setAuditcommentForEdit(String auditcommentForEdit) {
+		this.auditcommentForEdit = auditcommentForEdit;
+	}
+	
+	public String getAuditStatus() {
+		return auditStatus;
+	}
+
+	public void setAuditStatus(String auditStatus) {
+		this.auditStatus = auditStatus;
+	}
+	
+    public String getAdministeredformName() {
+		return administeredformName;
+	}
+
+	public void setAdministeredformName(String administeredformName) {
+		this.administeredformName = administeredformName;
+	}
+	
     public int getAdministeredformId() {
         return administeredformId;
     }
@@ -159,6 +193,46 @@ public class EditAnswerDisplay {
 	 */
 	public void setEditAnswer(String editAnswer) {
 		this.editAnswer = editAnswer;
+	}
+
+	public String getCollStatus() {
+		return collStatus;
+	}
+
+	public void setCollStatus(String collStatus) {
+		this.collStatus = collStatus;
+	}
+	
+	public String getGuId() {
+		return guId;
+	}
+
+	public void setGuId(String guId) {
+		this.guId = guId;
+	}
+
+	public String getmRN() {
+		return mRN;
+	}
+
+	public void setmRN(String mRN) {
+		this.mRN = mRN;
+	}
+
+	public String getnRN() {
+		return nRN;
+	}
+
+	public void setnRN(String nRN) {
+		this.nRN = nRN;
+	}
+	
+    public String getSubject() {
+		return subject;
+	}
+
+	public void setSubject(String subject) {
+		this.subject = subject;
 	}
     
 }

@@ -1,8 +1,5 @@
 package gov.nih.tbi.pojo;
 
-import gov.nih.tbi.constants.QueryToolConstants;
-import gov.nih.tbi.service.model.MetaDataCache;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -16,6 +13,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+
+import gov.nih.tbi.constants.QueryToolConstants;
+import gov.nih.tbi.service.model.MetaDataCache;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement()
@@ -163,20 +163,22 @@ public class RepeatableGroup implements Serializable, Comparable<RepeatableGroup
 	}
 
 
-	public void addDataElement(DataElement dataElement) {
+	public void addDataElement(MetaDataCache metaDataCache, DataElement dataElement) {
 		if (dataElements == null) {
 			dataElements = new LinkedList<DataElement>();
 		}
-		if (dataElements.isEmpty() || getPositionOfElement(dataElement) == null) {
+		if (dataElements.isEmpty() || getPositionOfElement(metaDataCache, dataElement) == null) {
 			dataElements.add(new DataElement(dataElement));
 		}
 
 		else {
 			boolean added = false;
 			for (int i = 0; i < dataElements.size(); i++) {
-				if (dataElement != null && dataElements.get(i) != null && getPositionOfElement(dataElement) != null
-						&& getPositionOfElement(dataElements.get(i)) != null
-						&& getPositionOfElement(dataElement) < getPositionOfElement(dataElements.get(i))) {
+				if (dataElement != null && dataElements.get(i) != null
+						&& getPositionOfElement(metaDataCache, dataElement) != null
+						&& getPositionOfElement(metaDataCache, dataElements.get(i)) != null
+						&& getPositionOfElement(metaDataCache, dataElement) < getPositionOfElement(metaDataCache,
+								dataElements.get(i))) {
 					added = true;
 					dataElements.add(i, new DataElement(dataElement));
 					break;
@@ -190,8 +192,8 @@ public class RepeatableGroup implements Serializable, Comparable<RepeatableGroup
 		}
 	}
 
-	public Integer getPositionOfElement(DataElement element) {
-		return MetaDataCache.getRgDePosition(this, element);
+	public Integer getPositionOfElement(MetaDataCache metaDataCache, DataElement element) {
+		return metaDataCache.getRgDePosition(this, element);
 	}
 
 	public boolean isElementSelected(DataElement element) {

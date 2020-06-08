@@ -1,0 +1,186 @@
+
+/********************************************/
+
+ALTER TABLE IF EXISTS sys_branch DROP constraint IF EXISTS fk1_sys_branch;
+ALTER TABLE IF EXISTS sys_branch DROP constraint IF EXISTS fk2_sys_branch;
+ALTER TABLE IF EXISTS sys_install DROP CONSTRAINT IF EXISTS fk3_sys_install;
+ALTER TABLE IF EXISTS sys_install DROP CONSTRAINT IF EXISTS fk4_sys_install;
+ALTER TABLE IF EXISTS sys_install DROP CONSTRAINT IF EXISTS fk5_sys_install;
+
+DROP TABLE IF EXISTS sys_command;
+
+DROP TABLE IF EXISTS sys_revision;
+
+DROP TABLE IF EXISTS sys_install;
+DROP SEQUENCE IF EXISTS sys_install_seq;
+
+DROP TABLE IF EXISTS sys_branch;
+DROP TABLE IF EXISTS sys_user;
+
+/********************************************/
+
+CREATE TABLE sys_branch (
+    id varchar(5) NOT NULL,
+    major varchar(2) NOT NULL,
+    minor varchar(2) NOT NULL,
+    version varchar(10) NULL,
+    is_trunk bool NOT NULL,
+    release_date date NULL,
+    status int4 NOT NULL,
+    fail_revision_id varchar(10) NULL,
+    create_time timestamp NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE sys_branch
+ADD CONSTRAINT pk_sys_branch
+PRIMARY KEY (id);
+
+INSERT INTO sys_branch (id, major, minor, is_trunk, release_date, status)
+VALUES ('0.0', '0', '0', '0', NULL, 0);
+INSERT INTO sys_branch (id, major, minor, is_trunk, release_date, status)
+VALUES ('3.4', '3', '4', '1', NULL, 0);
+
+/********************************************/
+
+CREATE TABLE sys_user (
+    id varchar(16) NOT NULL,
+    first_name varchar(16) NOT NULL,
+    last_name varchar(32) NOT NULL,
+    email varchar(64) NOT NULL,
+    is_active bool NOT NULL DEFAULT true,
+    create_time timestamp NOT NULL DEFAULT NOW(),
+    update_time timestamp NULL
+);
+
+ALTER TABLE sys_user
+ADD CONSTRAINT pk_sys_user
+PRIMARY KEY (id);
+
+INSERT INTO sys_user (id, first_name, last_name, email)
+VALUES ('amakar', 'Asad', 'Makarevic', 'amakarevic@sapient.com');
+INSERT INTO sys_user (id, first_name, last_name, email)
+VALUES ('asamakar', 'Asad', 'Makarevic', 'amakarevic@sapient.com');
+INSERT INTO sys_user (id, first_name, last_name, email)
+VALUES ('buildman', 'Buildman', 'Brics', 'amakarevic@sapient.com');
+INSERT INTO sys_user (id, first_name, last_name, email)
+VALUES ('hkebede', 'Haimanot', 'Kebede', 'hkebede@sapient.com');
+INSERT INTO sys_user (id, first_name, last_name, email)
+VALUES ('jpark', 'Josh', 'Park', 'jpark2@sapient.com');
+INSERT INTO sys_user (id, first_name, last_name, email)
+VALUES ('fanl5', 'Linpei', 'Fan', 'linpei.fan@nih.gov');
+INSERT INTO sys_user (id, first_name, last_name, email)
+VALUES ('rstew3', 'Ryan', 'Stewart-Frederick', 'rstewartfrederick@sapient.com');
+INSERT INTO sys_user (id, first_name, last_name, email)
+VALUES ('fchen', 'Francis', 'Chen', 'fchen@sapient.com');
+INSERT INTO sys_user (id, first_name, last_name, email)
+VALUES ('npandya', 'Nish', 'Pandya', 'pandyan@mail.nih.gov');
+INSERT INTO sys_user (id, first_name, last_name, email)
+VALUES ('khanaly', 'Yogi', 'Khanal', 'yogaraj.khanal@nih.gov');
+INSERT INTO sys_user (id, first_name, last_name, email)
+VALUES ('kalyanasundars', 'Sasirekha', 'Kalyanasundaram', 'sasirekha.kalyanasundaram@nih.gov');
+
+
+/********************************************/
+
+CREATE SEQUENCE sys_install_seq START 1;
+
+CREATE TABLE sys_install (
+    id int4 NOT NULL DEFAULT nextval('sys_install_seq'),
+    branch_id varchar(5) NOT NULL,
+    install_type bpchar(3) NOT NULL,
+    prior_version varchar(10) NULL,
+    post_version varchar(10) NULL,
+    user_id varchar(16) NOT NULL,
+    status int4 NOT NULL,
+    fail_revision_id varchar(10) NULL,
+    error_msg text NULL,
+    create_time timestamp NOT NULL DEFAULT NOW(),
+    update_time timestamp NULL
+);
+
+ALTER TABLE sys_install
+ADD CONSTRAINT pk_sys_install PRIMARY KEY (id);
+
+ALTER TABLE sys_install
+ADD CONSTRAINT fk1_sys_install
+FOREIGN KEY (branch_id) REFERENCES sys_branch(id);
+
+ALTER TABLE sys_install
+ADD CONSTRAINT fk2_sys_install
+FOREIGN KEY (user_id) REFERENCES sys_user(id);
+
+/********************************************/
+
+CREATE TABLE sys_revision (
+    id varchar(10) NOT NULL,
+    ordinal int4 NOT NULL,
+    label varchar(64) NOT NULL,
+    user_id varchar(16) NOT NULL,
+    install_id int4 NOT NULL,
+    description text NULL,
+    base_id varchar(10) NULL,
+    status int4 NOT NULL,
+    file_md5sum varchar(64) NOT NULL,
+	create_time timestamp NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE sys_revision
+ADD CONSTRAINT pk_sys_revision PRIMARY KEY (id);
+
+ALTER TABLE sys_revision
+ADD CONSTRAINT fk1_sys_revision
+FOREIGN KEY (install_id) REFERENCES sys_install(id);
+
+ALTER TABLE sys_revision
+ADD CONSTRAINT fk2_sys_revision
+FOREIGN KEY (base_id) REFERENCES sys_revision(id);
+
+ALTER TABLE sys_revision
+ADD CONSTRAINT fk3_sys_revision
+FOREIGN KEY (user_id) REFERENCES sys_user(id);
+
+/********************************************/
+
+ALTER TABLE sys_install
+ADD CONSTRAINT fk3_sys_install
+FOREIGN KEY (prior_version) REFERENCES sys_revision(id);
+
+ALTER TABLE sys_install
+ADD CONSTRAINT fk4_sys_install
+FOREIGN KEY (post_version) REFERENCES sys_revision(id);
+
+ALTER TABLE sys_install
+ADD CONSTRAINT fk5_sys_install
+FOREIGN KEY (fail_revision_id) REFERENCES sys_revision(id);
+
+/********************************************/
+
+ALTER TABLE sys_branch
+ADD CONSTRAINT fk1_sys_branch
+FOREIGN KEY (version) REFERENCES sys_revision(id);
+
+ALTER TABLE sys_branch
+ADD CONSTRAINT fk2_sys_branch
+FOREIGN KEY (fail_revision_id) REFERENCES sys_revision(id);
+
+/********************************************/
+
+CREATE TABLE sys_command (
+    id varchar(16) NOT NULL,
+    revision_id varchar(10) NOT NULL,
+    ordinal int4 NOT NULL,
+	command text NOT NULL,
+	status int4 NOT NULL
+);
+
+ALTER TABLE sys_command
+ADD CONSTRAINT pk_sys_command PRIMARY KEY (id);
+
+ALTER TABLE sys_command
+ADD CONSTRAINT uq1_sys_command UNIQUE (revision_id, ordinal);
+
+ALTER TABLE sys_command
+ADD CONSTRAINT fk1_sys_command
+FOREIGN KEY (revision_id) REFERENCES sys_revision(id);
+
+/********************************************/

@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -32,7 +31,6 @@ import org.apache.log4j.Logger;
 
 import com.google.gson.Gson;
 
-import gov.nih.tbi.commons.util.BRICSFilesUtils;
 import gov.nih.tbi.exceptions.QueryToolDownloadException;
 import gov.nih.tbi.exceptions.TriplanarException;
 import gov.nih.tbi.query.model.QTDownloadPackage;

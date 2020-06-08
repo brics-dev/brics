@@ -21,9 +21,11 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import gov.nih.tbi.PortalConstants;
+import gov.nih.tbi.commons.service.BtrisMappingManager;
 import gov.nih.tbi.commons.service.EformManager;
 import gov.nih.tbi.commons.service.ServiceConstants;
 import gov.nih.tbi.dictionary.model.formbuilder.SessionEform;
+import gov.nih.tbi.dictionary.model.hibernate.BtrisMapping;
 import gov.nih.tbi.dictionary.model.hibernate.eform.Question;
 import gov.nih.tbi.dictionary.model.hibernate.eform.QuestionDocument;
 import gov.nih.tbi.dictionary.model.hibernate.eform.QuestionDocumentPk;
@@ -41,6 +43,9 @@ public class QuestionAction extends BaseEformAction {
 	
 	@Autowired
 	SessionEform sessionEform;
+
+	@Autowired
+	BtrisMappingManager btrisMappingManager;
 
 	/**
 	 * Struts Constant used to set/get ActionMessages for this action from session.
@@ -62,12 +67,22 @@ public class QuestionAction extends BaseEformAction {
 	
 	private String fileJson;
 	
+	private String questionAttributeJson;
+
 	public String getFileJson() {
 		return fileJson;
 	}
 
 	public void setFileJson(String fileJson) {
 		this.fileJson = fileJson;
+	}
+
+	public String getQuestionAttributeJson() {
+		return questionAttributeJson;
+	}
+
+	public void setQuestionAttributeJson(String questionAttributeJson) {
+		this.questionAttributeJson = questionAttributeJson;
 	}
 
 	/**
@@ -109,11 +124,16 @@ public class QuestionAction extends BaseEformAction {
 		try {
 				
 			for(QuestionDocument qd : quesDocList){
+				String fileName = qd.getQuestionDocumentPk().getFileName();
 				byte[] questionDocumentBytes = repositoryManager.getFileByteArray(qd.getUserFile());
 				String fileBytesEncoded = new String(Base64.encode(questionDocumentBytes));
 				MimetypesFileTypeMap mimetypesFileTypeMap = new MimetypesFileTypeMap();
 				String mimeTypeOfFile = mimetypesFileTypeMap.getContentType(qd.getUserFile().getName());
-				imgJSONArr.put( "data:" + mimeTypeOfFile + ";base64," + fileBytesEncoded);
+				JSONObject imgJSONObj = new JSONObject();
+				imgJSONObj.put("name", fileName);
+				imgJSONObj.put("userFileId", qd.getUserFile().getId());
+				imgJSONObj.put("source", "data:" + mimeTypeOfFile + ";base64," + fileBytesEncoded);
+				imgJSONArr.put(imgJSONObj);
 
 			}
 			fileJson = imgJSONArr.toString();
@@ -166,17 +186,14 @@ public class QuestionAction extends BaseEformAction {
 			List<String>  imageFileFileNameList = this.getImageFileFileName();
 			String[] fileNameArray = imageFileFileNameList.toArray(new String[0]);
 			
-			
+			boolean isFileExtensionValid = false;
+			boolean isFileSizeValid = false;
 		
 			for(String fileName : imageFileFileNameList){
 				String fileExtesionFromJsp= FilenameUtils.getExtension(fileName);
-				if(fileExtesionFromJsp.equalsIgnoreCase(PortalConstants.GIF)||fileExtesionFromJsp.equalsIgnoreCase(PortalConstants.JPG)
-						||fileExtesionFromJsp.equalsIgnoreCase(PortalConstants.JPEG) || fileExtesionFromJsp.equalsIgnoreCase(PortalConstants.PNG))
+				if (PortalConstants.QUESTION_DOCUMENT_TYPES.contains(fileExtesionFromJsp.toLowerCase()))
 				{
-					//Continue
-				}else{
-					graphicJSON.put("graphicNames",PortalConstants.UNSUPPORTED_FILE_EXTENSION);
-					return SUCCESS; 
+					isFileExtensionValid =true;
 				}
 					
 			}
@@ -187,7 +204,23 @@ public class QuestionAction extends BaseEformAction {
 			
 			int nameCounter = 0;
 			for (File file : imageFile) {
-
+				
+				Long fileSizeInMB =file.length() / (1024 * 1024);				
+				if (fileSizeInMB < PortalConstants.PERMISSIBLE_UPLOAD_FILESIZE) {	
+					isFileSizeValid = true;
+				}
+				
+				if(!isFileExtensionValid && !isFileSizeValid) {
+					 graphicJSON.put("graphicNames",PortalConstants.UNSUPPORTED_FILE_EXTENSION+PortalConstants.UNSUPPORTED_FILE_SIZE);
+					 return SUCCESS;
+				}else if(isFileExtensionValid && !isFileSizeValid) {
+					 graphicJSON.put("graphicNames",PortalConstants.UNSUPPORTED_FILE_SIZE);
+					 return SUCCESS;
+				}else if(!isFileExtensionValid && isFileSizeValid) {
+					 graphicJSON.put("graphicNames",PortalConstants.UNSUPPORTED_FILE_EXTENSION);
+					 return SUCCESS;
+				}
+				
 					QuestionDocument quesDoc = new QuestionDocument();
 					QuestionDocumentPk compositeId = new QuestionDocumentPk();
 					compositeId.setFileName(fileNameArray[nameCounter]);
@@ -262,6 +295,37 @@ public class QuestionAction extends BaseEformAction {
 		}
 
 		
+		return SUCCESS;
+	}
+
+	public String showQuestionBtrisMapping() throws Exception {
+		String questionId = getRequest().getParameter("questionId");
+		try {
+			// get the question
+			Question question = eFormManager.getQuestion(Long.parseLong(questionId));
+
+			String dataElementName = question.getName().split("_", 2)[1];
+			BtrisMapping btrisMapping = btrisMappingManager.getBtrisMappingByDEName(dataElementName);
+			JSONObject qaJsonObj = new JSONObject();
+			if (btrisMapping != null) {
+				qaJsonObj.put("hasBtrisMapping", true);
+				BtrisMapping associatedBM = question.getBtrisMapping();
+				if (associatedBM != null) {
+					qaJsonObj.put("isGettingBtrisVal", true);
+				} else {
+					qaJsonObj.put("isGettingBtrisVal", false);
+				}
+				qaJsonObj.put("btrisObservationName", btrisMapping.getBtrisObservationName());
+				qaJsonObj.put("btrisRedCode", btrisMapping.getBtrisRedCode());
+				qaJsonObj.put("btrisSpecimenType", btrisMapping.getBtrisSpecimenType());
+			} else {
+				qaJsonObj.put("hasBtrisMapping", false);
+			}
+			this.questionAttributeJson = qaJsonObj.toString();
+		} catch (Exception ce) {
+			ce.printStackTrace();
+			return PortalConstants.FAILURE;
+		}
 		return SUCCESS;
 	}
 

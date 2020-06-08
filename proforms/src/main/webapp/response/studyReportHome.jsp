@@ -43,41 +43,48 @@ $(document).ready(function() {
 
 	var clientName = '<s:property value="clientName" />';
 	
-	if(clientName == 'fitbir' || clientName == 'cdrns') {
+	if(clientName == 'fitbir' || clientName == 'cdrns' || clientName == 'cistar' || clientName == 'cnrm' || clientName == 'eyegene') {
 		$("#studyReportsTable").idtTable({
 			idtUrl: "<s:property value='#webRoot'/>/response/getStudyReportList.action",
 			dom: 'Bfrtip',
+			autoWidth:false,
 	        columns: [
 	        	{
 	                name: 'studyName',
 	                title: '<%=rs.getValue("study.add.name.display",l)%>',
 	                parameter: 'studyName',
-	                data: 'studyName'
+	                data: 'studyName',
+	                width: '20%',
+	                render: IdtActions.ellipsis(40)
 	            },
 	            {
 	                name: 'studyPI',
 	                title: '<%=rs.getValue("report.studyReport.pi",l)%>',
 	                parameter: 'studyPI',
-	                data: 'studyPI'
+	                data: 'studyPI',
+	                width: '10%',
+	                render: IdtActions.ellipsis(20)
 	            },
 
 	            {
 	                name: 'studyStartDate',
 	                title: 'Start Date',
 	                parameter: 'studyStartDate',
-	                data: 'studyStartDate'
+	                data: 'studyStartDate',
+	                width: '9%'
 	            },
 	            
 	            {
 	                name: 'studyEndDate',
 	                title: 'End Date',
 	                parameter: 'studyEndDate',
-	                data: 'studyEndDate'
+	                data: 'studyEndDate',
+	                width: '9%'
 	            },
 	            
 	            {
 	                name: 'studyNumberSubjects',
-	                title: 'Estimated number of subjects',
+	                title: '<%=rs.getValue("report.numOfSubjectsEstimated",l)%>',
 	                parameter: 'studyNumberSubjects',
 	                data: 'studyNumberSubjects'
 	            },
@@ -90,11 +97,32 @@ $(document).ready(function() {
 	                data: 'studySubjectCount'
 	            },
 	            {
+	                name: 'studyEformCount',
+	                title: '<%=rs.getValue("report.numOfEforms",l)%>',
+	                parameter: 'studyEformCount',
+	                data: 'studyEformCount',
+	                width: '7.4%'
+	            },
+	            {
 	                name: 'studyAdminFormsCount',
-	                title: '<%=rs.getValue("report.numOfAdministeredForms",l)%>',
+	                title: '<%=rs.getValue("report.numOfFormsAdministered",l)%>',
 	                parameter: 'studyAdminFormsCount',
 	                data: 'studyAdminFormsCount'
-	            }            
+	            },
+	            {
+	                name: 'studyLockedAdminFormsCount',
+	                title: '<%=rs.getValue("report.numOfAdministeredFormsLocked",l)%>',
+	                parameter: 'studyLockedAdminFormsCount',
+	                data: 'studyLockedAdminFormsCount'
+	            },
+	            {
+	                name: 'studyNotLockedAdminFormsCount',
+	                title: '<%=rs.getValue("report.numOfAdministeredFormsNotLocked",l)%>',
+	                parameter: 'studyNotLockedAdminFormsCount',
+	                data: 'studyNotLockedAdminFormsCount',
+	                width: '6.8%'
+	            }  
+            
 
 	        ],
 	        buttons: [
@@ -134,18 +162,23 @@ $(document).ready(function() {
 		$("#studyReportsTable").idtTable({
 			idtUrl: "<s:property value='#webRoot'/>/response/getStudyReportList.action",
 			dom: 'Bfrtip',
+			autoWidth:false,
 	        columns: [
 	        	{
 	                name: 'studyName',
 	                title: '<%=rs.getValue("study.add.name.display",l)%>',
 	                parameter: 'studyName',
-	                data: 'studyName'
+	                data: 'studyName',
+	                width: '30%',
+	                render: IdtActions.ellipsis(40)
 	            },
 	            {
 	                name: 'studyPI',
 	                title: '<%=rs.getValue("report.studyReport.pi",l)%>',
 	                parameter: 'studyPI',
-	                data: 'studyPI'
+	                data: 'studyPI',
+	                width: '30%',
+	                render: IdtActions.ellipsis(40)
 	            },
 
 

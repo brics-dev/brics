@@ -54,6 +54,9 @@ public class SectionQuestion implements Serializable, Comparable<SectionQuestion
 	@Column(name = "CALCULATION")
 	private String calculation;
 	
+	@Column(name = "COUNT_FORMULA")
+	private String countFormula;
+	
 	@ManyToOne(targetEntity = Question.class, fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "QUESTION_ID")
 	@XmlElement(name ="Question")
@@ -79,9 +82,17 @@ public class SectionQuestion implements Serializable, Comparable<SectionQuestion
 	private List<SkipRuleQuestion> skipRuleQuestion;
 	
 	
+	@OneToMany(cascade = CascadeType.ALL)
+	@LazyCollection(LazyCollectionOption.FALSE)
+	@JoinColumn(name = "section_question_id", nullable = true)
+	@XmlElementWrapper(name = "CountQuestionSet")
+	@XmlElement(name ="CountQuestion")
+	private List<CountQuestion> countQuestion;
+	
+	
 	public SectionQuestion(){}
 
-	public SectionQuestion(SectionQuestion sectionQuestion, Section section, Question question, String calculation){
+	public SectionQuestion(SectionQuestion sectionQuestion, Section section, Question question, String calculation, String countFormula){
 		this.setId(null);
 		this.setQuestionOrder(sectionQuestion.getQuestionOrder());
 		this.setSuppressFlag(sectionQuestion.getSuppressFlag());
@@ -89,6 +100,7 @@ public class SectionQuestion implements Serializable, Comparable<SectionQuestion
 		this.setSection(section);
 		this.setQuestion(question);
 		this.setCalculation(calculation);
+		this.setCountFormula(countFormula);
 	}
 	
 	public Long getId() {
@@ -147,6 +159,14 @@ public class SectionQuestion implements Serializable, Comparable<SectionQuestion
 		this.section = section;
 	}
 
+	public String getCountFormula() {
+		return countFormula;
+	}
+
+	public void setCountFormula(String countFormula) {
+		this.countFormula = countFormula;
+	}
+
 	public List<CalculationQuestion> getCalculatedQuestion() {
 		return calculatedQuestion;
 	}
@@ -161,6 +181,23 @@ public class SectionQuestion implements Serializable, Comparable<SectionQuestion
 			setCalculatedQuestion(newCalculationQuestion);
 		}
 		this.calculatedQuestion.add(calculatedQuestion);
+	}
+	
+	
+	public List<CountQuestion> getCountQuestion() {
+		return countQuestion;
+	}
+
+	public void setCountQuestion(List<CountQuestion> countQuestion) {
+		this.countQuestion = countQuestion;
+	}
+	
+	public void addCountQuestion(CountQuestion countQuestion){
+		if(this.countQuestion == null){
+			List<CountQuestion> newCountQuestion = new ArrayList<CountQuestion>();
+			setCountQuestion(newCountQuestion);
+		}
+		this.countQuestion.add(countQuestion);
 	}
 
 	public List<SkipRuleQuestion> getSkipRuleQuestion() {
@@ -191,6 +228,7 @@ public class SectionQuestion implements Serializable, Comparable<SectionQuestion
 		result = prime * result + ((section == null) ? 0 : section.hashCode());
 		result = prime * result + ((calculation == null) ? 0 : calculation.hashCode());
 		result = prime * result + ((suppressFlag == null) ? 0 : suppressFlag.hashCode());
+		result = prime * result + ((countFormula == null) ? 0 : countFormula.hashCode());
 		return result;
 	}
 
@@ -237,6 +275,11 @@ public class SectionQuestion implements Serializable, Comparable<SectionQuestion
 			if (other.suppressFlag != null)
 				return false;
 		} else if (!suppressFlag.equals(other.suppressFlag))
+			return false;
+		if (countFormula == null) {
+			if (other.countFormula != null)
+				return false;
+		} else if (!countFormula.equals(other.countFormula))
 			return false;
 		return true;
 	}

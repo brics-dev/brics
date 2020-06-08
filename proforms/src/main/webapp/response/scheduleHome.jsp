@@ -91,7 +91,7 @@
 			<%-- <input type="button" value="<s:text name='report.schedule.protocol' />" 
 				title="Protocol" alt="Protocol" onclick="generateReportByProtocol()" /> --%>
 			<label for="protocolSearch" class="lblFont filterLable"><s:text name='report.schedule.protocol'/></label>
-			<s:select name="protocolSearch" id="protocolSearch" list="#session.user_protocol_list" listKey="id" listValue="name" 
+			<s:select name="protocolSearch" id="protocolSearch" list="protocolList" listKey="id" listValue="name" 
 				cssStyle="vertical-align: baseline; margin-left:50px"/>	
 		</div>
 		

@@ -83,7 +83,8 @@ $bannerBg: $banner-color;
 
 /* Import BRICS Styles */ 
 
-@import "../../styles/common.scss"; 
+@import "../../styles/common.scss";
+@import "../../styles/bootstrap.scss";
 @import "../../styles/style.scss"; 
 @import "../../styles/fancybox.scss"; 
 @import "../../styles/icon.scss"; 

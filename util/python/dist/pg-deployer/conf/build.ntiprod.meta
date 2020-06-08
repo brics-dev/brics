@@ -1,0 +1,8 @@
+[DB-TRG]
+host=nti-db-prod
+database=nti_prod
+schema=nti_meta
+user=nti_meta
+label=TARGET
+
+

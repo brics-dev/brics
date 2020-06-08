@@ -5,25 +5,32 @@ QT.DownloadToQueueDialogView = BaseView.extend({
 	Dialog : null,
 	mode : "cart", // "cart" or "table" to tell what content to download
 	initialized : false,
+	saveCSVButton : null,
+	saveFlattenedCSVButton: null,
+	
 	
 	dialogConfigs : {
 		title: "Download to Queue",
 		buttons : [
    		{
    			text: "Save CSV",
-   			click: function() {
-   				QueryTool.page.get("downloadToQueueDialogView").saveCsv();
+   			click: function(e) {
+   				saveCSVButton = $(e.target);
+   				saveCSVButton.prop('disabled', true);
+   				QueryTool.page.get("downloadToQueueDialogView").saveCsv(saveCSVButton);
    			}
    		},
    		{
    			text: "Save Flattened CSV",
-   			click : function() {
-   				QueryTool.page.get("downloadToQueueDialogView").saveFlattened();
+   			click : function(e) {
+   				saveFlattenedCSVButton = $(e.target);
+   				saveFlattenedCSVButton.prop('disabled', true);
+   				QueryTool.page.get("downloadToQueueDialogView").saveFlattened(saveFlattenedCSVButton);
    			}
    		},
    		{
    			text: "Cancel",
-   			click : function() {
+   			click : function(e) {
    				QueryTool.page.get("downloadToQueueDialogView").closeDialog();
    			}
    		}
@@ -94,20 +101,39 @@ QT.DownloadToQueueDialogView = BaseView.extend({
 		$.ibisMessaging("primary", type, messageText, {container: "#downloadDialogMsgs"});
 	},
 	
-	saveCsv : function() {
+	saveCsv : function(button) {
+		this.saveCSVButton = button;
 		this.downloadFile(true);
 	},
 	
-	saveFlattened : function() {
+	saveFlattened : function(button) {
+		this.saveFlattenedCSVButton = button;
 		this.downloadFile(false);
 	},
 	
 	downloadFile : function(isNormalCsv) {
-		
-		if (this.$("#downloadDialogName").val() == "") {
+		var pkgName = this.$("#downloadDialogName").val();
+		var csvBtn = this.saveCSVButton;
+		var csvFlattenedBtn = this.saveFlattenedCSVButton;
+		if (pkgName == "") {
 			this.displayMessage("error", "The package name is required");
-		}
-		else {
+			if (csvBtn != null) {
+				csvBtn.prop('disabled', false);
+			}
+			if (csvFlattenedBtn != null) {
+				csvFlattenedBtn.prop('disabled', false);
+			}
+			
+		} else if(pkgName.search(/[\\\/:\*\?\|\<\>]/) != -1) {
+			this.displayMessage("error", 
+					"The package name cannot contain the following special characters: \ / : * ? | < >");
+			if (csvBtn != null) {
+				csvBtn.prop('disabled', false);
+			}
+			if (csvFlattenedBtn != null) {
+				csvFlattenedBtn.prop('disabled', false);
+			}
+		} else {
 			var requestUrl;
 			if (this.mode == 'cart') {
 				requestUrl = "service/download/dataCart/download";
@@ -120,19 +146,41 @@ QT.DownloadToQueueDialogView = BaseView.extend({
 				cache : false,
 				url: requestUrl,
 				data : {
-					packageName: this.$("#downloadDialogName").val(),
-					isNormalCSV: isNormalCsv  
+					packageName: pkgName,
+					isNormalCSV: isNormalCsv  ,
+					filterExpression: QueryTool.query.filters.getExpression()
 				},
 				success : function(data, textStatus, jqXHR) {
+					if (typeof data.status !== "undefined") {
+			         	if(data.status = "401") {
+			         		// redirect
+			         		window.location.href = "/query/logout";
+			         		return;
+			         	}
+			         }
 					$.ibisMessaging("dialog", "success", 'Your files are processing and will be added to your download queue shortly.' 
 							+ '  <a href="' + System.urls.dataRepo + '/repository/downloadQueueAction!view.action">Check the Download Queue</a>'
 							+ ' to download your files. These files will stay in your queue for 30 days before being automatically removed.');
 					$("#downloadToQueue").addClass("disabled");
+					
+					if (csvBtn != null) {
+						csvBtn.prop('disabled', false);
+					}
+					if (csvFlattenedBtn != null) {
+						csvFlattenedBtn.prop('disabled', false);
+					}
+					
 					EventBus.trigger("close:downloadToQueue");
 				},
 				error : function(data) {
+					if (csvBtn != null) {
+						csvBtn.prop('disabled', false);
+					}
+					if (csvFlattenedBtn != null) {
+						csvFlattenedBtn.prop('disabled', false);
+					}
 					alert("there was an error\n\n" + data);
-					//$("body").html("there was an error\n\n" + data);
+					// $("body").html("there was an error\n\n" + data);
 				}
 			});
 		}

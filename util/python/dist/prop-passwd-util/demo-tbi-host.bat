@@ -1,0 +1,1 @@
+propPasswdUtil.py --props=.\conf\demo-tbi.host

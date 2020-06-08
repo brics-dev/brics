@@ -225,7 +225,7 @@
 	<label for="upload">Study Picture File :</label>
 	<s:file id="graphicFile" name="studyDetailsForm.upload" cssStyle="float:left;" />
 	<s:hidden id="graphicFileName" name="studyDetailsForm.uploadFileName" />
-		<s:fielderror fieldName="graphicFileName" />
+		<s:fielderror fieldName="studyDetailsForm.uploadFileName" />
 	<div style="clear: both; margin-left: 165px">
 		<b>Only JPEG or PNG File format, with preferred image size 200 x 160.</b>
 	</div>

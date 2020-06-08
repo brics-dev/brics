@@ -6,8 +6,15 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
+
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.SftpException;
+
 import gov.nih.tbi.account.service.complex.BaseManagerImpl;
-import gov.nih.tbi.commons.model.hibernate.User;
 import gov.nih.tbi.commons.service.ServiceConstants;
 import gov.nih.tbi.ordermanagement.util.OrderManagerCSVUtil;
 import gov.nih.tbi.ordermanager.dao.BiospecimenOrderDao;
@@ -18,13 +25,6 @@ import gov.nih.tbi.repository.model.hibernate.DatafileEndpointInfo;
 import gov.nih.tbi.repository.model.hibernate.UserFile;
 import gov.nih.tbi.repository.service.io.SftpClient;
 import gov.nih.tbi.repository.service.io.SftpClientManager;
-
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
-
-import com.jcraft.jsch.JSchException;
 
 @Service
 @Scope("singleton")
@@ -59,7 +59,7 @@ public class OrderManagerImpl extends BaseManagerImpl implements OrderManager
     }
 
     @Override
-    public Boolean storeOrderFiles(UserFile userFile, byte[] byteStream, String path)
+	public Boolean storeOrderFiles(UserFile userFile, byte[] byteStream, String path) throws SftpException
     {
 
         SftpClient client = getBricsSftpClient();

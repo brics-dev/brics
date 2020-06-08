@@ -1,5 +1,6 @@
 package gov.nih.nichd.ctdb.patient.dao;
 
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,6 +17,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.postgresql.util.PSQLException;
 
 import gov.nih.nichd.ctdb.common.CtdbDao;
@@ -38,9 +40,11 @@ import gov.nih.nichd.ctdb.patient.domain.PatientVisitPrepopValue;
 import gov.nih.nichd.ctdb.patient.domain.Phone;
 import gov.nih.nichd.ctdb.patient.domain.PhoneType;
 import gov.nih.nichd.ctdb.patient.util.PatientChangeTracker;
+import gov.nih.nichd.ctdb.protocol.dao.ProtocolManagerDao;
 import gov.nih.nichd.ctdb.protocol.domain.IntervalScheduleDisplay;
 import gov.nih.nichd.ctdb.protocol.domain.PrepopDataElement;
 import gov.nih.nichd.ctdb.protocol.domain.Protocol;
+import gov.nih.nichd.ctdb.protocol.domain.ProtocolRandomization;
 import gov.nih.nichd.ctdb.response.domain.AdministeredForm;
 import gov.nih.nichd.ctdb.util.common.SysPropUtil;
 import gov.nih.nichd.ctdb.util.domain.Address;
@@ -55,7 +59,7 @@ import gov.nih.nichd.ctdb.util.domain.Address;
 public class PatientManagerDao extends CtdbDao {
 	
 	private static final SimpleDateFormat enrollmentDateSDF = new SimpleDateFormat("yyyy-MM-dd");
-	
+	private static Logger logger = Logger.getLogger(PatientManagerDao.class);
 	/**
      * Private Constructor to hide the instance
      * creation implementation of the PatientManagerDao object
@@ -126,13 +130,16 @@ public class PatientManagerDao extends CtdbDao {
 //                throw new DuplicateObjectException("Subject with the Subject ID " + patient.getSubjectId() + " already exists in the system.");
 //            }
 //            
-            if ( this.isMrnExists(patient) ) {
+			if (this.isMrnExists(patient, protocolId)) {
                 throw new DuplicateObjectException("Subject with the subject MRN " + patient.getMrn() + " already exists in the system.");
             }
 
-            if ( this.isGuidExists(patient) ) {
-                throw new DuplicateObjectException("Subject with the subject GUID " + patient.getGuid() + " already exists in the system.");
-            }
+
+			if (this.isGuidExistsProtocol(patient, protocolId)) {
+				throw new DuplicateObjectException(
+						"Subject with the subject GUID " + patient.getGuid() + " already exists in the system.");
+			}
+
             
             query = "insert into patient (patientid, version, firstname, middlename, lastname, homephone, " +
             		"workphone, mobilephone, homeaddressid, nextofkin, email, sex, dob, createdby, createddate, updatedby, " +
@@ -329,7 +336,59 @@ public class PatientManagerDao extends CtdbDao {
      * Checks to see if the GUID already exists in the system.
      *
      */
-    private boolean isMrnExists(Patient patient) throws CtdbException {
+    public boolean isGuidExistsProtocol(Patient patient, int protocolId) throws CtdbException {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        boolean isGuidDuplicated = false;
+        String guid = patient.getGuid();
+        // Proceed only if the subject ID is valid
+        if( (guid == null) || (guid.length() == 0) ) {
+        	return false;
+        }
+
+        try {
+            String sql = "select count(p.guid) from patient p, protocol pt, patientprotocol pp " +
+					"where pp.patientid = p.patientid and pp.protocolid = pt.protocolid and "
+					+ "p.deleteflag = false and upper(p.guid) = upper(?) and pp.protocolid = ? ";
+            
+            // If updating patient, need to exclude the patient himself
+            if ( patient.getId() != Integer.MIN_VALUE ) {
+                sql += "and pp.patientid != ? ";
+            }
+            stmt = this.conn.prepareStatement(sql);
+            stmt.setString(1, guid);
+            stmt.setLong(2, protocolId);
+            if ( patient.getId() != Integer.MIN_VALUE ) {
+            	stmt.setLong(3, patient.getId());
+            }
+
+            rs = stmt.executeQuery();
+            int count = 0;
+            
+            if  (rs.next() ) {
+                count = rs.getInt(1);
+            }
+            
+            if ( count > 0 ) {
+                isGuidDuplicated = true;
+            }
+            
+            return isGuidDuplicated;
+        }
+        catch ( SQLException e ) {
+            throw new CtdbException("Unable to check if the subject GUID exists in the system: " + e.getMessage(), e);
+        }
+        finally {
+        	this.close(rs);
+            this.close(stmt);
+        }
+    }
+
+	/**
+	 * Checks to see if the GUID already exists in the system.
+	 *
+	 */
+	private boolean isMrnExists(Patient patient, int protocolId) throws CtdbException {
         PreparedStatement stmt = null;
         ResultSet rs = null;
         boolean isDuplicated = false;
@@ -341,9 +400,11 @@ public class PatientManagerDao extends CtdbDao {
         }
         
         try {
-            String sql = "select count(mrn) from patient " + 
-            			 "where patient.deleteflag = false and upper(" + getDecryptionFunc("mrn") + ") = upper(?) ";
-            
+			String sql = "select count(p.mrn) from patient p, protocol pt, patientprotocol pp "
+					+ "where pp.patientid = p.patientid and pp.protocolid = pt.protocolid and "
+					+ "p.deleteflag = false and upper(" + getDecryptionFunc("p.mrn")
+					+ ") = upper(?) and pp.protocolid = ? ";
+
             //if updating patient, need to exclude the patient himself
             if ( patient.getId() != Integer.MIN_VALUE ) {
                 sql += "and patientid != ? ";
@@ -351,9 +412,10 @@ public class PatientManagerDao extends CtdbDao {
             
             stmt = this.conn.prepareStatement(sql);
             stmt.setString(1, patient.getMrn());
+			stmt.setLong(2, protocolId);
             
             if ( patient.getId() != Integer.MIN_VALUE ) {
-            	stmt.setLong(2, patient.getId());
+				stmt.setLong(3, patient.getId());
             }
 
             rs = stmt.executeQuery();
@@ -589,6 +651,7 @@ public class PatientManagerDao extends CtdbDao {
      */
     public void softDeletePatient(Patient patient)  throws ObjectNotFoundException, DuplicateObjectException, CtdbException {
         PreparedStatement stmt = null;
+        PreparedStatement stmt2 = null;
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime());
         
         try {
@@ -606,6 +669,12 @@ public class PatientManagerDao extends CtdbDao {
             if ( recordsUpdated == 0 ) {
                 throw new ObjectNotFoundException("Failed subject deletion: The subject with ID: " + patient.getId() + " does not exist in the system.");
             }
+            
+            String sql2 = "update patientprotocol set subjectid = subjectid || \'_\' || to_char(CURRENT_TIMESTAMP,\'YYYYMMDD_HHMISS\') where subjectid is not null and patientid = ?";
+            stmt2 = this.conn.prepareStatement(sql2);
+            stmt2.setLong(1, patient.getId());
+            stmt2.executeUpdate();
+   
         }
         catch ( SQLException e ) {
         	// Check the sql state
@@ -618,6 +687,7 @@ public class PatientManagerDao extends CtdbDao {
         }
         finally {
             this.close(stmt);
+            this.close(stmt2);
         }
     }
     
@@ -699,8 +769,8 @@ public class PatientManagerDao extends CtdbDao {
         try {
             String sql = "insert into patientprotocol(patientid, protocolid, active, xpatientroleid, createdby, createddate, updatedby, " +
             			 "updateddate, subjectnumber, enrollmentdate, siteid, groupid, cohortid, completiondate, associated, " +
-            			 "recruited, futurestudy, validated, issubject, biorepositoryid, validatedby, validateddate,subjectid) " +
-            		 	 "values(?, ?, ?, ?, ?, CURRENT_TIMESTAMP,?,CURRENT_TIMESTAMP, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?) ";
+            			 "recruited, futurestudy, validated, issubject, validatedby, validateddate,subjectid, protocol_randomization_id) " +
+            		 	 "values(?, ?, ?, ?, ?, CURRENT_TIMESTAMP,?,CURRENT_TIMESTAMP, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ";
             
             stmt = this.conn.prepareStatement(sql);
             stmt.setInt(1, patient.getId());
@@ -748,21 +818,35 @@ public class PatientManagerDao extends CtdbDao {
             stmt.setBoolean(15, pp.isFutureStudy());
             stmt.setBoolean(16, pp.isValidated());
             stmt.setBoolean(17, pp.isSubject());
-            stmt.setString(18, pp.getBiorepositoryId());
+
             
             if ( pp.getValidatedBy() != Integer.MIN_VALUE ) {
-                stmt.setLong(19, pp.getValidatedBy());
+                stmt.setLong(18, pp.getValidatedBy());
             } else {
-                stmt.setNull(19, java.sql.Types.NUMERIC);
+                stmt.setNull(18, java.sql.Types.NUMERIC);
             }
             
             if ( pp.getValidatedDate() != null ) {
-                stmt.setTimestamp(20, new Timestamp(pp.getValidatedDate().getTime()));
+                stmt.setTimestamp(19, new Timestamp(pp.getValidatedDate().getTime()));
             } else {
-                stmt.setNull(20, java.sql.Types.DATE);
+                stmt.setNull(19, java.sql.Types.DATE);
             }
             
-            stmt.setString(21, pp.getSubjectId());
+            stmt.setString(20, pp.getSubjectId());
+            
+            /*Randomization*/
+            long protoRandomId = Integer.MIN_VALUE;
+            int protocolId = pp.getId();
+            ProtocolManagerDao protoManDao = ProtocolManagerDao.getInstance(conn);
+            boolean hasRandomization = protoManDao.checkIfProtoHasRandomization(protocolId);
+            if (hasRandomization) {
+            	protoRandomId = getProtRandomizationIdForPat(protocolId);
+            }
+            if(protoRandomId != Integer.MIN_VALUE) {
+            	stmt.setLong(21, protoRandomId);
+            } else {
+            	stmt.setNull(21, java.sql.Types.NUMERIC);
+            }
             
             stmt.executeUpdate();
         }
@@ -787,6 +871,54 @@ public class PatientManagerDao extends CtdbDao {
             this.close(stmt);
         }
     }
+    
+    public long getProtRandomizationIdForPat(int protocolId) throws CtdbException {
+    	long protoRandomId = Integer.MIN_VALUE;
+    	PreparedStatement stmt = null;
+    	ResultSet rs = null;
+    	
+    	try {
+        	String sql = "select * from patientprotocol where protocolid = ? "
+        				+ " order by createddate desc nulls last "
+        				+ " limit 1";
+            stmt = this.conn.prepareStatement(sql);
+            stmt.setInt(1, protocolId);
+            rs = stmt.executeQuery();
+            
+            long lastSequence = Integer.MIN_VALUE;
+            if ( rs.next() ) {
+            	int lastProtoRandomId = rs.getInt("protocol_randomization_id");
+            	if (!rs.wasNull()) {
+            		ProtocolRandomization lastRandom = this.getProtocolRandomizationById(lastProtoRandomId);
+            		lastSequence = lastRandom.getSequence();
+            	}
+            }
+            
+            long currSequence = Integer.MIN_VALUE;
+            if(lastSequence == Integer.MIN_VALUE) {
+            	currSequence = 1; 
+            } else {
+            	currSequence = lastSequence + 1;
+            }
+            ProtocolRandomization currRandom = this.getProtoRandomizationByProtoAndSeq(protocolId, currSequence);
+            protoRandomId = currRandom.getId();
+        }
+        catch ( SQLException e ) {
+        	// Check the sql state
+			if ( e.getSQLState().contains("39000") ) {
+				throw new CtdbException("Column decryption failed: " + e.getMessage(), e);
+			}
+			else {
+				throw new CtdbException("Unable to retrieve patient protocol by protocol id: " + protocolId + " " + e.getMessage(), e);
+			}
+        }
+        finally {
+            this.close(rs);
+            this.close(stmt);
+        }
+           	
+    	return protoRandomId;
+    }
 
     /**
      * Updates assignment of a Patient to Protocol in the CTDB System.
@@ -801,7 +933,7 @@ public class PatientManagerDao extends CtdbDao {
         try {
             String sql = "update patientprotocol set updatedby = ?, updateddate = CURRENT_TIMESTAMP, active = ?, xpatientroleid = ?,  " +
             			 " subjectnumber=? , enrollmentdate = ?, siteid = ?, groupid = ?, cohortid= ?, completiondate = ?, associated = ?, " +
-            			 " recruited=?, futurestudy=?, validated=?, issubject=?, biorepositoryid=?, validatedby=?,validateddate=?,subjectid= ?" +
+            			 " recruited=?, futurestudy=?, validated=?, issubject=?, validatedby=?,validateddate=?,subjectid= ?" +
             			 " where patientid = ? and protocolid = ? ";
             
             stmt = this.conn.prepareStatement(sql);
@@ -845,22 +977,21 @@ public class PatientManagerDao extends CtdbDao {
             stmt.setBoolean(12, pp.isFutureStudy());
             stmt.setBoolean(13, pp.isValidated());
             stmt.setBoolean(14, pp.isSubject());
-            stmt.setString(15, pp.getBiorepositoryId());
             
             if ( pp.getValidatedBy() != Integer.MIN_VALUE ) {
-                stmt.setLong(16, pp.getValidatedBy());
+                stmt.setLong(15, pp.getValidatedBy());
             } else {
-                stmt.setNull(16, java.sql.Types.NUMERIC);
+                stmt.setNull(15, java.sql.Types.NUMERIC);
             }
             
             if ( pp.isValidated() == false ) {
-                stmt.setNull(17, java.sql.Types.TIMESTAMP);
+                stmt.setNull(16, java.sql.Types.TIMESTAMP);
             } else {
-                stmt.setTimestamp(17, new Timestamp( new Date().getTime()));
+                stmt.setTimestamp(16, new Timestamp( new Date().getTime()));
             }
-            stmt.setString(18, patient.getSubjectId());
-            stmt.setLong(19, patient.getId());
-            stmt.setLong(20, pp.getId());
+            stmt.setString(17, patient.getSubjectId());
+            stmt.setLong(18, patient.getId());
+            stmt.setLong(19, pp.getId());
           
 
             stmt.executeUpdate();
@@ -1032,8 +1163,16 @@ public class PatientManagerDao extends CtdbDao {
 				AuditDetail ad = new AuditDetail();
 				ad.setUpdatedByUsername(rs.getString("username"));
 				ad.setFieldName(rs.getString("fieldChanged"));
-				ad.setFieldValueOriginal(rs.getString("fieldValue_old"));
-				ad.setFieldValueUpdated(rs.getString("fieldValue_new"));
+				if(rs.getString("fieldValue_old") == null || rs.getString("fieldValue_old").equals(Integer.toString(Integer.MIN_VALUE))) {
+					ad.setFieldValueOriginal("");
+				}else {
+					ad.setFieldValueOriginal(rs.getString("fieldValue_old"));
+				}
+				if(rs.getString("fieldValue_new") == null || rs.getString("fieldValue_new").equals(Integer.toString(Integer.MIN_VALUE))) {
+					ad.setFieldValueUpdated("");
+				}else {
+					ad.setFieldValueUpdated(rs.getString("fieldValue_new"));
+				}
 				ad.setUpdatedDate(rs.getTimestamp("changeDate"));
 				ad.setUpdatedByUsername(rs.getString("username"));
 				ad.setVersion(new Version(rs.getInt("patientversion")) );
@@ -1375,9 +1514,10 @@ public class PatientManagerDao extends CtdbDao {
         	sql.append("select distinct patientprotocol.subjectid, ")
         		.append(getDecryptionFunc("patient.mrn") + " as mrn, " + getDecryptionFunc("patient.lastname") + " as lastname, ")
         		.append(getDecryptionFunc("patient.firstname") + " as firstname, patient.version, patient.patientid, patient.guid, ")
-        		.append("patientprotocol.biorepositoryid, patientprotocol.recruited, patientprotocol.validated, patientprotocol.futurestudy, protocol.name as protocolname, ")
+        		.append("patientprotocol.recruited, patientprotocol.validated, patientprotocol.futurestudy, protocol.name as protocolname, ")
         		.append("protocol.patientdisplaytype, protocol.protocolnumber as protocolnumber, patientprotocol.orderval, ")
-        		.append("patientprotocol.subjectnumber, patientprotocol.protocolid, patientprotocol.active, patientgroup.name as groupname ")
+        		.append("patientprotocol.subjectnumber, patientprotocol.protocolid, patientprotocol.active, patientgroup.name as groupname, ")
+        		.append("patientprotocol.protocol_randomization_id ")
         		.append("from patient LEFT OUTER JOIN patientprotocol ON patient.patientid = patientprotocol.patientid ")
         		.append("LEFT OUTER JOIN protocol ON patientprotocol.protocolid = protocol.protocolid ")
         		.append("LEFT OUTER JOIN patientgroup ON patientprotocol.groupid = patientgroup.groupid ")
@@ -1414,6 +1554,80 @@ public class PatientManagerDao extends CtdbDao {
         return patients;
     }
     
+    public ProtocolRandomization getProtocolRandomizationById(int protRandomId) throws CtdbException {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        ProtocolRandomization randomization = new ProtocolRandomization();
+
+        try {
+        	String sql = "select * from protocol_randomization where protocol_randomization_id = ? ";
+            stmt = this.conn.prepareStatement(sql);
+            stmt.setInt(1, protRandomId);
+            rs = stmt.executeQuery();
+            
+            if ( rs.next() ) {
+            	randomization.setId(protRandomId);
+            	randomization.setProtocolId(rs.getLong("protocolid"));
+            	randomization.setSequence(rs.getLong("sequence"));
+            	randomization.setGroupName(rs.getString("groupname"));
+            	randomization.setGroupDescription(rs.getString("groupdescription"));
+            }
+        }
+        catch ( SQLException e ) {
+        	// Check the sql state
+			if ( e.getSQLState().contains("39000") ) {
+				throw new CtdbException("Column decryption failed: " + e.getMessage(), e);
+			}
+			else {
+				throw new CtdbException("Unable to retrieve protocol randomization by id: " + protRandomId + " " + e.getMessage(), e);
+			}
+        }
+        finally {
+            this.close(rs);
+            this.close(stmt);
+        }
+        
+        return randomization;
+    }
+    
+    public ProtocolRandomization getProtoRandomizationByProtoAndSeq(int protocolId, long sequence) throws CtdbException {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        ProtocolRandomization randomization = new ProtocolRandomization();
+
+        try {
+        	String sql = "select * from protocol_randomization where protocolid = ? and sequence = ? ";
+            stmt = this.conn.prepareStatement(sql);
+            stmt.setInt(1, protocolId);
+            stmt.setLong(2, sequence);
+            rs = stmt.executeQuery();
+            
+            if ( rs.next() ) {
+            	randomization.setId(rs.getInt("protocol_randomization_id"));
+            	randomization.setProtocolId(protocolId);
+            	randomization.setSequence(sequence);
+            	randomization.setGroupName(rs.getString("groupname"));
+            	randomization.setGroupDescription(rs.getString("groupdescription"));
+            }
+        }
+        catch ( SQLException e ) {
+        	// Check the sql state
+			if ( e.getSQLState().contains("39000") ) {
+				throw new CtdbException("Column decryption failed: " + e.getMessage(), e);
+			}
+			else {
+				throw new CtdbException("Unable to retrieve protocol randomization by protocolId: " + protocolId 
+						+ " and sequence " + sequence + " " + e.getMessage(), e);
+			}
+        }
+        finally {
+            this.close(rs);
+            this.close(stmt);
+        }
+        
+        return randomization;
+    }
+       
     /**
      * Gets patients with little information for fast retrieval and processing
      * mainly used on list screens where only an display and patient id are needed.
@@ -1422,10 +1636,11 @@ public class PatientManagerDao extends CtdbDao {
      * @return A list of patients for a given protocol ID.
      * @throws CtdbException If there are any database errors.
      */
-    public List<Patient> getMinimalPatients(long protocolId) throws CtdbException {
+    public List<Patient> getMinimalPatientsBySiteIds(long protocolId, List<Integer> siteIds) throws CtdbException {
     	List<Patient> patients = new ArrayList<Patient>();
     	 PreparedStatement stmt = null;
          ResultSet rs = null;
+         Array siteIdsArr = null;
          
          try {
         	 StringBuffer sql = new StringBuffer(200);
@@ -1433,30 +1648,42 @@ public class PatientManagerDao extends CtdbDao {
          	sql.append("select distinct patientprotocol.subjectid, ")
          		.append(getDecryptionFunc("patient.mrn") + " as mrn, " + getDecryptionFunc("patient.lastname") + " as lastname, ")
          		.append(getDecryptionFunc("patient.firstname") + " as firstname, patient.version, patient.patientid, patient.guid, ")
-         		.append("patientprotocol.biorepositoryid, patientprotocol.recruited, patientprotocol.validated, patientprotocol.futurestudy, protocol.name as protocolname, ")
+         		.append("patientprotocol.recruited, patientprotocol.validated, patientprotocol.futurestudy, protocol.name as protocolname, ")
          		.append("protocol.patientdisplaytype, protocol.protocolnumber as protocolnumber, patientprotocol.orderval, ")
-         		.append("patientprotocol.subjectnumber, patientprotocol.protocolid, patientprotocol.active, patientgroup.name as groupname ")
+         		.append("patientprotocol.subjectnumber, patientprotocol.protocolid, patientprotocol.active, patientgroup.name as groupname, ")
+         		.append("patientprotocol.protocol_randomization_id ")
          		.append("from patient LEFT OUTER JOIN patientprotocol ON patient.patientid = patientprotocol.patientid ")
          		.append("LEFT OUTER JOIN protocol ON patientprotocol.protocolid = protocol.protocolid ")
          		.append("LEFT OUTER JOIN patientgroup ON patientprotocol.groupid = patientgroup.groupid ")
-         		.append("where patient.deleteflag = false and COALESCE(protocol.DELETEFLAG, false) != true ")
-         		.append("and protocol.protocolid = ? order by subjectid asc ");
+         		.append("where patient.deleteflag = false and COALESCE(protocol.DELETEFLAG, false) != true ");
          	
-         	stmt = this.conn.prepareStatement(sql.toString());
-         	stmt.setLong(1, protocolId);
-         	rs = stmt.executeQuery();
-         	
-         	while ( rs.next() ) {
-         		patients.add(this.rsToPatientMin(rs));
-         	}
+			if(siteIds != null) {
+				Integer[] arrSiteIds = (Integer[]) siteIds.toArray(new Integer[siteIds.size()]);
+				siteIdsArr = this.conn.createArrayOf("BIGINT", arrSiteIds);
+				sql.append("and protocol.protocolid = ? and patientprotocol.siteid = ANY (?) order by subjectid asc ");
+			}else {
+				sql.append("and protocol.protocolid = ? order by subjectid asc ");
+			}
+  	         	stmt = this.conn.prepareStatement(sql.toString());
+	         	stmt.setLong(1, protocolId);
+	         	
+	         	if(siteIds != null) {
+	         		stmt.setArray(2, siteIdsArr);
+	         	}
+	         	rs = stmt.executeQuery();
+	         	
+	         	while ( rs.next() ) {
+	         		patients.add(this.rsToPatientMin(rs));
+	         	}
+        	 
          }
          catch ( SQLException e ) {
          	// Check the sql state
  			if ( e.getSQLState().contains("39000") ) {
- 				throw new CtdbException("Column decryption failed: " + e.getMessage(), e);
- 			}
+ 				logger.error("Column decryption failed: " + e.getMessage(), e);
+  			}
  			else {
- 				throw new CtdbException("Unable to retrieve subjects for subject home: " + e.getMessage(), e);
+ 				logger.error("Unable to retrieve subject for the site : " + e.getMessage(), e);
  			}
          }
          finally {
@@ -1600,7 +1827,7 @@ public class PatientManagerDao extends CtdbDao {
             			 "patientprotocol.subjectnumber, patientProtocol.enrollmentdate, patientprotocol.siteid, patientprotocol.groupid, " +
             			 "patientprotocol.cohortid, patientprotocol.completiondate, patientprotocol.associated, patientprotocol.futurestudy, " +
             			 "patientprotocol.recruited, patientprotocol.validated, patientprotocol.validatedBy,patientprotocol.validatedDate, " +
-            			 "patientprotocol.issubject, patientprotocol.biorepositoryid, subjectid " +
+            			 "patientprotocol.issubject, subjectid " +
             			 "from patientprotocol JOIN protocol ON protocol.protocolid = patientprotocol.protocolid LEFT OUTER JOIN protocolpatientrole " +
             			 "ON patientprotocol.xpatientroleid = protocolpatientrole.xpatientroleid " +
             			 "where coalesce(protocol.DELETEFLAG, false) != true  and subjectid = ?";
@@ -1644,7 +1871,7 @@ public class PatientManagerDao extends CtdbDao {
             			 "patientprotocol.subjectnumber, patientProtocol.enrollmentdate, patientprotocol.siteid, patientprotocol.groupid, " +
             			 "patientprotocol.cohortid, patientprotocol.completiondate, patientprotocol.associated, patientprotocol.futurestudy, " +
             			 "patientprotocol.recruited, patientprotocol.validated, patientprotocol.validatedBy,patientprotocol.validatedDate, " +
-            			 "patientprotocol.issubject, patientprotocol.biorepositoryid, subjectid " +
+            			 "patientprotocol.issubject, subjectid " +
             			 "from patientprotocol JOIN protocol ON protocol.protocolid = patientprotocol.protocolid LEFT OUTER JOIN protocolpatientrole " +
             			 "ON patientprotocol.xpatientroleid = protocolpatientrole.xpatientroleid " +
             			 "where patientid = ? and coalesce(protocol.DELETEFLAG, false) != true ";
@@ -1958,7 +2185,7 @@ public class PatientManagerDao extends CtdbDao {
      * @return Patient data object
      * @throws SQLException If any errors occur while retrieving data from result set
      */
-    private Patient rsToPatientMin(ResultSet rs) throws SQLException {
+    private Patient rsToPatientMin(ResultSet rs) throws SQLException, CtdbException {
     	Patient patient = new Patient();
         patient.setId(rs.getInt("patientid"));
         patient.setPatientId(rs.getInt("patientid"));
@@ -1976,10 +2203,16 @@ public class PatientManagerDao extends CtdbDao {
         pro.setName(rs.getString("protocolname"));
         pro.setProtocolNumber(rs.getString("protocolnumber"));
         pro.setGroupName(notNull(rs.getString("groupname")));
-        pro.setBiorepositoryId(rs.getString("biorepositoryid"));
         pro.setValidated(rs.getBoolean("validated"));
         pro.setRecruited(rs.getBoolean("recruited"));
         pro.setFutureStudy(rs.getBoolean("futurestudy"));
+        
+        int protRandomizationId = rs.getInt("protocol_randomization_id");
+        ProtocolRandomization randomization = new ProtocolRandomization();
+        if(!rs.wasNull()) {
+        	randomization = this.getProtocolRandomizationById(protRandomizationId);
+        }        
+        pro.setProtocolRandomization(randomization);
         
         List<PatientProtocol> protocols = new ArrayList<PatientProtocol>();
         protocols.add(pro);
@@ -2033,7 +2266,6 @@ public class PatientManagerDao extends CtdbDao {
         
         protocol.setFutureStudy(rs.getBoolean("futurestudy"));
         protocol.setRecruited(rs.getBoolean("recruited"));
-        protocol.setBiorepositoryId(rs.getString("biorepositoryid"));
         protocol.setValidated(rs.getBoolean("validated") );
         
         if ( rs.getString("validatedby") != null ) {
@@ -2089,7 +2321,6 @@ public class PatientManagerDao extends CtdbDao {
         
         protocol.setFutureStudy(rs.getBoolean("futurestudy"));
         protocol.setRecruited(rs.getBoolean("recruited"));
-        protocol.setBiorepositoryId(rs.getString("biorepositoryid"));
         protocol.setValidated(rs.getBoolean("validated") );
         
         if ( rs.getString("validatedby") != null ) {
@@ -2666,6 +2897,67 @@ public class PatientManagerDao extends CtdbDao {
 
     /**
      * Retrieve the list of patient visits 
+     * @param siteIds 
+     * @param roleId 
+     * @param Patient result control
+     * @return the list of visits 
+     * @throws CtdbException the exception
+     */
+	public List<PatientVisit> getPatientVisitsUserSiteIds(PatientVisitResultControl pvrc,long protocolId, List<Integer> siteIds) throws ObjectNotFoundException, CtdbException {
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		List<PatientVisit> visitList = new ArrayList<PatientVisit>();
+		PatientVisit visit = new PatientVisit();
+		Array siteIdsArr = null;
+		try {
+			 StringBuffer sql = new StringBuffer(200);
+        	 sql.append("select " +  getDecryptionFunc("p.mrn") + " as mrn, p.guid, " +  getDecryptionFunc("p.email") + " as email, pp.subjectid, " +
+						 getDecryptionFunc("p.firstname") + " as firstname, " + getDecryptionFunc("p.lastname") + " as lastname, " +
+						 "pv.visitdateid, pv.patientid, pv.intervalid, pv.token, pv.protocolid, pv.visitdate, pv.comments, pv.intervalclinicalpointid, i.name as visitType " +
+						 "from patientvisit pv join patient p on p.patientid = pv.patientid join patientprotocol pp on p.patientid=pp.patientid " + pvrc.getSearchClause() +
+						 "left outer join interval as i on pv.intervalid = i.intervalid where p.deleteflag = false and pp.protocolid=? ");
+			
+			if(siteIds != null) {
+				Integer[] arrSiteIds = (Integer[]) siteIds.toArray(new Integer[siteIds.size()]);
+				siteIdsArr = this.conn.createArrayOf("BIGINT", arrSiteIds);
+				sql.append(" and pp.siteid = ANY (?) order by visitdate");
+			}else {
+				sql.append(" order by visitdate");
+			}
+			
+				stmt = this.conn.prepareStatement(sql.toString());
+				stmt.setLong(1, protocolId);
+				if(siteIds != null) {
+					stmt.setArray(2, siteIdsArr);
+				}
+			rs = stmt.executeQuery();
+			
+			while ( rs.next() ) {
+				visit = rsToPatientVisit(rs);
+				visit.setEmail(rs.getString("email"));
+				visitList.add(visit);
+			}
+			
+		}
+		catch ( SQLException e ) {
+			// Check the sql state
+			if ( e.getSQLState().contains("39000") ) {
+				logger.error("Column decryption failed: " + e.getMessage(), e);
+			}
+			else {
+				logger.error("Error occured while getting the subject visit list: " + e.getMessage(), e);
+			}
+		}
+		finally {
+			this.close(rs);
+			this.close(stmt);
+		}
+		
+		return visitList;
+	}
+	
+	   /**
+     * Retrieve the list of patient visits 
      * @param Patient result control
      * @return the list of visits 
      * @throws CtdbException the exception
@@ -2675,9 +2967,9 @@ public class PatientManagerDao extends CtdbDao {
 		ResultSet rs = null;
 		List<PatientVisit> visitList = new ArrayList<PatientVisit>();
 		PatientVisit visit = new PatientVisit();
-		
+
 		try {
-			String sql = "select " +  getDecryptionFunc("p.mrn") + " as mrn, p.guid,pp.subjectid, " +
+			String sql = "select " +  getDecryptionFunc("p.mrn") + " as mrn, p.guid, " +  getDecryptionFunc("p.email") + " as email, pp.subjectid, " +
 						 getDecryptionFunc("p.firstname") + " as firstname, " + getDecryptionFunc("p.lastname") + " as lastname, " +
 						 "pv.visitdateid, pv.patientid, pv.intervalid, pv.token, pv.protocolid, pv.visitdate, pv.comments, pv.intervalclinicalpointid, i.name as visitType " +
 						 "from patientvisit pv join patient p on p.patientid = pv.patientid join patientprotocol pp on p.patientid=pp.patientid " + pvrc.getSearchClause() +
@@ -2692,6 +2984,7 @@ public class PatientManagerDao extends CtdbDao {
 				visit.setSubjectId(rs.getString("subjectid"));
 				visit.setMrn(rs.getString("mrn"));
 				visit.setGuid(rs.getString("guid"));
+		        visit.setEmail(rs.getString("email"));
 				visit.setPatientFirstName(rs.getString("firstname"));
 				visit.setPatientLastName(rs.getString("lastname"));
 				visit.setId(rs.getInt("visitDateId"));
@@ -2755,6 +3048,88 @@ public class PatientManagerDao extends CtdbDao {
 			
 			if ( pvrc.getProtocolId() > Integer.MIN_VALUE ) {
 				stmt.setLong(3, pvrc.getProtocolId());
+			}
+			
+			rs = stmt.executeQuery();
+			
+			while ( rs.next() ) {
+				visit = new PatientVisit();
+				visit.setSubjectId(rs.getString("subjectid"));
+				visit.setMrn(rs.getString("mrn"));
+				visit.setGuid(rs.getString("guid"));
+				visit.setPatientFirstName(rs.getString("firstname"));
+				visit.setPatientLastName(rs.getString("lastname"));
+				visit.setId(rs.getInt("visitDateId"));
+				visit.setPatientId(rs.getInt("patientId"));
+				visit.setProtocolId(rs.getInt("protocolId"));
+				visit.setIntervalId(rs.getInt("intervalid"));
+				visit.setVisitDate(rs.getTimestamp("visitDate"));
+				visit.setIntervalName(notNull(rs.getString("visitType")));
+				visit.setProtocolNumber(rs.getString("protocolnumber"));
+				visit.setToken(rs.getString("token"));
+				visit.setComments(rs.getString("comments"));
+				visit.setIntervalClinicalPointId(rs.getInt("intervalclinicalpointid"));
+				visitList.add(visit);
+			}
+		}
+		catch (SQLException e) {
+			// Check the sql state
+			if ( e.getSQLState().contains("39000") ) {
+				throw new CtdbException("Column decryption failed: " + e.getMessage(), e);
+			}
+			else {
+				throw new CtdbException("Error occur while getting the subject visit list : " + e.getMessage(), e);
+			}
+		}
+		finally {
+			this.close(rs);
+			this.close(stmt);
+		}
+		
+		return visitList;
+	}
+	
+	public List<PatientVisit> getMonthPatientVisitsBySites(PatientVisitResultControl pvrc, List<Integer> siteIds) throws ObjectNotFoundException, CtdbException {
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		List<PatientVisit> visitList = new ArrayList<PatientVisit>();
+		PatientVisit visit = new PatientVisit();
+		
+		String inClause = "";
+		for (int i = 0; i < siteIds.size(); i++) {
+		  inClause += "?";
+		  if (i < siteIds.size() - 1) {
+			  inClause += ",";
+		  }
+		}
+		
+		try {
+			String sql = "select distinct " + getDecryptionFunc("p.mrn") + " as mrn,p.guid,pp.subjectid, " 
+						 + getDecryptionFunc("p.firstname") + " as firstname, " + getDecryptionFunc("p.lastname") + " as lastname, " 
+						 + " pv.visitdateid, pv.patientid, pv.intervalid, pv.protocolid, pv.visitdate, pv.token, pv.comments, "
+						 + " pv.intervalclinicalpointid, i.name as visitType, pro.protocolnumber " 
+						 + " from patientvisit pv join patient p on p.patientid = pv.patientid  "
+						 + " join patientprotocol pp on pp.patientid=p.patientid and pv.protocolid = pp.protocolid "
+						 + " join protocol pro on pro.protocolid = pp.protocolid "
+						 + " left outer join interval i on pv.intervalid = i.intervalid "
+						 + " WHERE pv.visitdate > ? AND pv.visitdate < ? and p.deleteflag = false and pro.deleteFlag = false ";
+			
+			if ( pvrc.getProtocolId() > Integer.MIN_VALUE ) {
+				sql += "AND pp.protocolid = ? AND pp.siteid in (" + inClause + ") ";
+			}
+			
+			sql += "order by pv.visitdate ";
+			
+			stmt = this.conn.prepareStatement(sql);
+			stmt.setTimestamp(1, new Timestamp(pvrc.getStartDate().getTime()));
+			stmt.setTimestamp(2, new Timestamp(pvrc.getEndDate().getTime()));
+			
+			if ( pvrc.getProtocolId() > Integer.MIN_VALUE ) {
+				stmt.setLong(3, pvrc.getProtocolId());
+			}
+			
+			for (int i = 0; i < siteIds.size(); i++) {
+				 stmt.setInt(4 + i, siteIds.get(i));
 			}
 			
 			rs = stmt.executeQuery();
@@ -3236,5 +3611,176 @@ public class PatientManagerDao extends CtdbDao {
         }
         
         return patList;
+    }
+    
+    public List<Patient> getPatientListByProtocolAndSite(Integer protocolId, Integer siteId) throws ObjectNotFoundException, CtdbException {
+    	List<Patient> patList = new ArrayList<Patient>();
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        
+        try {
+            String sql_patient_protocol_site = selectStarFromPatient + " from patient "
+ 										+ " INNER JOIN patientvisit on patientvisit.patientid = patient.patientid " 
+ 										+ " INNER JOIN patientprotocol patientprotocol ON patientvisit.patientid = patientprotocol.patientid and patientvisit.protocolid = patientprotocol.protocolid "
+            		 					+ " WHERE patientprotocol.protocolid = ? and patientprotocol.siteid = ? "
+            		 					+ " ORDER BY patient.guid  ";
+            stmt = this.conn.prepareStatement(sql_patient_protocol_site);
+            stmt.setInt(1, protocolId);
+            stmt.setInt(2, siteId);
+
+            rs = stmt.executeQuery();
+            while(rs.next()){
+	            Patient patient = this.rsToPatient(rs);
+	            patList.add(patient);
+            }
+        }
+        catch ( SQLException e ) {
+        	// Check the sql state
+			if ( e.getSQLState().contains("39000") ) {
+				throw new CtdbException("Column decryption failed: " + e.getMessage(), e);
+			}
+			else {
+				throw new CtdbException("Unable to retrieve subject: " + e.getMessage(), e);
+			}
+        }
+        finally {
+            this.close(rs);
+            this.close(stmt);
+        }
+        
+        return patList;
+    }   
+
+	public List<Patient> getPatientListByProtocolAndSites(Integer protocolId, Integer[] siteIds)
+			throws ObjectNotFoundException, CtdbException {
+		List<Patient> patList = new ArrayList<Patient>();
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+
+		try {
+			StringBuffer sql = new StringBuffer();
+			sql.append(selectStarFromPatient);
+			sql.append(" from patient "
+					+ " INNER JOIN patientvisit on patientvisit.patientid = patient.patientid "
+					+ " INNER JOIN patientprotocol patientprotocol ON patientvisit.patientid = patientprotocol.patientid and patientvisit.protocolid = patientprotocol.protocolid "
+					+ " WHERE patientprotocol.protocolid = ? and patientprotocol.siteid = ANY (?) ORDER BY patient.guid");
+
+
+			Array siteIdsArr = this.conn.createArrayOf("BIGINT", siteIds);
+
+			stmt = this.conn.prepareStatement(sql.toString());
+			stmt.setInt(1, protocolId);
+			stmt.setArray(2, siteIdsArr);
+			rs = stmt.executeQuery();
+			while (rs.next()) {
+				Patient patient = this.rsToPatient(rs);
+				patList.add(patient);
+			}
+		} catch (SQLException e) {
+			// Check the sql state
+			if (e.getSQLState().contains("39000")) {
+				throw new CtdbException("Column decryption failed: " + e.getMessage(), e);
+			} else {
+				throw new CtdbException("Unable to retrieve subject: " + e.getMessage(), e);
+			}
+		} finally {
+			this.close(rs);
+			this.close(stmt);
+		}
+
+		return patList;
+	}
+	
+	
+	@SuppressWarnings("deprecation")
+	public List<Patient> getPatientListByProtocolIdAndSiteIds(Integer protocolId, List<Integer> siteIds)
+			throws ObjectNotFoundException, CtdbException{
+		
+		List<Patient> patList = new ArrayList<Patient>();
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		PatientResultControl prc = new PatientResultControl();
+
+		try {
+				for (int siteId:siteIds) {
+					String query = "select distinct patientprotocol.subjectid, " + 
+							getDecryptionFunc("patient.mrn") + " as mrn, " + getDecryptionFunc("patient.lastname") + " as lastname, " + 
+							getDecryptionFunc("patient.firstname") + " as firstname, patient.version, patient.patientid, patient.guid, " + 
+							" patientprotocol.recruited, patientprotocol.validated, patientprotocol.futurestudy, protocol.name as protocolname, " + 
+							" protocol.patientdisplaytype, protocol.protocolnumber as protocolnumber, patientprotocol.orderval, " + 
+							" patientprotocol.subjectnumber, patientprotocol.protocolid, patientprotocol.active, patientgroup.name as groupname, " + 
+							" patientprotocol.protocol_randomization_id " + 
+							" from patient LEFT OUTER JOIN patientprotocol ON patient.patientid = patientprotocol.patientid " + 
+							" LEFT OUTER JOIN protocol ON patientprotocol.protocolid = protocol.protocolid " + 
+							" LEFT OUTER JOIN patientgroup ON patientprotocol.groupid = patientgroup.groupid " + 
+							" where patient.deleteflag = false and COALESCE(protocol.DELETEFLAG, false) != true " + 
+							"       and patientprotocol.protocolid = ? and patientprotocol.siteid = ? " +
+							prc.getSearchClause();
+		            if ( prc.isInProtocol() ) {
+		            	query += prc.getSortString();
+		            } else {
+		            	query += " order by guid " + prc.getSortOrder();
+		            }
+		            stmt = this.conn.prepareStatement(query);
+					stmt.setLong(1, protocolId);
+					stmt.setInt(2, siteId);
+			
+					rs = stmt.executeQuery();
+	
+					while (rs.next()) {
+						Patient patient = this.rsToPatientMin(rs);
+						patList.add(patient);
+					
+					}
+				}
+			
+			
+		} catch (SQLException e) {
+			// Check the sql state
+			if (e.getSQLState().contains("39000")) {
+				throw new CtdbException("Column decryption failed: " + e.getMessage(), e);
+			} else {
+				throw new CtdbException("Unable to retrieve subject: " + e.getMessage(), e);
+			}
+		} finally {
+			this.close(rs);
+			this.close(stmt);
+		}
+
+		return patList;
+	}
+	
+	/*Check if any patient in a protocol has been assigned to a randomized group*/
+    public boolean checkIfAnyPatProtoHasRandomization(int protocolId) throws CtdbException {
+    	boolean hasRandomization = false;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        
+        try {
+        	String sql = "select * from patientprotocol where protocolid = ? and protocol_randomization_id is not null limit 1";
+            stmt = this.conn.prepareStatement(sql);
+            stmt.setInt(1, protocolId);
+            rs = stmt.executeQuery();
+            
+            if ( rs.next() ) {
+                hasRandomization = true;           	
+            }
+        }
+        catch ( SQLException e ) {
+        	// Check the sql state
+			if ( e.getSQLState().contains("39000") ) {
+				throw new CtdbException("Column decryption failed: " + e.getMessage(), e);
+			}
+			else {
+				throw new CtdbException("Unable to retrieve randomization group by protocolId: " + protocolId
+						+ e.getMessage(), e);
+			}
+        }
+        finally {
+            this.close(rs);
+            this.close(stmt);
+        }
+        
+        return hasRandomization;
     }
 }
